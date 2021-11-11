@@ -1,5 +1,5 @@
 ---
-title: "SGC3_A"
+title: "SGC3_A Participants"
 output: 
   # rmdformats::robobook:
   html_document:
@@ -11,7 +11,7 @@ output:
       smooth_scroll: false
 ---
 
-*The purpose of this notebook is to analyze data collected for study SGC-3: The Insight Hypothesis *
+*The purpose of this notebook is to analyze _participant-level data_ collected for study SGC-3: The Insight Hypothesis *
 
 ```{r SETUP, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -40,7 +40,9 @@ df_spring <- read.csv(spring_partcipants)
 
 #Create combined data frame
 df_subjects <- rbind(df_fall, df_spring)
-df_subjects$tt_min <- df_subjects$triangular_time / 1000 / 60
+df_subjects$tri_min <- df_subjects$triangular_time / 1000 / 60
+df_subjects$test_min <- df_subjects$tt_t / 1000 / 60
+df_subjects$learn_min <- df_subjects$ts_t / 1000 / 60
 
 #Create factors 
 df_subjects <- df_subjects %>% mutate(
@@ -131,27 +133,25 @@ qqPlot(df_subjects$triangular_score)
 
 ## Response Latency
 
-### TODO: Investigate response times
+### TODO: Investigate high and low response times
 <span style="color: red;">TODO: Investigate super high and super low response times.</span>.
 
-```{r LATENCY}
+```{r}
 
 #DESCRIBE distribution of triangular-correct scores
-time.stats <- favstats(df_subjects$tt_min)
+time.stats <- favstats(df_subjects$tri_min)
 time.stats
-stat.desc(df_subjects$tt_min)
+stat.desc(df_subjects$tri_min)
 
 #VISUALIZE distribution of response accuracy
-gf_dhistogram(~tt_min, data = df_subjects) %>%
+gf_dhistogram(~tri_min, data = df_subjects) %>%
   gf_vline(xintercept = time.stats$mean, color = "red")
 ```
 Response latency (for test blocks) range from `r round(time.stats$min,2)` minutes to `r round(time.stats$max,2)` minutes with a mean time of (M = `r round(time.stats$mean,2)`, SD = `r round(time.stats$sd,2)`). 
 
 ```{r LATENCY-NORMAL}
-qqPlot(df_subjects$tt_min)
+qqPlot(df_subjects$tri_min)
 ```
-
-
 
 
 # HYPOTHESIS TESTING
@@ -186,7 +186,8 @@ Accuracy scores (n = `r nrow(df_subjects)`) range from `r round(score.stats$min,
 
 #MODEL triangular score by condition with a linear model
 m1 = lm(triangular_score ~ condition, data = df_subjects)
-m1
+summary(m1)
+
 
 #the first co-efficient represents the model estimate for the first group, the second, the difference for the second group
 
@@ -201,7 +202,151 @@ eta_squared(m1, partial = FALSE)
 
 A linear model predicting triangular score accuracy by condition explains approximately 7% of the variance in triangular score F(1,124) = 9.32, p < 0.05)
 
+
 # POST-HOC EXPLORATION 
+
+## 1. Response Accuracy
+## 1.1 Learning VS Testing 
+In SGC3A, participants are provided with 15 questions. For the first 5 questions, they experience a 'scaffolded' version the stimuli (control condition = 111, impasse scaffold = 121). 
+
+What if we **only** consider the final 10 test items? Assume students have 5 questions worth of scaffolding to figure out the graph for themselves, and we only assess accuracy for the final ten items? Is our experimental hypothesis supported?
+
+```{r TESTING}
+#DESCRIBE scores by condition
+test.stats <- favstats(tt_n ~ condition, data = df_subjects)
+
+#VISUALIZE scores by condition
+gf_dhistogram( ~tt_n, fill= ~condition, data = df_subjects) %>% 
+  gf_facet_grid(condition~.) %>% 
+  gf_vline(xintercept = ~mean, data = test.stats, color = "blue") 
+
+#VISUALIZE scores by condition
+gf_boxplot(tt_n ~ condition, data=df_subjects) %>% 
+  gf_jitter(color=~condition, alpha=0.5)
+
+```
+
+```{r TEST-model}
+
+mTest = lm(tt_n ~ condition, data = df_subjects)
+summary(mTest)
+
+anova(mTest)
+# supernova(mTest)
+```
+
+A linear regression model predicting score (test blocks only) from condition explained 5% of variance, F(1,124) = 7.17, p < 0.05. 
+
+
+
+## 2. Response Latency
+
+### 2.1 Response Latency vs. Accuracy
+
+Are response time (on the triangular blocks (test and learn)) and response accuracy correlated? <br>
+
+```{r time-accuracy}
+
+#VISUALIZE relationship between response time and accuracy
+gf_jitter(tri_min ~ triangular_score, data = df_subjects) %>% 
+  gf_lm()
+
+#VISUALIZE relationship between response time and accuracy by condition
+gf_jitter(tri_min ~ triangular_score, color = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(~condition) %>% 
+  gf_lm()
+
+```
+<br> From visual inspection, it does not *appear* that score and time and strongly correlated. 
+
+```{r model-time-accuracy}
+
+#simple linear model predicting triangular score from triangular time
+m1 = lm(triangular_score ~ tri_min, data = df_subjects)
+
+summary(m1, correlation=TRUE)
+
+cor.test(df_subjects$triangular_score, df_subjects$tri_min)
+```
+However, a simple linear regression indicates a significant (though small) negative correlation between score accuracy and response time r = -0.18, t(124) = -2.04, p < 0.05.  
+
+### 2.2 Is Response Latency predictive?
+
+Does adding response time to the model help predict score accuracy?
+
+```{r}
+
+#simple  model predicting triangular score from triangular time
+m1 = lm(triangular_score ~ condition, data = df_subjects)
+m2 = lm(triangular_score ~ condition + tri_min, data = df_subjects)
+summary(m1)
+summary(m2)
+anova(m1) # supernova(m1)
+anova(m2) # supernova(m2)
+```
+The model predicting accuracy with condition and response latency explains 9% variance, while the model with only accuracy explains 7% variance, however, the response latency predictor does not reach significance at the 5% alpha level. 
+
+<span style="color: red;">TODO: What is the appropriate inference to draw from this model comparison?</span>.
+
+
+
+### 2.3. Response Latency on Learn (v) Test
+
+```{r message=FALSE}
+
+#DESCRIBE distribution of learning block times scores
+learn.time.stats <- favstats(df_subjects$learn_min)
+learn.time.stats
+
+#VISUALIZE distribution of learning block time
+gf_dhistogram(~learn_min, data = df_subjects) %>%
+  gf_vline(xintercept = mean(df_subjects$learn_min), color = "red") %>% 
+  gf_labs(title = "Distribution of LEARN block response time ")
+
+```
+Total learning block times ranged from `r round(learn.time.stats$min,2)` min to `r round(learn.time.stats$max, 2)`, with M = `r round(learn.time.stats$mean, 2)`, SD = `r round(learn.time.stats$sd, 2)`. 
+
+
+```{r message=FALSE}
+
+#DESCRIBE distribution of learning block times scores
+test.time.stats <- favstats(df_subjects$test_min)
+test.time.stats
+
+#VISUALIZE distribution of learning block time
+gf_dhistogram(~test_min, data = df_subjects) %>%
+  gf_vline(xintercept = mean(df_subjects$test_min), color = "red") %>% 
+  gf_labs(title = "Distribution of TEST block response time ")
+
+```
+
+Total testing block times ranged from `r round(test.time.stats$min,2)` min to `r round(test.time.stats$max, 2)`, with M = `r round(test.time.stats$mean, 2)`, SD = `r round(test.time.stats$sd, 2)`. 
+
+Is time spent on learning (v) testing blocks correlated?
+
+```{r}
+
+#VISUALIZE test v learning block time
+gf_point(test_min ~ learn_min, color = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(~condition) %>% 
+  gf_lm()
+
+```
+
+
+
+```{r}
+
+m1 <- lm( test_min ~ learn_min , data = df_subjects)
+summary(m1)
+anova(m1) #supernova(m1)
+
+cor.test(df_subjects$test_min, df_subjects$learn_min)
+
+```
+A linear model predicting test block time from learning block time reveals that learning block time explains 12% variance in testing block time (F(1,124) = 17.1, p < 0.001), with an 18s increase in testing time for every 1 minute increase in learning time. The two variables have a small, significant correlation r = 0.35, t(124) = 4.13, p < 0.001, 95% CI [0.18, 0.49]. 
+
+# DUE DILLIGENCE
 
 ## 1. Power Analysis
 What is the appropriate sample size to detect a moderate-sized effect (f = 0.25) at a 0.05 alpha level? 

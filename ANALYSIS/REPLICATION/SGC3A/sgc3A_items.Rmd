@@ -1,0 +1,73 @@
+---
+title: "SGC3_A Items"
+output: 
+  # rmdformats::robobook:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+*The purpose of this notebook is to analyze item-level data collected for study SGC-3: The Insight Hypothesis *
+
+```{r SETUP, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#IMPORT LIBRARIES
+library(rmdformats)
+library(dplyr) #tidyverse data handling
+# library(tables) # pretty tables
+library(pastecs) #stat.desc
+library(mosaic) #simple descriptives [favstats]
+
+library(ggplot2) #graphs
+library(car) #ANOVA, qqplot
+library(effectsize) #effect size
+library(pwr) #power analysis
+
+```
+  
+```{r IMPORT-DATA}  
+#IMPORT DATA from fall and spring files
+fall_items <- "data/fall_sgc3a_blocks.csv"
+spring_items <- "data/spring_sgc3a_blocks.csv"
+
+df_fall <- read.csv(fall_items)
+df_spring <- read.csv(spring_items)
+
+#Create combined data frame
+df_items <- rbind(df_fall, df_spring)
+df_items$time_sec <- df_items$rt / 1000 
+
+#Create factors 
+df_items <- df_items %>% mutate(
+  subject = as.factor(subject),
+  session = as.factor(session),
+  term = as.factor(term),
+  condition = as.factor(condition),
+  explicit = as.factor(explicit),
+  impasse = as.factor(impasse),
+  axis = as.factor(axis),
+  q = as.factor(q),
+  question = as.factor(question)
+)
+
+```
+
+# VALIDATION
+
+Sanity check flatten.js scripts by generating participant totals directly from item-level data 
+
+```{r}
+
+df_sanity <- df_items %>% filter(!q == 16) %>% group_by(subject) %>% summarise(
+  tri_correct = sum(correct),
+  orth_correct = sum(orth_correct),
+  total = tri_correct + orth_correct
+)
+df_sanity
+
+```
