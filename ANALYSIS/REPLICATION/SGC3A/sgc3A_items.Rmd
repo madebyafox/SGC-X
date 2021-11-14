@@ -19,6 +19,9 @@ knitr::opts_chunk$set(echo = TRUE)
 #IMPORT LIBRARIES
 library(rmdformats)
 library(dplyr) #tidyverse data handling
+library(tidyr) #pivot
+library(forcats)#for factor re-ordering
+library(ggpubr) #joining plots (alt to gridExtra)
 # library(tables) # pretty tables
 library(pastecs) #stat.desc
 library(mosaic) #simple descriptives [favstats]
@@ -34,13 +37,31 @@ library(pwr) #power analysis
 #IMPORT DATA from fall and spring files
 fall_items <- "data/fall_sgc3a_blocks.csv"
 spring_items <- "data/spring_sgc3a_blocks.csv"
-
 df_fall <- read.csv(fall_items)
 df_spring <- read.csv(spring_items)
 
 #Create combined data frame
 df_items <- rbind(df_fall, df_spring)
-df_items$time_sec <- df_items$rt / 1000 
+
+#Create extra fields 
+df_items$time_sec <- df_items$rt / 1000 #item time in seconds
+
+#Create answer-consistency column (desired values in column : TRI, ORTH, BOTH, NONE)
+df_items$consistency = 0 #set initial dummy values
+df_items <- df_items %>% mutate(consistency = replace(consistency, correct==1 & orth_correct==1, "Both"), #both
+                                consistency = replace(consistency, correct==0 & orth_correct==1, "Ortho"), #orthogonal
+                                consistency = replace(consistency, correct==1 & orth_correct==0, "Tri"), #triangular
+                                consistency = replace(consistency, correct==0 & orth_correct==0, "Neither"), #neither
+                                consistency = replace(consistency, answer=="", "BLANK")) #neither and BLANK
+                   
+#Create TOTAL column for future sorting
+df_totals <- df_items %>% filter(!q ==16) %>% group_by(subject)  %>% summarise(TOTAL = sum(correct))
+df_items <- left_join(df_items, df_totals)
+
+# #Code incorrect responses (not triangular or otho correct)
+# df_items$response <- df_items$orth_correct + df_items$correct #items not correct in tri or orth interpretation
+# df_items$response <- dplyr::recode( df_items$response, `1`= "right", `2`="both", `0`="wrong" )
+# df_items$incorrect <- dplyr::recode( df_items$response, "right"=0, "both"=0, "wrong"=1 )
 
 #Create factors 
 df_items <- df_items %>% mutate(
@@ -48,6 +69,7 @@ df_items <- df_items %>% mutate(
   session = as.factor(session),
   term = as.factor(term),
   condition = as.factor(condition),
+  consistency = as.factor(consistency),
   explicit = as.factor(explicit),
   impasse = as.factor(impasse),
   axis = as.factor(axis),
@@ -55,19 +77,324 @@ df_items <- df_items %>% mutate(
   question = as.factor(question)
 )
 
+#Change values of column names for later reshaping
+# df_items <- rename(df_items, rs_incorrect = incorrect)
+df_items <- rename(df_items, rs_tri = correct)
+df_items <- rename(df_items, rs_ortho = orth_correct)
+
+#Separate free response from (main) multiple choice blocks
+df_freeResponse <- df_items %>% filter(q==16)
+df_items <- df_items %>% filter (q!=16)
+
+#Cleanup temporary dataframes
+rm(df_fall, df_spring, df_totals)
 ```
 
-# VALIDATION
+# EXPLORATION
 
-Sanity check flatten.js scripts by generating participant totals directly from item-level data 
+
+## TIMECOURSE OF ACCURACY
+
+I have the intuition that (for an individual participant) accurate — inaccurate responses are not randomly distributed across the timecourse of the study. There should be a substantial learning effect, such that response are incorrect — until the individual has LEARNS how the coordinate system works - and then responses will be correct. 
+
+
+TODO: Visualize this
 
 ```{r}
 
-df_sanity <- df_items %>% filter(!q == 16) %>% group_by(subject) %>% summarise(
+#reshape the data into a table that will show this
+# ie. Q1 Q2 Q3 Q4
+#sub1 0  0  0  T
+#sub2 T  T  T  T
+
+#FILTER question-response data 
+l_timecourse <- df_items %>% filter(!q %in% c(6,9,16)) %>% #remove questions 6,9 where tri == ortho correct
+  select(subject,impasse,q,consistency,TOTAL)
+
+#ORDER dataframe by subject total amount
+l_timecourse <- l_timecourse %>% mutate(subject = fct_reorder(l_timecourse$subject, l_timecourse$TOTAL, min))
+
+#WIDE dataframe (for manual inspection)
+w_timecourse <- l_timecourse %>% spread(q,consistency)
+
+#VISUALIZE
+
+p1 <- ggplot(l_timecourse %>% filter(impasse ==1), aes(x = q, y = subject, fill = consistency, palette = "jco")) +
+  facet_grid(~ impasse) +
+  geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb"))
+
+p2 <- ggplot((l_timecourse %>% filter(impasse==2)), aes(x = q, y = subject, fill = consistency)) +
+  facet_grid(~ impasse) +
+  geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb"))
+
+ggarrange(p1, p2, ncol=1)
+
+
+
+```
+
+
+
+TODO: Test this with a linear mixed effects model
+
+
+
+## RESPONSE LATENCY
+
+### 1.1 Distribution of Response Latency
+
+What is the distribution of response times per question?
+
+```{r}
+#SUMMARIZE response time 
+time.stats <- favstats(~time_sec, data = df_items)
+time.stats
+```
+Response time per question (n=1890) ranged from 1.2s to 336s (5.5 minutes), with a M=35.5s, SD = 33.12s. 
+
+```{r message=FALSE, results=FALSE}
+
+#VISUALIZE distribution of response times per question
+gf_dhistogram(~time_sec, binwidth = 5, data = df_items) %>%
+gf_vline(xintercept = ~time.stats$mean, color = "blue") %>%
+gf_fitdistr(color="blue") %>% 
+gf_labs(title ="Distribution of response latency (per item)")
+
+#VERIFY normality of resulting data with qqPlot
+qqPlot(~time_sec, data = df_items)
+```
+However, the distribution is clearly not normal, so it is appropriate to transform the response latency variable. 
+
+### 1.2 TRANSFORM Response Latency
+```{r message=FALSE, results=FALSE}
+
+#APPLY a log transform
+df_items$log_time <- log(df_items$time_sec)
+log_time.stats <- favstats(~log_time, data = df_items)
+log_time.stats
+
+gf_dhistogram(~log_time, data = df_items) %>%
+gf_vline(xintercept = ~log_time.stats$mean, color = "blue") %>%
+gf_fitdistr(color="blue") %>% 
+gf_labs(title ="Distribution of response latency (LOGT) on first question", x="Log-transform (seconds)")
+
+#VERIFY normality of resulting data with qqPlot
+qqPlot(~log_time, data = df_items)
+
+```
+<br>
+<span style="color: red;">TODO: Is this an appropriate outcome? What about the hump at the start of the plot?</span>.
+
+
+
+
+
+
+## WIP RESPONSE ACCURACY
+
+### 1.0 Question Types
+
+```{r}
+#SUMMARIZE by question type
+
+df_questions <- df_items %>% 
+  group_by(q) %>% 
+  select(q,question,rs_tri, rs_ortho,rs_incorrect) %>% 
+  summarize(n=n(), 
+            rs_tri = sum(rs_tri), 
+            rs_ortho = sum(rs_ortho),
+            rs_incorrect = sum(rs_incorrect),
+            question = question[1])
+
+df_questions_111 <- df_items %>% 
+  filter(condition ==111) %>% 
+  group_by(q) %>% 
+  select(q,question,rs_tri, rs_ortho,rs_incorrect) %>% 
+  summarize(n=n(), 
+            rs_tri = sum(rs_tri), 
+            rs_ortho = sum(rs_ortho),
+            rs_incorrect = sum(rs_incorrect),
+            question = question[1])
+
+df_questions_121 <- df_items %>% 
+  filter(condition ==121) %>% 
+  group_by(q) %>% 
+  select(q,question,rs_tri, rs_ortho,rs_incorrect) %>% 
+  summarize(n=n(), 
+            rs_tri = sum(rs_tri), 
+            rs_ortho = sum(rs_ortho),
+            rs_incorrect = sum(rs_incorrect),
+            question = question[1])
+
+```
+
+```{r}
+#LONG dataframe
+long_questions <- df_questions %>%
+  pivot_longer(cols = starts_with("rs_"), names_to = "answer_type", values_to = "count")
+
+ggplot(data = long_questions, aes (x = q, y=count, fill=answer_type))+
+  geom_bar(position="dodge", stat="identity") 
+
+```
+
+
+
+```{r}
+#VISUALIZE accuracy by question
+
+ggplot(data=df_questions_111, aes(x=q, y=rs_tri)) +
+  geom_bar(stat="identity")
+
+ggplot(data=df_questions_121, aes(x=q, y=rs_tri)) +
+  geom_bar(stat="identity")
+
+```
+
+```{r}
+
+#VISUALIZE accuracy by question
+
+ggplot(data=df_questions_111, aes(x=q, y=rs_ortho)) +
+  geom_bar(stat="identity")
+
+ggplot(data=df_questions_121, aes(x=q, y=rs_ortho)) +
+  geom_bar(stat="identity")
+
+```
+
+```{r}
+
+#VISUALIZE accuracy by question
+
+ggplot(data=df_questions_111, aes(x=q, y=rs_incorrect)) +
+  geom_bar(stat="identity")
+
+ggplot(data=df_questions_121, aes(x=q, y=rs_incorrect)) +
+  geom_bar(stat="identity")
+
+```
+
+
+## FIRST QUESTION
+### 1.1 Response Latency (First Question)
+
+What is the distribution of response times on the very first question?
+
+```{r}
+df_q1 <- df_items %>% filter (q==1)
+q1.stats <- favstats(~time_sec, data = df_q1)
+q1.stats
+```
+<br> <br> 
+Response time (in seconds) on the first question (n=126) ranged from 7.2 to 161 seconds, with a M = 44.5, SD = 26.2. The distribution is clearly not-normal. 
+
+```{r message=FALSE, results=FALSE}
+gf_dhistogram(~ time_sec, data = df_q1) %>%
+gf_vline(xintercept = ~q1.stats$mean, color = "blue") %>%
+gf_fitdistr(color="blue") %>% # gf_dist("norm", color="blue", params=list(q1.stats$mean, q1.stats$sd), xlim(0,50)) %>% 
+gf_labs(title ="Distribution of response latency on first question")
+
+#VERIFY normality of resulting data with qqPlot
+qqPlot(~time_sec, data = df_q1)
+
+```
+
+
+
+
+### 1.2 Response Latency by Condition (First Question)
+
+Do response times differ by condition? 
+TODO: EXPLORE how to model reaction time. https://lindeloev.github.io/shiny-rt/ 
+
+```{r messages = FALSE}
+
+time.stats <- favstats(time_sec ~ condition, data = df_q1)
+time.stats
+
+gf_dhistogram(~time_sec, fill = ~condition, data = df_q1) %>% 
+  gf_facet_grid(condition~.) %>% 
+  gf_vline(xintercept = ~mean, color = "red", data = time.stats)
+```
+The average total response latency (entire 15 question block) for the control condition was slightly higher (M = 9.54s, SD = 3.09) than the impasse-scaffold condition (M = 8.9, 2.69s)
+
+```{r messages = FALSE}
+
+time.stats <- favstats(log_time ~ condition, data = df_q1)
+time.stats
+
+gf_dhistogram(~log_time, fill = ~condition, data = df_q1) %>% 
+  gf_facet_grid(condition~.) %>% 
+  gf_vline(xintercept = ~mean, color = "red", data = time.stats)
+```
+
+```{r}
+qqPlot(~log_time, data = df_q1)
+```
+
+
+```{r}
+#LINEAR MODEL with dependent variable
+m1 <- lm(time_sec ~ condition, data = df_q1)
+summary(m1)
+
+#LINEAR MODEL with log-transformed dependent variable
+mT <- lm(log_time ~ condition, data = df_q1)
+summary(mT)
+```
+The difference in average response time (for the first question) IS  statistically significant F(1,124) = 10.61 , p < 0.05, with a linear model predicting response time from condition explaining around 8% of variance. (The log-transform model reduces residual standard error from 25 to 0.5.)
+
+
+
+
+
+# VALIDATION
+
+
+## Verify item totals
+First, verify (sanity check!) that the flatten.js data wrangling scripts were correct by generating participant totals directly from item-level data, and compare with participant level file. Comparison of summarized data from item_level files and participant level file show that the question accuracy totals for each participant are the same. 
+
+```{r}
+
+#SUMMARIZE FROM ITEMS FILES
+df_item_sanity <- df_items %>% filter(!q == 16) %>% group_by(subject) %>% summarise(
   tri_correct = sum(correct),
   orth_correct = sum(orth_correct),
-  total = tri_correct + orth_correct
-)
-df_sanity
+  total = tri_correct + orth_correct) %>% 
+  mutate( subject = factor(subject)) %>% 
+  arrange(desc(subject))
 
+#SUMMARIZE FROM PARTICIPANT FILES
+fall_participants <- "data/fall_sgc3a_participants.csv"
+spring_participants <- "data/spring_sgc3a_participants.csv"
+df_fall_p <- read.csv(fall_participants)
+df_spring_p <- read.csv(spring_participants)
+df_participants_sanity <- rbind(df_fall_p, df_spring_p) %>% 
+  mutate(subject = factor(subject), 
+         tri_correct = triangular_score, 
+         orth_correct = orthogonal_score,
+         total = tri_correct + orth_correct
+         ) %>% 
+  select(subject, tri_correct, orth_correct, total) %>% 
+  arrange(desc(subject))
+
+#CHECK EQUALITY
+all_equal(df_participants_sanity,df_item_sanity)
+
+#REMOVE TEMPORARY DFS
+rm(fall_participants, spring_participants, df_participants_sanity, df_fall_p,df_spring_p)
+
+df_items_by_participant <- df_item_sanity
+rm(df_item_sanity, df_fall, df_spring)
+
+```
+
+## Verify session totals
+How many subjects were run in each data collection session?
+
+```{r}
+#MANUALLY INSPECT SESSIONS
+df_items %>% group_by(session) %>% 
+  summarize(n=length(unique(subject)))
 ```
