@@ -34,7 +34,6 @@ library(pwr) #power analysis
 #IMPORT DATA from fall and spring files
 fall_participants <- "data/fall_sgc3a_participants.csv"
 spring_partcipants <- "data/spring_sgc3a_participants.csv"
-
 df_fall <- read.csv(fall_participants)
 df_spring <- read.csv(spring_partcipants)
 
@@ -55,6 +54,8 @@ df_subjects <- df_subjects %>% mutate(
   axis = as.factor(axis)
 )
 
+#Cleanup temporary dataframes
+rm(df_fall, df_spring)
 ```
 
 # INTRODUCTION
@@ -69,6 +70,12 @@ df_subjects %>% group_by(term) %>%
 ```
 
 SGC3-A is a 2-condition (111-control VS 121-impasse) between-subjects experiment with `r nrow(df_subjects)` participants. 
+
+```{r TERMS}
+#MANUALLY INSPECT SESSIONS
+df_subjects %>% group_by(session) %>% 
+  summarize(n=n())
+```
 
 ```{r CONDITIONS}
 
@@ -112,8 +119,7 @@ favstats(~age, data = df_subjects)
 
 Response accuracy refers to how many questions the subject answers with a correct-triangular interpretation.  
 
-```{r ACCURACY}
-
+```{r}
 #DESCRIBE distribution of triangular-correct scores
 score.stats <- favstats(df_subjects$triangular_score)
 score.stats
@@ -126,33 +132,54 @@ gf_dhistogram(~triangular_score, data = df_subjects) %>%
 <br>
 Accuracy scores (n = `r nrow(df_subjects)`) range from `r round(score.stats$min,2)` to `r round(score.stats$max,2)` with a mean score of (M = `r round(score.stats$mean,2)`, SD = `r round(score.stats$sd,2)`). 
 
-```{r ACCURACY-NORMAL}
+```{r message=FALSE, results=FALSE}
 qqPlot(df_subjects$triangular_score)
 ```
-
+<br> <span style="color: red;">TODO: These data are CLEARLY not normal. What to do?</span>.
 
 ## Response Latency
 
-### TODO: Investigate high and low response times
 <span style="color: red;">TODO: Investigate super high and super low response times.</span>.
+<span style="color: red;">TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/) </span>.
 
 ```{r}
-
 #DESCRIBE distribution of triangular-correct scores
 time.stats <- favstats(df_subjects$tri_min)
-time.stats
-stat.desc(df_subjects$tri_min)
+time.stats # stat.desc(df_subjects$tri_min)
+```
+<br> <br> Response latency (for test blocks) range from `r round(time.stats$min,2)` minutes to `r round(time.stats$max,2)` minutes with a mean time of (M = `r round(time.stats$mean,2)`, SD = `r round(time.stats$sd,2)`). 
 
+```{r message=FALSE, results=FALSE}
 #VISUALIZE distribution of response accuracy
 gf_dhistogram(~tri_min, data = df_subjects) %>%
-  gf_vline(xintercept = time.stats$mean, color = "red")
+  gf_vline(xintercept = time.stats$mean, color = "red") %>% 
+  gf_fitdistr(color="red") # gf_dist("norm", color="red", params=list(time.stats$mean, time.stats$sd)) 
 ```
-Response latency (for test blocks) range from `r round(time.stats$min,2)` minutes to `r round(time.stats$max,2)` minutes with a mean time of (M = `r round(time.stats$mean,2)`, SD = `r round(time.stats$sd,2)`). 
 
 ```{r LATENCY-NORMAL}
 qqPlot(df_subjects$tri_min)
 ```
 
+<br> <br> However, the distribution is clearly not normal, so it is appropriate to transform the response latency variable. 
+
+### TRANSFORM Response Latency
+```{r message=FALSE, results=FALSE}
+
+#APPLY a log transform
+df_subjects$log_time <- log(df_subjects$tri_min)
+log_time.stats <- favstats(~log_time, data = df_subjects)
+log_time.stats
+
+gf_dhistogram(~log_time, data = df_subjects) %>%
+gf_vline(xintercept = ~log_time.stats$mean, color = "blue") %>%
+gf_fitdistr(color="blue") %>% 
+gf_labs(title ="Distribution of response latency (LOGT) (all questions)", x="Log-transform (minutes)")
+
+#VERIFY normality of resulting data with qqPlot
+qqPlot(~log_time, data = df_subjects)
+
+```
+<br> <span style="color: red;">TODO: Is this good enough?</span>.
 
 # HYPOTHESIS TESTING
 
@@ -263,14 +290,44 @@ gf_jitter(tri_min ~ triangular_score, color = ~condition, data = df_subjects) %>
 
 #simple linear model predicting triangular score from triangular time
 m1 = lm(triangular_score ~ tri_min, data = df_subjects)
-
-summary(m1, correlation=TRUE)
-
+summary(m1)
 cor.test(df_subjects$triangular_score, df_subjects$tri_min)
-```
-However, a simple linear regression indicates a significant (though small) negative correlation between score accuracy and response time r = -0.18, t(124) = -2.04, p < 0.05.  
 
-### 2.2 Is Response Latency predictive?
+#linear model with log-transformed triangular time
+mT = lm(triangular_score ~ log(tri_min), data = df_subjects)
+summary(mT)
+cor.test(df_subjects$triangular_score, df_subjects$log_time)
+
+```
+However, a simple linear regression indicates a significant (though small) negative correlation between score accuracy and response time R = -0.18, t(124) = -2.04, p < 0.05.  
+
+### 2.2 Response Latency by Condition
+
+Do response times differ by condition? 
+
+```{r messages = FALSE}
+
+time.stats <- favstats(tri_min ~ condition, data = df_subjects)
+time.stats
+
+gf_dhistogram(~tri_min, fill = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(condition~.)
+```
+The average total response latency (entire 15 question block) for the control condition was slightly higher (M = 9.54s, SD = 3.09) than the impasse-scaffold condition (M = 8.9, 2.69s)
+
+```{r}
+
+#simple linear model
+m1 <- lm(tri_min ~ condition, data = df_subjects)
+summary(m1)
+
+#linear model on log-transformed data 
+mT <- lm(log(tri_min) ~ condition, data = df_subjects)
+summary(mT)
+```
+The difference in average response time is not statistically significant F(1,124) = 1.28 , p > 0.05, with a linear model predicting response time from condition explaining only 1% of variance. 
+
+### 2.3 Is Response Latency predictive?
 
 Does adding response time to the model help predict score accuracy?
 
@@ -278,19 +335,26 @@ Does adding response time to the model help predict score accuracy?
 
 #simple  model predicting triangular score from triangular time
 m1 = lm(triangular_score ~ condition, data = df_subjects)
-m2 = lm(triangular_score ~ condition + tri_min, data = df_subjects)
 summary(m1)
-summary(m2)
 anova(m1) # supernova(m1)
+
+#model including condition and triangular time
+m2 = lm(triangular_score ~ condition + tri_min, data = df_subjects)
+summary(m2)
 anova(m2) # supernova(m2)
+
+#model including condition and triangular time (log-transformed)
+mT = lm(triangular_score ~ condition + log(tri_min), data = df_subjects)
+summary(mT)
+anova(mT) # supernova(m2)
+
 ```
 The model predicting accuracy with condition and response latency explains 9% variance, while the model with only accuracy explains 7% variance, however, the response latency predictor does not reach significance at the 5% alpha level. 
 
 <span style="color: red;">TODO: What is the appropriate inference to draw from this model comparison?</span>.
 
 
-
-### 2.3. Response Latency on Learn (v) Test
+### 2.4 Response Latency on Learn (v) Test
 
 ```{r message=FALSE}
 
@@ -345,6 +409,11 @@ cor.test(df_subjects$test_min, df_subjects$learn_min)
 
 ```
 A linear model predicting test block time from learning block time reveals that learning block time explains 12% variance in testing block time (F(1,124) = 17.1, p < 0.001), with an 18s increase in testing time for every 1 minute increase in learning time. The two variables have a small, significant correlation r = 0.35, t(124) = 4.13, p < 0.001, 95% CI [0.18, 0.49]. 
+
+
+
+
+
 
 # DUE DILLIGENCE
 

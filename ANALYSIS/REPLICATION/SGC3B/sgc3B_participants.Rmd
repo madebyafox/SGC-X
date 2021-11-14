@@ -241,6 +241,7 @@ ggplot(data = score_summary) +
 
 
 ## 1. Response Accuracy
+
 ## 1.1 Learning VS Testing 
 In SGC3B, participants are provided with 15 questions. For the first 5 questions, they experience a 'scaffolded' version the stimuli (control condition = 111, impasse scaffold = 121). 
 
@@ -304,6 +305,30 @@ summary(m1, correlation=TRUE)
 cor.test(df_subjects$triangular_score, df_subjects$tri_min)
 ```
 A linear regression indicates a significant (though small) negative correlation between score accuracy and response time r = -0.33, t(288) = -5.92, p < 0.001.  
+
+
+### 2.2 Response Latency by Condition
+
+Do response times differ by condition? 
+
+```{r messages = FALSE}
+
+time.stats <- favstats(tri_min ~ condition, data = df_subjects)
+time.stats
+
+gf_dhistogram(~tri_min, fill = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(condition~.)
+```
+The average total response latency (entire 15 question block) for the control condition was slightly higher (M = 9.54s, SD = 3.09) than the most-scaffolded (explicit: interactive, implicit:impasse) condition (M = 7.11, 1.81s)
+
+```{r}
+
+m1 <- lm(tri_min ~ condition, data = df_subjects)
+summary(m1)
+# supernova(m1)
+
+```
+The difference in average response time IS statistically significant F(5,284) = 8.57 , p < 0.01, with a linear model predicting response time from condition explaining only 13% of variance in response time. 
 
 ### 2.2 Is Response Latency predictive?
 
