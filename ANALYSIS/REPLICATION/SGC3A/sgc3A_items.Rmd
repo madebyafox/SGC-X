@@ -33,7 +33,7 @@ library(pwr) #power analysis
 
 ```
   
-```{r IMPORT-DATA}  
+```{r IMPORT-DATA, message= FALSE}  
 #IMPORT DATA from fall and spring files
 fall_items <- "data/fall_sgc3a_blocks.csv"
 spring_items <- "data/spring_sgc3a_blocks.csv"
@@ -97,15 +97,7 @@ rm(df_fall, df_spring, df_totals)
 
 I have the intuition that (for an individual participant) accurate — inaccurate responses are not randomly distributed across the timecourse of the study. There should be a substantial learning effect, such that response are incorrect — until the individual has LEARNS how the coordinate system works - and then responses will be correct. 
 
-
-TODO: Visualize this
-
 ```{r}
-
-#reshape the data into a table that will show this
-# ie. Q1 Q2 Q3 Q4
-#sub1 0  0  0  T
-#sub2 T  T  T  T
 
 #FILTER question-response data 
 l_timecourse <- df_items %>% filter(!q %in% c(6,9,16)) %>% #remove questions 6,9 where tri == ortho correct
@@ -129,13 +121,68 @@ p2 <- ggplot((l_timecourse %>% filter(impasse==2)), aes(x = q, y = subject, fill
 
 ggarrange(p1, p2, ncol=1)
 
-
-
 ```
 
 
 
 TODO: Test this with a linear mixed effects model
+
+
+
+## WIP RESPONSE ACCURACY
+
+### 1.0 Response Types
+
+```{r}
+#SUMMARIZE by question type
+df_items$dummy <- 1 #add a temporary dummy column for counting
+
+df_questions <- df_items %>% 
+  filter(!q %in% c(6,9)) %>% 
+  group_by(q,condition) %>% 
+  select(q,question,rs_tri, rs_ortho, consistency, dummy) %>% 
+  summarize(n=n(), 
+            rs_tri = sum(rs_tri), 
+            rs_ortho = sum(rs_ortho),
+            rs_blank = sum(dummy[consistency == "BLANK"]),
+            rs_neither = sum(dummy[consistency == "Neither"]),
+            question = question[1])
+
+```
+
+```{r}
+#LONG dataframes
+l_questions <- df_questions %>%
+  pivot_longer(cols = starts_with("rs_"), names_to = "answer_type", values_to = "count")
+
+#update factor level order in order to maximize comparison in graph
+l_questions$answer_type = factor(l_questions$answer_type)
+l_questions$answer_type <- relevel(l_questions$answer_type, 'rs_neither')
+
+#TOTAL ACROSS CONDITIONS
+ggplot(data = l_questions, aes (x = q, y=count, fill=answer_type))+
+  geom_bar(position="stack", stat="identity") + 
+  facet_grid(~condition) +
+  scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb"))
+
+```
+
+
+
+
+
+
+### 2.0 Question Types
+TODO consider item type
+
+
+
+## WIP Alternative Answers
+
+### Q1: Starts
+
+What are the alternative (wrong) answers subjects give for the first question?
+
 
 
 
@@ -185,95 +232,6 @@ qqPlot(~log_time, data = df_items)
 <br>
 <span style="color: red;">TODO: Is this an appropriate outcome? What about the hump at the start of the plot?</span>.
 
-
-
-
-
-
-## WIP RESPONSE ACCURACY
-
-### 1.0 Question Types
-
-```{r}
-#SUMMARIZE by question type
-
-df_questions <- df_items %>% 
-  group_by(q) %>% 
-  select(q,question,rs_tri, rs_ortho,rs_incorrect) %>% 
-  summarize(n=n(), 
-            rs_tri = sum(rs_tri), 
-            rs_ortho = sum(rs_ortho),
-            rs_incorrect = sum(rs_incorrect),
-            question = question[1])
-
-df_questions_111 <- df_items %>% 
-  filter(condition ==111) %>% 
-  group_by(q) %>% 
-  select(q,question,rs_tri, rs_ortho,rs_incorrect) %>% 
-  summarize(n=n(), 
-            rs_tri = sum(rs_tri), 
-            rs_ortho = sum(rs_ortho),
-            rs_incorrect = sum(rs_incorrect),
-            question = question[1])
-
-df_questions_121 <- df_items %>% 
-  filter(condition ==121) %>% 
-  group_by(q) %>% 
-  select(q,question,rs_tri, rs_ortho,rs_incorrect) %>% 
-  summarize(n=n(), 
-            rs_tri = sum(rs_tri), 
-            rs_ortho = sum(rs_ortho),
-            rs_incorrect = sum(rs_incorrect),
-            question = question[1])
-
-```
-
-```{r}
-#LONG dataframe
-long_questions <- df_questions %>%
-  pivot_longer(cols = starts_with("rs_"), names_to = "answer_type", values_to = "count")
-
-ggplot(data = long_questions, aes (x = q, y=count, fill=answer_type))+
-  geom_bar(position="dodge", stat="identity") 
-
-```
-
-
-
-```{r}
-#VISUALIZE accuracy by question
-
-ggplot(data=df_questions_111, aes(x=q, y=rs_tri)) +
-  geom_bar(stat="identity")
-
-ggplot(data=df_questions_121, aes(x=q, y=rs_tri)) +
-  geom_bar(stat="identity")
-
-```
-
-```{r}
-
-#VISUALIZE accuracy by question
-
-ggplot(data=df_questions_111, aes(x=q, y=rs_ortho)) +
-  geom_bar(stat="identity")
-
-ggplot(data=df_questions_121, aes(x=q, y=rs_ortho)) +
-  geom_bar(stat="identity")
-
-```
-
-```{r}
-
-#VISUALIZE accuracy by question
-
-ggplot(data=df_questions_111, aes(x=q, y=rs_incorrect)) +
-  geom_bar(stat="identity")
-
-ggplot(data=df_questions_121, aes(x=q, y=rs_incorrect)) +
-  geom_bar(stat="identity")
-
-```
 
 
 ## FIRST QUESTION
@@ -359,8 +317,8 @@ First, verify (sanity check!) that the flatten.js data wrangling scripts were co
 
 #SUMMARIZE FROM ITEMS FILES
 df_item_sanity <- df_items %>% filter(!q == 16) %>% group_by(subject) %>% summarise(
-  tri_correct = sum(correct),
-  orth_correct = sum(orth_correct),
+  tri_correct = sum(rs_tri),
+  orth_correct = sum(rs_ortho),
   total = tri_correct + orth_correct) %>% 
   mutate( subject = factor(subject)) %>% 
   arrange(desc(subject))
