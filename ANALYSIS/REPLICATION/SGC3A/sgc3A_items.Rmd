@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(rmdformats)
 library(dplyr) #tidyverse data handling
 library(tidyr) #pivot
+library(knitr) #printing tables
 library(forcats)#for factor re-ordering
 library(ggpubr) #joining plots (alt to gridExtra)
 # library(tables) # pretty tables
@@ -31,9 +32,12 @@ library(car) #ANOVA, qqplot
 library(effectsize) #effect size
 library(pwr) #power analysis
 
+library(lme4) #linear mixed effects model
+
 ```
   
 ```{r IMPORT-DATA, message= FALSE}  
+
 #IMPORT DATA from fall and spring files
 fall_items <- "data/fall_sgc3a_blocks.csv"
 spring_items <- "data/spring_sgc3a_blocks.csv"
@@ -74,7 +78,8 @@ df_items <- df_items %>% mutate(
   impasse = as.factor(impasse),
   axis = as.factor(axis),
   q = as.factor(q),
-  question = as.factor(question)
+  question = as.factor(question),
+  error = 0 #temporary holder for error codes
 )
 
 #Change values of column names for later reshaping
@@ -88,12 +93,17 @@ df_items <- df_items %>% filter (q!=16)
 
 #Cleanup temporary dataframes
 rm(df_fall, df_spring, df_totals)
+
+#Set custom colors 
+lgrey = "#cacec8"
+lgreen = "#c6edbb"
+lyellow = "#FBEEBB"
+lblue = "#BCD9EE"
 ```
 
-# EXPLORATION
 
 
-## TIMECOURSE OF ACCURACY
+# TIMECOURSE OF ACCURACY
 
 I have the intuition that (for an individual participant) accurate — inaccurate responses are not randomly distributed across the timecourse of the study. There should be a substantial learning effect, such that response are incorrect — until the individual has LEARNS how the coordinate system works - and then responses will be correct. 
 
@@ -113,30 +123,26 @@ w_timecourse <- l_timecourse %>% spread(q,consistency)
 
 p1 <- ggplot(l_timecourse %>% filter(impasse ==1), aes(x = q, y = subject, fill = consistency, palette = "jco")) +
   facet_grid(~ impasse) +
-  geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb"))
+  geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb")) +
+  labs(x="Question Sequence", fill = "Response Type")
 
 p2 <- ggplot((l_timecourse %>% filter(impasse==2)), aes(x = q, y = subject, fill = consistency)) +
   facet_grid(~ impasse) +
-  geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb"))
+  geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb")) +
+  labs(x="Question Sequence", fill = "Response Type")
 
-ggarrange(p1, p2, ncol=1)
+figure <- ggarrange(p1, p2, ncol=1) 
+annotate_figure(figure,
+        top = text_grob("Timecourse of Response Type by Participant and Condition", color = "black", face = "bold", size = 14))
 
 ```
+<br>
+<span style="color: red;">TODO: This plot of Response Type by Question (in sequence) for each participant demonstrates that ... </span>.
 
+```{r message=FALSE}
 
-
-TODO: Test this with a linear mixed effects model
-
-
-
-## WIP RESPONSE ACCURACY
-
-### 1.0 Response Types
-
-```{r}
-#SUMMARIZE by question type
+#SUMMARIZE items response-type by question (which relation is being asked)
 df_items$dummy <- 1 #add a temporary dummy column for counting
-
 df_questions <- df_items %>% 
   filter(!q %in% c(6,9)) %>% 
   group_by(q,condition) %>% 
@@ -148,14 +154,11 @@ df_questions <- df_items %>%
             rs_neither = sum(dummy[consistency == "Neither"]),
             question = question[1])
 
-```
-
-```{r}
-#LONG dataframes
+#convert to LONG dataframe
 l_questions <- df_questions %>%
   pivot_longer(cols = starts_with("rs_"), names_to = "answer_type", values_to = "count")
 
-#update factor level order in order to maximize comparison in graph
+#update factor level order in order to maximize comparison in plot
 l_questions$answer_type = factor(l_questions$answer_type)
 l_questions$answer_type <- relevel(l_questions$answer_type, 'rs_neither')
 
@@ -163,28 +166,236 @@ l_questions$answer_type <- relevel(l_questions$answer_type, 'rs_neither')
 ggplot(data = l_questions, aes (x = q, y=count, fill=answer_type))+
   geom_bar(position="stack", stat="identity") + 
   facet_grid(~condition) +
-  scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb"))
+  scale_fill_manual(values = c(lyellow, lgrey,lblue,lgreen)) +
+  labs(title = "Answer Type by Question and Condition", x="Question Sequence", y="Count(n)", fill = "Response Type")
+```
+
+<br>
+<span style="color: red;">TODO: This plot of Response Type by Question (in sequence) and Condition demonstrates that... </span>.
+
+<br>
+<span style="color: red;">TODO: Test this with a linear mixed effects model. </span>.
+
+# WIP ALTERNATIVE ANSWERS
+
+## Q1: Starts
+
+What are the alternative answers subjects give for the *first* question?
+
+```{r}
+#Create a contingency table with marginal sums for all answers across both conditions on Q1
+df_q1 <- df_items %>% filter(q==1)
+t <- table(df_q1$answer, df_q1$condition)
+t <- t[order(-rowSums(t)),] #reorder by marginal freqency
+addmargins(t)
+
+```
+### A:: Orthogonal or Satisficing?
+
+```{r}
+img_path <- "images/q1_A.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[1,1]`, impasse: `r t[1,2]`)** The most common erroneous response is the "A". In the control condition, this is the orthogonal distractor. However, in the impasse condition, the 'A' is *not* orthogonal to the directed start time, but the closest nearly orthogonal response. **Potentially revealing a satisficing strategy? Or visual error in seeing it as an orthogonal intersect?**
+
+```{r}
+
+#A 
+subjects <- df_items %>% filter(q==1 & answer == "A") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$condition ==111) & (df_items$answer == "A"),]$error = "orthogonal"
+df_items[(df_items$q==1) & (df_items$condition ==121) & (df_items$answer == "A"),]$error = "visualerror-right-30"
 
 ```
 
+### F :: Triangular
+
+```{r}
+img_path <- "images/q1_F.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[2,1]`, impasse: `r t[2,2]`)** The second most common response was the correct (triangular) response "F". In the impasse condition, there are no orthogonal-distractors. In the control condition, the A datapoint acts as an orthogonal distractor. 
+
+```{r}
+#F 
+subjects <- df_items %>% filter(q==1 & answer == "F") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$condition ==111) & (df_items$answer == "F"),]$error = ""
+df_items[(df_items$q==1) & (df_items$condition ==121) & (df_items$answer == "F"),]$error = ""
+
+```
+
+### No Response 
+
+```{r}
+img_path <- "images/q1_blank.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[3,1]`, impasse: `r t[3,2]`)** The third most common response was (blank) no response, though this only occurred in the impasse condition; likely when subjects could not locate an orthogonal distractor, and **chose not to revert to an alternative strategy**. 
+
+```{r}
+#BLANK 
+subjects <- df_items %>% filter(q==1 & answer == "") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
 
 
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AF"),]$error = "fixed-no-response" #graphical fixedness, no response
+
+```
+
+### O :: Visual Error or Satisficing?
+
+```{r}
+img_path <- "images/q1_O.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[4,1]`, impasse: `r t[4,2]`)** The fourth most common response was an O though this only occurred in the impasse condition.Similar to the 1 person who entered an 'A', the 'O' response indicates **either a visual-alignment error (thinking the O is an orthogonal intersector) OR a satisficing strategy to select the closes non-orthogonal data point.**  However, A is both closer (in y-distance height) as well as (x-distance). A has an orthogonal intersection of +0:30m, while O has an orthogonal intersection of -0:30m. However, because O has a greater duration (higher in the graph) the visual angle between 11am and 0 is less than that of A, making it more likely to be confused as true orthogonal intersection. In this sense, it sensical that event O has `t[4,2]` responses and A only `t[1,2]` responses. 
+
+<span style="color: red;">TODO: Can mousepath be used to differentiate between a visual error (thinking O was orthogonal) and a satisficing decicion (closes point to orthogonal line)? </span>. If the subject traces up from the start time, A is the first data point [impasse condition] they would come across. My inutuition is that folks that trace the orthogonal would select A, and folks that don't (i.e. are just inspecting the graph and not using the mouse) would be more likely to select 0. 
 
 
+```{r}
+#O 
+subjects <- df_items %>% filter(q==1 & answer == "O") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
 
-### 2.0 Question Types
-TODO consider item type
-
-
-
-## WIP Alternative Answers
-
-### Q1: Starts
-
-What are the alternative (wrong) answers subjects give for the first question?
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AF"),]$error = "visualerror-left-30" 
+```
 
 
+### CF :: Lines Connect 
 
+```{r}
+img_path <- "images/q1_CF.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[5,1]`, impasse: `r t[5,2]`)** The fifth most common response was the two-item entry C and F, both of which are diagonal intersects with the start time. However, this response violates the encoding convention that a given referent (i.e start time) has a single spatial encoding in the representation. **This suggests a partial understanding of something diagonal about the coordinate system; the reader is attending to the gridlines and using them to intersect data and the x-axis. However, they've not decoded the spatial referent of start time vs. end time.** 
+
+<span style="color: red;">TODO: I would suspect this acts as a transition strategy, or an indication of partial undertanding that may eventually lead to full understanding, and unlikely to revert to orthogonal. MODEL THIS. </span>.
+
+```{r}
+#CF 
+subjects <- df_items %>% filter(q==1 & answer == "CF") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AF"),]$error = "lines-connect" 
+```
+
+### AI :: Satisficing or Visual Error 
+
+```{r}
+img_path <- "images/q1_AI.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[6,1]`, impasse: `r t[6,2]`)** The sixth most common response was the two item: A,I, with only having responses in the impasse condition. Both A and I are near-orthogonal distracts of 11AM, with +0:30m offset, **suggesting this is either a satisficing or visual error case.**  We do not see this response in the control condition, most likely because there is a true orthogonal intersect. 
+
+```{r}
+#AI
+subjects <- df_items %>% filter(q==1 & answer == "AI") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AI"),]$error = "visualerror-right-2" 
+```
+
+### AF :: Clerical Error
+
+```{r}
+img_path <- "images/q1_AF.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[7,1]`, impasse: `r t[7,2]`)** One subject in the control condition selected *both* the triangular and orthogonal-consistent responses. Considering this was only a single subject, and the multiple choice checkboxes were directly underneath each other in the response list, it is plausible that this was a clerical error, whereby the subject selected one response, and then the other, without unchecking the other box. 
+
+**TODO: Can we verify this from the mouseclick stream data? **
+
+```{r}
+#AF
+subjects <- df_items %>% filter(q==1 & answer == "AF") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lyellow,lgreen,lblue,lgrey)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AF"),]$error = "clerical" 
+```
+
+
+### AO :: Special Case? Visual Error? 
+
+```{r}
+img_path <- "images/q1_AO.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[8,1]`, impasse: `r t[8,2]`)** One subject in the impasse condition selected both events A and O, each near-orthogonal distractors, but in opposite directions. This sits as a hybrid between 'lines connect' in that they are both off the orthogonal intersection, and visual error. However, since the options are both off the orthogonal line, it seems unlikely the individual saw them both as accurate orthogonal intersects.  
+
+**TODO: What is happening here? Can we recreate from the mouseclick data? Another clerical error? or something more interesting?** 
+
+```{r}
+#AO
+subjects <- df_items %>% filter(q==1 & answer == "AO") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lyellow,lblue,lgreen,lgrey)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AO"),]$error = "visualerror-right-left" 
+```
+
+**How did this subject have an accidental? triangular answer on Q5?  
+
+
+### C :: Backwards
+
+```{r}
+img_path <- "images/q1_C.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[9,1]`, impasse: `r t[9,2]`)** One subject in the impasse condition selected event C, which is a diagonal intersect with the given start time, but ends, rather than starts, at 11. 
+
+**I'm surprised to not see more of these type of responses, actually!**
+
+```{r}
+#C
+subjects <- df_items %>% filter(q==1 & answer == "C") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "AO"),]$error = "backwards" 
+```
+**How did this subject have an accidental? triangular answers on Q4 Q10 Q14?  
+
+
+### I :: Visual Error?
+
+```{r}
+img_path <- "images/q1_I.png"
+include_graphics(img_path)
+```
+<br> **(control: `r t[10,1]`, impasse: `r t[10,2]`)** One subject in the impasse condition selected event I, which is a near-orthogonal distractor. What is interesting about this answer, is that the individual does NOT also select A, which falls along the same orthogonal intersect. **This might suggest that a visual error judging I as orthogonal to 11 (but not A) because the it is so much higher in the graph**. 
+
+**I'm surprised to not see more of these type of responses, actually!**
+
+```{r}
+#O
+subjects <- df_items %>% filter(q==1 & answer == "O") %>%  select(subject)
+ggplot(l_timecourse %>% filter(subject %in% subjects$subject), aes(x = q, y = subject, fill = consistency)) + 
+  geom_raster() + scale_fill_manual(values = c(lgrey,lyellow,lblue,lgreen)) + facet_grid(~ impasse)
+
+#CODE ERROR TYPES from manual inference  
+df_items[(df_items$q==1) & (df_items$answer == "O"),]$error = "visualerror-right" 
+```
 
 ## RESPONSE LATENCY
 
@@ -304,6 +515,13 @@ summary(mT)
 The difference in average response time (for the first question) IS  statistically significant F(1,124) = 10.61 , p < 0.05, with a linear model predicting response time from condition explaining around 8% of variance. (The log-transform model reduces residual standard error from 25 to 0.5.)
 
 
+
+
+
+
+
+## Question Types
+TODO consider item type
 
 
 
