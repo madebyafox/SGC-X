@@ -75,15 +75,28 @@ sid = sid.toUpperCase();
 console.log(sid);
 
 //-------------SETUP & INSTRUCTION BLOCKS---------------------------------------------
-var phone = {
+var welcome = {
     type: 'single-stim',
-    stimulus : 'img/phone.png',
+    stimulus : 'img/welcome.png',
     choices: [13, 32],
     data: {
-      block:"phone"
+      block:"welcome"
     },
     on_start: function(data){}
 };
+
+var devices = {
+    "type": "html",
+    "force_refresh": true,
+    "url": "../views/src/external/devices.html",
+    "cont_btn": "start",
+    "check_fn": check_consent,
+    on_start: function(data){},
+    data: {
+      block:"consent"
+    }
+};
+
 var consent = {
     "type": "html",
     "force_refresh": true,
@@ -162,18 +175,6 @@ var debrief = {
 };
 
 
-//BLOCK for OCAM task hosted in QUALTRICS
-var ocam = {
-  "type": "html",
-  "force_refresh": true,
-  "url": "../views/src/external/ocam.html",
-  "cont_btn": "start",
-  data: {
-    block: "ocam"
-  },
-  on_start: function(data){
-  }
-}
 
 
 
@@ -499,7 +500,8 @@ var triangular_strategy = {
 var exp_timeline = [];
 
 //SETUP------------------------------------------------------------------
-exp_timeline.push(phone);
+exp_timeline.push(welcome);
+exp_timeline.push(devices);
 exp_timeline.push(consent);
 exp_timeline.push(codes);
 exp_timeline.push(instructions_lab);
@@ -551,7 +553,7 @@ jsPsych.init({
       contentType: "application/json"
     })
     .done(function() {
-      window.location.href = "finish?subject="+sid;
+      window.location.href = "finish?subject="+sid; //push subjectID to finish page so it can be entered in qualtrics
     })
     .fail(function() {
       alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
