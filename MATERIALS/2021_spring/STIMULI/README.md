@@ -102,3 +102,23 @@ Dev Notes
 heroku config:set CONNECTION = [mongolabs uri]
 > heroku for deploy
 > mlabs for db
+
+## Deployment
+(as of Fall 2021)
+1. Setup hosted mongoDB using Atlas https://cloud.mongodb.com/
+(or use existing cluster if it already exists)
+2. Download & Install heroku CLI : https://devcenter.heroku.com/articles/heroku-command-line
+3. Get connection URI from Atlas, and enter in heroku CLI
+
+(We want this connection string to be accessible to Heroku, but we want to hide it from our public Git repository. We'll use Heroku's config variables for this purpose. Go to your terminal and type...)
+
+heroku config:set CONNECTION = [MongoLabs_URI]
+
+... where [MongoLabs_URI] is your URI string - replacing and with their respective values. Type heroku config again to verify you got it right (there should now be a CONNECTION variable),
+
+4. Modify app.js connection settings, from local to server configuration lines
+(eg  mongoose.connect(process.env.CONNECTION);)
+
+
+
+mongodb+srv://<username>:<password>@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh?retryWrites=true&w=majority
