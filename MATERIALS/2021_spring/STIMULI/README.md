@@ -118,7 +118,3 @@ heroku config:set CONNECTION = [MongoLabs_URI]
 
 4. Modify app.js connection settings, from local to server configuration lines
 (eg  mongoose.connect(process.env.CONNECTION);)
-
-
-
-mongodb+srv://<username>:<password>@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh?retryWrites=true&w=majority
