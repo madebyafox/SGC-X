@@ -84,7 +84,6 @@ var welcome = {
     },
     on_start: function(data){}
 };
-
 var devices = {
     "type": "html",
     "force_refresh": true,
@@ -96,7 +95,15 @@ var devices = {
       block:"consent"
     }
 };
-
+var distractions = {
+    type: 'single-stim',
+    stimulus : 'img/distractions.png',
+    choices: [13, 32],
+    data: {
+      block:"distractions"
+    },
+    on_start: function(data){}
+};
 var consent = {
     "type": "html",
     "force_refresh": true,
@@ -110,7 +117,7 @@ var consent = {
 };
 var codes = {
     type: 'survey-text',
-    preamble: "<p>Please enter the following information from your participant card</p>",
+    preamble: "<p>Please enter the following information from your INSTRUCTIONS EMAIL</p>",
     questions: ["Session code: ", "Condition code: "],
     on_start: function(data){},
     data: {
@@ -139,16 +146,16 @@ var codes = {
       jsPsych.data.addProperties({condition:condition});
     }
 };
-var instructions_lab = {
+var instructions_remote = {
     "type": "html",
     "force_refresh": true,
-    "url": "../views/src/external/instructions_lab.html",
+    "url": "../views/src/external/instructions_remote.html",
     "cont_btn": "start",
     on_start: function(){
       scenarios=scenarios;
     },
     data: {
-      block:"instructions_lab"
+      block:"instructions_remote"
     }
 };
 var scenario = {
@@ -502,9 +509,10 @@ var exp_timeline = [];
 //SETUP------------------------------------------------------------------
 exp_timeline.push(welcome);
 exp_timeline.push(devices);
+exp_timeline.push(distractions);
 exp_timeline.push(consent);
 exp_timeline.push(codes);
-exp_timeline.push(instructions_lab);
+exp_timeline.push(instructions_remote);
 //TRIANGULAR MODEL
 exp_timeline.push(scenario);
 exp_timeline.push(triangular_scaffolded);  //with scaffold q 1-5
@@ -514,7 +522,7 @@ exp_timeline.push(triangular_strategy);
 //WRAPUP
 exp_timeline.push(text_survey);
 exp_timeline.push(choice_survey);
-exp_timeline.push(debrief);
+// exp_timeline.push(debrief); //don't debrief yet on remote, participant completes OCAM test in qualtrics 
 
 jsPsych.data.addProperties({
   subject: sid
