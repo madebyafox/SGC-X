@@ -1,0 +1,216 @@
+---
+title: "fall2021_clean_data"
+author: "Amy Rae Fox"
+date: "11/26/2021"
+output: html_document
+---
+*The purpose of this file is processing the combined data files for Fall 2017 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
+
+```{r SETUP, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(jsonlite)
+library(tidyjson)
+library(dplyr)
+
+#set current folder as working directory
+# setwd("~/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/DATA/3_ready_files/spring_2018")
+```
+
+Data is imported from 2 files, indicating two levels of analysis: participants and blocks (item-level). **Note: mouse-cursor data contained in final_mouse_blocks.json file is not handled here.**
+```{r IMPORT}
+#IMPORT DATA
+df_participants <- fromJSON("combined_files/final_participants.json")
+df_blocks <- fromJSON('combined_files/final_blocks.json')
+
+#add term indicator
+df_participants$term <- "fall21"
+df_blocks$term <- "fall21"
+
+```
+
+```{r PARTICIPANTS-SETUP}
+
+#create factors in PARTICIPANTS
+df_participants <- df_participants %>%  
+  select(subject,session,term,condition,  #re-arrange columns
+         ts_n, tt_n,triangular_score,
+         os_n, ot_n,orthogonal_score,
+         explicit,impasse,axis,
+         triangular_time, totalTime, ts_t, tt_t,
+         attn_check,
+         native_language, year, major, country, sex, age
+         ) %>% #reorder columns 
+  mutate( #create factors and remove extraneous ""
+    subject=factor(subject),
+    condition=factor(condition),
+    session=factor(session),
+    term=factor(term),
+    explicit=factor(explicit),
+    axis=factor(axis),
+    impasse=factor(impasse),
+    sex = as.factor(gsub('"',"",sex)),
+    age = as.double(gsub('"',"",age)),
+    country = gsub('"',"",country),
+    major = gsub('"',"",major),
+    year = gsub('"',"",year),
+    native_language = gsub('"',"",native_language),
+) 
+
+```
+
+```{r BLOCKS-SETUP}
+df_blocks <- df_blocks %>% 
+  select( #reorder columns
+    subject, session, term, condition,
+    q,question,answer,rt,
+    correct, orth_correct,
+    explicit, impasse, axis) %>% 
+  mutate(
+    subject=factor(subject),
+    condition=factor(condition),
+    session=factor(session),
+    term=factor(term),
+    explicit=factor(explicit),
+    axis=factor(axis),
+    impasse=factor(impasse),
+    q=factor(q),
+    question=factor(question)
+  )
+```
+
+### Sessions
+The (string) session code is entered by the participant based on instructions given by the experimenter, and documents the data-collection session (eg. in-person at a particular time). This code is also used by the experimenter to differentiate test or expert data collection runs.  
+```{r SESSIONS}
+#MANUALLY INSPECT sessions
+df_participants %>% group_by(session) %>% 
+  dplyr::summarize(n=n())
+```
+<!-- In Spring 2018, 36 (regular)data collection sessions were used, from ALFA -> ZULU. -->
+
+```{r recode-SESSIONS}
+
+#manually recode sessions in participants
+df_participants$session <- recode(df_participants$session,
+                                  'go1f'='golf',
+                                  't00'="too",
+                                  'taine'='thine',
+                                  'mouse'='MOUSE')
+
+#manually recode sessions in blocks
+df_blocks$session <- recode(df_blocks$session,
+                                  'go1f'='golf',
+                                  't00'="too",
+                                  'taine'='thine',
+                                  'mouse'='MOUSE')
+
+df_participants %>% group_by(session) %>% 
+  arrange(desc(session)) %>% 
+  summarize(n=n())
+```
+
+Participants who mispelled their sessions have been manually recoded, and one participant erroneously entered their condition code as their session code, and this entry is corrected to 'XTRA'. 
+
+The session 'MOUSE' was used for participants in the retrospective-narrative SGC3N study. 
+The sessions 'strategy-connecting' and 'strategy-satisficing' were used to demonstrate strategies arising from the SGC3N study. 
+```{r REMOVE-SGC3N}
+
+#CREATE SGC3N dataframes
+df_sgc3N_participants <- df_participants %>% 
+  filter(session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
+
+df_sgc3N_blocks <- df_blocks %>% 
+  filter(session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
+
+#WRITE SGC3N files
+write.csv(df_sgc3N_participants,"study_files/spring_sgc3N_participants.csv", row.names = FALSE)
+write.csv(df_sgc3N_blocks,"study_files/spring_sgc3N_blocks.csv", row.names = FALSE)
+
+#REMOVE SGC3N participants from main dataframes
+df_participants <- df_participants %>% 
+  filter(!session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
+
+df_blocks <- df_blocks %>% 
+  filter(!session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
+
+```
+
+These sessions are removed from the main dataframe and stored as separate files prefixed SGC3N_. 
+
+
+### Conditions
+The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study. 
+
+```{r CONDITIONS}
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+
+#SET CONDITION FACTORS FOR EACH STUDY
+#SGC3A is the simple insight study, control (111) vs impasse (121)
+f_sgc3a <- c(111,121) 
+
+#SGC3B is the factorial insight study (111 control, 121 insight, 211 static, 221 static-impasse, 311 ixn 321 ixn-impasse)
+
+f_sgc3b <- c(111,121,211,221,311,321)
+
+#SGC4 is the gridlines study 111, 112, 113
+f_sgc4 <- c(111,112,113)
+```
+##TODO ADD CONDITION IMAGES
+In Fall 2017, data were gathered for three studies: SGC3B (continued data collection: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
+
+A few students mistyped their condition codes. I verified that these codes still yield valid experimental stimuli. These codes are now manually recoded. 
+
+```{r recode-CONDITIONS}
+
+#manually recode sessions in participants
+df_participants$condition <- dplyr::recode(df_participants$condition,
+                                  '121\n121'='121',
+                                  '221\n221'="221")
+                                  
+
+#manually recode sessions in blocks
+df_blocks$condition <- dplyr::recode(df_participants$condition,
+                                  '121\n121'='121',
+                                  '221\n221'="221")
+
+df_participants %>% group_by(condition) %>% 
+  arrange(desc(condition)) %>% 
+  dplyr::summarize(n=n())
+```
+
+Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition. 
+```{r GENERATE FILES}
+
+#SEPARATE PARTICIPANTS FILES
+df_sgc3a <- df_participants %>% filter (condition %in% f_sgc3a)
+df_sgc3a %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+write.csv(df_sgc3a,"study_files/sgc3AR_participants.csv", row.names = FALSE)
+
+df_sgc3b <- df_participants %>% filter (condition %in% f_sgc3b)
+df_sgc3b %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc3b,"study_files/spring_sgc3b_participants.csv", row.names = FALSE)
+
+df_sgc4 <- df_participants %>% filter (condition %in% f_sgc4)
+df_sgc4 %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc4,"study_files/spring_sgc4_participants.csv", row.names = FALSE)
+
+#SEPARATE BLOCKS FILES
+df_sgc3a <- df_blocks %>% filter (condition %in% f_sgc3a)
+df_sgc3a %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc3a,"study_files/spring_sgc3a_blocks.csv", row.names = FALSE)
+
+df_sgc3b <- df_blocks %>% filter (condition %in% f_sgc3b)
+df_sgc3b %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc3b,"study_files/spring_sgc3b_blocks.csv", row.names = FALSE)
+
+df_sgc4 <- df_blocks %>% filter (condition %in% f_sgc4)
+df_sgc4 %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc4,"study_files/spring_sgc4_blocks.csv", row.names = FALSE)
+
+```

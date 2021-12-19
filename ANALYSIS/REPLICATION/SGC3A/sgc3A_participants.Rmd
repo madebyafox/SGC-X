@@ -34,11 +34,12 @@ library(pwr) #power analysis
 #IMPORT DATA from fall and spring files
 fall_participants <- "data/fall_sgc3a_participants.csv"
 spring_partcipants <- "data/spring_sgc3a_participants.csv"
+
 df_fall <- read.csv(fall_participants)
 df_spring <- read.csv(spring_partcipants)
 
 #Create combined data frame
-df_subjects <- rbind(df_fall, df_spring)
+df_subjects <- rbind(df_fall, df_spring, df_replication)
 df_subjects$tri_min <- df_subjects$triangular_time / 1000 / 60
 df_subjects$test_min <- df_subjects$tt_t / 1000 / 60
 df_subjects$learn_min <- df_subjects$ts_t / 1000 / 60
@@ -66,7 +67,7 @@ Data were collected across two terms: Fall 2017, and Spring 2018. Small changes 
 ```{r TERMS}
 #MANUALLY INSPECT TERMS
 df_subjects %>% group_by(term) %>% 
-  summarize(n=n())
+  dplyr::summarize(n=n())
 ```
 
 SGC3-A is a 2-condition (111-control VS 121-impasse) between-subjects experiment with `r nrow(df_subjects)` participants. 
@@ -196,7 +197,7 @@ score.cond.stats
 
 #VISUALIZE scores by condition
 gf_dhistogram( ~triangular_score, fill= ~condition, data = df_subjects) %>% 
-  gf_facet_grid(condition~.) %>% 
+  gf_facet_grid(condition) %>% 
   gf_vline(xintercept = ~mean, data = score.cond.stats, color = "blue") 
 
 #VISUALIZE scores by condition
@@ -435,7 +436,7 @@ Data from the first term only (Fall 2017) were analyzed and presented as a paper
 ```{r MODELbyTerm}
 
 #simple linear model predicting triangle score from condition for spring data only
-mspring = lm(triangular_score ~ condition, data = df_subjects %>% filter(term=='spring18'))
+mspring = lm(triangular_score ~ condition, data = df_subjects %>% filter(term=='fall21'))
 
 #partition variance
 anova(mspring)# supernova(m2)

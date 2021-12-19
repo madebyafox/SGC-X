@@ -4,7 +4,7 @@
 
 //STEP 0: UNRAVEL BLOCKS ////////////////////////////////////////////////////////
 //Create a FLAT collection of ALL BLOCKS ----------> wip_1_ALL_Blocks
-db.ALL_RAW.aggregate(
+db.fall_wip.aggregate(
  [
     {$unwind: "$data"},
     {$replaceRoot: { newRoot: "$data" }},
