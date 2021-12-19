@@ -67,7 +67,7 @@ FOR EACH session (OR as often as desired), export the records into a json file f
 //FORM
 >>mongoexport -h [connectionstring] -d [dbname] -c [tablename] -u [username] -p [password] --out [filename]
 
-//SEE logins.md for login data
+//SEE [NOTES] for login information
 
 
 ## 2 WRANGLE DATA FOR ANALYSIS
