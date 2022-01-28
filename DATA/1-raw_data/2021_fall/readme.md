@@ -22,15 +22,22 @@ remote-collection, pre-assigned conditions (Randomized over email) + OSPAN task 
 Sessions == PID so these folks can be manually excluded from future SONA studies.
 
 1. EXPORT FROM SERVER
-- export data from server [230 entries exported]
+- EXPORT data from server [230 entries exported]
 mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out fall_2021_all.json
 
 2. IMPORT to local server for wrangling
 mongoimport -d XFALL2021 -c entries --file fall_2021_all.json
 
+3. WRANGLE data using flatten.js
+230 subjects - 40 excluded (attention check)
 
-## EXPORT FROM LOCAL WRANGLING
+4. EXPORT to local for analysis
 mongoexport --collection=X_participants --db=server_2021 --jsonArray --out=final_participants.json
 mongoexport --collection=X_blocks --db=server_2021 --jsonArray --out=final_blocks.json
 mongoexport --collection=X_blocks_mouse --db=server_2021 --jsonArray --out=final_blocks_mouse.json
+
+## EXPORT FROM LOCAL WRANGLING
+mongoexport --collection=X_participants --db=XFALL_2021 --jsonArray --out=final_participants.json
+mongoexport --collection=X_blocks --db=XFALL_2021 --jsonArray --out=final_blocks.json
+mongoexport --collection=X_blocks_mouse --db=XFALL_2021 --jsonArray --out=final_blocks_mouse.json
 >>>>>>> 015c0b07e989ce3fcc4828ad5e85d7ba7a849df2
