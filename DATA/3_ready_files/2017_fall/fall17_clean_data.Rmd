@@ -1,8 +1,10 @@
 ---
-title: "fall17_clean_data"
+title: "Fall 2017 Data Cleaning"
 author: "Amy Rae Fox"
 date: "11/2/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 *The purpose of this file is processing the combined data files for Fall 2017 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
 
@@ -13,10 +15,11 @@ library(dplyr)
 library(tidyjson)
 
 #set current folder as working directory
-setwd("~/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/DATA/3_ready_files/fall_2017")
+# setwd("~/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/DATA/3_ready_files/fall_2017")
 ```
 
 Data is imported from 2 files, indicating two levels of analysis: participants and blocks (item-level). **Note: mouse-cursor data contained in final_mouse_blocks.json file is not handled here.**
+
 ```{r IMPORT}
 #IMPORT DATA
 df_participants <- fromJSON("combined_files/final_participants.json")
@@ -106,6 +109,7 @@ In Fall 2017, 14 data collection sessions were used, from ALFA -> PINECONE. Part
 
 ### Conditions
 The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study. 
+
 ```{r CONDITIONS}
 df_participants %>% group_by(condition) %>% 
   summarize(n=n())
@@ -121,42 +125,44 @@ f_sgc3b <- c(111,121,211,221,311,321)
 #SGC4 is the gridlines study 111, 112, 113
 f_sgc4 <- c(111,112,113)
 ```
-##TODO ADD CONDITION IMAGES
-In Fall 2017, data were gathered for three studies: SGC3A (simple insight vs. control), SGC3B (partial data collected: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
 
-Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition. 
+
+In Fall 2017, data were gathered for three study designs: SGC3A (simple insight vs. control), SGC3B (partial data collected: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
+
+Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition.
+
 ```{r GENERATE FILES}
 
 #SEPARATE PARTICIPANTS FILES
 df_sgc3a <- df_participants %>% filter (condition %in% f_sgc3a)
 df_sgc3a %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3a,"study_files/fall_sgc3a_participants.csv", row.names = FALSE)
+write.csv(df_sgc3a,"study_files/fall17_sgc3a_participants.csv", row.names = FALSE)
 
 df_sgc3b <- df_participants %>% filter (condition %in% f_sgc3b)
 df_sgc3b %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3b,"study_files/fall_sgc3b_participants.csv", row.names = FALSE)
+write.csv(df_sgc3b,"study_files/fall17_sgc3b_participants.csv", row.names = FALSE)
 
 df_sgc4 <- df_participants %>% filter (condition %in% f_sgc4)
 df_sgc4 %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc4,"study_files/fall_sgc4_participants.csv", row.names = FALSE)
+write.csv(df_sgc4,"study_files/fall17_sgc4_participants.csv", row.names = FALSE)
 
 #SEPARATE BLOCKS FILES
 df_sgc3a <- df_blocks %>% filter (condition %in% f_sgc3a)
 df_sgc3a %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3a,"study_files/fall_sgc3a_blocks.csv", row.names = FALSE)
+write.csv(df_sgc3a,"study_files/fall17_sgc3a_blocks.csv", row.names = FALSE)
 
 df_sgc3b <- df_blocks %>% filter (condition %in% f_sgc3b)
 df_sgc3b %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3b,"study_files/fall_sgc3b_blocks.csv", row.names = FALSE)
+write.csv(df_sgc3b,"study_files/fall17_sgc3b_blocks.csv", row.names = FALSE)
 
 df_sgc4 <- df_blocks %>% filter (condition %in% f_sgc4)
 df_sgc4 %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc4,"study_files/fall_sgc4_blocks.csv", row.names = FALSE)
+write.csv(df_sgc4,"study_files/fall17_sgc4_blocks.csv", row.names = FALSE)
 
 ```
