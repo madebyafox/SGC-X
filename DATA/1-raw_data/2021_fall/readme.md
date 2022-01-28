@@ -32,12 +32,8 @@ mongoimport -d XFALL2021 -c entries --file fall_2021_all.json
 230 subjects - 40 excluded (attention check)
 
 4. EXPORT to local for analysis
-mongoexport --collection=X_participants --db=server_2021 --jsonArray --out=final_participants.json
-mongoexport --collection=X_blocks --db=server_2021 --jsonArray --out=final_blocks.json
-mongoexport --collection=X_blocks_mouse --db=server_2021 --jsonArray --out=final_blocks_mouse.json
+mongoexport --collection=X_participants --db=XFALL2021 --jsonArray --out=final_participants.json
+mongoexport --collection=X_blocks --db=XFALL2021 --jsonArray --out=final_blocks.json
+mongoexport --collection=X_blocks_mouse --db=XFALL2021 --jsonArray --out=final_blocks_mouse.json
 
-## EXPORT FROM LOCAL WRANGLING
-mongoexport --collection=X_participants --db=XFALL_2021 --jsonArray --out=final_participants.json
-mongoexport --collection=X_blocks --db=XFALL_2021 --jsonArray --out=final_blocks.json
-mongoexport --collection=X_blocks_mouse --db=XFALL_2021 --jsonArray --out=final_blocks_mouse.json
->>>>>>> 015c0b07e989ce3fcc4828ad5e85d7ba7a849df2
+

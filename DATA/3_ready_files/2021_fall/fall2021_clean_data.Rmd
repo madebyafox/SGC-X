@@ -1,10 +1,10 @@
 ---
 title: "fall2021_clean_data"
 author: "Amy Rae Fox"
-date: "11/26/2021"
+date: "1/26/2022"
 output: html_document
 ---
-*The purpose of this file is processing the combined data files for Fall 2017 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
+*The purpose of this file is processing the combined data files for Fall 2021 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
 
 ```{r SETUP, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -80,65 +80,89 @@ df_blocks <- df_blocks %>%
 
 ### Sessions
 The (string) session code is entered by the participant based on instructions given by the experimenter, and documents the data-collection session (eg. in-person at a particular time). This code is also used by the experimenter to differentiate test or expert data collection runs.  
+
+In Fall 2021, participants were instructed to enter their PID as the session field. 
 ```{r SESSIONS}
 #MANUALLY INSPECT sessions
 df_participants %>% group_by(session) %>% 
   dplyr::summarize(n=n())
 ```
-<!-- In Spring 2018, 36 (regular)data collection sessions were used, from ALFA -> ZULU. -->
+
+
 
 ```{r recode-SESSIONS}
 
 #manually recode sessions in participants
 df_participants$session <- recode(df_participants$session,
-                                  'go1f'='golf',
-                                  't00'="too",
-                                  'taine'='thine',
-                                  'mouse'='MOUSE')
+                                  "17012262\na17012262"="17012262",
+                                  "a14821119\na14821119"="a14821119",
+                                  "a15049392\na15049392"="a15049392",
+                                  "a15418907\na15418907"="a15418907",
+                                  "a15515318\na15515318"="a15515318",
+                                  "a15558540\na15558540"="a15558540",
+                                  "a15897677\na15897677"="a15897677",
+                                  "a15902241\na15902241"="a15902241",
+                                  "a16137081\na16137081"="a16137081",
+                                  "a16324253\na16324253"="a16324253",
+                                  "a16328170\na16328170"="a16328170",
+                                  "a16675361\na16675361"="a16675361",
+                                  "a16788617\na16788617"="a16788617",
+                                  "a16885269\na16885269"="a16885269",
+                                  "a17082219\na17082219"="a17082219",
+                                  "a17091192\na17091192"="a17091192",
+                                  "a17213518\na17213518"="a17213518",
+                                "a16686690\n16686690\n16686690"="a16686690",
+                              "a15826500\na15826500\na15826500"="a15826500"
+                                  )
 
 #manually recode sessions in blocks
 df_blocks$session <- recode(df_blocks$session,
-                                  'go1f'='golf',
-                                  't00'="too",
-                                  'taine'='thine',
-                                  'mouse'='MOUSE')
+     "17012262\na17012262"="17012262",
+                                  "a14821119\na14821119"="a14821119",
+                                  "a15049392\na15049392"="a15049392",
+                                  "a15418907\na15418907"="a15418907",
+                                  "a15515318\na15515318"="a15515318",
+                                  "a15558540\na15558540"="a15558540",
+                                  "a15897677\na15897677"="a15897677",
+                                  "a15902241\na15902241"="a15902241",
+                                  "a16137081\na16137081"="a16137081",
+                                  "a16324253\na16324253"="a16324253",
+                                  "a16328170\na16328170"="a16328170",
+                                  "a16675361\na16675361"="a16675361",
+                                  "a16788617\na16788617"="a16788617",
+                                  "a16885269\na16885269"="a16885269",
+                                  "a17082219\na17082219"="a17082219",
+                                  "a17091192\na17091192"="a17091192",
+                                  "a17213518\na17213518"="a17213518",
+                                "a16686690\n16686690\n16686690"="a16686690",
+                              "a15826500\na15826500\na15826500"="a15826500"
+                                  )
+
 
 df_participants %>% group_by(session) %>% 
   arrange(desc(session)) %>% 
   summarize(n=n())
 ```
 
-Participants who mispelled their sessions have been manually recoded, and one participant erroneously entered their condition code as their session code, and this entry is corrected to 'XTRA'. 
+Participants who doubly entered their PIDS have been manually corrected.  
 
-The session 'MOUSE' was used for participants in the retrospective-narrative SGC3N study. 
-The sessions 'strategy-connecting' and 'strategy-satisficing' were used to demonstrate strategies arising from the SGC3N study. 
-```{r REMOVE-SGC3N}
+Next, one test participant (session == 'hollanlab') must be manually removed. 
 
-#CREATE SGC3N dataframes
-df_sgc3N_participants <- df_participants %>% 
-  filter(session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
+```{r remove-HOLLANLAB}
 
-df_sgc3N_blocks <- df_blocks %>% 
-  filter(session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
-
-#WRITE SGC3N files
-write.csv(df_sgc3N_participants,"study_files/spring_sgc3N_participants.csv", row.names = FALSE)
-write.csv(df_sgc3N_blocks,"study_files/spring_sgc3N_blocks.csv", row.names = FALSE)
-
-#REMOVE SGC3N participants from main dataframes
-df_participants <- df_participants %>% 
-  filter(!session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
-
-df_blocks <- df_blocks %>% 
-  filter(!session %in% c("MOUSE","strategy-satisficing","strategy-connecting"))
-
+#manually remove hollan lab test participant 
+df_participants <- df_participants %>% filter(session != "hollanlab")
+df_blocks <- df_blocks %>% filter(session != "hollanlab")
+     
+df_participants %>% group_by(session) %>% 
+  arrange(desc(session)) %>% 
+  summarize(n=n())
 ```
-
-These sessions are removed from the main dataframe and stored as separate files prefixed SGC3N_. 
 
 
 ### Conditions
 The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study. 
+
 
 ```{r CONDITIONS}
 df_participants %>% group_by(condition) %>% 
@@ -156,7 +180,7 @@ f_sgc3b <- c(111,121,211,221,311,321)
 f_sgc4 <- c(111,112,113)
 ```
 ##TODO ADD CONDITION IMAGES
-In Fall 2017, data were gathered for three studies: SGC3B (continued data collection: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
+In SPRING 2021, data were gathered for three studies: SGC3B (continued data collection: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
 
 A few students mistyped their condition codes. I verified that these codes still yield valid experimental stimuli. These codes are now manually recoded. 
 
@@ -185,32 +209,32 @@ Finally, data from the master participants and blocks files are segregated into 
 df_sgc3a <- df_participants %>% filter (condition %in% f_sgc3a)
 df_sgc3a %>% group_by(condition) %>% 
   dplyr::summarize(n=n())
-write.csv(df_sgc3a,"study_files/sgc3AR_participants.csv", row.names = FALSE)
+write.csv(df_sgc3a,"study_files/fall21_sgc3a_participants.csv", row.names = FALSE)
 
 df_sgc3b <- df_participants %>% filter (condition %in% f_sgc3b)
 df_sgc3b %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3b,"study_files/spring_sgc3b_participants.csv", row.names = FALSE)
+write.csv(df_sgc3b,"study_files/fall21_sgc3b_participants.csv", row.names = FALSE)
 
 df_sgc4 <- df_participants %>% filter (condition %in% f_sgc4)
 df_sgc4 %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc4,"study_files/spring_sgc4_participants.csv", row.names = FALSE)
+write.csv(df_sgc4,"study_files/fall21_sgc4_participants.csv", row.names = FALSE)
 
 #SEPARATE BLOCKS FILES
 df_sgc3a <- df_blocks %>% filter (condition %in% f_sgc3a)
 df_sgc3a %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3a,"study_files/spring_sgc3a_blocks.csv", row.names = FALSE)
+write.csv(df_sgc3a,"study_files/fall21_sgc3a_blocks.csv", row.names = FALSE)
 
 df_sgc3b <- df_blocks %>% filter (condition %in% f_sgc3b)
 df_sgc3b %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc3b,"study_files/spring_sgc3b_blocks.csv", row.names = FALSE)
+write.csv(df_sgc3b,"study_files/fall21_sgc3b_blocks.csv", row.names = FALSE)
 
 df_sgc4 <- df_blocks %>% filter (condition %in% f_sgc4)
 df_sgc4 %>% group_by(condition) %>% 
   summarize(n=n())
-write.csv(df_sgc4,"study_files/spring_sgc4_blocks.csv", row.names = FALSE)
+write.csv(df_sgc4,"study_files/fall21_sgc4_blocks.csv", row.names = FALSE)
 
 ```
