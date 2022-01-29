@@ -1,8 +1,10 @@
 ---
-title: "fall2021_clean_data"
+title: "Fall 2021 Data Cleaning"
 author: "Amy Rae Fox"
 date: "1/26/2022"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 *The purpose of this file is processing the combined data files for Fall 2021 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
 
@@ -146,6 +148,20 @@ df_participants %>% group_by(session) %>%
 
 Participants who doubly entered their PIDS have been manually corrected.  
 
+#### Duplicate participants
+A number of participants mistakenly completed the study twice, unsure that their SONA credit had been granted. The second (later submission) of each should be excluded.
+
+```{r remove-DUPLICATE-entries}
+
+#identify duplicate participants
+duplicates <- df_participants %>% filter(duplicated(session)) %>% select(session)
+df_duplicate_participants <- df_participants %>% filter(session %in% duplicates$session)
+df_duplicate_blocks <-df_blocks%>% filter(session %in% duplicates$session)
+#remove from main dataframes
+df_participants <- df_participants %>% filter(!session %in% duplicates$session)
+df_blocks <- df_blocks %>% filter(!session %in% duplicates$session)
+```
+
 Next, one test participant (session == 'hollanlab') must be manually removed. 
 
 ```{r remove-HOLLANLAB}
@@ -158,7 +174,6 @@ df_participants %>% group_by(session) %>%
   arrange(desc(session)) %>% 
   summarize(n=n())
 ```
-
 
 ### Conditions
 The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study. 
@@ -179,8 +194,9 @@ f_sgc3b <- c(111,121,211,221,311,321)
 #SGC4 is the gridlines study 111, 112, 113
 f_sgc4 <- c(111,112,113)
 ```
-##TODO ADD CONDITION IMAGES
-In SPRING 2021, data were gathered for three studies: SGC3B (continued data collection: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
+
+
+In FALL 2021, data were gathered for three studies: SGC3A (online replication), SGC3B (online replication) and SGC4(online replication). 
 
 A few students mistyped their condition codes. I verified that these codes still yield valid experimental stimuli. These codes are now manually recoded. 
 
@@ -220,6 +236,10 @@ df_sgc4 <- df_participants %>% filter (condition %in% f_sgc4)
 df_sgc4 %>% group_by(condition) %>% 
   summarize(n=n())
 write.csv(df_sgc4,"study_files/fall21_sgc4_participants.csv", row.names = FALSE)
+
+#WRITE FILES FOR DUPS
+write.csv(df_duplicate_participants,"study_files/fall21_SGCDUPLICATE_participants.csv", row.names = FALSE)
+write.csv(df_duplicate_blocks,"study_files/fall21_SGCDUPLICATE_blocks.csv", row.names = FALSE)
 
 #SEPARATE BLOCKS FILES
 df_sgc3a <- df_blocks %>% filter (condition %in% f_sgc3a)
