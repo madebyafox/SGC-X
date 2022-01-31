@@ -39,13 +39,8 @@ to run without auto refresh
 node app.js 
 
 
-
-
 # TODO
 - minimize jspsych7 (remove files not needed for runtime)
-
-
-
 
 
 # To Use Application code
