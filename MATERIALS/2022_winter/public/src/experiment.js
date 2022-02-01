@@ -19,8 +19,7 @@ var explicit = 1; //overriden by codes block
 var impasse = 1; //overriden by codes block
 var axis = 1; //overrridden by codes block
 var colorClick = true; //define whether values turn green when clicked
-var clicked = [["answer","clicked"]]; //populate first row of clicked array with headers
-var hovered = ""; //string for sequence of data points that have been hovered over
+
 var scaffolds = [
   "none",
   "text-image",
@@ -44,7 +43,7 @@ var questions = [
   "midpoint",
   "strategy"
 ];
-var clicks = 0; //number of clicks on the page
+
 var q = 0 ; //question number, used for data file override
 var scenarios = ["acme","bigset"]; //determine the order of scenarios by randomly sorting the array
 var sid = jsPsych.randomization.randomID(5);
@@ -170,21 +169,22 @@ var stimulus = {
   url: '../src/stimulus.html',
   execute_script: true,
   force_refresh:true,
-  cont_btn: "submit",
+  cont_btn: "testingButton",
   on_finish: function(data) {
-    // console.log("finished: "+data.internal_node_id);
+    console.log("finished: "+data.internal_node_id);
   },
   on_start: function(){
         localStorage.setItem("graph", "triangular");
         localStorage.setItem("scenario",  scenarios[0]);
         localStorage.setItem("question",  questions[0]);
         localStorage.setItem("q",  1);
-        localStorage.setItem("clicks",  0);
         localStorage.setItem("explicit",  explicit);
         localStorage.setItem("impasse",  impasse);
         localStorage.setItem("axis",  axis);
         localStorage.setItem("sid",  sid);
         localStorage.setItem("scaffold",  scaffolds[0]);
+        localStorage.setItem("colorClick",colorClick);
+        // localStorage.setItem("clicked",  clicked);
           // window._mfq.push(["newPageView", "/1"]);
   }
 };
@@ -253,12 +253,12 @@ var stimulus = {
 
 //ASSEMBLE TIMELINE
 timeline.push(stimulus);
-timeline.push(preload);
+// timeline.push(preload);
 timeline.push(welcome);
-timeline.push(devices);
-timeline.push(browserinstructions);
-timeline.push(browsercheck);
-timeline.push(distractions);
+// timeline.push(devices);
+// timeline.push(browserinstructions);
+// timeline.push(browsercheck);
+// timeline.push(distractions);
 
 // timeline.push(stimulus2);
 //   timeline.push(instructions);

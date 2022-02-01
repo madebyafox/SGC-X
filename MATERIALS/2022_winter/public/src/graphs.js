@@ -179,7 +179,7 @@ function drawXGrid_Full (x,y,min,max,range){
 
   for (n = 0; n < g; n++) {
       console.log("n: "+n+"-------------------");
-      console.log(n*i);
+      console.log("n*i"+ (n*i));
 
       var x1 = t0.clone();
           x1 = x1.add(n*i,'hours');
@@ -438,7 +438,7 @@ function toggleAnswer(x) {
 //-----------GRAPH DRAWING FUNCTIONS ------------------------//
 function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
 
-  console.log(axis);
+  console.log("axis: "+axis);
 
   //---------CREATE LEADERS ELEMENT SO ITS ON THE BOTTOM------//
   var leaders = svg.append("g")
@@ -451,7 +451,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
   d3.csv(datafile, function(error, data) {
     // d3.csvParse(datafile, function(error, data) {
       // console.log("trying to read file");
-      console.log(data);
+      // console.log("data:" +data);
       if (error) throw error;
       // format the data
       var count = data.length;
@@ -463,7 +463,6 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
 
       //PROCESS RAW DATA
       data.forEach(function(d) {
-        console.log("d is: "+d)
         //store the raw data in vars
         // d.events = d.events;
         // d.starttime = d.starttime;
@@ -584,7 +583,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
         d3.selectAll(".circle").remove();
         var sibling = d3.select(this.nextElementSibling).text();
         hovered = hovered+"-"+sibling;
-        console.log(hovered);
+        console.log("hovered: "+hovered);
        })
       .on("click", function(d) {
         if(colorClick) {
@@ -617,7 +616,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
       .on("mouseout", function(d){
         var sibling = d3.select(this).text();
         hovered = hovered+"-"+sibling;
-        console.log(hovered);
+        console.log("hovered: "+hovered);
       });
 
       // drawTriangleLeaders(x,y,backup[8][1],backup[8][2],backup[8][3],backup[8][4],dmin);
@@ -627,7 +626,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
       .on("mouseout", function(d) {
         var sibling = d3.select(this).text();
         hovered = hovered+"-"+sibling;
-        console.log(hovered);
+        console.log("hovered: "+hovered);
      });
 
      //remove every other tick label on x axis

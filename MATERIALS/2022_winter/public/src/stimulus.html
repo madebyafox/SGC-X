@@ -1,16 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
-    
-  <!-- load the d3.js library -->
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="https://d3js.org/d3-drag.v1.min.js"></script> 
-  <script src="https://d3js.org/d3-path.v1.min.js"></script>
-  <script src="https://d3js.org/d3-shape.v1.min.js"></script>
-  <script src="https://d3js.org/d3-polygon.v1.min.js"></script>
-
-</head>
-
+ </head>
 
 <body>
   <div class = "stimulus">
@@ -1137,12 +1128,19 @@
 
   <script>
 
+
+    //DECLARE VARIABLES ——————————————————————————
+
+    let clicked = ["answer","clicked"]; //populate first row of clicked array with headers
+    let hovered = ""; //string for sequence of data points that have been hovered over
+    let clicks = 0; //number of clicks on the page
+
     // Track clicks on page
     $(document).ready(function() {
       $(".control").click(function(e) {
         e.stopImmediatePropagation();
         clicks = clicks + 1;
-        console.log(clicks);
+        console.log("clicks: "+clicks);
       });
     });
 
@@ -1150,7 +1148,7 @@
     // console.log("start of hovered string: "+hovered);
 
     //set correct answers for each question
-    var triangular_answers = {
+    let triangular_answers = {
       "acme.starttime.1" : ["F"],
       "acme.starts.1" : ["K"],
       "acme.meets.1" : ["F"],
@@ -1187,7 +1185,7 @@
       "bigset.endtime.2" : ["X"],
       "bigset.midpoint.2" : ["K","X"]
     }
-    var orthogonal_answers = {
+    let orthogonal_answers = {
       "acme.starttime.1" : ["A"],
       "acme.starts.1" : ["E"],
       "acme.meets.1" : ["Z"],
@@ -1225,16 +1223,17 @@
       "bigset.midpoint.2" : ["E","F"]
     }
 
-    var graph = localStorage.getItem("graph");
-    var scenario = localStorage.getItem("scenario");
-    var question = localStorage.getItem("question");
-    var q = localStorage.getItem("q");
-    var clicks = localStorage.getItem("clicks");
-    var explicit = localStorage.getItem("explicit");
-    var impasse = localStorage.getItem("impasse");
-    var axis = localStorage.getItem("axis");
-    var sid = localStorage.getItem("sid");
-    var scaffold = localStorage.getItem("scaffold");
+    let colorClick = localStorage.getItem("colorClick");
+    let graph = localStorage.getItem("graph");
+    let scenario = localStorage.getItem("scenario");
+    let question = localStorage.getItem("question");
+    let q = localStorage.getItem("q");
+    let explicit = localStorage.getItem("explicit");
+    let impasse = localStorage.getItem("impasse");
+    let axis = localStorage.getItem("axis");
+    let sid = localStorage.getItem("sid");
+    let scaffold = localStorage.getItem("scaffold");
+    
 
     //display userid in bottom corner
     $('.userid').html(sid);
@@ -1247,8 +1246,8 @@
     //---------SET PROPERTIES OF THE GRAPH -------------//
     // set the dimensions and margins of the graph
     var margin = {top: 25, right: 30, bottom: 90, left: 100},
-      width = 800,
-      height = 800;
+      width = 700,
+      height = 700;
     var intersects = false; //default value for intersects scaffold
     var xAxisTitle, yAxisTitle;
     var datafile ="";
@@ -1304,22 +1303,7 @@
       intersects = false;
     }
 
-    console.log(datafile);
-
-
-    // d3.csv(datafile, function(error, data) {
-    //   console.log("TRYING TO READ");
-    //   console.log("length: "+data.length);
-    // });
-    d3.csv(datafile).then(function(data) {
-
-      // format the data
-      data.forEach(function(d) {
-      console.log("read d: "+d)
-      });
-    });
-
-
+    console.log("datafile: "+datafile);
 
     // //---------CREATE THE SVG  ------------------------//
     var svg = d3.select(".d3container").append("svg")
