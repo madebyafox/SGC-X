@@ -12,7 +12,30 @@
 //first 5 questions of each graph are scaffolded, remainder are
 //not. Concludes with demographic survey and preferences before debrief
 //SCAFFOLD, GRAPH and RESPONSETYPE determined by condition code 
+
+//REFERENCE-----------------------------------------------------------
+    
+    //CONDITION
+    //    [EXPLICIT] [IMPASSE] [AXIS]
+
+    //EXPLICIT SCAFFOLD
+    //    1 = none (control)
+    //    2 = static image
+    //    3 = interactive image 
+
+    //IMPASSE SCAFFOLD
+    //    1 = none (control)
+    //    2 = impasse 
+    
+    //AXIS 
+    //    1 = orthog y(full) x(tri) [control] Orthogonal-XInside-YFull
+    //    2 = orthog y(partial) x(tri) [ignore] Orthogonal-XInside-YPartial
+    //    3 = tri y(tri) x(tri) [minimal] Triangular-XInside-YInside
+    //    4 = orthog y(partial) x(tri) [original] Orthogonal-XInside-YInside
+    //    5 = orthog y(full) x(full) [maximal] Orthogonal-XFull-YFull
+
 //--------------------------------------------------------------------
+    
 
 //INITIALIZE JSPSYCH & TIMELINE
 var jsPsych = initJsPsych({
@@ -20,25 +43,25 @@ var jsPsych = initJsPsych({
     jsPsych.data.displayData();
   }
 });
-
 var timeline = [];
-//INITIALIZE GLOBAL VARIABLES 
-var scenario, question, scaffold, block, correct, orth_correct ;
-var graph = "linear"; 
-var experiment = "SGCX"; //overriden by URL
-var session = "default"; //overriden by codes block
-var condition = 0;  //overriden by codes block
-var explicit = 1; //overriden by codes block
-var impasse = 1; //overriden by codes block
-var axis = 1; //overrridden by codes block
-var colorClick = true; //define whether values turn green when clicked
 
-var scaffolds = [
-  "none",
-  "text-image",
-  "interactive"
-];
-var questions = [
+//INITIALIZE GLOBAL VARIABLES 
+let scenario, question, scaffold, block, correct, orth_correct ;
+let graph = "triangular";  //values: linear,triangular
+let experiment = "SGCX"; //overriden by URL
+let session = "default"; //overriden by codes block
+let condition = 0;  //overriden by codes block
+let explicit = 3; //overriden by codes block
+let impasse = 1; //overriden by codes block
+let axis = 1; //overrridden by codes block
+let colorClick = true; //define whether values turn green when clicked
+let q = 1 ; //question number, used for data file override
+let scenarios = ["acme","bigset"]; //determine the order of scenarios by randomly sorting the array
+let sid = jsPsych.randomization.randomID(5);
+sid = sid.toUpperCase();
+console.log(sid);
+
+let questions = [
   "starttime",
   "starts",
   "meets",
@@ -57,11 +80,7 @@ var questions = [
   "strategy"
 ];
 
-var q = 0 ; //question number, used for data file override
-var scenarios = ["acme","bigset"]; //determine the order of scenarios by randomly sorting the array
-var sid = jsPsych.randomization.randomID(5);
-sid = sid.toUpperCase();
-console.log(sid);
+
 
 //PRELOAD MEDIA
   var preload = {
@@ -187,15 +206,14 @@ var stimulus = {
     console.log("finished: "+data.internal_node_id);
   },
   on_start: function(){
-        localStorage.setItem("graph", "triangular");
+        localStorage.setItem("graph", graph);
         localStorage.setItem("scenario",  scenarios[0]);
         localStorage.setItem("question",  questions[0]);
-        localStorage.setItem("q",  1);
+        localStorage.setItem("q",  q);
         localStorage.setItem("explicit",  explicit);
-        localStorage.setItem("impasse",  2);
+        localStorage.setItem("impasse",  impasse);
         localStorage.setItem("axis",  axis);
         localStorage.setItem("sid",  sid);
-        localStorage.setItem("scaffold",  scaffolds[0]);
         localStorage.setItem("colorClick",colorClick);
         // localStorage.setItem("clicked",  clicked);
           // window._mfq.push(["newPageView", "/1"]);

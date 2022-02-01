@@ -1233,7 +1233,6 @@
     let impasse = localStorage.getItem("impasse");
     let axis = localStorage.getItem("axis");
     let sid = localStorage.getItem("sid");
-    let scaffold = localStorage.getItem("scaffold");
     
 
     //display userid in bottom corner
@@ -1253,57 +1252,18 @@
     var xAxisTitle, yAxisTitle;
     var datafile ="";
 
-    // SET AXIS VALUES
-    if (axis ==1){
-      axis = "Orthogonal-XInside-YFull";
-    }
-    else if (axis ==2){
-      axis = "Orthogonal-XInside-YPartial";
-    }
-    else if (axis ==3){
-      axis = "Triangular-XInside-YInside";
-    }
-    else if (axis ==4){
-      axis = "Orthogonal-XInside-YInside";
-    }
-    else if (axis ==5){
-      axis = "Orthogonal-XFull-YFull";
-    }
-
-    // SET EXPLICIT SCAFFOLD FEATURES
-    if (explicit ==2 && axis != "diagonal"){
-      scaffold = 2;
-      intersects = false;
-    }
-    else if (explicit == 2 && axis == "diagonal"){
-      scaffold = 2;
-      intersects = false;
-    }
-    //TODO: not sure if above two lines are still valid since leaders are now generated on the fly
-    else if (explicit == 3){
-      $('#hint-interactive').css("display","block"); //display textimage scaffold
-      intersects = true;
-    }
-
-
-    //SET DATA FILE FOR IMPLICIT SCAFFOLD
+    //-------DECIDE WHICH DATAFILE [IMPASSE SCAFFOLD]------//
     if (impasse == 1){
       datafile = "src/data/acme_nonimpasse.csv";
     }
     else if (impasse == 2){
       datafile = "src/data/acme_impasse.csv";
     }
-
     //OVERRIDE DATA FILE FOR NON-SCAFFOLD QUESTIONS
     if (q > 5) { //override data file if q# is greater than 5
       datafile = "src/data/bigset.csv";
       console.log("override data file");
-      $('#orthogonal-image').css("display","none"); //display textimage scaffold
-      $('#diagonal-image').css("display","none"); //display textimage scaffold
-      $('#hint-interactive').css("display","none"); //display textimage scaffold
-      intersects = false;
     }
-
     console.log("datafile: "+datafile);
 
     // //---------CREATE THE SVG  ------------------------//
@@ -1313,16 +1273,37 @@
       .append("g")
       .attr("transform",  "translate(" + margin.left + "," + margin.top + ")")
       .on('mousemove', function() {
-          console.log( d3.mouse(this));
+          // console.log( d3.mouse(this));
           mousesvg.push(d3.mouse(this));
       }); // log the mouse x,y position in svg coords
     
+      //---------DRAW THE GRAPH  ------------------------//
+    switch(graph){
+      case "triangular":
+        xAxisTitle = "START & END TIME (time of day)";
+        yAxisTitle = "DURATION (in hours)";
+        console.log("passing scaffold: "+explicit);
+        drawTriangleModel(datafile,axis,explicit);
+      break;
+      
+      case "linear":
+        xAxisTitle = "START & END TIME (time of day)";
+        if (scenario == "longmire"){yAxisTitle = "CONFERENCE ROOM";}
+        if (scenario =="axis"){yAxisTitle = "TASK"}
+        drawLinearModel(datafile,axis,explicit);
+      break;
+      
+      default:
+      $(".d3container").remove();
+      break;
+    }
 
-    //---------DRAW THE GRAPH  ------------------------//
-      xAxisTitle = "START & END TIME (time of day)";
-      yAxisTitle = "DURATION (in hours)";
-      //drawTriangleModel(datafile,intersects,axis,scaffold,q);
-      drawLinearModel(datafile,intersects,axis,scaffold,q);
+    if (q >= 6) { //turn off scaffolds
+      console.log("trying to turn it off!");
+      $("#hint-interactive").css("display","none");
+      $(".leaders").css("display","none");
+      $(".static-scaffold").css("display","none");
+    }
   </script>
 
 </body>

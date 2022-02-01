@@ -9,6 +9,32 @@
 // d3.selectAll(".tick text")
 //   .attr("y", 20) ;
 
+
+//REFERENCE-----------------------------------------------------------
+    
+    //CONDITION
+    //    [EXPLICIT] [IMPASSE] [AXIS]
+
+    //EXPLICIT SCAFFOLD
+    //    1 = none (control)
+    //    2 = static image
+    //    3 = interactive image 
+
+    //IMPASSE SCAFFOLD
+    //    1 = none (control)
+    //    2 = impasse 
+    
+    //AXIS 
+    //    1 = orthog y(full) x(tri) [control] Orthogonal-XInside-YFull
+    //    2 = orthog y(partial) x(tri) [ignore] Orthogonal-XInside-YPartial
+    //    3 = tri y(tri) x(tri) [minimal] Triangular-XInside-YInside
+    //    4 = orthog y(partial) x(tri) [original] Orthogonal-XInside-YInside
+    //    5 = orthog y(full) x(full) [maximal] Orthogonal-XFull-YFull
+
+//--------------------------------------------------------------------
+
+
+
 console.log("GRAPH.JS LOADED");
 
 //-----------AXIS HELPER FUNCTIONS ---------------------------//
@@ -178,8 +204,8 @@ function drawXGrid_Full (x,y,min,max,range){
 
 
   for (n = 0; n < g; n++) {
-      console.log("n: "+n+"-------------------");
-      console.log("n*i"+ (n*i));
+      // console.log("n: "+n+"-------------------");
+      // console.log("n*i"+ (n*i));
 
       var x1 = t0.clone();
           x1 = x1.add(n*i,'hours');
@@ -309,7 +335,9 @@ function drawTriangleLeaders(x,y,start,mid,end,dur,min,leaders){
     .attr("cx", x(end))
     .attr("cy", y(0)+22);
 
-    if (axis == "Triangular-XInside-YInside"){
+    // axis == 3 Triangular-XInside-YInside"  
+    if (axis == 3){
+    // if (axis == "Triangular-XInside-YInside"){
       leaders.append("line")
       .attr("class","duration")
       .attr("x1",x(actual))
@@ -382,7 +410,9 @@ function drawStaticLeaders(axis,staticLeaders,x,y){
   // .attr("y",y(0)+50)
   // .text("end");
 
-  if (axis == "Triangular-XInside-YInside"){
+  // axis == 3 Triangular-XInside-YInside"  
+  if (axis == 3){
+  // if (axis == "Triangular-XInside-YInside"){
     staticLeaders.append("line")
     .attr("class","scaffDuration")
     .attr("x1",x(diagMid))
@@ -436,9 +466,10 @@ function toggleAnswer(x) {
 }
 
 //-----------GRAPH DRAWING FUNCTIONS ------------------------//
-function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
+function drawTriangleModel(datafile, axis, explicit) {
 
   console.log("axis: "+axis);
+  console.log("explicit: "+explicit);
 
   //---------CREATE LEADERS ELEMENT SO ITS ON THE BOTTOM------//
   var leaders = svg.append("g")
@@ -449,8 +480,6 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
 
   //---------CREATE & DRAW DATA  ----------//
   d3.csv(datafile, function(error, data) {
-    // d3.csvParse(datafile, function(error, data) {
-      // console.log("trying to read file");
       // console.log("data:" +data);
       if (error) throw error;
       // format the data
@@ -523,28 +552,37 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
       drawXAxis(xAxis,xAxisTitle,x,y,dmin,dmax,range);
 
       //draw y axis and grid
-      if (axis == "Orthogonal-XInside-YFull"){ //condition 1
+      // axis == 1 Orthogonal-XInside-YFull
+      if (axis == 1){
+      // if (axis == "Orthogonal-XInside-YFull"){ //condition 1
         drawYAxis_Orthogonal(y,yAxisTitle);
         drawYGrid_Full(x,y,dmin.clone(),dmax.clone(),range);
         drawXGrid_Triangular (x,y,dmin.clone(),dmax.clone(),range);
       }
-      else if (axis == "Orthogonal-XInside-YPartial"){ //condition 2
+      // axis == 2 Orthogonal-XInside-YPartial
+      else if (axis == 2){
+      // else if (axis == "Orthogonal-XInside-YPartial"){ //condition 2
         drawYAxis_Orthogonal(y,yAxisTitle);
         drawYGrid_Partial(x,y,dmin.clone(),dmax.clone(),range);
         drawXGrid_Triangular (x,y,dmin.clone(),dmax.clone(),range);
-
       }
-      else if (axis == "Triangular-XInside-YInside") { //condition 3
+      // axis == 3 Triangular-XInside-YInside
+      else if (axis == 3){
+      // else if (axis == "Triangular-XInside-YInside") { //condition 3
         drawYAxis_Triangular(x,y,yAxisTitle,dmin.clone(),dmax.clone(),range)
         drawYGrid_Inside(x,y,dmin.clone(),dmax.clone(),range);
         drawXGrid_Triangular (x,y,dmin.clone(),dmax.clone(),range);
       }
-      else if (axis == "Orthogonal-XInside-YInside") { //condition 4
+      // axis == 4 Orthogonal-XInside-YInside
+      else if (axis == 4){
+      // else if (axis == "Orthogonal-XInside-YInside") { //condition 4
         drawYAxis_Orthogonal(y,yAxisTitle);
         drawYGrid_Inside(x,y,dmin.clone(),dmax.clone(),range);
         drawXGrid_Triangular (x,y,dmin.clone(),dmax.clone(),range);
       }
-      else if (axis == "Orthogonal-XFull-YFull") { //condition 5
+      // axis == 5 Orthogonal-XFull-YFull
+      else if (axis == 5){
+      // else if (axis == "Orthogonal-XFull-YFull") { //condition 5
         drawYAxis_Orthogonal(y,yAxisTitle);
         drawYGrid_Full(x,y,dmin.clone(),dmax.clone(),range);
         drawXGrid_Full (x,y,dmin.clone(),dmax.clone(),range);
@@ -572,7 +610,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
           //  console.log(d);
           //  console.log("MIDPOINT: "+d.midpoint.format("HH:mm"));
           //  console.log("ENDTIME: "+d.endt.format("HH:mm"));
-           if (intersects){drawTriangleLeaders(x,y,d.startt,d.midpoint,d.endt,d.duration,dmin,leaders);}
+           if (explicit == 3){drawTriangleLeaders(x,y,d.startt,d.midpoint,d.endt,d.duration,dmin,leaders);}
           //  console.log("MIDPOINT: "+d.midpoint.format("HH:mm"));
           //  console.log("ENDTIME: "+d.endt.format("HH:mm"));
         })
@@ -633,7 +671,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
      d3.selectAll(".xaxis").selectAll(".tick text").style("display", function (d, i)
      { return i % 2 ? "none" : "initial" });
 
-     if (scaffold == 2 && q<6){ //explicit text-image scaffold
+     if (explicit == 2){ //explicit text-image scaffold
        drawStaticLeaders(axis,staticLeaders,x,y);
      }
 
@@ -644,7 +682,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
 
 
 
-function drawLinearModel(datafile, scaffold) {
+function drawLinearModel(datafile, explicit) {
 
   //---------HELPER FUNCTIONS -----------------------//
   function drawLinearLeaders(x,y,label,start,end){
@@ -762,7 +800,7 @@ function drawLinearModel(datafile, scaffold) {
       .on("mouseover", function(d) {
         d3.select(this).transition()
            .duration(0);
-          if (intersects){drawLinearLeaders(x,y,d.events,d.startt, d.endt);}
+          if (scaffold == 3){drawLinearLeaders(x,y,d.events,d.startt, d.endt);}
         })
       .on("mouseout", function(d) {
        d3.selectAll(".leaders").remove();
