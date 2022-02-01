@@ -46,17 +46,17 @@ var jsPsych = initJsPsych({
 var timeline = [];
 
 //INITIALIZE GLOBAL VARIABLES 
-let scenario, question, scaffold, block, correct, orth_correct ;
+let block, correct, orth_correct ;
 let graph = "triangular";  //values: linear,triangular
 let experiment = "SGCX"; //overriden by URL
 let session = "default"; //overriden by codes block
 let condition = 0;  //overriden by codes block
-let explicit = 3; //overriden by codes block
+let explicit = 1; //overriden by codes block
 let impasse = 1; //overriden by codes block
 let axis = 1; //overrridden by codes block
 let colorClick = true; //define whether values turn green when clicked
 let q = 1 ; //question number, used for data file override
-let scenarios = ["acme","bigset"]; //determine the order of scenarios by randomly sorting the array
+let scenario = "acme" //values "acme" "longmire" "bigset"; //determine the order of scenarios by randomly sorting the array
 let sid = jsPsych.randomization.randomID(5);
 sid = sid.toUpperCase();
 console.log(sid);
@@ -207,7 +207,7 @@ var stimulus = {
   },
   on_start: function(){
         localStorage.setItem("graph", graph);
-        localStorage.setItem("scenario",  scenarios[0]);
+        localStorage.setItem("scenario",  scenario);
         localStorage.setItem("question",  questions[0]);
         localStorage.setItem("q",  q);
         localStorage.setItem("explicit",  explicit);
