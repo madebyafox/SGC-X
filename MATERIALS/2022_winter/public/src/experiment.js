@@ -1,5 +1,18 @@
-//@MADEBYAFOX @THOUGHTAFOX
-//SGCX — TM stimuli with newest jsPsych
+//--------------------------------------------------------------------
+//Scaffolding Graph Comprehension (for Unconventional Graphs)
+//SGCX | Experimental Stimuli
+//Amy Rae Fox   amyraefox@gmail.com
+//
+// +-+-+-+-+ +-+-+ +-+ +-+-+-+ 
+// |m|a|d|e| |b|y| |a| |f|o|x| 
+// +-+-+-+-+ +-+-+ +-+ +-+-+-+ 
+//
+//Experimental Design: x conditions (by scaffold) between subjects measure
+//of problem solving performance using first triangular model graph
+//first 5 questions of each graph are scaffolded, remainder are
+//not. Concludes with demographic survey and preferences before debrief
+//SCAFFOLD, GRAPH and RESPONSETYPE determined by condition code 
+//--------------------------------------------------------------------
 
 //INITIALIZE JSPSYCH & TIMELINE
 var jsPsych = initJsPsych({
@@ -11,7 +24,7 @@ var jsPsych = initJsPsych({
 var timeline = [];
 //INITIALIZE GLOBAL VARIABLES 
 var scenario, question, scaffold, block, correct, orth_correct ;
-var graph = "triangular";
+var graph = "linear"; 
 var experiment = "SGCX"; //overriden by URL
 var session = "default"; //overriden by codes block
 var condition = 0;  //overriden by codes block
@@ -179,7 +192,7 @@ var stimulus = {
         localStorage.setItem("question",  questions[0]);
         localStorage.setItem("q",  1);
         localStorage.setItem("explicit",  explicit);
-        localStorage.setItem("impasse",  impasse);
+        localStorage.setItem("impasse",  2);
         localStorage.setItem("axis",  axis);
         localStorage.setItem("sid",  sid);
         localStorage.setItem("scaffold",  scaffolds[0]);
@@ -267,3 +280,19 @@ timeline.push(welcome);
 
 //START EXPERIMENT
 jsPsych.run(timeline);
+
+
+// preload
+// welcome
+// devices
+// browserinstructions
+// browsercheck
+// instructions
+// informed consent 
+// taskintroduction
+// taskexample
+// scenario
+// stimuli X x 
+// feedback 
+// debrief
+

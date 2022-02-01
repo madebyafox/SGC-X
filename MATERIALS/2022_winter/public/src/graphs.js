@@ -600,7 +600,7 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
           else {
             d3.select(this).transition()
               .duration(0)
-              .style("fill", "green")
+              .style("fill", selectColor)
               .attr("selected",true);
             toggleAnswer(d.events);
           }
@@ -641,3 +641,164 @@ function drawTriangleModel(datafile, intersects, axis, scaffold, q) {
 
 
 }//end drawTriangleModel
+
+
+
+function drawLinearModel(datafile, scaffold) {
+
+  //---------HELPER FUNCTIONS -----------------------//
+  function drawLinearLeaders(x,y,label,start,end){
+    var leaders = svg.append("g")
+      .attr("class","leaders");
+
+    leaders.append ("line")
+      .attr("class","starttime")
+      .attr("x1",x(start))
+      .attr("y1",y(label))
+      .attr("x2",x(start))
+      .attr("y2",height)
+
+    leaders.append("line")
+      .attr("class", "enddtime")
+      .attr("x1",x(end))
+      .attr("y1",height)
+      .attr("x2",x(end))
+      .attr("y2",y(label))
+  }
+  function drawLinearGrid(x,y,range,graphLabel){
+    // gridlines in x axis function
+    function make_x_gridlines() {
+      return d3.axisBottom(x)
+          .ticks(range)
+    }
+    // gridlines in y axis function
+    function make_y_gridlines() {
+      return d3.axisLeft(y)
+          .ticks(graphLabel.length)
+    }
+    // add the X gridlines
+    svg.append("g")
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + height + ")")
+      .call(make_x_gridlines()
+          .tickSize(-height)
+          .tickFormat("")
+        )
+
+    // add the Y gridlines
+    svg.append("g")
+      .attr("class", "grid")
+      .call(make_y_gridlines()
+        .tickSize(-width)
+        .tickFormat("")
+      )
+  }
+
+  //---------CREATE & DRAW DATA  ----------//
+  d3.csv(datafile, function(error, data) {
+      if (error) throw error;
+
+      // format the data
+      var count = data.length;
+      var graphLabel=[[]];
+      var dmin = moment("11:59","HH:mm");  //create a new dummy xmin set to 11:59
+      var dmax = moment("00:00","HH:mm");  //create a new dummy xmin set to 00:00
+      var range = 0; //dummy for time range
+
+      data.forEach(function(d) {
+        //store the raw data in vars
+        d.events = d.events;
+        d.starttime = d.starttime;
+        d.endtime =d.endtime;
+        //create time objects for start and end time
+        d.startt = moment(d.starttime, "HH:mm");
+        d.endt = moment(d.endtime, "HH:mm");
+        // console.log("start: "+d.startt.format("HH:mm")+" end: "+d.endt.format("HH:mm"));
+        d.duration =  d.endt.diff(d.startt,"minutes");
+        // console.log("duration: "+d.duration);
+        d.midpoint = d.endt.clone();
+        d.midpoint = d.midpoint.subtract(d.duration/2,'minutes');
+        // console.log("midpoint: "+d.midpoint.format("HH:mm"));
+        //setup arrays for labels and clicked answers
+        clicked.push([d.events,"false"]) //add the datapoint to an clicked array as default not clicked
+        graphLabel.push([d.events]);
+        //set min and max
+        dmin = moment.min(dmin, d.startt)
+        dmax = moment.max(dmax, d.endt)
+        range = dmax.diff(dmin,'hours');
+        // console.log("current min: "+dmin.format("HH:mm"));
+        // console.log("current max: "+dmax.format("HH:mm"));
+        // console.log("current range: "+range);
+      });
+
+    // set graph scales, domains and ranges
+    var x = d3.scaleTime()
+      .range([0, width])
+      .domain([dmin, dmax])
+    //set the  number of ticks
+    var xAxis = d3.axisBottom(x)
+      .ticks(range);
+    var y = d3.scalePoint()
+      .range([height, 0])
+      .domain(graphLabel);
+      drawXAxis(xAxis,xAxisTitle);
+      drawYAxis_Orthogonal(y,yAxisTitle);
+      drawLinearGrid(x,y,range,graphLabel);
+    // draw the data
+    var node = svg.append("g")
+                  .attr("class","data")
+                  .selectAll(".segment")
+                  .data(data)
+                  .enter()
+                  .append("g");
+    //draw the data points
+    var dot = node.append("line")
+      .attr("class", "segment")
+      .attr("x1", function(d) { return x(d.startt); })
+      .attr("y1", function(d) { return y(d.events); })
+      .attr("x2", function(d) { return x(d.endt); })
+      .attr("y2", function(d) { return y(d.events); })
+      .attr("selected",false)
+      .on("mouseover", function(d) {
+        d3.select(this).transition()
+           .duration(0);
+          if (intersects){drawLinearLeaders(x,y,d.events,d.startt, d.endt);}
+        })
+      .on("mouseout", function(d) {
+       d3.selectAll(".leaders").remove();
+      //  var state =  d3.select(this).attr("selected");
+      //  if (state == 'true') {
+      //    d3.select(this).transition()
+      //         .duration(0)
+      //         .style("fill", "green");
+      //            }
+      //  else {
+      //    d3.select(this).transition()
+      //         .duration(0)
+      //         .style("fill", "black");
+      //  }
+      })
+      .on("click", function(d) {
+        if(colorClick) {
+          var status =  d3.select(this).attr("selected");
+          // console.log(status);
+          if (status == 'true')
+          {
+            d3.select(this).transition()
+                 .duration(0)
+                 .style("stroke", "black")
+                 .attr("selected",false);
+            toggleAnswer(d.events);
+          }
+          else {
+            d3.select(this).transition()
+              .duration(0)
+              .style("stroke", selectColor)
+              .attr("selected",true);
+            toggleAnswer(d.events);
+          }
+        }
+      });
+
+  });
+}//end drawLinearModel

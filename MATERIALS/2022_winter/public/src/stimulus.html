@@ -1130,17 +1130,18 @@
 
 
     //DECLARE VARIABLES ——————————————————————————
-
+    let selectColor = "red";
     let clicked = ["answer","clicked"]; //populate first row of clicked array with headers
     let hovered = ""; //string for sequence of data points that have been hovered over
     let clicks = 0; //number of clicks on the page
+    let mousesvg = []; //hold mouse movement in svg coord
 
     // Track clicks on page
     $(document).ready(function() {
       $(".control").click(function(e) {
         e.stopImmediatePropagation();
         clicks = clicks + 1;
-        console.log("clicks: "+clicks);
+        // console.log("clicks: "+clicks);
       });
     });
 
@@ -1238,7 +1239,7 @@
     //display userid in bottom corner
     $('.userid').html(sid);
 
-    //display the question and answer buttons based on input values from jsPsych
+    //display the question and answer buttons based on input values from experiment.js
     document.getElementById(scenario+"."+question).style.display = "block";
     if (question == "strategy") {document.getElementById("strategyButton").style.display = "block";}
     else {document.getElementById("testingButton").style.display = "block";}
@@ -1310,12 +1311,18 @@
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
-      .attr("transform",  "translate(" + margin.left + "," + margin.top + ")");
+      .attr("transform",  "translate(" + margin.left + "," + margin.top + ")")
+      .on('mousemove', function() {
+          console.log( d3.mouse(this));
+          mousesvg.push(d3.mouse(this));
+      }); // log the mouse x,y position in svg coords
+    
 
     //---------DRAW THE GRAPH  ------------------------//
       xAxisTitle = "START & END TIME (time of day)";
       yAxisTitle = "DURATION (in hours)";
-      drawTriangleModel(datafile,intersects,axis,scaffold,q);
+      //drawTriangleModel(datafile,intersects,axis,scaffold,q);
+      drawLinearModel(datafile,intersects,axis,scaffold,q);
   </script>
 
 </body>
