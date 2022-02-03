@@ -1,0 +1,462 @@
+---
+title: "SGC3_A Participants"
+output: 
+  # rmdformats::robobook:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+*The purpose of this notebook is to analyze _participant-level data_ collected for study SGC-3: The Insight Hypothesis *
+
+```{r SETUP, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#IMPORT LIBRARIES
+# library(rmdformats)
+library(dplyr) #tidyverse data handling
+# library(tables) # pretty tables
+library(pastecs) #stat.desc
+library(mosaic) #simple descriptives [favstats]
+
+library(ggplot2) #graphs
+library(car) #ANOVA, qqplot
+library(effectsize) #effect size
+# library(pwr) #power analysis
+
+```
+  
+```{r IMPORT-DATA}  
+#IMPORT DATA from fall and spring files
+fall_participants <- "data/fall_sgc3a_participants.csv"
+spring_partcipants <- "data/spring_sgc3a_participants.csv"
+
+df_fall <- read.csv(fall_participants)
+df_spring <- read.csv(spring_partcipants)
+
+#Create combined data frame
+df_subjects <- rbind(df_fall, df_spring, df_replication)
+df_subjects$tri_min <- df_subjects$triangular_time / 1000 / 60
+df_subjects$test_min <- df_subjects$tt_t / 1000 / 60
+df_subjects$learn_min <- df_subjects$ts_t / 1000 / 60
+
+#Create factors 
+df_subjects <- df_subjects %>% mutate(
+  subject = as.factor(subject),
+  session = as.factor(session),
+  term = as.factor(term),
+  condition = as.factor(condition),
+  explicit = as.factor(explicit),
+  impasse = as.factor(impasse),
+  axis = as.factor(axis)
+)
+
+#Cleanup temporary dataframes
+rm(df_fall, df_spring)
+```
+
+# INTRODUCTION
+Data were collected across two terms: Fall 2017, and Spring 2018. Small changes were made to the experimental platform in Spring 2018 to change the size of multiple-choice input buttons, and to add an additional free-response question following the main task block. 
+
+<span style="color: red;">TODO: Add condition images.</span>.
+
+```{r TERMS}
+#MANUALLY INSPECT TERMS
+df_subjects %>% group_by(term) %>% 
+  dplyr::summarize(n=n())
+```
+
+SGC3-A is a 2-condition (111-control VS 121-impasse) between-subjects experiment with `r nrow(df_subjects)` participants. 
+
+```{r TERMS}
+#MANUALLY INSPECT SESSIONS
+df_subjects %>% group_by(session) %>% 
+  summarize(n=n())
+```
+
+```{r CONDITIONS}
+
+#The data collection framework was designed such that  that stimuli the participant experienced were triggered based on the input of a particular 'condition code' by the participant. This allowed us to collect data for a number of studies simultaneously in the same data collection session (i.e. multiple students in the computer lab at the same time).  Thus, the **final_participants.json** file contains data for a number of studies, identified by parsing the **condition** variable.
+
+#First Digit    | explicit scaffolding
+# ------------- |-------------
+# 1      | control (no-scaffold)
+# 2      | text/image (static)
+# 3      | interactive
+#
+#Second Digit    | implicit scaffolding
+# ------------- |-------------
+#1      | control (no-scaffold)
+#2      | impasse (no orthogonal answer)
+#
+#Third Digit    | grid format
+#------------- |-------------
+#1 | full orthogonal
+#2 | partial orthogonal
+#3 | diagonal
+
+#MANUALLY INSPECT conditions
+df_subjects %>% group_by(condition) %>% 
+  summarize(n=n())
+```
+
+# DESCRIPTIVES
+
+## Participant Demographics 
+
+```{r PARTICIPANTS}
+#Describe participants
+favstats(~age, data = df_subjects)
+```
+
+`r nrow(df_subjects)` participants (`r round(sum(df_subjects$sex == "Female")/nrow(df_subjects),1) * 100` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r min(df_subjects$age)` - `r max(df_subjects$age)` years).  Participants were randomly assigned to one of two experimental groups. 
+
+
+## Response Accuracy
+
+Response accuracy refers to how many questions the subject answers with a correct-triangular interpretation.  
+
+```{r}
+#DESCRIBE distribution of triangular-correct scores
+score.stats <- favstats(df_subjects$triangular_score)
+score.stats
+stat.desc(df_subjects$triangular_score)
+
+#VISUALIZE distribution of response accuracy
+gf_dhistogram(~triangular_score, data = df_subjects) %>%
+  gf_vline(xintercept = score.stats$mean, color = "red")
+```
+<br>
+Accuracy scores (n = `r nrow(df_subjects)`) range from `r round(score.stats$min,2)` to `r round(score.stats$max,2)` with a mean score of (M = `r round(score.stats$mean,2)`, SD = `r round(score.stats$sd,2)`). 
+
+```{r message=FALSE, results=FALSE}
+qqPlot(df_subjects$triangular_score)
+```
+<br> <span style="color: red;">TODO: These data are CLEARLY not normal. What to do?</span>.
+
+## Response Latency
+
+<span style="color: red;">TODO: Investigate super high and super low response times.</span>.
+<span style="color: red;">TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/) </span>.
+
+```{r}
+#DESCRIBE distribution of triangular-correct scores
+time.stats <- favstats(df_subjects$tri_min)
+time.stats # stat.desc(df_subjects$tri_min)
+```
+<br> <br> Response latency (for test blocks) range from `r round(time.stats$min,2)` minutes to `r round(time.stats$max,2)` minutes with a mean time of (M = `r round(time.stats$mean,2)`, SD = `r round(time.stats$sd,2)`). 
+
+```{r message=FALSE, results=FALSE}
+#VISUALIZE distribution of response accuracy
+gf_dhistogram(~tri_min, data = df_subjects) %>%
+  gf_vline(xintercept = time.stats$mean, color = "red") %>% 
+  gf_fitdistr(color="red") # gf_dist("norm", color="red", params=list(time.stats$mean, time.stats$sd)) 
+```
+
+```{r LATENCY-NORMAL}
+qqPlot(df_subjects$tri_min)
+```
+
+<br> <br> However, the distribution is clearly not normal, so it is appropriate to transform the response latency variable. 
+
+### TRANSFORM Response Latency
+```{r message=FALSE, results=FALSE}
+
+#APPLY a log transform
+df_subjects$log_time <- log(df_subjects$tri_min)
+log_time.stats <- favstats(~log_time, data = df_subjects)
+log_time.stats
+
+gf_dhistogram(~log_time, data = df_subjects) %>%
+gf_vline(xintercept = ~log_time.stats$mean, color = "blue") %>%
+gf_fitdistr(color="blue") %>% 
+gf_labs(title ="Distribution of response latency (LOGT) (all questions)", x="Log-transform (minutes)")
+
+#VERIFY normality of resulting data with qqPlot
+qqPlot(~log_time, data = df_subjects)
+
+```
+<br> <span style="color: red;">TODO: Is this good enough?</span>.
+
+# HYPOTHESIS TESTING
+
+## Response Accuracy by Condition
+The experimental hypothesis (H1) is that structuring the data to pose an impasse (condition 121) will produce significantly better performance than non-impasse (condition 111). The null hypothesis (H0) is that there will be no difference in performance between conditions.  A linear model predicting triangular_score from condition indicates a statistically significant difference between conditions, explaning 7% of the model variance. 
+
+### [EXPLORE]
+
+```{r ACCURACY-BY-CONDITION}
+
+#DESCRIBE scores by condition
+score.cond.stats <- favstats(triangular_score ~ condition, data = df_subjects)
+score.cond.stats
+
+#VISUALIZE scores by condition
+gf_dhistogram( ~triangular_score, fill= ~condition, data = df_subjects) %>% 
+  gf_facet_grid(condition) %>% 
+  gf_vline(xintercept = ~mean, data = score.cond.stats, color = "blue") 
+
+#VISUALIZE scores by condition
+gf_boxplot(triangular_score ~ condition, data=df_subjects) %>% 
+  gf_jitter(color=~condition, alpha=0.5)
+
+```
+Accuracy scores (n = `r nrow(df_subjects)`) range from `r round(score.stats$min,2)` to `r round(score.stats$max,2)` with a mean score of (M = `r round(score.stats$mean,2)`, SD = `r round(score.stats$sd,2)`). On average, participants in the impasse group had higher scores (M = `r round(score.cond.stats[2,]$mean,2)` SD = `r round(score.cond.stats[2,]$sd,2)`) than those in #the non-impasse control group (M = `r round(score.cond.stats[1,]$mean,2)`, SD = `r round(score.cond.stats[1,]$sd,2)`)** 
+
+
+### [MODEL]
+
+```{r MODEL-SCORE}
+
+#MODEL triangular score by condition with a linear model
+m1 = lm(triangular_score ~ condition, data = df_subjects)
+summary(m1)
+
+
+#the first co-efficient represents the model estimate for the first group, the second, the difference for the second group
+
+# partition variance with anova
+# anova(m1)
+# supernova(m1) #runs but doesn't knit?
+
+#calculate effect size
+eta_squared(m1, partial = FALSE)
+
+```
+
+A linear model predicting triangular score accuracy by condition explains approximately 7% of the variance in triangular score F(1,124) = 9.32, p < 0.05)
+
+
+# POST-HOC EXPLORATION 
+
+## 1. Response Accuracy
+## 1.1 Learning VS Testing 
+In SGC3A, participants are provided with 15 questions. For the first 5 questions, they experience a 'scaffolded' version the stimuli (control condition = 111, impasse scaffold = 121). 
+
+What if we **only** consider the final 10 test items? Assume students have 5 questions worth of scaffolding to figure out the graph for themselves, and we only assess accuracy for the final ten items? Is our experimental hypothesis supported?
+
+```{r TESTING}
+#DESCRIBE scores by condition
+test.stats <- favstats(tt_n ~ condition, data = df_subjects)
+
+#VISUALIZE scores by condition
+gf_dhistogram( ~tt_n, fill= ~condition, data = df_subjects) %>% 
+  gf_facet_grid(condition~.) %>% 
+  gf_vline(xintercept = ~mean, data = test.stats, color = "blue") 
+
+#VISUALIZE scores by condition
+gf_boxplot(tt_n ~ condition, data=df_subjects) %>% 
+  gf_jitter(color=~condition, alpha=0.5)
+
+```
+
+```{r TEST-model}
+
+mTest = lm(tt_n ~ condition, data = df_subjects)
+summary(mTest)
+
+anova(mTest)
+# supernova(mTest)
+```
+
+A linear regression model predicting score (test blocks only) from condition explained 5% of variance, F(1,124) = 7.17, p < 0.05. 
+
+
+
+## 2. Response Latency
+
+### 2.1 Response Latency vs. Accuracy
+
+Are response time (on the triangular blocks (test and learn)) and response accuracy correlated? <br>
+
+```{r time-accuracy}
+
+#VISUALIZE relationship between response time and accuracy
+gf_jitter(tri_min ~ triangular_score, data = df_subjects) %>% 
+  gf_lm()
+
+#VISUALIZE relationship between response time and accuracy by condition
+gf_jitter(tri_min ~ triangular_score, color = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(~condition) %>% 
+  gf_lm()
+
+```
+<br> From visual inspection, it does not *appear* that score and time and strongly correlated. 
+
+```{r model-time-accuracy}
+
+#simple linear model predicting triangular score from triangular time
+m1 = lm(triangular_score ~ tri_min, data = df_subjects)
+summary(m1)
+cor.test(df_subjects$triangular_score, df_subjects$tri_min)
+
+#linear model with log-transformed triangular time
+mT = lm(triangular_score ~ log(tri_min), data = df_subjects)
+summary(mT)
+cor.test(df_subjects$triangular_score, df_subjects$log_time)
+
+```
+However, a simple linear regression indicates a significant (though small) negative correlation between score accuracy and response time R = -0.18, t(124) = -2.04, p < 0.05.  
+
+### 2.2 Response Latency by Condition
+
+Do response times differ by condition? 
+
+```{r messages = FALSE}
+
+time.stats <- favstats(tri_min ~ condition, data = df_subjects)
+time.stats
+
+gf_dhistogram(~tri_min, fill = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(condition~.)
+```
+The average total response latency (entire 15 question block) for the control condition was slightly higher (M = 9.54s, SD = 3.09) than the impasse-scaffold condition (M = 8.9, 2.69s)
+
+```{r}
+
+#simple linear model
+m1 <- lm(tri_min ~ condition, data = df_subjects)
+summary(m1)
+
+#linear model on log-transformed data 
+mT <- lm(log(tri_min) ~ condition, data = df_subjects)
+summary(mT)
+```
+The difference in average response time is not statistically significant F(1,124) = 1.28 , p > 0.05, with a linear model predicting response time from condition explaining only 1% of variance. 
+
+### 2.3 Is Response Latency predictive?
+
+Does adding response time to the model help predict score accuracy?
+
+```{r}
+
+#simple  model predicting triangular score from triangular time
+m1 = lm(triangular_score ~ condition, data = df_subjects)
+summary(m1)
+anova(m1) # supernova(m1)
+
+#model including condition and triangular time
+m2 = lm(triangular_score ~ condition + tri_min, data = df_subjects)
+summary(m2)
+anova(m2) # supernova(m2)
+
+#model including condition and triangular time (log-transformed)
+mT = lm(triangular_score ~ condition + log(tri_min), data = df_subjects)
+summary(mT)
+anova(mT) # supernova(m2)
+
+```
+The model predicting accuracy with condition and response latency explains 9% variance, while the model with only accuracy explains 7% variance, however, the response latency predictor does not reach significance at the 5% alpha level. 
+
+<span style="color: red;">TODO: What is the appropriate inference to draw from this model comparison?</span>.
+
+
+### 2.4 Response Latency on Learn (v) Test
+
+```{r message=FALSE}
+
+#DESCRIBE distribution of learning block times scores
+learn.time.stats <- favstats(df_subjects$learn_min)
+learn.time.stats
+
+#VISUALIZE distribution of learning block time
+gf_dhistogram(~learn_min, data = df_subjects) %>%
+  gf_vline(xintercept = mean(df_subjects$learn_min), color = "red") %>% 
+  gf_labs(title = "Distribution of LEARN block response time ")
+
+```
+Total learning block times ranged from `r round(learn.time.stats$min,2)` min to `r round(learn.time.stats$max, 2)`, with M = `r round(learn.time.stats$mean, 2)`, SD = `r round(learn.time.stats$sd, 2)`. 
+
+
+```{r message=FALSE}
+
+#DESCRIBE distribution of learning block times scores
+test.time.stats <- favstats(df_subjects$test_min)
+test.time.stats
+
+#VISUALIZE distribution of learning block time
+gf_dhistogram(~test_min, data = df_subjects) %>%
+  gf_vline(xintercept = mean(df_subjects$test_min), color = "red") %>% 
+  gf_labs(title = "Distribution of TEST block response time ")
+
+```
+
+Total testing block times ranged from `r round(test.time.stats$min,2)` min to `r round(test.time.stats$max, 2)`, with M = `r round(test.time.stats$mean, 2)`, SD = `r round(test.time.stats$sd, 2)`. 
+
+Is time spent on learning (v) testing blocks correlated?
+
+```{r}
+
+#VISUALIZE test v learning block time
+gf_point(test_min ~ learn_min, color = ~condition, data = df_subjects) %>% 
+  gf_facet_grid(~condition) %>% 
+  gf_lm()
+
+```
+
+
+
+```{r}
+
+m1 <- lm( test_min ~ learn_min , data = df_subjects)
+summary(m1)
+anova(m1) #supernova(m1)
+
+cor.test(df_subjects$test_min, df_subjects$learn_min)
+
+```
+A linear model predicting test block time from learning block time reveals that learning block time explains 12% variance in testing block time (F(1,124) = 17.1, p < 0.001), with an 18s increase in testing time for every 1 minute increase in learning time. The two variables have a small, significant correlation r = 0.35, t(124) = 4.13, p < 0.001, 95% CI [0.18, 0.49]. 
+
+
+
+
+
+
+# DUE DILLIGENCE
+
+## 1. Power Analysis
+What is the appropriate sample size to detect a moderate-sized effect (f = 0.25) at a 0.05 alpha level? 
+
+```{r POWER}
+
+#K = 2 groups, f = 0.25 is moderate effect size
+pwr.anova.test(k=2,f=0.25 ,sig.level=.05, power=.8)
+
+```
+The studies should aim to have at least 60 subjects to detect a moderate sized main effect between two conditions. 
+
+## 2. TERM-LEVEL analysis
+
+Data from the first term only (Fall 2017) were analyzed and presented as a paper at CogSci 2019, in support of the experimental hypothesis (H1: impasse is an effective scaffold). Combined across terms, the prior analyses ALSO support the experimental hypothesis. Do the spring-only data also support the H1 hypothesis?
+
+```{r MODELbyTerm}
+
+#simple linear model predicting triangle score from condition for spring data only
+mspring = lm(triangular_score ~ condition, data = df_subjects %>% filter(term=='fall21'))
+
+#partition variance
+anova(mspring)# supernova(m2)
+confint(mspring)
+```
+A linear model predicting triangular_score from conditio for **only** data collected in the Spring term does **not** reveal a significant difference between conditions. However, the previous power analysis suggests that this test may be underpowered, as it includes data from only 72 subjects (total), instead of the recommended 120 (60 / group). It seems more appropriate to combine data from fall and Spring. 
+
+## 3. Combining Fall and Spring
+```{r VISbyTerm}
+
+#VISUALIZE scores by condition
+gf_dhistogram( ~triangular_score, fill= ~condition, data = df_subjects) %>%
+  gf_facet_grid(condition~term) 
+# 
+# #VISUALIZE scores by condition
+gf_boxplot(triangular_score ~ condition, data=df_subjects) %>%
+  gf_facet_grid(~term) %>% 
+  gf_jitter(color=~condition, alpha=0.5)
+```
+
+By visual inspection, the distribution of accuracy scores across condition appear similiar across terms. 
+
+**It is therefore reasonable to conclude that data collected in Spring 2018 can be combined with Fall 2017.**
