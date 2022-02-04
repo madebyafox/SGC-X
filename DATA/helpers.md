@@ -1,3 +1,14 @@
+#HOWTO
+
+-query embedded/nested fields in mongodb
+https://docs.mongodb.com/manual/tutorial/query-embedded-documents/
+db.getCollection('entries').find({"data.subject":'8QMTP'})
+
+
+@1.27.22 Download data from server database 
+mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out fall_2021_all.json
+
+
 mongoimport -d FALL2021 -c fall_wip --file fall2021-wip.json
 
 mongoexport --collection=X_participants --db=FALL2021 --jsonArray --out=final_participants.json

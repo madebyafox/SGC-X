@@ -120,16 +120,16 @@ l_timecourse <- l_timecourse %>% mutate(subject = fct_reorder(l_timecourse$subje
 w_timecourse <- l_timecourse %>% spread(q,consistency)
 
 #VISUALIZE
-
+facetlabels <- c("1"="control", "2"="impasse")
 p1 <- ggplot(l_timecourse %>% filter(impasse ==1), aes(x = q, y = subject, fill = consistency, palette = "jco")) +
-  facet_grid(~ impasse) +
+  facet_grid(~ impasse, labeller = labeller(impasse=facetlabels)) +
   geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb")) +
   labs(x="Question Sequence", fill = "Response Type")
 
 p2 <- ggplot((l_timecourse %>% filter(impasse==2)), aes(x = q, y = subject, fill = consistency)) +
-  facet_grid(~ impasse) +
+  facet_grid(~ impasse, labeller = labeller(impasse=facetlabels)) +
   geom_raster() + scale_fill_manual(values = c("#cacec8", "#FBEEBB", "#BCD9EE","#c6edbb")) +
-  labs(x="Question Sequence", fill = "Response Type")
+  labs(x="Question Sequence", fill = "Response Type", facet="control")
 
 figure <- ggarrange(p1, p2, ncol=1) 
 annotate_figure(figure,
@@ -515,13 +515,13 @@ summary(mT)
 The difference in average response time (for the first question) IS  statistically significant F(1,124) = 10.61 , p < 0.05, with a linear model predicting response time from condition explaining around 8% of variance. (The log-transform model reduces residual standard error from 25 to 0.5.)
 
 
-
-
-
-
-
 ## Question Types
-TODO consider item type
+TODO consider item type [what relation is being tested]
+
+
+
+
+
 
 
 
