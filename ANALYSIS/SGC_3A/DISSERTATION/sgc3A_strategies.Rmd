@@ -17,12 +17,12 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 
 #IMPORT LIBRARIES
-library(rmdformats)
+# library(rmdformats)
 library(dplyr) #tidyverse data handling
 library(tidyr) #pivot
 library(knitr) #printing tables
 library(forcats)#for factor re-ordering
-library(ggpubr) #joining plots (alt to gridExtra)
+# library(ggpubr) #joining plots (alt to gridExtra)
 # library(tables) # pretty tables
 library(pastecs) #stat.desc
 library(mosaic) #simple descriptives [favstats]
@@ -34,13 +34,6 @@ library(effectsize) #effect size
 
 library(lme4) #linear mixed effects model
 
-
-#Set custom colors 
-lgrey = "#cacec8"
-lgreen = "#c6edbb"
-lyellow = "#FBEEBB"
-lblue = "#BCD9EE"
-
 ```
   
 ```{r IMPORT-DATA, message= FALSE}  
@@ -49,12 +42,11 @@ lblue = "#BCD9EE"
 fall_items <- "data/fall17_sgc3a_blocks.csv"
 spring_items <- "data/spring18_sgc3a_blocks.csv"
 online_items <- "data/fall21_sgc3a_blocks.csv"
-
 df_fall <- read.csv(fall_items)
 df_spring <- read.csv(spring_items)
 df_online <- read.csv(online_items)
 
-#Create combined data frames
+#Create combined data frame
 df_items <- rbind(df_fall, df_spring, df_online)
 
 #Create extra fields 
@@ -88,8 +80,6 @@ df_items <- df_items %>% mutate(
   impasse = as.factor(impasse),
   axis = as.factor(axis),
   q = as.factor(q),
-  correct = as.factor(correct),
-  orth_correct = as.factor(orth_correct),
   question = as.factor(question),
   error = 0 #temporary holder for error codes
 )
@@ -103,97 +93,18 @@ df_items <- rename(df_items, rs_ortho = orth_correct)
 df_freeResponse <- df_items %>% filter(q==16)
 df_items <- df_items %>% filter (q!=16)
 
-#Differentiate in-person and online
-df_inperson <- df_items %>% filter (term %in% c("fall17", "spring18"))
-df_online <- df_items %>% filter (term == "fall21")
+df_online <- df_items %>% filter(term == "fall21")
+df_inperson <- df_items %>% filter(term != "fall21")
 
 #Cleanup temporary dataframes
 rm(df_fall, df_spring, df_totals)
 
-
+#Set custom colors 
+lgrey = "#cacec8"
+lgreen = "#c6edbb"
+lyellow = "#FBEEBB"
+lblue = "#BCD9EE"
 ```
-```{r}
-
-cnt_items <- table(df_items$condition, df_items$rs_tri)
-prop.table(cnt_items,1)#proportion of entire row
-
-chisq <- chisq.test(cnt_items)
-chisq
-```
-
-
-```{r}
-
-# gf_histogram(~rs_tri, data = df_items, stat ="count") +
-#   facet_grid(rs_tri~condition)
-
-gf_histogram(~rs_tri, data = df_items, stat ="count") +
-  facet_grid(rs_tri~condition)
-
-```
-
-```{r}
-#build a contingency table
-df_items %>% select(condition,rs_tri) %>% group_by(condition, rs_tri) %>% summarize(n=n())
-
-
-my_table_0 <- table(df_tbl$x1, fk_data$x2)
-print.table(my_table_0)
-
-
-```
-```{r}
-chisq <- chisq.test(df_tbl)
-chisq
-
-```
-
-```{r}
-#PLOT response accuracy by condition
-# data = df_items %>% filter(!q %in% c(1,2,3,4,5,6)) %>% filter(term == "fall21")
-#plot accuracy by condition
-gf_jitter(rs_tri ~ condition, color=~term, data = df_items) %>% 
-  gf_labs(title = "(triangular) Response Accuracy by Condition")
-
-```
-
-```{r}
-
-#binomial model 
-# outcome: rs_tri [0,1]
-# fixed: condition
-# random: q, subject
-
-df_data <- df_items %>% select(condition,rs_tri, subject,q)
-df_data$condition <- dplyr::recode( df_data$condition, `111`= 0, `121`=1)
-
-
-
-m1 <- glmer(rs_tri ~ condition + (1 | subject), data = df_data, family = binomial, control = glmerControl(optimizer = "bobyqa"),
-    nAGQ = 10)
-
-# print the mod results without correlations among fixed effects
-print(m1, corr = FALSE)
-
-```
-
-
-```{r}
-se <- sqrt(diag(vcov(m1)))
-# table of estimates with 95% CI
-(tab <- cbind(Est = fixef(m1), LL = fixef(m1) - 1.96 * se, UL = fixef(m1) + 1.96 *
-    se))
-
-```
-
-
-
-
-//TODO BINOMIAL REGRESSION  [BINARY]
-//fixed | condition
-//random | subject, item
-// ?modelling interpretation ;) as 
-
 
 
 # TIMECOURSE OF ACCURACY
@@ -279,7 +190,7 @@ What are the alternative answers subjects give for the *first* question?
 #Create a contingency table with marginal sums for all answers across both conditions on Q1
 df_q1 <- df_items %>% filter(q==1)
 t <- table(df_q1$answer, df_q1$condition)
-t <- t[order(-rowSums(t)),] #reorder by marginal freqency
+t <- t[order(-rowSums(t)),] #reorder by marginal frequency
 addmargins(t)
 
 ```
@@ -625,37 +536,37 @@ TODO consider item type [what relation is being tested]
 First, verify (sanity check!) that the flatten.js data wrangling scripts were correct by generating participant totals directly from item-level data, and compare with participant level file. Comparison of summarized data from item_level files and participant level file show that the question accuracy totals for each participant are the same. 
 
 ```{r}
-# 
-# #SUMMARIZE FROM ITEMS FILES
-# df_item_sanity <- df_items %>% filter(!q == 16) %>% group_by(subject) %>% summarise(
-#   tri_correct = sum(rs_tri),
-#   orth_correct = sum(rs_ortho),
-#   total = tri_correct + orth_correct) %>% 
-#   mutate( subject = factor(subject)) %>% 
-#   arrange(desc(subject))
-# 
-# #SUMMARIZE FROM PARTICIPANT FILES
-# fall_participants <- "data/fall_sgc3a_participants.csv"
-# spring_participants <- "data/spring_sgc3a_participants.csv"
-# df_fall_p <- read.csv(fall_participants)
-# df_spring_p <- read.csv(spring_participants)
-# df_participants_sanity <- rbind(df_fall_p, df_spring_p) %>% 
-#   mutate(subject = factor(subject), 
-#          tri_correct = triangular_score, 
-#          orth_correct = orthogonal_score,
-#          total = tri_correct + orth_correct
-#          ) %>% 
-#   select(subject, tri_correct, orth_correct, total) %>% 
-#   arrange(desc(subject))
-# 
-# #CHECK EQUALITY
-# all_equal(df_participants_sanity,df_item_sanity)
-# 
-# #REMOVE TEMPORARY DFS
-# rm(fall_participants, spring_participants, df_participants_sanity, df_fall_p,df_spring_p)
-# 
-# df_items_by_participant <- df_item_sanity
-# rm(df_item_sanity, df_fall, df_spring)
+
+#SUMMARIZE FROM ITEMS FILES
+df_item_sanity <- df_items %>% filter(!q == 16) %>% group_by(subject) %>% summarise(
+  tri_correct = sum(rs_tri),
+  orth_correct = sum(rs_ortho),
+  total = tri_correct + orth_correct) %>% 
+  mutate( subject = factor(subject)) %>% 
+  arrange(desc(subject))
+
+#SUMMARIZE FROM PARTICIPANT FILES
+fall_participants <- "data/fall_sgc3a_participants.csv"
+spring_participants <- "data/spring_sgc3a_participants.csv"
+df_fall_p <- read.csv(fall_participants)
+df_spring_p <- read.csv(spring_participants)
+df_participants_sanity <- rbind(df_fall_p, df_spring_p) %>% 
+  mutate(subject = factor(subject), 
+         tri_correct = triangular_score, 
+         orth_correct = orthogonal_score,
+         total = tri_correct + orth_correct
+         ) %>% 
+  select(subject, tri_correct, orth_correct, total) %>% 
+  arrange(desc(subject))
+
+#CHECK EQUALITY
+all_equal(df_participants_sanity,df_item_sanity)
+
+#REMOVE TEMPORARY DFS
+rm(fall_participants, spring_participants, df_participants_sanity, df_fall_p,df_spring_p)
+
+df_items_by_participant <- df_item_sanity
+rm(df_item_sanity, df_fall, df_spring)
 
 ```
 
@@ -666,8 +577,4 @@ How many subjects were run in each data collection session?
 #MANUALLY INSPECT SESSIONS
 df_items %>% group_by(session) %>% 
   summarize(n=length(unique(subject)))
-```
-
-```{r}
-sessionInfo()
 ```
