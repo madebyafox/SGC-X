@@ -1,6 +1,10 @@
 ---
 title: 'SGC_3A: The Insight Hypothesis'
+author: 'Amy Rae Fox'
 output:
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
   html_document:
     code_folding: hide
     toc: yes
@@ -8,9 +12,6 @@ output:
     toc_float:
       collapsed: no
       smooth_scroll: no
-  pdf_document:
-    toc: yes
-    toc_depth: '3'
 ---
 WIP PUBLIC WEBSITE VERSION OF ANALYSIS
 ```{r SETUP, include=FALSE}
@@ -319,7 +320,7 @@ A one-tailed Wilcoxon rank-sum test reveals that the cummulative score (number o
 
 **TODO:: Investigate outliers in online study; may need to have stricter response time + strategy-consistent response criteria** 
 
-## [REPLICATION]
+### [REPLICATION]
 
 Because the effect of impasse scaffold was smaller in the remote-online sample than in-person sample, we'll test whether scores in in-person sample were significantly smaller than those online using another Wilcoxon rank-sum test. 
 ```{r accuracy.wilcoxon.modes}
@@ -340,5 +341,16 @@ A one-tailed Wilcoxon rank-sum test reveals that the cummulative score (number o
 Our replication study had comparable results to the in-person study, however the effect size was smaller, therefore we should consider increasing the sample size of future studies conducted online so as to ensure we have sufficient statistical power detect a smaller effect. 
 
 
+
+# DILLIGENCE
+
+## Assumptions of Wilcoxon Rank-Sum
+The Wilcoxon rank-sum test is the non-parametric alternative to a independent samples t-test and requires the following assumptions:  
+1. The two samples are independent of one another <-- MET by random sampling + assignment
+2. The two populations have equal variance or spread <--TEST
+```{r Wilcoxon rank-sum test assumptions}
+df_subjects %>% group_by(condition,mode) %>% summarize(var=var(triangular_score))
+```
+Variances between conditions in both Lab and Online samples are comparable
 
 # DATA DICTIONARY
