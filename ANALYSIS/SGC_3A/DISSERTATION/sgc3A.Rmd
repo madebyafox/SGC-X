@@ -30,6 +30,8 @@ library(rstatix) #nice effsizes https://rpkgs.datanovia.com/rstatix/index.html
 # library(effectsize) #effect size
 library(fitdistrplus) #fitting theoretical distributions
 library(dplyr) #tidyverse data handling
+library(see) #pubready plots, esp. violin
+
 # library(pwr) #power analysis
 ```
 
@@ -119,6 +121,7 @@ df_lab <- df_subjects %>% filter(term != "fall21")
 #Remove extraneous dfs
 rm(df_fall, df_spring)
 ```
+
 ## Participants
 ```{r PARTICIPANTS}
 #Describe participants
@@ -172,6 +175,15 @@ ponline <- gf_histogram(~triangular_score, data = df_online) %>%
 plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
 annotate_figure(plot, top = text_grob("Score Accuracy by Study",
    color = "black", face = "bold", size = 14))
+
+```
+
+```{r}
+
+ggplot(df_lab, aes(x = condition, y = triangular_score, fill = condition)) +
+  geom_violindot(fill_dots = "black") +
+  theme_modern() +
+  scale_fill_material_d()
 
 ```
 
