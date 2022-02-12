@@ -80,8 +80,6 @@ let questions = [
   "strategy"
 ];
 
-
-
 //PRELOAD MEDIA
   var preload = {
     type: jsPsychPreload,
