@@ -1,16 +1,43 @@
 
-/**
- * Get the value of a querystring
- * @param  {String} field The field to get the value of
- * @param  {String} url   The URL to get the value from (optional)
- * @return {String}       The field value
- */
-var getQueryString = function ( field, url ) {
-    var href = url ? url : window.location.href;
-    var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
-    var string = reg.exec(href);
-    return string ? string[1] : null;
-};
+//SUMMARIZE INTERACTION DATA 
+let sumIxn = function (jsp){
+  const data = jsp.data.getInteractionData();
+  var interaction_data = {
+    block:"interaction",
+    interaction: data,
+    //get number of entries in the 'trials' [number of disruptive events fired]
+    //divide by 2 bc 2 events fired for every departure
+    violations: (Object.keys(data["trials"]).length)/2
+  };
+  return interaction_data;
+}
+
+//SUMMARIZE SUBJECT LEVEL DATA 
+let sumSubject = function (jsp){
+  const data = jsp.data.get().first(); //get just the last trial
+  const brwsr = jsp.data.get().filter([{trial_type: "browser-check"}]);
+  const ixn = jsp.data.getInteractionData();
+  var subject_data = {
+     block:"participant",
+     subject:data.select("subject").values[0],
+     study:data.select("study").values[0],
+     session:data.select("session").values[0],
+     condition:data.select("condition").values[0],
+     browser: brwsr.select("browser").values[0],
+     width : brwsr.select("width").values[0],
+     height : brwsr.select("height").values[0],
+     os : brwsr.select("os").values[0],
+     refresh_rate: brwsr.select("refresh_rate").values[0],
+     starttime:jsp.getStartTime(),
+     totaltime:jsp.getTotalTime(),
+     violations: (Object.keys(ixn["trials"]).length)/2
+  };
+  return subject_data;
+}
+
+
+
+
 
 //check value of consent checkbox
 var check_consent = function(elem) {
@@ -49,7 +76,6 @@ var check_draw = function(elem) {
 };
 
 
-
 //evaluate correctness of answer onSubmit
 function checkTriangularAnswer() {
   console.log("end clicked: "+clicked);
@@ -68,6 +94,12 @@ function checkTriangularAnswer() {
   answer = selected;
   // console.log("triangle_correct"+correct);
   checkOrthogonalAnswer();
+  
+  // //add response element
+  $('#answer').val(selected.toString());
+  // d.setAttribute("id","ANSWER");
+  // d.setAttribute('value', "testanswer");
+  
 }
 
 function checkOrthogonalAnswer(){

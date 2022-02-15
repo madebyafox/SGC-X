@@ -33,8 +33,6 @@
 
 //--------------------------------------------------------------------
 
-
-
 console.log("GRAPH.JS LOADED");
 
 //-----------AXIS HELPER FUNCTIONS ---------------------------//
@@ -299,10 +297,6 @@ function drawXGrid_Triangular (x,y,min,max,range){
         .attr("y2",y(y2))
       }
 }
-
-
-
-
 
 //-----------DRAW THE INTERACTIVE SCAFFOLD LINES -------------//
 function drawTriangleLeaders(x,y,start,mid,end,dur,min,leaders){
