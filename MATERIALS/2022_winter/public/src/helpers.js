@@ -77,51 +77,51 @@ var check_draw = function(elem) {
 
 
 //evaluate correctness of answer onSubmit
-function checkTriangularAnswer() {
-  console.log("end clicked: "+clicked);
-  console.log("end hovered: "+hovered);
-  var selected = [];
-    $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-    selected.push(""+$(this).attr('value')+"");
-  });
-  var index = scenario+"."+question+"."+impasse;
-  if ( _.isEqual(selected, triangular_answers[index])) {
-     correct = 1; }
-  else {
-    correct = 0;
-  }
-  console.log("selected: "+selected);
-  answer = selected;
-  // console.log("triangle_correct"+correct);
-  checkOrthogonalAnswer();
+// function checkTriangularAnswer() {
+//   console.log("end clicked: "+clicked);
+//   console.log("end hovered: "+hovered);
+//   var selected = [];
+//     $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
+//     selected.push(""+$(this).attr('value')+"");
+//   });
+//   var index = scenario+"."+question+"."+impasse;
+//   if ( _.isEqual(selected, triangular_answers[index])) {
+//      correct = 1; }
+//   else {
+//     correct = 0;
+//   }
+//   console.log("selected: "+selected);
+//   answer = selected;
+//   // console.log("triangle_correct"+correct);
+//   checkOrthogonalAnswer();
   
-  // //add response element
-  $('#answer').val(selected.toString());
-  // d.setAttribute("id","ANSWER");
-  // d.setAttribute('value', "testanswer");
+//   // //add response element
+//   $('#answer').val(selected.toString());
+//   // d.setAttribute("id","ANSWER");
+//   // d.setAttribute('value', "testanswer");
   
-}
+// }
 
-function checkOrthogonalAnswer(){
-  console.log("end clicked: "+clicked);
-  console.log("end hovered: "+hovered);
-  var selected = [];
-    $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-    selected.push(""+$(this).attr('value')+"");
-  });
-  var index = scenario+"."+question+"."+impasse;
-  if ( _.isEqual(selected, orthogonal_answers[index])) {
-    orth_correct = 1; }
-  else {
-    orth_correct = 0;
-  }
-  console.log("selected: "+selected);
-  answer = selected;
-  // console.log("orthogonal_correct"+orth_correct);
-}
+// function checkOrthogonalAnswer(){
+//   console.log("end clicked: "+clicked);
+//   console.log("end hovered: "+hovered);
+//   var selected = [];
+//     $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
+//     selected.push(""+$(this).attr('value')+"");
+//   });
+//   var index = scenario+"."+question+"."+impasse;
+//   if ( _.isEqual(selected, orthogonal_answers[index])) {
+//     orth_correct = 1; }
+//   else {
+//     orth_correct = 0;
+//   }
+//   console.log("selected: "+selected);
+//   answer = selected;
+//   // console.log("orthogonal_correct"+orth_correct);
+// }
 
-function submitStrategy(){
-    console.log("submitting strategy");
-    answer = $("textarea").val();
-    console.log(answer);
-}
+// function submitStrategy(){
+//     console.log("submitting strategy");
+//     answer = $("textarea").val();
+//     console.log(answer);
+// }

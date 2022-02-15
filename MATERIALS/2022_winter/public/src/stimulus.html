@@ -5,7 +5,7 @@
 
 <body>
   <div class = "stimulus">
-    <p class = "userid" id="userid"></p>
+    
     <div id="answer" style="display:none"></div> <!--hidden response element-->
 
     <div class = "userinput">
@@ -18,9 +18,9 @@
       </div> <!-- end legend -->
 
       <!-- STIMULUS QUESTIONS  ---------------------------------------------------------------------->
-      <div class="test">
+      <div class="test", style="">
         
-        <div class = "acme" id="" style ="display:none">
+        <!-- <div class = "acme" id="" style ="display:none"> -->
           <p class = "question" id="question"></p>
           <ul class="checkbox-grid">
             <li class="control"><label class="control control-checkbox">
@@ -84,7 +84,7 @@
               <div class="control_indicator" ></div>
             </li>
           </ul>
-        </div>
+        <!-- </div> -->
         
         <div class = "bigset" id="" style ="display:none">
           <p class = "question">Which shift(s) are six hours long?</p>
@@ -179,6 +179,8 @@
       </div>
     </div> <!-- instructions -->
     <div class = "d3container"></div>
+  
+    <p class = "userid" id="userid"></p>
   </div> <!--stimulus container-->
 
   <script>
@@ -190,6 +192,15 @@
     var hovered = ""; //string for sequence of data points that have been hovered over
     var clicks = 0; //number of clicks on the page
     var mousesvg = []; //hold mouse movement in svg coord
+    var svg, graph, explicit, grid, datafile, colorClick;
+
+    //---------SET PROPERTIES OF THE GRAPH -------------//
+    // set the dimensions and margins of the graph
+    var margin = {top: 25, right: 30, bottom: 90, left: 100},
+      width = 700,
+      height = 700;
+    var intersects = false; //default value for intersects scaffold
+    var xAxisTitle, yAxisTitle;
 
     // Track clicks on page
     $(document).ready(function() {
@@ -198,12 +209,29 @@
         clicks = clicks + 1;
         // console.log("clicks: "+clicks);
       });
-    });
 
-    // console.log("start of clicked array: "+clicked);
-    // console.log("start of hovered string: "+hovered);
+      //GET DATA FROM HTML ELEMENT
+      data =JSON.parse(document.getElementById("jspsych-data").getAttribute("data"));
+      console.log(data); 
 
-    //set correct answers for each question
+      //display userid in bottom corner
+      $('.userid').html(data.sid);
+
+      //DISPLAY APPROPRIATE QUESTION
+      $('.question').html(question);
+      
+    
+      graph = data.graph; 
+      explicit = data.explicit; 
+      grid = data.grid; 
+      datafile = "src/data/"+data.datafile;
+      colorClick = data.colorClick; 
+      //ATTACH SUBMIT BEHAVIOR 
+      // $('#submit').on("hover", function(){
+      // data.answer=($('textarea').val());
+      // });
+
+        //set correct answers for each question
     var triangular_answers = {
       "acme.starttime.1" : ["F"],
       "acme.starts.1" : ["K"],
@@ -279,42 +307,16 @@
       "bigset.midpoint.2" : ["E","F"]
     }
 
-    var sid = localStorage.getItem("sid");
-    var question = localStorage.getItem("question");
-    var scenario = localStorage.getItem("scenario");
-    var graph = localStorage.getItem("graph"); 
-    var impasse = localStorage.getItem("impasse");    
-    var explicit = localStorage.getItem("explicit");
-    var axis = localStorage.getItem("axis");
-    var datafile = "src/data/"+localStorage.getItem("datafile");
-    var colorClick = localStorage.getItem("colorClick");
-    
-    
-    console.log("DISPLAYING DATASET: "+ datafile)
-
-    //display userid in bottom corner
-    $('.userid').html(sid);
-
-    //DISPLAY APPROPRIATE QUESTION
-    $('.'+scenario).attr("style","display:block");
-    $('.question').html(question);
-
     //display the question and answer buttons based on input values from experiment.js
     // document.getElementById(scenario+"."+question).style.display = "block";
     // if (question == "strategy") {document.getElementById("strategyButton").style.display = "block";}
     // else {document.getElementById("testingButton").style.display = "block";}
 
-    //---------SET PROPERTIES OF THE GRAPH -------------//
-    // set the dimensions and margins of the graph
-    var margin = {top: 25, right: 30, bottom: 90, left: 100},
-      width = 700,
-      height = 700;
-    var intersects = false; //default value for intersects scaffold
-    var xAxisTitle, yAxisTitle;
+    
   
 
     // //---------CREATE THE SVG  ------------------------//
-    var svg = d3.select(".d3container").append("svg")
+    svg = d3.select(".d3container").append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -330,14 +332,14 @@
         xAxisTitle = "START & END TIME (time of day)";
         yAxisTitle = "DURATION (in hours)";
         console.log("passing scaffold: "+explicit);
-        drawTriangleModel(datafile,axis,explicit);
+        drawTriangleModel(datafile,grid,explicit);
       break;
       
       case "linear":
         xAxisTitle = "START & END TIME (time of day)";
         if (scenario =="longmire"){yAxisTitle = "CONFERENCE ROOM";}
         if (scenario =="axis"){yAxisTitle = "TASK"}
-        drawLinearModel(datafile,axis,explicit);
+        drawLinearModel(datafile,grid,explicit);
       break;
       
       default:
@@ -352,6 +354,10 @@
       $(".leaders").css("display","none");
       $(".static-scaffold").css("display","none");
     }
+  
+  });
+
+    
   </script>
 
 </body>
