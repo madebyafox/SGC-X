@@ -55,7 +55,7 @@ let treatment_file = "acme_impasse.csv";
 let test_file = "acme_main.csv";
 let question_file = "questions.csv";
 let block, correct, orth_correct ;
-let graph, explicit, impasse, grid, mark, ixn, colorClick, filename;
+let graph, gwidth, gheight, explicit, impasse, grid, mark, ixn, colorClick;
 let procedure_timeline, scaffold_timeline, test_timeline;
 
 //LOAD QUESTIONS
@@ -183,8 +183,7 @@ jsPsych.data.addProperties({
     on_finish: function(data) {
       //ADD response data to trial record
       data.answer = data.response[0];
-      data.clicked = data.response[1];
-      data.hovered = data.response[2];
+      data.hovered = data.response[1];
     },
     data:{
       sid: sid,
@@ -196,7 +195,9 @@ jsPsych.data.addProperties({
       question: jsPsych.timelineVariable('question'),
       graph:jsPsych.timelineVariable('graph'),
       datafile: jsPsych.timelineVariable('datafile'),
-      colorClick: jsPsych.timelineVariable('colorClick')
+      colorClick: jsPsych.timelineVariable('colorClick'),
+      gwidth: jsPsych.timelineVariable('gwidth'),
+      gheight: jsPsych.timelineVariable('gheight')
     },
     on_start: function(){},
     response_el: 'answer', //name of element where response is stored
@@ -220,7 +221,7 @@ function buildProcedure(){
     case "SGC3A":
       
     //STATIC THROUGH PROCEDURE
-      filename="../src/data/"+study+"_"+question_file;  
+      // filename="../src/data/"+study+"_"+question_file;  
       graph = "triangular";
 
       //OVERRIDE WITH CONDITION, BUT DEFAULT TO NONE
@@ -229,31 +230,33 @@ function buildProcedure(){
       mark = (condition.charAt(3) || 1); //no scaffold (control)
       ixn = (condition.charAt(4) || 1); //no scaffold (control)
       colorClick = ((ixn==5) || false); 
-      
+      gwidth = 600;
+      gheight = 600;
+
       //IMPASSE FROM CONDITION
       impasse = condition.charAt(1); 
 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
-         { q:1, impasse: impasse, question: questions[1], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
-         { q:2, impasse: impasse, question: questions[2], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
-         { q:3, impasse: impasse, question: questions[3], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
-         { q:4, impasse: impasse, question: questions[4], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
-         { q:5, impasse: impasse, question: questions[5], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick }
+         { q:1, impasse: impasse, question: questions[1], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+         { q:2, impasse: impasse, question: questions[2], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+         { q:3, impasse: impasse, question: questions[3], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+         { q:4, impasse: impasse, question: questions[4], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+         { q:5, impasse: impasse, question: questions[5], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight }
       ];
       
       //NEXT TEN QUESTIONS ARE BASED ON IMPASSE CONDITION
       test_timeline = [
-        { q:6,  impasse: 1, question: questions[6],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:7,  impasse: 1, question: questions[7],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:8,  impasse: 1, question: questions[8],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:9,  impasse: 1, question: questions[9],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:10, impasse: 1, question: questions[10], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:11, impasse: 1, question: questions[11], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:12, impasse: 1, question: questions[12], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:13, impasse: 1, question: questions[13], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:14, impasse: 1, question: questions[14], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
-        { q:15, impasse: 1, question: questions[15], datafile: test_file, graph: graph,  explicit : explicit, grid : grid }   
+        { q:6,  impasse: 1, question: questions[6],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:7,  impasse: 1, question: questions[7],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:8,  impasse: 1, question: questions[8],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:9,  impasse: 1, question: questions[9],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:10, impasse: 1, question: questions[10], datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:11, impasse: 1, question: questions[11], datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:12, impasse: 1, question: questions[12], datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:13, impasse: 1, question: questions[13], datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:14, impasse: 1, question: questions[14], datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight },
+        { q:15, impasse: 1, question: questions[15], datafile: test_file, graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight }   
       ];
 
     //---------------------------------------------------
@@ -273,7 +276,7 @@ function buildProcedure(){
     //ALL PARAMETERS SET BY CONDITION
     //[5 condition] + free response
     //---------------------------------------------------
-      filename="../src/data/"+study+"_"+question_file;  
+      // filename="../src/data/SGC3A_"+question_file;  
   }
  
 
@@ -330,7 +333,7 @@ function getDataset(impasse) {
 //LOAD QUESTIONS FILE
 function loadQuestions() {
   return new Promise(function (resolve, reject) {  
-    var filename="../src/data/"+study+"_"+question_file;
+    var filename="src/data/"+study+"_"+question_file;
     d3.csv(filename, function(error, data){
       console.log('LOADING DATA...');
       if (error) {

@@ -75,17 +75,35 @@ var check_draw = function(elem) {
 //RECORD TRANSFORM RESPONSES TO DATA
 let recordAnswer = function(){
   console.log("TRANSFORMING ANSWER...");
-  // console.log("end clicked: "+clicked);
-  // console.log("end hovered: "+hovered);
+  console.log(colorClick);
   var selected = [];
-  $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-    selected.push(""+$(this).attr('value')+"");
-  });
 
-//store response values to designated answer element
-$('#answer').val([selected, clicked, hovered]);
-// console.log("answer is: "+$('#answer').val());
+  //CLICK ON GRAPH RESPONSE MODE
+  if(colorClick == true){
+    $('circle[selected=true]').each(function(){
+      selected.push($(this).attr("value"))
+    });
+  }
+
+  //REGULAR RESPONSE MODE 
+  else (colorClick == false)
+  {
+    $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
+      selected.push(""+$(this).attr('value')+"");
+    });
+  }  
+    
+  
+
+  //store response values to designated answer element
+  $('#answer').val([selected, hovered]);
+  // console.log("answer is: "+$('#answer').val());
+ 
 }
+
+
+
+
 
 //evaluate correctness of answer onSubmit
 // function checkTriangularAnswer() {
