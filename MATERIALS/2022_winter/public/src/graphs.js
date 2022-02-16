@@ -462,8 +462,8 @@ function toggleAnswer(x) {
 //-----------GRAPH DRAWING FUNCTIONS ------------------------//
 function drawTriangleModel(datafile, axis, explicit) {
 
-  console.log("axis: "+axis);
-  console.log("explicit: "+explicit);
+  // console.log("axis: "+axis);
+  // console.log("explicit: "+explicit);
 
   //---------CREATE LEADERS ELEMENT SO ITS ON THE BOTTOM------//
   var leaders = svg.append("g")
@@ -614,7 +614,8 @@ function drawTriangleModel(datafile, axis, explicit) {
         d3.selectAll(".duration").remove();
         d3.selectAll(".circle").remove();
         var sibling = d3.select(this.nextElementSibling).text();
-        hovered = hovered+"-"+sibling;
+        // hovered = hovered+"-"+sibling;
+        hovered = hovered+sibling;
         console.log("hovered: "+hovered);
        })
       .on("click", function(d) {
@@ -647,7 +648,8 @@ function drawTriangleModel(datafile, axis, explicit) {
       .text(function(d) { return d.events; })
       .on("mouseout", function(d){
         var sibling = d3.select(this).text();
-        hovered = hovered+"-"+sibling;
+        // hovered = hovered+"-"+sibling;
+         hovered = hovered+sibling;
         console.log("hovered: "+hovered);
       });
 
@@ -657,7 +659,8 @@ function drawTriangleModel(datafile, axis, explicit) {
     d3.selectAll(".tick").select("text")
       .on("mouseout", function(d) {
         var sibling = d3.select(this).text();
-        hovered = hovered+"-"+sibling;
+        // hovered = hovered+"-"+sibling;
+         hovered = hovered+sibling;
         console.log("hovered: "+hovered);
      });
 

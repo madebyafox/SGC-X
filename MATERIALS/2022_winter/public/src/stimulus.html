@@ -174,7 +174,7 @@
 
       <!-- SUBMIT AND HELP BUTTONS ------------------------------------------------------------------>
       <div class="fixbottom">  
-        <button type="button" id="testingButton" class='btn' onclick=checkTriangularAnswer()>SUBMIT</button>
+        <button type="button" id="testingButton" class='btn' onclick=recordAnswer()/*checkTriangularAnswer()*/ >SUBMIT</button>
         <button type="button" id="strategyButton" style="display:none;"class='btn' onclick=submitStrategy()>SUBMIT</button>
       </div>
     </div> <!-- instructions -->
@@ -202,7 +202,7 @@
     var intersects = false; //default value for intersects scaffold
     var xAxisTitle, yAxisTitle;
 
-    // Track clicks on page
+    // SETUP PAGES 
     $(document).ready(function() {
       $(".control").click(function(e) {
         e.stopImmediatePropagation();
@@ -214,11 +214,9 @@
       data =JSON.parse(document.getElementById("jspsych-data").getAttribute("data"));
       console.log(data); 
 
-      //display userid in bottom corner
-      $('.userid').html(data.sid);
-
-      //DISPLAY APPROPRIATE QUESTION
-      $('.question').html(question);
+      //UPDATE DISPLAY BASED ON DATA 
+      $('.userid').html(data.sid); //print subject ID
+      $('.question').html(data.question); //display question
       
     
       graph = data.graph; 
@@ -307,15 +305,8 @@
       "bigset.midpoint.2" : ["E","F"]
     }
 
-    //display the question and answer buttons based on input values from experiment.js
-    // document.getElementById(scenario+"."+question).style.display = "block";
-    // if (question == "strategy") {document.getElementById("strategyButton").style.display = "block";}
-    // else {document.getElementById("testingButton").style.display = "block";}
-
     
-  
-
-    // //---------CREATE THE SVG  ------------------------//
+    //---------CREATE THE SVG  ------------------------//
     svg = d3.select(".d3container").append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
@@ -326,12 +317,12 @@
           mousesvg.push(d3.mouse(this));
       }); // log the mouse x,y position in svg coords
     
-      //---------DRAW THE GRAPH  ------------------------//
+    //---------DRAW THE GRAPH  ------------------------//
     switch(graph){
       case "triangular":
         xAxisTitle = "START & END TIME (time of day)";
         yAxisTitle = "DURATION (in hours)";
-        console.log("passing scaffold: "+explicit);
+        // console.log("passing scaffold: "+explicit);
         drawTriangleModel(datafile,grid,explicit);
       break;
       
@@ -347,15 +338,14 @@
       break;
     }
 
-    // if (q >= 6) { //turn off scaffolds
-      if (explicit == 0) { //turn off scaffolds
-      console.log("TURNING OFF SCAFFOLDS");
+    if (explicit == 1) { //turn off scaffolds
+      // console.log("TURNING OFF SCAFFOLDS");
       $("#hint-interactive").css("display","none");
       $(".leaders").css("display","none");
       $(".static-scaffold").css("display","none");
     }
   
-  });
+  });//END document ready
 
     
   </script>

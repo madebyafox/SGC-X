@@ -128,7 +128,7 @@ var jsPsychExternalHtml = (function (jspsych) {
               if (trial.cont_key) {
                   display_element.addEventListener("keydown", key_listener);
               }
-
+              //embed jsPsych trial-level data into page as a <data> element
               if (trial.data) {
                 //create data element
                 let d=document.createElement("data");

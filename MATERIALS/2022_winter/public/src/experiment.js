@@ -73,14 +73,12 @@ on_finish: function() {
   jsPsych.data.get().push(sumIxn(jsPsych));
   //display all data to screen
   jsPsych.data.displayData();
-}
+  }
 });
 var timeline = [];
 
 //GENERATE SUBJECT ID 
 var sid = jsPsych.randomization.randomID(5).toUpperCase();
-console.log("SID: " +sid);
-localStorage.setItem("sid",sid); //store SID in local for access in stimulus
 
 //SET PARAMETERS FROM QUERYSTRING
 var urlvar = jsPsych.data.urlVariables();
@@ -88,12 +86,12 @@ var study = urlvar.study ?? "SGCX";       //??use as demo??
 var session = urlvar.session ?? "blank";  //default to blank
 var condition = urlvar.condition ?? 11111 ; //default to control
 
+//ADD STUDY LEVEL PROPERTIES
 jsPsych.data.addProperties({ 
   subject:sid, 
   study:study, 
   session:session,
-  condition:condition,
-
+  condition:condition
 });
 
 //--------------- DEFINE  TIMELINE COMPONENETS -------------------//  
@@ -175,30 +173,35 @@ jsPsych.data.addProperties({
   on_start: function(data){}  
   };
 
-  //STIMULUS
+  //STIMULUS TRIAL
   var stimulus = {
-  type: jsPsychExternalHtml,
-  url: '../src/stimulus.html',
-  execute_script: true,
-  force_refresh:true,
-  cont_btn: "testingButton",
-  on_finish: function(data) {},
-  data:{
-    sid: sid,
-    q: jsPsych.timelineVariable('q'),
-    question: jsPsych.timelineVariable('question'),
-    graph:jsPsych.timelineVariable('graph'),
-    datafile: jsPsych.timelineVariable('datafile'),
-    impasse: jsPsych.timelineVariable('impasse'),
-    explicit: jsPsych.timelineVariable('explicit'),
-    grid: jsPsych.timelineVariable('grid'),
-    datafile: jsPsych.timelineVariable('datafile'),
-    colorClick: colorClick,
-  },
-  on_start: function(){},
-  response_el: 'answer', //name of element where response is stored
+    type: jsPsychExternalHtml,
+    url: '../src/stimulus.html',
+    execute_script: true,
+    force_refresh:true,
+    cont_btn: "testingButton",
+    on_finish: function(data) {
+      //ADD response data to trial record
+      data.answer = data.response[0];
+      data.clicked = data.response[1];
+      data.hovered = data.response[2];
+    },
+    data:{
+      sid: sid,
+      q: jsPsych.timelineVariable('q'),
+      condition: condition,
+      explicit: jsPsych.timelineVariable('explicit'),
+      impasse: jsPsych.timelineVariable('impasse'),
+      grid: jsPsych.timelineVariable('grid'),
+      question: jsPsych.timelineVariable('question'),
+      graph:jsPsych.timelineVariable('graph'),
+      datafile: jsPsych.timelineVariable('datafile'),
+      colorClick: jsPsych.timelineVariable('colorClick')
+    },
+    on_start: function(){},
+    response_el: 'answer', //name of element where response is stored
   } 
-
+//-----------------------------------------------------------------//  
 
 
 //BUILD STUDY-SPECFIC PROCEDURES
@@ -215,51 +218,55 @@ function buildProcedure(){
     //EXPLICIT = 1, GRID = 1, MARK = 1, IXN = 1
     //---------------------------------------------------
     case "SGC3A":
-      //STATIC THROUGH PROCEDURE
+      
+    //STATIC THROUGH PROCEDURE
       filename="../src/data/"+study+"_"+question_file;  
       graph = "triangular";
-      explicit = 1; //no scaffold (control)
-      grid = 1; //no scaffold (control)
-      ixn = 1; //no scaffold (control)
-      colorClick = false; 
 
+      //OVERRIDE WITH CONDITION, BUT DEFAULT TO NONE
+      explicit = (condition.charAt(0) || 1); //no scaffold (control)
+      grid = (condition.charAt(2) || 1); //no scaffold (control)
+      mark = (condition.charAt(3) || 1); //no scaffold (control)
+      ixn = (condition.charAt(4) || 1); //no scaffold (control)
+      colorClick = ((ixn==5) || false); 
+      
       //IMPASSE FROM CONDITION
       impasse = condition.charAt(1); 
 
-      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
-         { q:1, graph: "triangular", question: questions[1], explicit :explicit, grid :grid, datafile: getDataset(impasse)  },
-         { q:2, graph: "triangular", question: questions[2], explicit :explicit, grid :grid, datafile: getDataset(impasse)  },
-         { q:3, graph: "triangular", question: questions[3], explicit :explicit, grid :grid, datafile: getDataset(impasse)  },
-         { q:4, graph: "triangular", question: questions[4], explicit :explicit, grid :grid, datafile: getDataset(impasse)  },
-         { q:5, graph: "triangular", question: questions[5], explicit :explicit, grid :grid, datafile: getDataset(impasse)  }
+         { q:1, impasse: impasse, question: questions[1], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
+         { q:2, impasse: impasse, question: questions[2], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
+         { q:3, impasse: impasse, question: questions[3], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
+         { q:4, impasse: impasse, question: questions[4], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick },
+         { q:5, impasse: impasse, question: questions[5], datafile: getDataset(impasse), graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick }
       ];
-
+      
+      //NEXT TEN QUESTIONS ARE BASED ON IMPASSE CONDITION
       test_timeline = [
-        { q:6,  graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:7,  graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:8,  graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:9,  graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:10, graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:11, graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:12, graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:13, graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:14, graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file },
-        { q:15, graph: "triangular", scenario: "bigset", impasse:0, explicit:0, grid:grid, datafile: test_file }   
+        { q:6,  impasse: 1, question: questions[6],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:7,  impasse: 1, question: questions[7],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:8,  impasse: 1, question: questions[8],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:9,  impasse: 1, question: questions[9],  datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:10, impasse: 1, question: questions[10], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:11, impasse: 1, question: questions[11], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:12, impasse: 1, question: questions[12], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:13, impasse: 1, question: questions[13], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:14, impasse: 1, question: questions[14], datafile: test_file, graph: graph,  explicit : explicit, grid : grid },
+        { q:15, impasse: 1, question: questions[15], datafile: test_file, graph: graph,  explicit : explicit, grid : grid }   
       ];
-      //---------------------------------------------------
-      //SGC 3B --> 2[IMPASSE | none, impasse] X 3[EXPL | none, img, ixn]
-      //PROCEDURE BY CONDITION
-      //impasse == 1 :: [5 none] + [10 none] + free response 
-      //impasse == 2 :: [5 impasse] + [10 none] + free response
-      //explicit == 1 :: [5 none] + [10 none] + free response 
-      //explicit == 2 :: [5 img] + [10 none] + free response 
-      //explicit == 3 :: [5 ixn] + [10 none] + free response 
-      //GRID = 1, MARK = 1, IXN = 1, 
-      //---------------------------------------------------
 
-
-
+    //---------------------------------------------------
+    //SGC 3B --> 2[IMPASSE | none, impasse] X 3[EXPL | none, img, ixn]
+    //PROCEDURE BY CONDITION
+    //impasse == 1 :: [5 none] + [10 none] + free response 
+    //impasse == 2 :: [5 impasse] + [10 none] + free response
+    //explicit == 1 :: [5 none] + [10 none] + free response 
+    //explicit == 2 :: [5 img] + [10 none] + free response 
+    //explicit == 3 :: [5 ixn] + [10 none] + free response 
+    //GRID = 1, MARK = 1, IXN = 1, 
+    //---------------------------------------------------
+    
     default: 
     //---------------------------------------------------
     //SGCX --> DEFAULT DEMO
@@ -268,17 +275,7 @@ function buildProcedure(){
     //---------------------------------------------------
       filename="../src/data/"+study+"_"+question_file;  
   }
-
-  console.log("STUDY: " +study);
-  console.log("SESSION: " +session);
-  console.log("CONDITION: " +condition);
-  console.log("IMPASSE: "+ impasse)
-  console.log("GRID: "+ grid)
-  console.log("MARKS: "+ mark)
-  console.log("IXN: "+ ixn)
-  console.log("CLICK-INPUT: "+ colorClick)
-  console.log("sid" + sid);
-
+ 
 
   //SCAFFOLDING BLOCK
   var block_scaffold = {
@@ -299,42 +296,36 @@ function buildProcedure(){
     timeline: [block_scaffold, block_test]
   }
 
-//ASSEMBLE TIMELINE
+  // console.log("STUDY: " +study);
+  // console.log("SESSION: " +session);
+  // console.log("CONDITION: " +condition);
+  // console.log("IMPASSE: "+ impasse)
+  // console.log("GRID: "+ grid)
+  // console.log("MARKS: "+ mark)
+  // console.log("IXN: "+ ixn)
+  // console.log("CLICK-INPUT: "+ colorClick)
+  // console.log("sid" + sid);
 
+//ASSEMBLE TIMELINE
 // timeline.push(preload);
 // timeline.push(welcome);
 // timeline.push(devices);
 // timeline.push(browserinstructions);
 // timeline.push(browsercheck);
 // timeline.push(distractions);
-
 // timeline.push(stimulus);
-
-timeline.push(procedure);
 // timeline.push(block_test);
 // timeline.push(block_scaffold);
-// timeline.push(stimulus2);
-//   timeline.push(instructions);
-//   timeline.push(test_procedure);
+timeline.push(procedure);
 // timeline.push(debrief_block);
 
-
-
-
-// var test = d3.csv(question_file, function(error, data){
-//   if (error) throw error;
-//   data.forEach(function(d){
-//     questions.push(d.TEXT);
-//   });
-// });
-} //end function
-
+}//end function
 
 //DETERMINE DATASET BASED ON CONDITION
 function getDataset(impasse) {
   if (impasse == 2){ return treatment_file;}
   else if (impasse = 1) {return control_file;}
-}
+} //end function
 
 //LOAD QUESTIONS FILE
 function loadQuestions() {
@@ -352,15 +343,15 @@ function loadQuestions() {
       resolve(questions);
     });
   });
-}
+} //end function
 
 //RUN THE TIMELINE
 async function main() {
   questions = await loadQuestions();
-  console.log("DATA LOADED : "+ questions);
+  console.log("DATA LOADED");
   buildProcedure();
   jsPsych.run(timeline); //START EXPERIMENT
-}
+} //end function
 
 //DO THE THINGS
 main();

@@ -35,10 +35,6 @@ let sumSubject = function (jsp){
   return subject_data;
 }
 
-
-
-
-
 //check value of consent checkbox
 var check_consent = function(elem) {
   if ($('#consent_checkbox').is(':checked')) {
@@ -75,6 +71,21 @@ var check_draw = function(elem) {
   return validated;
 };
 
+
+//RECORD TRANSFORM RESPONSES TO DATA
+let recordAnswer = function(){
+  console.log("TRANSFORMING ANSWER...");
+  // console.log("end clicked: "+clicked);
+  // console.log("end hovered: "+hovered);
+  var selected = [];
+  $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
+    selected.push(""+$(this).attr('value')+"");
+  });
+
+//store response values to designated answer element
+$('#answer').val([selected, clicked, hovered]);
+// console.log("answer is: "+$('#answer').val());
+}
 
 //evaluate correctness of answer onSubmit
 // function checkTriangularAnswer() {
