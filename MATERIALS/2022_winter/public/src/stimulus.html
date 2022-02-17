@@ -17,7 +17,7 @@
       <!-- scaffolding/hints -->
       <div class = "legend"   >
          <p id="hint-interactive" style="display:none" >Hint: Hover your mouse over the data points in the graph</p>
-         <p id="hint-graph-click" style="display:none" >Hint: Click on the data points to answer.</p>
+         <p id="hint-graph-click" style="display:none" >(Click on the data points to answer.)</p>
       </div> <!-- end legend -->
   
       <!-- response indicators -->
@@ -27,7 +27,7 @@
       <!-- submit buttons -->
   
       <div class="fixbottom">  
-        <button type="button" id="testingButton" class='btn' onclick=recordAnswer()/*checkTriangularAnswer()*/ >SUBMIT</button>  
+        <button type="button" id="testingButton" class='btn' style="display:none" onclick=recordAnswer()>SUBMIT</button>  
       </div>
       
     </div> <!--END LEFT-->
@@ -56,7 +56,7 @@
 
   //---------SET PROPERTIES OF THE GRAPH -------------//
   // set the dimensions and margins of the graph
-  var margin = {top: 25, right: 30, bottom: 90, left: 100};
+  var margin = {top: 25, right: 20, bottom: 50, left: 50};
   var width, height; 
   var intersects = false; //default value for intersects scaffold
   var xAxisTitle, yAxisTitle;
@@ -80,7 +80,6 @@
     $('#question').html(data.question); //display question
     
     //SET ANSWER MODE
-    console.log("colorClick: "+data.colorClick);
     if (data.colorClick == true) {// remove checkboxes
       $('#answer-grid').attr("style","display:none");
       $('#hint-graph-click').attr("style","display:block");
@@ -100,91 +99,10 @@
     graph = data.graph; 
     explicit = data.explicit; 
     grid = data.grid; 
-    datafile = "src/data/"+data.datafile;
+    datafile = "src/data/data/"+data.datafile+".csv";
     colorClick = data.colorClick; 
     width = data.gwidth,
     height = data.gheight;
-
-    //ATTACH SUBMIT BEHAVIOR 
-    // $('#submit').on("hover", function(){
-    // data.answer=($('textarea').val());
-    // });
-
-      //set correct answers for each question
-  var triangular_answers = {
-    "acme.starttime.1" : ["F"],
-    "acme.starts.1" : ["K"],
-    "acme.meets.1" : ["F"],
-    "acme.endtime.1" : ["H"],
-    "acme.midpoint.1" : ["O"],
-
-    "acme.starttime.2" : ["F"],
-    "acme.starts.2" : ["K"],
-    "acme.meets.2" : ["F"],
-    "acme.endtime.2" : ["H"],
-    "acme.midpoint.2" : ["A"],
-
-    "bigset.duration.1" : ["E","G"],
-    "bigset.duration+starts.1" : ["X","O"],
-    "bigset.duration+contained.1" : ["G"],
-    "bigset.starttime+before+endtime+during.1": ["I"],
-    "bigset.ends.1" : ["E"],
-
-    "bigset.duration.2" : ["E","G"],
-    "bigset.duration+starts.2" : ["X","O"],
-    "bigset.duration+contained.2" : ["G"],
-    "bigset.starttime+before+endtime+during.2":["I"],
-    "bigset.ends.2" : ["E"],
-
-    "bigset.starttime.1" : ["M","L"],
-    "bigset.starts.1" : ["G"],
-    "bigset.meets.1" : ["E","F"],
-    "bigset.endtime.1" : ["X"],
-    "bigset.midpoint.1" : ["K","X"],
-
-    "bigset.starttime.2" : ["M","L"],
-    "bigset.starts.2" : ["G"],
-    "bigset.meets.2" : ["E","F"],
-    "bigset.endtime.2" : ["X"],
-    "bigset.midpoint.2" : ["K","X"]
-  }
-  var orthogonal_answers = {
-    "acme.starttime.1" : ["A"],
-    "acme.starts.1" : ["E"],
-    "acme.meets.1" : ["Z"],
-    "acme.endtime.1" : ["U"],
-    "acme.midpoint.1" : ["U"],
-
-    "acme.starttime.2" : ["0"],
-    "acme.starts.2" : ["0"],
-    "acme.meets.2" : ["0"],
-    "acme.endtime.2" : ["0"],
-    "acme.midpoint.2" : ["0"],
-
-    "bigset.duration.1" : ["E","G"],
-    "bigset.duration+starts.1" : ["F","B"],
-    "bigset.duration+contained.1" : ["E"],
-    "bigset.starttime+before+endtime+during.1": ["I"],
-    "bigset.ends.1" : ["X"],
-
-    "bigset.duration.2" : ["E","G"],
-    "bigset.duration+starts.2" : ["F","B"],
-    "bigset.duration+contained.2" : ["E"],
-    "bigset.starttime+before+endtime+during.2":["I"],
-    "bigset.ends.2" : ["X"],
-
-    "bigset.starttime.1" : ["F","B"],
-    "bigset.starts.1" : ["B"],
-    "bigset.meets.1" : ["F","X"],
-    "bigset.endtime.1" : ["B"],
-    "bigset.midpoint.1" : ["E","F"],
-
-    "bigset.starttime.2" : ["F","B"],
-    "bigset.starts.2" : ["B"],
-    "bigset.meets.2" : ["F","X"],
-    "bigset.endtime.2" : ["B"],
-    "bigset.midpoint.2" : ["E","F"]
-  }
 
   
   //---------CREATE THE SVG  ------------------------//
@@ -201,14 +119,16 @@
   //---------DRAW THE GRAPH  ------------------------//
   switch(graph){
     case "triangular":
-      xAxisTitle = "START & END TIME (time of day)";
-      yAxisTitle = "DURATION (in hours)";
+      xAxisTitle = "Start and End Time (time of day)";
+      yAxisTitle = "Duration (in hours)";
       // console.log("passing scaffold: "+explicit);
       drawTriangleModel(datafile,grid,explicit);
+      $('#testingButton').attr("style","display:block");
+
     break;
     
     case "linear":
-      xAxisTitle = "START & END TIME (time of day)";
+      xAxisTitle = "Start and End Time (time of day)";
       if (scenario =="longmire"){yAxisTitle = "CONFERENCE ROOM";}
       if (scenario =="axis"){yAxisTitle = "TASK"}
       drawLinearModel(datafile,grid,explicit);

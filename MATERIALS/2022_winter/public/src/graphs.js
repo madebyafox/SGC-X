@@ -1,39 +1,14 @@
-//TODO: This seemed to mess stuff up... not sure WHY
-// d3.selectAll(".tick line")
-//   .attr("y2", 15)
-//   .on("mouseout", function(d) {
-//     var sibling = d3.select(this.nextElementSibling).text();
-//     hovered = hovered+"-"+sibling;
-//     console.log(hovered);
-//    }) ;
-// d3.selectAll(".tick text")
-//   .attr("y", 20) ;
-
-
-//REFERENCE-----------------------------------------------------------
-    
-    //CONDITION
-    //    [EXPLICIT] [IMPASSE] [AXIS]
-
-    //EXPLICIT SCAFFOLD
-    //    1 = none (control)
-    //    2 = static image
-    //    3 = interactive image 
-
-    //IMPASSE SCAFFOLD
-    //    1 = none (control)
-    //    2 = impasse 
-    
-    //AXIS 
-    //    1 = orthog y(full) x(tri) [control] Orthogonal-XInside-YFull
-    //    2 = orthog y(partial) x(tri) [ignore] Orthogonal-XInside-YPartial
-    //    3 = tri y(tri) x(tri) [minimal] Triangular-XInside-YInside
-    //    4 = orthog y(partial) x(tri) [original] Orthogonal-XInside-YInside
-    //    5 = orthog y(full) x(full) [maximal] Orthogonal-XFull-YFull
-
-//--------------------------------------------------------------------
 
 console.log("GRAPH.JS LOADED");
+
+function drawTitle(){
+  var title = svg.append("g")
+            .attr("class","graphTitle")
+            .append("text")
+            .text("SCHEDULE OF WORK SHIFTS")
+            .attr("y",margin.top/-2 -10)
+            .attr("x",width/4 +5)
+}
 
 //-----------AXIS HELPER FUNCTIONS ---------------------------//
 function drawXAxis(xAxis,title,x,y,min,max,range) {
@@ -50,8 +25,8 @@ function drawXAxis(xAxis,title,x,y,min,max,range) {
       .append("g")
       .attr("class","axisTitle")
       .append("text")
-      .attr("x", width/1.5 )
-      .attr("y", margin.bottom -10 )
+      .attr("x", width/1.5 +10 )
+      .attr("y", margin.bottom-5 )
       .style("text-anchor", "end")
       .text(title);
 }
@@ -66,7 +41,7 @@ function drawYAxis_Orthogonal (y,title){
       .attr("class","axisTitle")
       .append("text")
       .attr("transform", "rotate(-90)")
-      .attr("x", -height/2 + 50)
+      .attr("x", -height/2 +75)
       .attr("y", -margin.left/2 -10 )
       .style("text-anchor", "end")
       .text(title);
@@ -503,7 +478,7 @@ function drawTriangleModel(datafile, axis, explicit) {
         listItem.setAttribute("class", "control");
         var checkBox = document.createElement("input");
         checkBox.type = "checkbox";
-        checkBox.value = d.events;
+        checkBox.value = d.events.trim();
         checkBox.innerHTML = d.events+"</input>";
         var label = document.createElement("label");
         label.setAttribute("class","control control-checkbox");
@@ -542,7 +517,10 @@ function drawTriangleModel(datafile, axis, explicit) {
         // .domain([0, range*2]); //equilateral
         //   .domain([0, range]); //isoceles
 
-      //draw x axis
+      //draw title
+      // drawTitle();
+      
+        //draw x axis
       drawXAxis(xAxis,xAxisTitle,x,y,dmin,dmax,range);
 
       //draw y axis and grid
@@ -616,7 +594,7 @@ function drawTriangleModel(datafile, axis, explicit) {
         var sibling = d3.select(this.nextElementSibling).text();
         // hovered = hovered+"-"+sibling;
         hovered = hovered+sibling;
-        console.log("hovered: "+hovered);
+        // console.log("hovered: "+hovered);
        })
       .on("click", function(d) {
         if(colorClick) {
@@ -650,7 +628,7 @@ function drawTriangleModel(datafile, axis, explicit) {
         var sibling = d3.select(this).text();
         // hovered = hovered+"-"+sibling;
          hovered = hovered+sibling;
-        console.log("hovered: "+hovered);
+        // console.log("hovered: "+hovered);
       });
 
       // drawTriangleLeaders(x,y,backup[8][1],backup[8][2],backup[8][3],backup[8][4],dmin);
@@ -661,7 +639,7 @@ function drawTriangleModel(datafile, axis, explicit) {
         var sibling = d3.select(this).text();
         // hovered = hovered+"-"+sibling;
          hovered = hovered+sibling;
-        console.log("hovered: "+hovered);
+        // console.log("hovered: "+hovered);
      });
 
      //remove every other tick label on x axis

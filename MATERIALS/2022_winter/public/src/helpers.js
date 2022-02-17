@@ -17,6 +17,7 @@ let sumSubject = function (jsp){
   const data = jsp.data.get().first(); //get just the last trial
   const brwsr = jsp.data.get().filter([{trial_type: "browser-check"}]);
   const ixn = jsp.data.getInteractionData();
+  const scorable = jsp.data.get().filter([{block:"item_scaffold"}, {block:"item_test"}]);
   var subject_data = {
      block:"participant",
      subject:data.select("subject").values[0],
@@ -30,9 +31,14 @@ let sumSubject = function (jsp){
      refresh_rate: brwsr.select("refresh_rate").values[0],
      starttime:jsp.getStartTime(),
      totaltime:jsp.getTotalTime(),
-     violations: (Object.keys(ixn["trials"]).length)/2
+     violations: (Object.keys(ixn["trials"]).length)/2,
+     discriminant_score : scorable.select('discriminant').sum(),
+     strict_score : scorable.select('strict').sum()
   };
   return subject_data;
+
+  //don't include scores for 6, 9, 13 [nondiscriminant answers]
+
 }
 
 //check value of consent checkbox
@@ -73,9 +79,8 @@ var check_draw = function(elem) {
 
 
 //RECORD TRANSFORM RESPONSES TO DATA
-let recordAnswer = function(){
+var recordAnswer = function(){
   console.log("TRANSFORMING ANSWER...");
-  console.log(colorClick);
   var selected = [];
 
   //CLICK ON GRAPH RESPONSE MODE
@@ -84,70 +89,34 @@ let recordAnswer = function(){
       selected.push($(this).attr("value"))
     });
   }
-
   //REGULAR RESPONSE MODE 
   else (colorClick == false)
   {
     $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-      selected.push(""+$(this).attr('value')+"");
+      // selected.push(""+$(this).attr('value')+"");
+      selected.push($(this).attr('value'));
     });
   }  
-    
-  
-
   //store response values to designated answer element
   $('#answer').val([selected, hovered]);
   // console.log("answer is: "+$('#answer').val());
- 
 }
 
+//COMPARE TWO ARRAYS ANY ORDER
+// iterate over unique values and check if 
+//each one appears the same amount of times in each array
+//VANILLA JS
+const equalsIgnoreOrder = (a, b) => {
+  if (a.length !== b.length) return false;
+  const uniqueValues = new Set([...a, ...b]);
+  for (const v of uniqueValues) {
+    const aCount = a.filter(e => e === v).length;
+    const bCount = b.filter(e => e === v).length;
+    if (aCount !== bCount) return false;
+  }
+  return true;
+}
 
-
-
-
-//evaluate correctness of answer onSubmit
-// function checkTriangularAnswer() {
-//   console.log("end clicked: "+clicked);
-//   console.log("end hovered: "+hovered);
-//   var selected = [];
-//     $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-//     selected.push(""+$(this).attr('value')+"");
-//   });
-//   var index = scenario+"."+question+"."+impasse;
-//   if ( _.isEqual(selected, triangular_answers[index])) {
-//      correct = 1; }
-//   else {
-//     correct = 0;
-//   }
-//   console.log("selected: "+selected);
-//   answer = selected;
-//   // console.log("triangle_correct"+correct);
-//   checkOrthogonalAnswer();
-  
-//   // //add response element
-//   $('#answer').val(selected.toString());
-//   // d.setAttribute("id","ANSWER");
-//   // d.setAttribute('value', "testanswer");
-  
-// }
-
-// function checkOrthogonalAnswer(){
-//   console.log("end clicked: "+clicked);
-//   console.log("end hovered: "+hovered);
-//   var selected = [];
-//     $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-//     selected.push(""+$(this).attr('value')+"");
-//   });
-//   var index = scenario+"."+question+"."+impasse;
-//   if ( _.isEqual(selected, orthogonal_answers[index])) {
-//     orth_correct = 1; }
-//   else {
-//     orth_correct = 0;
-//   }
-//   console.log("selected: "+selected);
-//   answer = selected;
-//   // console.log("orthogonal_correct"+orth_correct);
-// }
 
 // function submitStrategy(){
 //     console.log("submitting strategy");
