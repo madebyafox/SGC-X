@@ -45,6 +45,19 @@
 
 //--------------------------------------------------------------------
 
+//INITIALIZE JSPSYCH & TIMELINE
+var jsPsych = initJsPsych({
+  on_start: function(){},
+  on_finish: function(){  
+    jsPsych.data.get().push(sumSubject(jsPsych)); //summary subject
+    jsPsych.data.get().push(sumIxn(jsPsych)); //summary ixns 
+    jsPsych.data.displayData(); //display all data to screen
+  },
+  extensions: [{ type: jsPsychExtensionMouseTracking}]
+});
+var timeline = [];
+
+
 //--------------- INITIALIZE GLOBAL VARIABLES  -------------------//  
 
 //DEFINE CONDITIONS PER STUDY
@@ -65,7 +78,7 @@ const conditions = {
 //INITIALIZE GLOBAL VARIABLES 
 let study, session, condition;
 let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
-let graph, gwidth, gheight;
+let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
 let procedure_timeline, scaffold_timeline, test_timeline;
 
@@ -79,18 +92,7 @@ var orth_answers = ["NULL"]; //index as null
 var tvsky_answers = ["NULL"]; //index as null
 var satisf_answers = ["NULL"]; //index as null
  
-//INITIALIZE JSPSYCH & TIMELINE
-var jsPsych = initJsPsych({
-  on_start: function(){},
-  on_finish: function() {  
-  //push summary objects 
-  jsPsych.data.get().push(sumSubject(jsPsych));
-  jsPsych.data.get().push(sumIxn(jsPsych));
-  //display all data to screen
-  jsPsych.data.displayData();
-  }
-});
-var timeline = [];
+
 
 //--------------- DEFINE  TIMELINE COMPONENTS -------------------//  
 
@@ -187,6 +189,8 @@ var timeline = [];
       data.other_score = scoring[5];
       data.answer = data.response[0];
       data.hovered = data.response[1];  
+      data.mouselog = data.response[2];
+      data.response = [];//remove for redundancy with answer,hovered,mouselog
     },
     data:{
       sid: sid,
@@ -208,6 +212,12 @@ var timeline = [];
       block: jsPsych.timelineVariable('block')
     },
     on_start: function(){},
+    extensions: [
+      {type: jsPsychExtensionMouseTracking, params: {
+        targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
+        events: ['mousemove','mousedown']
+      }}
+    ],
     response_el: 'answer', //name of element where response is stored
   } 
 
@@ -226,10 +236,12 @@ function initializeStudy() {
   session = urlvar.session ?? "blank"; 
   condition = urlvar.condition ?? 'R'; //default to random assign
   condition = condition.toString();
+  q = urlvar.q;
   graph = urlvar.graph ?? "triangular" //need to handle errors
   gwidth = urlvar.gwidth ?? 600;
   gheight = urlvar.gheight ?? 600;
   
+
   //VALIDATE STUDY 
   if (Object.keys(studies).indexOf(study) == -1 && (study != "SGCX")) {
     alert("INVALID STUDY CODE");
@@ -369,7 +381,20 @@ function buildProcedure(){
     //---------------------------------------------------
     default: 
       
-    //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+    //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION
+    if (q){
+      console.log("JUMPING TO QUESTION: "+q);
+      scaffold_timeline = [
+        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
+      ];
+      test_timeline=[
+        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
+      ];
+    }
+
+    else { //RUN ALL QUESTIONS BASED ON PARAMETERS 
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      //TODO CHECK THESE
       scaffold_timeline = [
         { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
         { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
@@ -378,6 +403,7 @@ function buildProcedure(){
         { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
      ];
      
+     //TODO CHECK THESE
      //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE
      test_timeline = [
        { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
@@ -391,8 +417,7 @@ function buildProcedure(){
        { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
        { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
      ];
-    
-    
+    }   
   }
  
 
@@ -414,7 +439,7 @@ function buildProcedure(){
 
     //STIMULUS PROCEDURE
     var procedure = {
-    timeline: [block_scaffold, block_test]
+      timeline: [block_scaffold, block_test]
     }
 
     // console.log("STUDY: " +study);

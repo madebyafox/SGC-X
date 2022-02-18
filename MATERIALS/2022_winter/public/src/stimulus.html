@@ -6,7 +6,7 @@
 <body>
   <div class = "container">
     
-    <div class = "left">
+    <div class = "left" id="leftDiv">
       
       <!-- hidden response element -->
       <div id="answer" style="display:none"></div> 
@@ -32,7 +32,7 @@
       
     </div> <!--END LEFT-->
 
-    <div class = "right">
+    <div class = "right" id="rightDiv">
       <div class = "stimulus"></div>
     </div> <!--END RIGHT-->
   
@@ -107,7 +107,9 @@
   
   //---------CREATE THE SVG  ------------------------//
   svg = d3.select(".stimulus").append("svg")
-    .attr("id","thegraph")
+    .attr("id","theGraph")
+    .attr("class","theGraph")
+    .attr("xmlns","http://www.w3.org/2000/svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
@@ -152,7 +154,7 @@
 //MOUSE LOGGING SCRIPT
 var mouseLog = []
 var xwidth = $(document).width();
-var xheight = $(document).width();
+var xheight = $(document).height();
 mouseLog.push("{x:"+xwidth+",y:"+xheight+",t:"+"0};")
 
 document.onmousemove = function(e){

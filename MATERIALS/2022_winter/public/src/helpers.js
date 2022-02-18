@@ -98,7 +98,7 @@ var recordAnswer = function(){
     });
   }  
   //store response values to designated answer element
-  $('#answer').val([selected, hovered]);
+  $('#answer').val([selected, hovered,mouseLog]);
   // console.log("answer is: "+$('#answer').val());
 }
 
