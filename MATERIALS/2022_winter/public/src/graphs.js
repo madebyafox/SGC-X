@@ -51,19 +51,46 @@ function drawYAxis_Orthogonal (y,title){
 }
 function drawYAxis_Triangular (x,y,title,min,max,range){
   console.log("DRAWING Y AXIS TRIANGULAR");
+  
+  console.log("fitting range="+range);
+  console.log("fitting w="+width+" h= "+height);
+  // var pyth = Math.sqrt(height**2 + width**2);
+  // console.log("pyth: "+pyth);
+
+
+   t0 = min;
+   t1 = max;
+   r = range;  // the range of the data values
+   g = r;      //number of gradiations in the grid system (number of tickmarks)
+   i = r/g;    //size of each interval in the grid system
+  
+    x1 = moment(t0);
+    diff  = (t1.diff(x1,'minutes')/60)/2; //difference in fraction of hours
+    x2 = moment(x1);
+    x2 = x2.add(diff,'hours');
+    y2 = x2.diff(x1,"minutes")*2/60;
+
+    
   var yAxis = svg.append("g")
     .attr("class","yaxis")
+    //this worked before allowed dynamic height/width
+    // .append("line")
+    // .attr("x1",y(range/2))
+    // .attr("x2",0)
+    // .attr("y1",y(range))
+    // .attr("y2",y(0));
     .append("line")
-    .attr("x1",y(range/2))
-    .attr("x2",0)
-    .attr("y1",y(range))
-    .attr("y2",y(0));
+    .attr("x1", x(x1))
+    .attr("y1", y(0))
+    .attr("x2",x(x2))
+    .attr("y2", y(y2))
 
     d3.select(".yaxis")
       .append("g")
       .attr("class","axisTitle")
       .append("text")
-      .attr("transform","rotate(-65) translate(-200,280)")
+      // .attr("transform","rotate(-65) translate(-180,220)") @600
+      .attr("transform","rotate(-"+height/9.1+") translate(-180,220)")//arbitrary but it works
       .style("text-anchor", "end")
       .text(title);
 
@@ -510,15 +537,17 @@ function drawTriangleModel(datafile, axis, explicit) {
       var xAxis = d3.axisBottom(x)
         .ticks(range*2);
 
-      // set Y AXIS graph scales, domains and ranges
+     
+      // set Y AXIS graph scales, domains and ranges      
       var y = d3.scaleLinear()
-        .domain([0, range]) //isoceles   (the data)
-        .range([height, 0]);        //   (the position)
-        // .domain([0, range*2]); //equilateral
+        .domain([0, range])  //(the data)
+        .range([height, 0]); //(the position) 
+        // .range([width, 0]); //(the position) 
+        //   .domain([0, range*2]); //equilateral
         //   .domain([0, range]); //isoceles
 
       //draw title
-      // drawTitle();
+      //drawTitle();
       
         //draw x axis
       drawXAxis(xAxis,xAxisTitle,x,y,dmin,dmax,range);
@@ -541,6 +570,15 @@ function drawTriangleModel(datafile, axis, explicit) {
       // axis == 3 Triangular-XInside-YInside
       else if (axis == 3){
       // else if (axis == "Triangular-XInside-YInside") { //condition 3
+        
+      //  CREATE NEW Y SCALE
+        y = d3.scaleLinear()
+        .domain([0, range])  //(the data)
+        .range([height, 0]); //(the position) 
+        // .range([width, 0]); //(the position) 
+        //   .domain([0, range*2]); //equilateral
+        //   .domain([0, range]); //isoceles
+      
         drawYAxis_Triangular(x,y,yAxisTitle,dmin.clone(),dmax.clone(),range)
         drawYGrid_Inside(x,y,dmin.clone(),dmax.clone(),range);
         drawXGrid_Triangular (x,y,dmin.clone(),dmax.clone(),range);
@@ -573,7 +611,7 @@ function drawTriangleModel(datafile, axis, explicit) {
       .attr("class", "dot")
       .attr("cx", function(d) { return x(d.midpoint);})
       .attr("cy", function(d) { return y(d.duration);})
-      .attr("r", 6)
+      // .attr("r", 6) //moved to css
       .attr("value", function(d){return d.events;})
       .attr("selected",false)
       .on("mouseover", function(d) {
