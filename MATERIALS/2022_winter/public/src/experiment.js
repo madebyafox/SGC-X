@@ -506,6 +506,7 @@ function loadQuestions() {
 
 //SCORE USER RESPONSE
 var score = function (input, q){
+  alert("TODO! FOR SCORING, COMPARE # RESPONSES! see r")
   const response = input.split(',');
   const tri = tri_answers[q].split('');
   const orth = orth_answers[q].split('') ?? [];

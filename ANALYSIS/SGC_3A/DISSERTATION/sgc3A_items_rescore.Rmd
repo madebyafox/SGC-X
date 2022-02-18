@@ -1,0 +1,215 @@
+---
+title: "SGC3_A Item-Rescoring"
+output: 
+  # rmdformats::robobook:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+*The purpose of this notebook is to calculate a series of alternative scores for item-level data, based on a gradient of criteria for assessing strategy based on actual responses to multiple-select questions (MCMA | Multiple Choice Multiple Answer).* Studies SGC1-3A(lab) used all-or-nothing scoring, while SGC3A(VR) onwards perform MCMA scoring in the jsPsych app. 
+
+```{r SETUP, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#IMPORT LIBRARIES
+# library(rmdformats)
+library(dplyr) #tidyverse data handling
+library(tidyr) #pivot
+library(knitr) #printing tables
+library(forcats)#for factor re-ordering
+# library(ggpubr) #joining plots (alt to gridExtra)
+# library(tables) # pretty tables
+library(pastecs) #stat.desc
+library(mosaic) #simple descriptives [favstats]
+
+library(ggplot2) #graphs
+library(car) #ANOVA, qqplot
+library(effectsize) #effect size
+# library(pwr) #power analysis
+
+library(lme4) #linear mixed effects model
+
+#Set custom colors 
+lgrey = "#cacec8"
+lgreen = "#c6edbb"
+lyellow = "#FBEEBB"
+lblue = "#BCD9EE"
+
+
+```
+  
+```{r IMPORT-DATA, message= FALSE}  
+
+#QUESTION-ANSWER FILES
+control_file <- "data/SGC3A_1_questions.csv"
+impasse_file <- "data/SGC3A_2_questions.csv"
+qs_control <- read.csv(control_file)
+qs_impasse <- read.csv(impasse_file)
+
+#IMPORT DATA from fall and spring files
+fall_items <- "data/fall17_sgc3a_blocks.csv"
+spring_items <- "data/spring18_sgc3a_blocks.csv"
+online_items <- "data/fall21_sgc3a_blocks.csv"
+df_fall <- read.csv(fall_items)
+df_spring <- read.csv(spring_items)
+df_online <- read.csv(online_items)
+
+#indicate study modality
+df_fall$mode <- "lab"
+df_spring$mode <- "lab"
+df_online$mode <- "online"
+
+#Create combined data frame
+df_items <- rbind(df_fall, df_spring,df_online)
+
+#Create extra fields 
+df_items$time_sec <- df_items$rt / 1000 #item time in seconds
+
+#Create answer-consistency column (desired values in column : TRI, ORTH, BOTH, NONE)
+df_items$consistency = 0 #set initial dummy values
+df_items <- df_items %>% mutate(consistency = replace(consistency, correct==1 & orth_correct==1, "Both"), #both
+                                consistency = replace(consistency, correct==0 & orth_correct==1, "Ortho"), #orthogonal
+                                consistency = replace(consistency, correct==1 & orth_correct==0, "Tri"), #triangular
+                                consistency = replace(consistency, correct==0 & orth_correct==0, "Neither"), #neither
+                                consistency = replace(consistency, answer=="", "BLANK")) #neither and BLANK
+                   
+#Create factors 
+df_items <- df_items %>% mutate(
+  subject = as.factor(subject),
+  session = as.factor(session),
+  term = as.factor(term),
+  condition = as.factor(condition),
+  consistency = as.factor(consistency),
+  explicit = as.factor(explicit),
+  impasse = as.factor(impasse),
+  correct = as.factor(correct),
+  orth_correct = as.factor(orth_correct),
+  axis = as.factor(axis),
+  q = as.factor(q),
+  question = as.factor(question),
+  error = 0 #temporary holder for error codes
+)
+
+#Change values of column names for later reshaping
+# df_items <- rename(df_items, rs_incorrect = incorrect)
+df_items <- rename(df_items, rs_tri = correct)
+df_items <- rename(df_items, rs_ortho = orth_correct)
+
+#Separate free response from (main) multiple choice blocks
+df_freeResponse <- df_items %>% filter(q==16)
+df_items <- df_items %>% filter (q!=16)
+
+#Separate into analysis dataframes
+# df_lab <- df_items %>% filter(mode=="lab")
+# df_online <- df_items %>% filter(mode=="online")
+
+#Remove unecessary objects
+rm(df_fall, df_spring, df_online)
+```
+
+```{r}
+
+#TODOTHIS IS JUST TEMP FOR TESTING
+#Remove items 6 (attn check) and 9 (non discriminant)
+df_others <- df_items %>% filter(q %in% c(6,9,13))
+df_items <- df_items %>% filter (!q %in% c(6,9,13) )
+
+#Create TOTAL column for future sorting
+df_totals <- df_items %>% filter(!q ==16) %>% group_by(subject)  %>% summarise(TOTAL_CORRECT = sum(correct),
+          ON_STRATEGY   = sum(correct,orth_correct))
+
+df_items <- left_join(df_items, df_totals)
+
+# #Code incorrect responses (not triangular or otho correct)
+# df_items$response <- df_items$orth_correct + df_items$correct #items not correct in tri or orth interpretation
+# df_items$response <- dplyr::recode( df_items$response, `1`= "right", `2`="both", `0`="wrong" )
+# df_items$incorrect <- dplyr::recode( df_items$response, "right"=0, "both"=0, "wrong"=1 )
+
+```
+
+
+```{r}
+
+
+#FOR TESTING ONLY, SIMPLIFY DISPLAY
+df_items <- df_items %>% select(subject, condition, q, answer, rs_tri, rs_ortho)
+
+#DISCRIMINANT SCORING
+
+#1| SEPARATE INTO CONTROL VS IMPASSE TIBBLES AS ANSWERS ARE DIFFERENT
+df_control <- df_items %>% filter(condition == 121)
+df_impasse <- df_items %>% filter(condition == 111)
+
+#2 |ADD CORRECT ANSWERS TO ITEMS 
+df_control$TRI_CORRECT <- qs_control[df_control$q,"TRIANGULAR"]
+df_control$ORTH_CORRECT <- qs_control[df_control$q,"ORTHOGONAL"]
+df_impasse$TRI_CORRECT <- qs_impasse[df_impasse$q,"TRIANGULAR"]
+df_impasse$ORTH_CORRECT <- qs_impasse[df_impasse$q,"ORTHOGONAL"]
+
+#3 |CALCULATE PER INPUT VALUE 
+#  |how much credit does each datapoint get? 1/total_correct_answers
+df_control$peritem_tri <- 1/nchar(df_control$TRI_CORRECT)
+df_impasse$peritem_tri <- 1/nchar(df_impasse$TRI_CORRECT)
+
+#4 | RECODE BLANK ANSWERS
+df_control$answer <- replace(df_control$answer, (df_control$answer == ""),"-")
+df_impasse$answer <- replace(df_impasse$answer, (df_impasse$answer == ""),"-")
+
+#4  | CALCULATE TRIANGULAR SCORE
+#4a | Intersection of response + correct answer = number of correct responses
+df_control <- df_control %>% rowwise() %>% mutate(
+    a = str_split(answer,""), 
+    b = str_split(TRI_CORRECT,""),
+    clicky = nchar(answer) - nchar(TRI_CORRECT),
+    intersect = list(intersect(a,b)), #matches to correct components
+    TRI = peritem_tri * length(intersect)
+  ) %>% select(-a,-b,-intersect) 
+
+##LEFT OFF HERE 
+
+  # df_control %>% filter(abs(clicky)>2) %>% mutate(
+  #   TRI = 0 #override TRI score if user entered 3 more [or fewer] responses than required
+  # )
+
+
+
+
+# df_control$trisect <- paste(df_control$TRIANSWER, df_control$answer)
+
+
+
+
+
+  #JS ALGORITHM FROM EXPERIMENT.JS 
+  # 
+  # //TRIANGULAR SCORE
+  # //+1/x pts for each triangular item
+  # var tintersect = _.intersection(response,tri);
+  # tri_score = (1/tri.length)*tintersect.length;
+  # 
+  # //ORTHOGONAL SCORE
+  # //+1/x pts for each orthogonal item
+  # var ointersect = _.intersection(response,orth);
+  # orth_score = (1/orth.length)*ointersect.length
+  # 
+  # //OTHER SCORE
+  # if (response[0].length == 0){other_score = 0} //if response was empty set
+  # else {
+  # let instrategy = _.union(tri,orth); 
+  # let difference = _.difference(response,instrategy);
+  # other_score = (difference.length);
+  # }
+  # 
+  # //CALCULATE SCORING
+  # let correct = equalsIgnoreOrder(response,tri); //strict score requires exact match 
+  # let discriminant_score = tri_score -orth_score;
+  # let strict_score = tri_score - orth_score - (1/15*other_score);
+  # console.log("PERFECT? "+correct);
+  # console.log("DISCRIMINANT "+discriminant_score);
+  # console.log("STRICT "+strict_score);
+```
