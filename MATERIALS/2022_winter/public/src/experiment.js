@@ -108,7 +108,10 @@ var satisf_answers = ["NULL"]; //index as null
     type: jsPsychPreload,
     images: ['../media/welcome.png',
              '../media/devices.png',
-             '../media/distractions.png']
+             '../media/acme_1.png',
+             '../media/acme_2.png',
+            //  '../media/almost_there_puppy.jpeg',
+            ]
   };
 
   //WELCOME SCREEN
@@ -170,7 +173,7 @@ var satisf_answers = ["NULL"]; //index as null
     }
   };
 
-  //INSTRUCTIONS FOR ASYNCH
+  //SETUP FOR ASYNCH
   var setup_asynch = {
     type: jsPsychInstructions,
     pages: [
@@ -181,14 +184,14 @@ var satisf_answers = ["NULL"]; //index as null
     'Please take a moment (now) to <b> silence your phone.</b>',
     'Please take a moment (now) to <b> turn off notifications</b> on your computer. <br>(MAC: Do Not Disturb, WINDOWS: Focus Assist)',
     'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
-    '<h2> We understand your time is valuable. Thank you for contributing to science with your earnest effort! </h2>'
+    '<h2> We understand your time is valuable. <br> Thank you for contributing to our research with your earnest effort! </h2>'
     ],
     show_clickable_nav: true,
     allow_backward: false,
     key_forward: 'Enter'
   }
 
-  //INSTRUCTIONS FOR SYNCH
+  //SETUP FOR SYNCH
   //assumes experimenter leads through 
   //silencing notifications
   var setup_synch = {
@@ -199,7 +202,7 @@ var satisf_answers = ["NULL"]; //index as null
     'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
     '<br>(we collect data on whether you click outside this browser tab ;) ',
     'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
-    '<h2> We understand your time is valuable. Thank you for contributing to science with your earnest effort! </h2>'
+    '<h2> We understand your time is valuable. <br> Thank you for contributing to our research with your earnest effort! </h2>'
     ],
     show_clickable_nav: true,
     allow_backward: false,
@@ -233,72 +236,31 @@ var satisf_answers = ["NULL"]; //index as null
     }
 };
 
-  //STIMULUS TRIAL
-  var stimulus = {
-    type: jsPsychExternalHtml,
-    url: '../src/stimulus.html',
-    execute_script: true,
-    force_refresh:true,
-    cont_btn: "testingButton",
-    on_finish: function(data) {
-      let scoring = score(data.response[0], data.q);
-
-      if (scoring){ //scoring is not null, otherwise bypass
-        data.correct = scoring[0];
-        data.discriminant = scoring[1];
-        data.strict = scoring[2];
-        data.tri_score = scoring[3];
-        data.orth_score = scoring[4];
-        data.other_score = scoring[5];
-      }
-
-      if(isNaN(data.q)) {//save free response
-        data.freeresponse = data.response[3]
-      }
-
-      data.answer = data.response[0];
-      data.hovered = data.response[1];  
-      data.mouselog = data.response[2];
-      data.response = [];//remove for redundancy
-
-      //suppress mouse data on SGCX demo
-      if (study == "SGCX"){
-        data.mouselog = "";
-        data.mouse_tracking_data = "";
-        data.mouse_tracking_targets = "";
-      }
+  //SCENARIO START
+  var scenario_1 = {
+    type: jsPsychImageKeyboardResponse,
+    stimulus : '../media/acme_1.png',
+    choices: ['Enter'],
+    stimulus_height :  window.innerHeight,
+    maintain_aspect_ratio : true,
+    data: {
+      block:"scenario"
     },
-    data:{
-      sid: sid,
-      condition: condition,
-      q: jsPsych.timelineVariable('q'),
-      explicit: jsPsych.timelineVariable('explicit'),
-      impasse: jsPsych.timelineVariable('impasse'),
-      grid: jsPsych.timelineVariable('grid'),
-      mark: jsPsych.timelineVariable('mark'),
-      ixn:  jsPsych.timelineVariable('ixn'),
-      question: jsPsych.timelineVariable('question'),
-      graph:jsPsych.timelineVariable('graph'),
-      datafile: jsPsych.timelineVariable('datafile'),
-      colorClick: jsPsych.timelineVariable('colorClick'),
-      gwidth: jsPsych.timelineVariable('gwidth'),
-      gheight: jsPsych.timelineVariable('gheight'),
-      datafile: jsPsych.timelineVariable('datafile'),
-      relation:  jsPsych.timelineVariable('relation'),
-      block: jsPsych.timelineVariable('block')
+    on_start: function(data){}  
+  };
+
+  //SCENARIO CONTINUE
+  var scenario_2 = {
+    type: jsPsychImageKeyboardResponse,
+    stimulus : '../media/acme_2.png',
+    choices: ['Enter'],
+    stimulus_height :  window.innerHeight,
+    maintain_aspect_ratio : true,
+    data: {
+      block:"scenario"
     },
-    on_start: function(){},
-    extensions: [
-      {type: jsPsychExtensionMouseTracking, params: {
-        targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
-        events: ['mousemove','mousedown']
-      }},
-      // {type: jsPsychExtensionWebgazer, params: { 
-      //   targets:['#testingButton','#leftDiv','#rightDiv','#theGraph']
-      // }}
-    ],
-    response_el: 'answer', //name of element where response is stored
-  } 
+    on_start: function(data){}  
+  };
 
   //ENCOURAGEMENT
   var almost_there = {
@@ -364,13 +326,19 @@ var satisf_answers = ["NULL"]; //index as null
           name: 'gender', 
           options: ['Other-Not Listed','Male','Female'], 
           required: true
-        }
+        },
+        {
+          type:'text',
+          prompt:"Do you have any impairments or disabilities you believe may have influenced your performance on this task?",
+          name:"disability",
+          textbox_rows: 2
+        } 
       ]
     ],
     button_label_finish: 'Continue'
   };
 
-  //DEMOGRAPHICS SURVEY
+  //EFFORT RATINGS
   var effort_rating = {
     type: jsPsychSurvey,
     data:{ block:"effort" },
@@ -446,8 +414,84 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     button_label_finish: 'Continue'
   };
+
+  //DEBRIEFING
+  var debrief = {
+    "type": jsPsychExternalHtml,
+    "url": "../src/debrief.html",
+    "force_refresh": true,
+    data: {
+      block:"debrief"
+    }
+  };
   
 
+//STIMULUS TRIAL
+var stimulus = {
+  type: jsPsychExternalHtml,
+  url: '../src/stimulus.html',
+  execute_script: true,
+  force_refresh:true,
+  cont_btn: "testingButton",
+  on_finish: function(data) {
+    let scoring = score(data.response[0], data.q);
+
+    if (scoring){ //scoring is not null, otherwise bypass
+      data.correct = scoring[0];
+      data.discriminant = scoring[1];
+      data.strict = scoring[2];
+      data.tri_score = scoring[3];
+      data.orth_score = scoring[4];
+      data.other_score = scoring[5];
+    }
+
+    if(isNaN(data.q)) {//save free response
+      data.freeresponse = data.response[3]
+    }
+
+    data.answer = data.response[0];
+    data.hovered = data.response[1];  
+    data.mouselog = data.response[2];
+    data.response = [];//remove for redundancy
+
+    //suppress mouse data on SGCX demo
+    if (study == "SGCX"){
+      data.mouselog = "";
+      data.mouse_tracking_data = "";
+      data.mouse_tracking_targets = "";
+    }
+  },
+  data:{
+    sid: sid,
+    condition: condition,
+    q: jsPsych.timelineVariable('q'),
+    explicit: jsPsych.timelineVariable('explicit'),
+    impasse: jsPsych.timelineVariable('impasse'),
+    grid: jsPsych.timelineVariable('grid'),
+    mark: jsPsych.timelineVariable('mark'),
+    ixn:  jsPsych.timelineVariable('ixn'),
+    question: jsPsych.timelineVariable('question'),
+    graph:jsPsych.timelineVariable('graph'),
+    datafile: jsPsych.timelineVariable('datafile'),
+    colorClick: jsPsych.timelineVariable('colorClick'),
+    gwidth: jsPsych.timelineVariable('gwidth'),
+    gheight: jsPsych.timelineVariable('gheight'),
+    datafile: jsPsych.timelineVariable('datafile'),
+    relation:  jsPsych.timelineVariable('relation'),
+    block: jsPsych.timelineVariable('block')
+  },
+  on_start: function(){},
+  extensions: [
+    {type: jsPsychExtensionMouseTracking, params: {
+      targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
+      events: ['mousemove','mousedown']
+    }},
+    // {type: jsPsychExtensionWebgazer, params: { 
+    //   targets:['#testingButton','#leftDiv','#rightDiv','#theGraph']
+    // }}
+  ],
+  response_el: 'answer', //name of element where response is stored
+} 
   
 
 //NOTE:: BLOCKS AND PROCEDURE DEFINED IN buildProcedure() 
@@ -675,38 +719,37 @@ function buildProcedure(){
 
   //STIMULUS PROCEDURE
   var procedure = {
-      timeline: [block_scaffold, block_test]
+      timeline: [scenario_1, block_scaffold, scenario_2, block_test]
   }
 
   //--------- TIMELINE ----------/
 
     //ASSEMBLE TIMELINE
-    // timeline.push(preload);
-    // timeline.push(welcome);
-    // timeline.push(consent);
-    // timeline.push(browsercheck);
-    // if (mode == "asynch"){
-    //   timeline.push(devices_asynch);
-    //   timeline.push(setup_asynch);
-    // }
-    // else{
-    //   timeline.push(setup_synch);
-    // }
-    // timeline.push(enter_fullscreen);
+    timeline.push(preload);
+    timeline.push(welcome);
+    timeline.push(consent);
+    timeline.push(browsercheck);
+    if (mode == "synch") {
+      timeline.push(setup_synch);
+    }
+    else {
+      timeline.push(devices_asynch);
+      timeline.push(setup_asynch);
+    }
+    timeline.push(enter_fullscreen);
     timeline.push(instructions);
-    // timeline.push(procedure);
-    // PLACEHOLDER INSTRUCTIONS
+    timeline.push(procedure);
     timeline.push(almost_there);
-    // timeline.push(effort_rating);
-    // if (pool != "sona"){
-    //   //TODO MAKE GENERAL DEMOGRAPHICS
-    // } else{
-    //   timeline.push(demographics_sona);
-    // }
+    timeline.push(effort_rating);
+    if (pool != "sona"){
+      //TODO MAKE GENERAL DEMOGRAPHICS
+    } else {
+      timeline.push(demographics_sona);
+    }
+    //TODO MAKE SURE DATA SAVES BEFORE DEBRIEF! 
+    timeline.push(exit_fullscreen);
+    timeline.push(debrief)    
     
-    // timeline.push(exit_fullscreen);
-
-    // timeline.push(debrief_block);
 
 }//end function
 
