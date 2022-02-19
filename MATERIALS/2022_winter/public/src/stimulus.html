@@ -28,7 +28,7 @@
       <!-- response indicators -->
       <p class = "response" id="graph-response" style="display:none">Your answer : </p>
       <ul class="checkbox-grid" id="answer-grid"></ul>
-       
+      <textarea style = "display: none" id="freeResponse" rows="5" cols="60"></textarea>
       <!-- submit buttons -->
   
       <div class="fixbottom">  
@@ -45,7 +45,6 @@
   </div> <!--END container-->
 
   
-
 </body>
 <script>
 
@@ -83,6 +82,15 @@
     //UPDATE DISPLAY BASED ON DATA 
     $('.userid').html(data.sid); //print subject ID
     $('#question').html(data.question); //display question
+
+    //CHANGE checkboxes IF free response questions
+    if(isNaN(data.q)){
+      //suppress checkboxes
+      $('#answer-grid').attr("style","display:none");
+      $('#graph-response').attr("style","display:none");
+      //enter free response box 
+      $('#freeResponse').attr("style","display:block");
+    }
     
     //SET ANSWER MODE
     if (data.colorClick == true) {// remove checkboxes

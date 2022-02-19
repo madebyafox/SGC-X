@@ -72,6 +72,13 @@ var check_draw = function(elem) {
 var recordAnswer = function(){
   console.log("TRANSFORMING ANSWER...");
   var selected = [];
+  var free="";
+  //FREE RESPONSE MODE
+  if(isNaN(data.q)){
+    free = $('#freeResponse').val().toString();
+    $('#answer').val(free);
+    
+  }
 
   //CLICK ON GRAPH RESPONSE MODE
   if(colorClick == true){
@@ -88,7 +95,9 @@ var recordAnswer = function(){
     });
   }  
   //store response values to designated answer element
-  $('#answer').val([selected, hovered,mouseLog]);
+  console.log("and imma do this now");
+  $('#answer').val([selected, hovered, mouseLog,free]);
+  return;
   // console.log("answer is: "+$('#answer').val());
 }
 

@@ -181,9 +181,10 @@ var satisf_answers = ["NULL"]; //index as null
     'Please take a moment (now) to <b> silence your phone.</b>',
     'Please take a moment (now) to <b> turn off notifications</b> on your computer. <br>(MAC: Do Not Disturb, WINDOWS: Focus Assist)',
     'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
-    '<h2> Thank you for contributing to science with your earnest effort! </h2>'
+    '<h2> We understand your time is valuable. Thank you for contributing to science with your earnest effort! </h2>'
     ],
     show_clickable_nav: true,
+    allow_backward: false,
     key_forward: 'Enter'
   }
 
@@ -198,10 +199,24 @@ var satisf_answers = ["NULL"]; //index as null
     'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
     '<br>(we collect data on whether you click outside this browser tab ;) ',
     'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
-    '<h2> Thank you for contributing to science with your earnest effort! </h2>'
+    '<h2> We understand your time is valuable. Thank you for contributing to science with your earnest effort! </h2>'
     ],
     show_clickable_nav: true,
+    allow_backward: false,
     key_forward: 'Enter'
+  }
+
+  //ENTER FULLSCREEN
+  var enter_fullscreen = {
+    type: jsPsychFullscreen,
+    message: '<p>You will now enter fullscreen mode.</p>',
+    fullscreen_mode: true
+  }
+
+  //EXIT FULLSCREEN
+  var exit_fullscreen = {
+    type: jsPsychFullscreen,
+    fullscreen_mode: false
   }
 
   //STIMULUS TRIAL
@@ -213,16 +228,24 @@ var satisf_answers = ["NULL"]; //index as null
     cont_btn: "testingButton",
     on_finish: function(data) {
       let scoring = score(data.response[0], data.q);
-      data.correct = scoring[0];
-      data.discriminant = scoring[1];
-      data.strict = scoring[2];
-      data.tri_score = scoring[3];
-      data.orth_score = scoring[4];
-      data.other_score = scoring[5];
+
+      if (scoring){ //scoring is not null, otherwise bypass
+        data.correct = scoring[0];
+        data.discriminant = scoring[1];
+        data.strict = scoring[2];
+        data.tri_score = scoring[3];
+        data.orth_score = scoring[4];
+        data.other_score = scoring[5];
+      }
+
+      if(isNaN(data.q)) {//save free response
+        data.freeresponse = data.response[3]
+      }
+
       data.answer = data.response[0];
       data.hovered = data.response[1];  
       data.mouselog = data.response[2];
-      data.response = [];//remove for redundancy with answer,hovered,mouselog
+      data.response = [];//remove for redundancy
 
       //suppress mouse data on SGCX demo
       if (study == "SGCX"){
@@ -262,6 +285,33 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     response_el: 'answer', //name of element where response is stored
   } 
+
+
+//   var debrief = {
+//     "type": "html",
+//     "force_refresh": true,
+//     "url": "../views/src/external/debrief.html",
+//     "cont_btn": "start",
+//     data: {
+//       block: "debrief"
+//     },
+//     on_start: function(data){
+//     }
+// };
+
+
+// //-------------SURVEY BLOCKS---------------------------------------------
+// var text_questions = ["What is your age?",
+//                       "In what country were you born?"];
+// var choice_questions = ["What is your first language?",
+//                         "What is your year in school?",
+//                         "What is your major area of study?",
+//                         "What is your gender?"];
+// var lang_options = [ "English", "Spanish", "Mandarin or Cantonese", "Other"];
+// var year_options = ["First", "Second","Third","Fourth","Fifth","Graduate","Other"];
+// var major_options = ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
+//                       "Natural Sciences","Engineering","Humanities","Fine Arts"];
+// var gender_options = ["Male","Female","Other"];
 
   
 
@@ -383,6 +433,9 @@ function buildProcedure(){
     //---------------------------------------------------
     case "SGC3A":
 
+      //last question q="F" is freeresponse, q="F" to bypass scoring
+      let free = "Please describe how to determine what event(s) start at 12pm?";
+
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
          { q:1, impasse: condition.charAt(1), question: questions[1], datafile: datas[1], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
@@ -394,15 +447,17 @@ function buildProcedure(){
       //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE [main dataset]
       test_timeline = [
         { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
-        { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test"},
-        { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test"},
+        { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+        { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
         { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
         { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
         { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
         { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
         { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
         { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
-        { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
+        { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+        //FREE RESPONSE QUESTION
+        { q:"f", impasse: 1, question: free,          datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
       ];
       break;
 
@@ -465,54 +520,45 @@ function buildProcedure(){
     }   
   }
  
-
-    //SCAFFOLDING BLOCK
-    var block_scaffold = {
+  //--------- ASSEMBLE PROCEDURE BLOCKS ----------/
+    
+  //SCAFFOLDING BLOCK
+  var block_scaffold = {
      timeline: [stimulus],
       timeline_variables: scaffold_timeline,
       randomize_order: false
-    }
+  }
 
-    //TEST BLOCK
-    var block_test = {
+  //TEST BLOCK
+  var block_test = {
      timeline: [stimulus],
      timeline_variables: test_timeline, 
      randomize_order: false
-    }
+  }
 
-    //STIMULUS PROCEDURE
-    var procedure = {
+  //STIMULUS PROCEDURE
+  var procedure = {
       timeline: [block_scaffold, block_test]
-    }
+  }
 
-    // console.log("STUDY: " +study);
-    // console.log("SESSION: " +session);
-    // console.log("CONDITION: " +condition);
-    // console.log("IMPASSE: "+ impasse)
-    // console.log("GRID: "+ grid)
-    // console.log("MARKS: "+ mark)
-    // console.log("IXN: "+ ixn)
-    // console.log("CLICK-INPUT: "+ colorClick)
-    // console.log("sid" + sid);
+  //--------- TIMELINE ----------/
 
- 
     //ASSEMBLE TIMELINE
-    timeline.push(preload);
-    timeline.push(welcome);
-    timeline.push(consent);
-    timeline.push(browsercheck);
-    if (mode == "asynch"){
-      timeline.push(devices);
-      timeline.push(setup_asynch);
-    }
-    else{
-      timeline.push(setup_synch);
-    }
-    
-    // timeline.push(stimulus);
-    // timeline.push(block_test);
-    // timeline.push(block_scaffold);
-    timeline.push(procedure);
+    // timeline.push(preload);
+    // timeline.push(welcome);
+    // timeline.push(consent);
+    // timeline.push(browsercheck);
+    // if (mode == "asynch"){
+    //   timeline.push(devices);
+    //   timeline.push(setup_asynch);
+    // }
+    // else{
+    //   timeline.push(setup_synch);
+    // }
+    // timeline.push(enter_fullscreen);
+    // timeline.push(procedure);
+    // timeline.push(exit_fullscreen);
+
     // timeline.push(debrief_block);
 
 }//end function
@@ -547,7 +593,12 @@ function loadQuestions() {
 
 //SCORE USER RESPONSE
 var score = function (input, q){
-  alert("TODO! FOR SCORING, COMPARE # RESPONSES! see r")
+  // alert("TODO! FOR SCORING, COMPARE # RESPONSES! see r")
+
+  if (isNaN(q)){
+    return null;
+  }
+
   const response = input.split(',');
   const tri = tri_answers[q].split('');
   const orth = orth_answers[q].split('') ?? [];
