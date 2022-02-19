@@ -84,7 +84,7 @@ const conditions = {
 }
 
 //INITIALIZE GLOBAL VARIABLES 
-let study, session, condition, mode;
+let study, session, condition, mode, pool;
 let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
 let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
@@ -136,7 +136,7 @@ var satisf_answers = ["NULL"]; //index as null
   };
 
   //DEVICE REQUIREMENTS
-  var devices = {
+  var devices_asynch = {
     type: jsPsychImageKeyboardResponse,
     stimulus : '../media/devices.png',
     choices: ['Enter'],
@@ -219,6 +219,20 @@ var satisf_answers = ["NULL"]; //index as null
     fullscreen_mode: false
   }
 
+  //TASK INSTRUCTIONS
+  var instructions = {
+    type: jsPsychExternalHtml,
+    url: "../src/instructions.html",
+    force_refresh: true,
+    "cont_btn": "start",
+    // on_start: function(){
+    //   scenarios=scenarios;
+    // },
+    data: {
+      block:"task_instructions"
+    }
+};
+
   //STIMULUS TRIAL
   var stimulus = {
     type: jsPsychExternalHtml,
@@ -286,32 +300,153 @@ var satisf_answers = ["NULL"]; //index as null
     response_el: 'answer', //name of element where response is stored
   } 
 
+  //ENCOURAGEMENT
+  var almost_there = {
+    type: jsPsychHtmlButtonResponse,
+    data:{
+      block:"almost_there"
+    },
+    stimulus: '<img src="../media/almost_done_puppy.jpeg"</img>',
+    choices: ['Continue',],
+    // prompt: "<p>Thank you for your effort! You're almost done!</p>"
+  };
 
-//   var debrief = {
-//     "type": "html",
-//     "force_refresh": true,
-//     "url": "../views/src/external/debrief.html",
-//     "cont_btn": "start",
-//     data: {
-//       block: "debrief"
-//     },
-//     on_start: function(data){
-//     }
-// };
+  //DEMOGRAPHICS SURVEY
+  var demographics_sona = {
+    type: jsPsychSurvey,
+    data:{ block:"demographics" },
+    pages: [
+      [ 
+        {
+          type: 'html',
+          prompt: '<h2>Please answer the following questions about yourself.</h2>',
+        },
+        {
+          type: 'text',
+          prompt: "How old are you?", 
+          name: 'age', 
+          textbox_columns: 5,
+          required: true,
+        },
+        {
+          type: 'text',
+          prompt: "In what country have you lived most of your life?", 
+          name: 'country', 
+          textbox_columns: 15,
+          required: true,
+        },
+        {
+          type: 'drop-down',
+          prompt: "What is your first language?", 
+          name: 'language', 
+          options: ['English', 'Mandarin', 'Cantonese', 'Korean', 'German','Arabic','French','Spanish','X-Other'], 
+          required: true,
+          option_reorder: "asc"
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your year in school?", 
+          name: 'schoolyear', 
+          options: ['First', 'Second', 'Third', 'Fourth', 'Fifth','Grad Student','X-OTHER'], 
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your major area of study?", 
+          name: 'major', 
+          options: ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
+                                "Natural Sciences","Engineering","Humanities","Fine Arts"],
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your gender identity?", 
+          name: 'gender', 
+          options: ['Other-Not Listed','Male','Female'], 
+          required: true
+        }
+      ]
+    ],
+    button_label_finish: 'Continue'
+  };
 
-
-// //-------------SURVEY BLOCKS---------------------------------------------
-// var text_questions = ["What is your age?",
-//                       "In what country were you born?"];
-// var choice_questions = ["What is your first language?",
-//                         "What is your year in school?",
-//                         "What is your major area of study?",
-//                         "What is your gender?"];
-// var lang_options = [ "English", "Spanish", "Mandarin or Cantonese", "Other"];
-// var year_options = ["First", "Second","Third","Fourth","Fifth","Graduate","Other"];
-// var major_options = ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
-//                       "Natural Sciences","Engineering","Humanities","Fine Arts"];
-// var gender_options = ["Male","Female","Other"];
+  //DEMOGRAPHICS SURVEY
+  var effort_rating = {
+    type: jsPsychSurvey,
+    data:{ block:"effort" },
+    pages: [
+      [ 
+        {
+          type: 'html',
+          prompt: '<h2>Please answer the following questions about your approach to completing the previous task.</h2>',
+        },
+        {
+          type: 'html',
+          prompt: '<i>Your honest responses will help us correctly interpret our data.</i>',
+        },
+        {
+          type: 'drop-down',
+          prompt: "Which of the following best describes the amount of effort you put into the task?", 
+          name: 'effort', 
+          options: ['I tried my best on each question', 'I tried my best on most questions', 'I started out trying hard, but gave up at some point', "I didn't try very hard, or rushed through the questions"], 
+          required: true,
+        }, 
+        {
+          type: 'likert',
+          prompt: 'How difficult was the task?',
+          name:'difficulty',
+          likert_scale_min_label: 'Very Easy',
+          likert_scale_max_label: 'Very Hard',
+          required: true,
+          likert_scale_values: [
+            {value: 1},
+            {value: 2},
+            {value: 3},
+            {value: 4},
+            {value: 5}
+          ]
+        },
+        {
+          type: 'likert',
+          prompt: 'How well (how correctly) do you think you performed the task?',
+          name:'confidence',
+          likert_scale_min_label: 'Very Poorly',
+          likert_scale_max_label: 'Very Well',
+          required: true,
+          likert_scale_values: [
+            {value: 1},
+            {value: 2},
+            {value: 3},
+            {value: 4},
+            {value: 5}
+          ]
+        },
+        {
+          type: 'likert',
+          prompt: 'How enjoyable was the task?',
+          name:'enjoyment',
+          likert_scale_min_label: 'Boring',
+          likert_scale_max_label: 'Interesting',
+          required: true,
+          likert_scale_values: [
+            {value: 1},
+            {value: 2},
+            {value: 3},
+            {value: 4},
+            {value: 5}
+          ]
+        },
+        {
+          type:'text',
+          prompt:"What else do you think would be useful for us to know about your experience?",
+          name:"other",
+          textbox_rows: 2
+        } 
+      ]
+    ],
+    button_label_finish: 'Continue'
+  };
+  
 
   
 
@@ -330,7 +465,8 @@ function initializeStudy() {
   session = urlvar.session ?? "blank"; 
   condition = urlvar.condition ?? 'R'; //default to random assign
   condition = condition.toString();
-  mode = urlvar.mode ?? 'asynch'
+  mode = urlvar.mode ?? 'asynch';
+  pool = urlvar.pool ?? 'sona';
   q = urlvar.q;
   graph = urlvar.graph ?? "triangular" //need to handle errors
   gwidth = urlvar.gwidth ?? 600;
@@ -520,8 +656,7 @@ function buildProcedure(){
     }   
   }
  
-  //--------- ASSEMBLE PROCEDURE BLOCKS ----------/
-    
+  //--------- ASSEMBLE PROCEDURE BLOCKS ----------/    
   //SCAFFOLDING BLOCK
   var block_scaffold = {
      timeline: [stimulus],
@@ -536,6 +671,8 @@ function buildProcedure(){
      randomize_order: false
   }
 
+  // PLACEHOLDER KEEP GOING! 
+
   //STIMULUS PROCEDURE
   var procedure = {
       timeline: [block_scaffold, block_test]
@@ -549,14 +686,24 @@ function buildProcedure(){
     // timeline.push(consent);
     // timeline.push(browsercheck);
     // if (mode == "asynch"){
-    //   timeline.push(devices);
+    //   timeline.push(devices_asynch);
     //   timeline.push(setup_asynch);
     // }
     // else{
     //   timeline.push(setup_synch);
     // }
     // timeline.push(enter_fullscreen);
+    timeline.push(instructions);
     // timeline.push(procedure);
+    // PLACEHOLDER INSTRUCTIONS
+    timeline.push(almost_there);
+    // timeline.push(effort_rating);
+    // if (pool != "sona"){
+    //   //TODO MAKE GENERAL DEMOGRAPHICS
+    // } else{
+    //   timeline.push(demographics_sona);
+    // }
+    
     // timeline.push(exit_fullscreen);
 
     // timeline.push(debrief_block);
