@@ -11,7 +11,13 @@
 //--------------------------------------------------------------------
 
 //REFERENCE-----------------------------------------------------------
-    
+// @URL VARS   
+// study= [SGC3A, SGC3B ..]
+// session= [freetext] //default blank
+// mode = "synch" || "asynch" //default asynch
+// q = [1...15] //jump to question
+// condition = (min 3 digit, see below)  
+
     //CONDITION
     //    [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN]
 
@@ -78,7 +84,7 @@ const conditions = {
 }
 
 //INITIALIZE GLOBAL VARIABLES 
-let study, session, condition;
+let study, session, condition, mode;
 let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
 let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
@@ -94,7 +100,6 @@ var orth_answers = ["NULL"]; //index as null
 var tvsky_answers = ["NULL"]; //index as null
 var satisf_answers = ["NULL"]; //index as null
  
-
 
 //--------------- DEFINE  TIMELINE COMPONENTS -------------------//  
 
@@ -119,6 +124,17 @@ var satisf_answers = ["NULL"]; //index as null
     on_start: function(data){}  
   };
 
+  //INFORMED CONSENT
+  var consent = {
+    "type": jsPsychExternalHtml,
+    "url": "../src/consent.html",
+    "cont_btn": "start",
+    "force_refresh": true,
+    data: {
+      block:"consent"
+    }
+  };
+
   //DEVICE REQUIREMENTS
   var devices = {
     type: jsPsychImageKeyboardResponse,
@@ -132,18 +148,6 @@ var satisf_answers = ["NULL"]; //index as null
     on_start: function(data){}  
   };
 
-  //BROWSER REQUIREMENTS
-  var browserinstructions = {
-    type: jsPsychHtmlButtonResponse,
-    stimulus: `<p>To participate in this study you must: </p>
-    <ol style="text-align:left">
-    <li>Use a laptop or desktop computer (no tablets or phones).</li>
-    <li>Use the Chrome web browser.</li>
-    <li>Have a minimum screen size of 1000 x 600 px.</li>
-    </ol>`,
-    choices: ['Continue']
-  };
-
   //BROWSER CHECK
   var browsercheck = {
     type: jsPsychBrowserCheck,
@@ -153,26 +157,52 @@ var satisf_answers = ["NULL"]; //index as null
       return data.browser == 'chrome' && data.mobile === false
     },
     exclusion_message: (data) => {
+      
       if(data.mobile){
-        return '<p>You must use a desktop/laptop computer to participate in this experiment.</p>';
-      } else if(data.browser !== 'chrome'){
-        return '<p>You must use Chrome as your browser to complete this experiment.</p>'
+        return '<p>You must use a desktop or laptop computer to participate in this experiment.</p>';
+      } 
+      if(data.browser !== 'chrome'){
+        return '<p>This study must be completed in the <b style="color:red">Chrome</b> web browser. To continue, please open Chrome, and copy/paste the URL from the address bar.</p>'
+      }
+      else { //size violation
+        return '<p>You have indicated that you cannot increase the size of your browser window.</p> <p> If you <i>can</i> maximize your window, please do so now, and press the REFRESH button.</p> <p>Otherwise, you can close this tab.</p>';
       }
     }
   };
 
-  //NO DISTRACTIONS
-  var distractions = {
-    type: jsPsychImageKeyboardResponse,
-    stimulus : '../media/distractions.png',
-    choices: ['Enter'],
-    stimulus_height :  window.innerHeight,
-    maintain_aspect_ratio : true,
-    data: {
-      block:"distractions"
-    },
-    on_start: function(data){}  
-  };
+  //INSTRUCTIONS FOR ASYNCH
+  var setup_asynch = {
+    type: jsPsychInstructions,
+    pages: [
+    '<h2>This study will require [15-30] minutes of your <b>undivided</b> attention.',
+    'Once you start the study, we ask that you <b>do not leave this browser window.</b>',
+    'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
+    '<br>(we collect data on whether you click outside this browser tab ;) ',
+    'Please take a moment (now) to <b> silence your phone.</b>',
+    'Please take a moment (now) to <b> turn off notifications</b> on your computer. <br>(MAC: Do Not Disturb, WINDOWS: Focus Assist)',
+    'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
+    '<h2> Thank you for contributing to science with your earnest effort! </h2>'
+    ],
+    show_clickable_nav: true,
+    key_forward: 'Enter'
+  }
+
+  //INSTRUCTIONS FOR SYNCH
+  //assumes experimenter leads through 
+  //silencing notifications
+  var setup_synch = {
+    type: jsPsychInstructions,
+    pages: [
+    '<h2>This study will require [15-30] minutes of your <b>undivided</b> attention.',
+    'Once you start the study, we ask that you <b>do not leave this browser window.</b>',
+    'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
+    '<br>(we collect data on whether you click outside this browser tab ;) ',
+    'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
+    '<h2> Thank you for contributing to science with your earnest effort! </h2>'
+    ],
+    show_clickable_nav: true,
+    key_forward: 'Enter'
+  }
 
   //STIMULUS TRIAL
   var stimulus = {
@@ -193,6 +223,13 @@ var satisf_answers = ["NULL"]; //index as null
       data.hovered = data.response[1];  
       data.mouselog = data.response[2];
       data.response = [];//remove for redundancy with answer,hovered,mouselog
+
+      //suppress mouse data on SGCX demo
+      if (study == "SGCX"){
+        data.mouselog = "";
+        data.mouse_tracking_data = "";
+        data.mouse_tracking_targets = "";
+      }
     },
     data:{
       sid: sid,
@@ -243,6 +280,7 @@ function initializeStudy() {
   session = urlvar.session ?? "blank"; 
   condition = urlvar.condition ?? 'R'; //default to random assign
   condition = condition.toString();
+  mode = urlvar.mode ?? 'asynch'
   q = urlvar.q;
   graph = urlvar.graph ?? "triangular" //need to handle errors
   gwidth = urlvar.gwidth ?? 600;
@@ -388,7 +426,7 @@ function buildProcedure(){
     //---------------------------------------------------
     default: 
       
-    //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION
+    //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION (repeats q x 2)
     if (q){
       console.log("JUMPING TO QUESTION: "+q);
       scaffold_timeline = [
@@ -430,18 +468,16 @@ function buildProcedure(){
 
     //SCAFFOLDING BLOCK
     var block_scaffold = {
-    timeline: [stimulus],
-    timeline_variables: scaffold_timeline,
-    randomize_order: false
+     timeline: [stimulus],
+      timeline_variables: scaffold_timeline,
+      randomize_order: false
     }
-
-    console.log(test_timeline);
 
     //TEST BLOCK
     var block_test = {
-    timeline: [stimulus],
-    timeline_variables: test_timeline, 
-    randomize_order: false
+     timeline: [stimulus],
+     timeline_variables: test_timeline, 
+     randomize_order: false
     }
 
     //STIMULUS PROCEDURE
@@ -460,14 +496,19 @@ function buildProcedure(){
     // console.log("sid" + sid);
 
  
-   
     //ASSEMBLE TIMELINE
-    // timeline.push(preload);
-    // timeline.push(welcome);
-    // timeline.push(devices);
-    // timeline.push(browserinstructions);
-    // timeline.push(browsercheck);
-    // timeline.push(distractions);
+    timeline.push(preload);
+    timeline.push(welcome);
+    timeline.push(consent);
+    timeline.push(browsercheck);
+    if (mode == "asynch"){
+      timeline.push(devices);
+      timeline.push(setup_asynch);
+    }
+    else{
+      timeline.push(setup_synch);
+    }
+    
     // timeline.push(stimulus);
     // timeline.push(block_test);
     // timeline.push(block_scaffold);

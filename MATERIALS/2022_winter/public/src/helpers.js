@@ -52,17 +52,7 @@ var check_consent = function(elem) {
   return false;
 };
 
-//check value of consent checkbox
-var check_consent = function(elem) {
-  if ($('#consent_checkbox').is(':checked')) {
-    return true;
-  } else {
-    alert("If you wish to participate, you must check the box next to the statement 'I confirm I am using a LAPTOP or DESKTOP computer with a KEYBOARD and MOUSE or TRACKPAD.' If you ARE NOT using an approved device you cannot complete the study, and can close your browser window. ");
-    return false;
-  }
-  return false;
-};
-
+//check value of drawing check checkboxes
 var check_draw = function(elem) {
   var validated = true;
   if($('#check-name').is(':not(:checked)')){validated = false;}
