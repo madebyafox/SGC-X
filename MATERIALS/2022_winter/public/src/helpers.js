@@ -32,6 +32,7 @@ let sumSubject = function (jsp){
      starttime:jsp.getStartTime(),
      totaltime:jsp.getTotalTime(),
      violations: (Object.keys(ixn["trials"]).length)/2,
+     absolute_score : scorable.select('correct').sum(),
      discriminant_score : scorable.select('discriminant').sum(),
      strict_score : scorable.select('strict').sum()
   };

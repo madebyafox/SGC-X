@@ -57,12 +57,37 @@
 
 //INITIALIZE JSPSYCH & TIMELINE
 var jsPsych = initJsPsych({
-  on_start: function(){},
+  extensions: [
+    { type: jsPsychExtensionMouseTracking},
+    // { type: jsPsychExtensionWebgazer}]
+  ],
   on_finish: function(){  
 
-    jsPsych.data.get().push(sumSubject(jsPsych)); //summary subject
-    jsPsych.data.get().push(sumIxn(jsPsych)); //summary ixns 
+    //generate subject summary
+    jsPsych.data.get().push(sumSubject(jsPsych)); 
+    
+    //generate ixn summary  
+    jsPsych.data.get().push(sumIxn(jsPsych)); 
+    
+    //display data to screen
     jsPsych.data.displayData(); //display all data to screen
+
+    //SAVE DATA TO DATABASE
+    $.ajax({
+      type: "POST",
+      url: "/experiment-data",
+      data: JSON.stringify(jsPsych.data.get()),
+      contentType: "application/json"
+    })
+  .done(function() {
+    console.log("----DATA SAVED TO DATABASE!-----");
+    // window.location.href = "finish?subject="+sid; //push subjectID to finish page so it can be entered in qualtrics
+  })
+  .fail(function() {
+    alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
+    // window.location.href = "/";
+  })
+    
     //assign sona credit for SGC3A via 21JH01
     if(exp_id == 2218) {
       console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
@@ -70,11 +95,12 @@ var jsPsych = initJsPsych({
     }
     // window.location.assign('src/debrief.html');
   },
-  extensions: [
-    { type: jsPsychExtensionMouseTracking},
-    // { type: jsPsychExtensionWebgazer}]
-  ]});
+ 
+});
   var timeline = [];
+
+
+  
 
 
 //--------------- INITIALIZE GLOBAL VARIABLES  -------------------//  
@@ -120,6 +146,7 @@ var satisf_answers = ["NULL"]; //index as null
   //PRELOAD MEDIA
   var preload = {
     type: jsPsychPreload,
+    data:{block:"preload"},
     images: ['../media/welcome.png',
              '../media/devices.png',
              '../media/acme_1.png',
@@ -135,10 +162,7 @@ var satisf_answers = ["NULL"]; //index as null
     choices: ['Enter'],
     stimulus_height :  window.innerHeight,
     maintain_aspect_ratio : true,
-    data: {
-      block:"welcome"
-    },
-    on_start: function(data){}  
+    data: {block:"welcome"},
   };
 
   //INFORMED CONSENT
@@ -147,9 +171,7 @@ var satisf_answers = ["NULL"]; //index as null
     "url": "../src/consent.html",
     "cont_btn": "start",
     "force_refresh": true,
-    data: {
-      block:"consent"
-    }
+    data:{block:"consent"},
   };
 
   //DEVICE REQUIREMENTS
@@ -159,9 +181,7 @@ var satisf_answers = ["NULL"]; //index as null
     choices: ['Enter'],
     stimulus_height :  window.innerHeight,
     maintain_aspect_ratio : true,
-    data: {
-      block:"devices"
-    },
+    data: {block:"devices_asynch"},
     on_start: function(data){}  
   };
 
@@ -184,7 +204,8 @@ var satisf_answers = ["NULL"]; //index as null
       else { //size violation
         return '<p>You have indicated that you cannot increase the size of your browser window.</p> <p> If you <i>can</i> maximize your window, please do so now, and press the REFRESH button.</p> <p>Otherwise, you can close this tab.</p>';
       }
-    }
+    },
+    data:{block:"browser_check"},
   };
 
   //SETUP FOR ASYNCH
@@ -202,7 +223,8 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     show_clickable_nav: true,
     allow_backward: false,
-    key_forward: 'Enter'
+    key_forward: 'Enter',
+    data:{block:"setup"},
   }
 
   //SETUP FOR SYNCH
@@ -221,7 +243,8 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     show_clickable_nav: true,
     allow_backward: false,
-    key_forward: 'Enter'
+    key_forward: 'Enter',
+    data:{block:"setup"},
   }
 
   //ENTER FULLSCREEN
@@ -777,26 +800,25 @@ function buildProcedure(){
     //ASSEMBLE TIMELINE
     timeline.push(preload);
     timeline.push(welcome);
-    // timeline.push(consent);
-    // timeline.push(browsercheck);
-    // if (mode == "synch") {
-    //   timeline.push(setup_synch);
-    // }
-    // else {
-    //   timeline.push(devices_asynch);
-    //   timeline.push(setup_asynch);
-    // }
-    // timeline.push(enter_fullscreen);
-    // timeline.push(task_instructions);
-    // timeline.push(procedure);
+    timeline.push(consent);
+    timeline.push(browsercheck);
+    if (mode == "synch") {
+      timeline.push(setup_synch);
+    }
+    else {
+      timeline.push(devices_asynch);
+      timeline.push(setup_asynch);
+    }
+    timeline.push(enter_fullscreen);
+    timeline.push(task_instructions);
+    timeline.push(procedure);
     timeline.push(almost_there);
-    // timeline.push(effort_rating);
-    // if (pool != "sona"){
+    timeline.push(effort_rating);
+    if (pool != "sona"){
     //   //TODO MAKE GENERAL DEMOGRAPHICS
-    // } else {
-    //   timeline.push(demographics_sona);
-    // }
-        
+    } else {
+      timeline.push(demographics_sona);
+    }    
     if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
     timeline.push(exit_fullscreen);
 
