@@ -101,7 +101,7 @@ var jsPsychExternalHtml = (function (jspsych) {
                       return;
                   }
                   if (trial.cont_key) {
-                      display_element.removeEventListener("keydown", key_listener);
+                      document.removeEventListener("keydown", key_listener);
                   }
                   if (trial.response_el) {
                     answer = display_element.querySelector("#" + trial.response_el).value
