@@ -56,6 +56,7 @@
 //--------------------------------------------------------------------
 
 //INITIALIZE JSPSYCH & TIMELINE
+var timeline = [];
 var jsPsych = initJsPsych({
   extensions: [
     { type: jsPsychExtensionMouseTracking},
@@ -94,14 +95,8 @@ var jsPsych = initJsPsych({
       // window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
     }
     // window.location.assign('src/debrief.html');
-  },
- 
+  }
 });
-  var timeline = [];
-
-
-  
-
 
 //--------------- INITIALIZE GLOBAL VARIABLES  -------------------//  
 
@@ -139,7 +134,6 @@ var also_answers = ["NULL"]; //index as null
 var orth_answers = ["NULL"]; //index as null
 var tvsky_answers = ["NULL"]; //index as null
 var satisf_answers = ["NULL"]; //index as null
- 
 
 //--------------- DEFINE  TIMELINE COMPONENTS -------------------//  
 
@@ -175,13 +169,13 @@ var satisf_answers = ["NULL"]; //index as null
   };
 
   //DEVICE REQUIREMENTS
-  var devices_asynch = {
+  var devices = {
     type: jsPsychImageKeyboardResponse,
     stimulus : '../media/devices.png',
     choices: ['Enter'],
     stimulus_height :  window.innerHeight,
     maintain_aspect_ratio : true,
-    data: {block:"devices_asynch"},
+    data: {block:"devices"},
     on_start: function(data){}  
   };
 
@@ -261,7 +255,7 @@ var satisf_answers = ["NULL"]; //index as null
   }
 
   //TASK INSTRUCTIONS
-  var task_instructions = {
+  var instructions = {
     type: jsPsychExternalHtml,
     url: "../src/instructions.html",
     force_refresh: true,
@@ -270,7 +264,7 @@ var satisf_answers = ["NULL"]; //index as null
     //   scenarios=scenarios;
     // },
     data: {
-      block:"task_instructions"
+      block:"instructions"
     }
 };
 
@@ -800,17 +794,13 @@ function buildProcedure(){
     //ASSEMBLE TIMELINE
     timeline.push(preload);
     timeline.push(welcome);
-    timeline.push(consent);
+    timeline.push(devices);
     timeline.push(browsercheck);
-    if (mode == "synch") {
-      timeline.push(setup_synch);
-    }
-    else {
-      timeline.push(devices_asynch);
-      timeline.push(setup_asynch);
-    }
+    timeline.push(consent);
+    if (mode == "synch") {timeline.push(setup_synch);}
+    else {timeline.push(setup_asynch);}
     timeline.push(enter_fullscreen);
-    timeline.push(task_instructions);
+    timeline.push(instructions);
     timeline.push(procedure);
     timeline.push(almost_there);
     timeline.push(effort_rating);
