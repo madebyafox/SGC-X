@@ -15,6 +15,10 @@
 // study= [SGC3A, SGC3B ..]
 // session= [freetext] //default blank
 // mode = "synch" || "asynch" //default asynch
+// pool = ? //default sona
+// exp_id = ? //survey code in sona for deciding which study to grant credit to 
+// SONA STUDY 21JH01 = 2218
+// sona_id = ? //survey code from SONA for automatically granting credit [only for asynch study types]
 // q = [1...15] //jump to question
 // condition = (min 3 digit, see below)  
 
@@ -55,9 +59,16 @@
 var jsPsych = initJsPsych({
   on_start: function(){},
   on_finish: function(){  
+
     jsPsych.data.get().push(sumSubject(jsPsych)); //summary subject
     jsPsych.data.get().push(sumIxn(jsPsych)); //summary ixns 
     jsPsych.data.displayData(); //display all data to screen
+    //assign sona credit for SGC3A via 21JH01
+    if(exp_id == 2218) {
+      console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
+      // window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+    }
+    // window.location.assign('src/debrief.html');
   },
   extensions: [
     { type: jsPsychExtensionMouseTracking},
@@ -83,8 +94,11 @@ const conditions = {
   5: ["1","2","3","4","5"]   //ixn
 }
 
+//SET SONA redirect urls 
+const grant_sona_sgc3a = "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=";
+
 //INITIALIZE GLOBAL VARIABLES 
-let study, session, condition, mode, pool;
+let study, session, condition, mode, pool, sona_id, exp_id;
 let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
 let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
@@ -202,6 +216,7 @@ var satisf_answers = ["NULL"]; //index as null
     'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
     '<br>(we collect data on whether you click outside this browser tab ;) ',
     'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
+    'To receive credit for your participation, please DM the experimenter with the ID CODE you receive on the LAST page of the study',
     '<h2> We understand your time is valuable. <br> Thank you for contributing to our research with your earnest effort! </h2>'
     ],
     show_clickable_nav: true,
@@ -223,7 +238,7 @@ var satisf_answers = ["NULL"]; //index as null
   }
 
   //TASK INSTRUCTIONS
-  var instructions = {
+  var task_instructions = {
     type: jsPsychExternalHtml,
     url: "../src/instructions.html",
     force_refresh: true,
@@ -271,71 +286,6 @@ var satisf_answers = ["NULL"]; //index as null
     stimulus: '<img src="../media/almost_done_puppy.jpeg"</img>',
     choices: ['Continue',],
     // prompt: "<p>Thank you for your effort! You're almost done!</p>"
-  };
-
-  //DEMOGRAPHICS SURVEY
-  var demographics_sona = {
-    type: jsPsychSurvey,
-    data:{ block:"demographics" },
-    pages: [
-      [ 
-        {
-          type: 'html',
-          prompt: '<h2>Please answer the following questions about yourself.</h2>',
-        },
-        {
-          type: 'text',
-          prompt: "How old are you?", 
-          name: 'age', 
-          textbox_columns: 5,
-          required: true,
-        },
-        {
-          type: 'text',
-          prompt: "In what country have you lived most of your life?", 
-          name: 'country', 
-          textbox_columns: 15,
-          required: true,
-        },
-        {
-          type: 'drop-down',
-          prompt: "What is your first language?", 
-          name: 'language', 
-          options: ['English', 'Mandarin', 'Cantonese', 'Korean', 'German','Arabic','French','Spanish','X-Other'], 
-          required: true,
-          option_reorder: "asc"
-        }, 
-        {
-          type: 'drop-down',
-          prompt: "What is your year in school?", 
-          name: 'schoolyear', 
-          options: ['First', 'Second', 'Third', 'Fourth', 'Fifth','Grad Student','X-OTHER'], 
-          required: true
-        }, 
-        {
-          type: 'drop-down',
-          prompt: "What is your major area of study?", 
-          name: 'major', 
-          options: ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
-                                "Natural Sciences","Engineering","Humanities","Fine Arts"],
-          required: true
-        }, 
-        {
-          type: 'drop-down',
-          prompt: "What is your gender identity?", 
-          name: 'gender', 
-          options: ['Other-Not Listed','Male','Female'], 
-          required: true
-        },
-        {
-          type:'text',
-          prompt:"Do you have any impairments or disabilities you believe may have influenced your performance on this task?",
-          name:"disability",
-          textbox_rows: 2
-        } 
-      ]
-    ],
-    button_label_finish: 'Continue'
   };
 
   //EFFORT RATINGS
@@ -414,18 +364,74 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     button_label_finish: 'Continue'
   };
-
-  //DEBRIEFING
-  var debrief = {
-    "type": jsPsychExternalHtml,
-    "url": "../src/debrief.html",
-    "force_refresh": true,
-    data: {
-      block:"debrief"
-    }
-  };
   
+  //DEMOGRAPHICS SURVEY
+  var demographics_sona = {
+    type: jsPsychSurvey,
+    data:{ block:"demographics" },
+    pages: [
+      [ 
+        {
+          type: 'html',
+          prompt: '<h2>Please answer the following questions about yourself.</h2>',
+        },
+        {
+          type: 'text',
+          prompt: "How old are you?", 
+          name: 'age', 
+          textbox_columns: 5,
+          required: true,
+        },
+        {
+          type: 'text',
+          prompt: "In what country have you lived most of your life?", 
+          name: 'country', 
+          textbox_columns: 15,
+          required: true,
+        },
+        {
+          type: 'drop-down',
+          prompt: "What is your first language?", 
+          name: 'language', 
+          options: ['English', 'Mandarin', 'Cantonese', 'Korean', 'German','Arabic','French','Spanish','X-Other'], 
+          required: true,
+          option_reorder: "asc"
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your year in school?", 
+          name: 'schoolyear', 
+          options: ['First', 'Second', 'Third', 'Fourth', 'Fifth','Grad Student','X-OTHER'], 
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your major area of study?", 
+          name: 'major', 
+          options: ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
+                                "Natural Sciences","Engineering","Humanities","Fine Arts"],
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your gender identity?", 
+          name: 'gender', 
+          options: ['Other-Not Listed','Male','Female'], 
+          required: true
+        },
+        {
+          type:'text',
+          prompt:"Do you have any impairments or disabilities you believe may have influenced your performance on this task?",
+          name:"disability",
+          textbox_rows: 2
+        } 
+      ]
+    ],
+    button_label_finish: 'Continue'
+  };
 
+
+  
 //STIMULUS TRIAL
 var stimulus = {
   type: jsPsychExternalHtml,
@@ -511,6 +517,9 @@ function initializeStudy() {
   condition = condition.toString();
   mode = urlvar.mode ?? 'asynch';
   pool = urlvar.pool ?? 'sona';
+  exp_id = urlvar.exp_id ?? "" ; //SONA EXPERIMENT ID for deciding which study to grant credit to
+  sona_id = urlvar.sona_id ?? ""; //SONA SUBJECT ID  for auto credit grant 
+
   q = urlvar.q;
   graph = urlvar.graph ?? "triangular" //need to handle errors
   gwidth = urlvar.gwidth ?? 600;
@@ -590,10 +599,12 @@ function initializeStudy() {
     subject:sid, 
     study:study, 
     session:session,
-    condition:condition
+    condition:condition,
+    pool: pool, 
+    mode: mode,
+    exp_id: exp_id,
+    sona_id: sona_id
   });
-
-
 } 
 
 //BUILD STUDY-SPECFIC PROCEDURE
@@ -722,34 +733,72 @@ function buildProcedure(){
       timeline: [scenario_1, block_scaffold, scenario_2, block_test]
   }
 
+  //MANUAL CREDIT GRANT
+  var finish_synch = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
+    prompt: "<p style='color:red'>To receive SONA CREDIT, please DM the experimenter with your NAME and subject code now.</p> <br> <i>PRESS ENTER TO FINISH</i>",
+    choices: ["Enter"]
+  };
+
+
+  //NOTES ON AUTO ASSIGNMENT OF SONA CREDIT 
+  
+  //see https://www.sona-systems.com/help/jspsych.aspx
+  //also https://www.sona-systems.com/help/integration_test.aspx
+  
+  // 1 | change the Study URL so it includes ?sona_id=%SURVEY_CODE% in the URL
+  // 2 | Having completed Step 1 ... the Study Information on your Sona Systems site now displays two URLs labeled "Completion URLs". T
+  //    similar to: https://yourschool.sona-systems.com/webstudy_credit.aspx?experiment_id=123&credit_token=4e48f9b638a&survey_code=XXX" 
+
+  //EG FOR 21JH01
+  //client side https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=XXXX
+  //server side https://ucsd.sona-systems.com/services/SonaAPI.svc/WebstudyCredit?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=XXXX
+
+  //In jsPsych, go to the source code of the task for the experiment 
+  //Add lines similar to the following block for both on_finish line 
+  //and the line beginning with let sona_id. 
+  //Use the Completion URL (client-side) from the Study Information Page in Sona. 
+  //Add lines similar to the following on_finish line to your experiment 
+  //(the URL you saved from the prior step with +sona_id after it as shown in example below) 
+  //and the line defining sona_id at the top.
+  
+  
+  //SONA ASYNCH CREDIT GRANT 
+  var grant_sona = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
+    prompt: "<p style='color:red'>To receive SONA CREDIT, please press ENTER now.</p>",
+    choices: ["Enter"]
+  };
+
   //--------- TIMELINE ----------/
 
     //ASSEMBLE TIMELINE
     timeline.push(preload);
     timeline.push(welcome);
-    timeline.push(consent);
-    timeline.push(browsercheck);
-    if (mode == "synch") {
-      timeline.push(setup_synch);
-    }
-    else {
-      timeline.push(devices_asynch);
-      timeline.push(setup_asynch);
-    }
-    timeline.push(enter_fullscreen);
-    timeline.push(instructions);
-    timeline.push(procedure);
+    // timeline.push(consent);
+    // timeline.push(browsercheck);
+    // if (mode == "synch") {
+    //   timeline.push(setup_synch);
+    // }
+    // else {
+    //   timeline.push(devices_asynch);
+    //   timeline.push(setup_asynch);
+    // }
+    // timeline.push(enter_fullscreen);
+    // timeline.push(task_instructions);
+    // timeline.push(procedure);
     timeline.push(almost_there);
-    timeline.push(effort_rating);
-    if (pool != "sona"){
-      //TODO MAKE GENERAL DEMOGRAPHICS
-    } else {
-      timeline.push(demographics_sona);
-    }
-    //TODO MAKE SURE DATA SAVES BEFORE DEBRIEF! 
+    // timeline.push(effort_rating);
+    // if (pool != "sona"){
+    //   //TODO MAKE GENERAL DEMOGRAPHICS
+    // } else {
+    //   timeline.push(demographics_sona);
+    // }
+        
+    if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
     timeline.push(exit_fullscreen);
-    timeline.push(debrief)    
-    
 
 }//end function
 
