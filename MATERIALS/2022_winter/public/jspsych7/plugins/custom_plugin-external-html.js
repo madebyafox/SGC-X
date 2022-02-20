@@ -66,39 +66,48 @@ var jsPsychExternalHtml = (function (jspsych) {
           // hold the .resolve() function from the Promise that ends the trial
           let trial_complete;
           var url = trial.url;
+          
+          //FORCE REFRESH
           if (trial.force_refresh) {
               url = trial.url + "?t=" + performance.now();
           }
+          
+          //LOAD URL 
           fetch(url)
               .then((response) => {
-              return response.text();
-          })
+               return response.text();
+              })
               .then((html) => {
-              display_element.innerHTML = html;
               
-              on_load();
-              var t0 = performance.now();
-              const key_listener = (e) => {
+                display_element.innerHTML = html;
+              
+                on_load(); //WHAT DOES THIS DO?
+                var t0 = performance.now();
+                
+                //ADD CONT_KEY LISTENER
+                const key_listener = (e) => {
                   if (this.jsPsych.pluginAPI.compareKeys(e.key, trial.cont_key)) {
-                      finish();
+                    console.log("KEY MATCHES!");
+                    finish();
                   }
-              };
+                };
 
-              // store response
-              var answer = null;
+                //STORE RESPONSE
+                var answer = null;
               
-              const finish = () => {
+                //WHAT TO DO ON FINISH
+                const finish = () => {
                   if (trial.check_fn && !trial.check_fn(display_element)) {
                       return;
                   }
                   if (trial.cont_key) {
                       display_element.removeEventListener("keydown", key_listener);
                   }
-
                   if (trial.response_el) {
                     answer = display_element.querySelector("#" + trial.response_el).value
-                }
+                  }
                   
+                  //STORE TRIAL DATA
                   var trial_data = {
                       rt: Math.round(performance.now() - t0),
                       url: trial.url,
@@ -108,10 +117,11 @@ var jsPsychExternalHtml = (function (jspsych) {
                   display_element.innerHTML = "";
                   this.jsPsych.finishTrial(trial_data);
                   trial_complete();
-              };
-              // by default, scripts on the external page are not executed with XMLHttpRequest().
-              // To activate their content through DOM manipulation, we need to relocate all script tags
-              if (trial.execute_script) {
+                };
+              
+                // by default, scripts on the external page are not executed with XMLHttpRequest().
+                 // To activate their content through DOM manipulation, we need to relocate all script tags
+                if (trial.execute_script) {
                   // changed for..of getElementsByTagName("script") here to for i loop due to TS error:
                   // Type 'HTMLCollectionOf<HTMLScriptElement>' must have a '[Symbol.iterator]()' method that returns an iterator.ts(2488)
                   var all_scripts = display_element.getElementsByTagName("script");
@@ -121,25 +131,32 @@ var jsPsychExternalHtml = (function (jspsych) {
                       relocatedScript.text = curr_script.text;
                       curr_script.parentNode.replaceChild(relocatedScript, curr_script);   
                   }
-              }
-              if (trial.cont_btn) {
+                }
+              
+                if (trial.cont_btn) {
                   display_element.querySelector("#" + trial.cont_btn).addEventListener("click", finish);
-              }
-              if (trial.cont_key) {
-                  display_element.addEventListener("keydown", key_listener);
-              }
-              //embed jsPsych trial-level data into page as a <data> element
-              if (trial.data) {
+                }
+              
+                if (trial.cont_key) {
+                  //for some reason adding to display_element doesn't work, adding to document instead
+                  //   display_element.addEventListener("keydown", key_listener);  
+                  document.addEventListener("keydown", key_listener);
+                }
+              
+                //embed jsPsych trial-level data into page as a <data> element
+                if (trial.data) {
                 //create data element
                 let d=document.createElement("data");
                 d.setAttribute("id","jspsych-data");
                 d.setAttribute("data",JSON.stringify(trial.data));
                 display_element.appendChild(d);
-              }
-          })
+                }
+               })
               .catch((err) => {
-              console.error(`Something went wrong with fetch() in plugin-external-html.`, err);
-          });
+               console.error(`Something went wrong with fetch() in plugin-external-html.`, err);
+              });
+          
+          
           // helper to load via XMLHttpRequest
           /*const load = (element, file, callback) => {
             var xmlhttp = new XMLHttpRequest();
