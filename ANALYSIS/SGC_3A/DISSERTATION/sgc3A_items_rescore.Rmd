@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #IMPORT LIBRARIES
 # library(rmdformats)
 library(dplyr) #tidyverse data handling
+library(stringr) #string comparisons
 library(tidyr) #pivot
 library(knitr) #printing tables
 library(forcats)#for factor re-ordering
@@ -117,19 +118,21 @@ rm(df_fall, df_spring, df_online)
 #TODOTHIS IS JUST TEMP FOR TESTING
 #Remove items 6 (attn check) and 9 (non discriminant)
 df_others <- df_items %>% filter(q %in% c(6,9,13))
-df_items <- df_items %>% filter (!q %in% c(6,9,13) )
+df_items <- df_items %>% filter (!q %in% c(6,9,13))
 
 #Create TOTAL column for future sorting
-df_totals <- df_items %>% filter(!q ==16) %>% group_by(subject)  %>% summarise(TOTAL_CORRECT = sum(correct),
-          ON_STRATEGY   = sum(correct,orth_correct))
-
-df_items <- left_join(df_items, df_totals)
+# df_totals <- df_items %>% filter(!q ==16) %>% group_by(subject)  %>% summarise(TOTAL_CORRECT = sum(correct),
+#           ON_STRATEGY   = sum(correct,orth_correct))
+# 
+# df_items <- left_join(df_items, df_totals)
 
 # #Code incorrect responses (not triangular or otho correct)
 # df_items$response <- df_items$orth_correct + df_items$correct #items not correct in tri or orth interpretation
 # df_items$response <- dplyr::recode( df_items$response, `1`= "right", `2`="both", `0`="wrong" )
 # df_items$incorrect <- dplyr::recode( df_items$response, "right"=0, "both"=0, "wrong"=1 )
 
+test_111 <- df_items %>% dplyr::select(condition,q,answer) %>% filter(condition==111) %>%  group_by(q,condition,answer) %>% summarize(count=n())
+test_121 <- df_items %>% dplyr::select(condition,q,answer) %>% filter(condition==121) %>% group_by(q,condition,answer) %>% summarize(count=n())
 ```
 
 
@@ -137,7 +140,7 @@ df_items <- left_join(df_items, df_totals)
 
 
 #FOR TESTING ONLY, SIMPLIFY DISPLAY
-df_items <- df_items %>% select(subject, condition, q, answer, rs_tri, rs_ortho)
+df_items <- df_items %>% dplyr::select(subject, condition, q, answer, rs_tri, rs_ortho)
 
 #DISCRIMINANT SCORING
 
@@ -168,7 +171,7 @@ df_control <- df_control %>% rowwise() %>% mutate(
     clicky = nchar(answer) - nchar(TRI_CORRECT),
     intersect = list(intersect(a,b)), #matches to correct components
     TRI = peritem_tri * length(intersect)
-  ) %>% select(-a,-b,-intersect) 
+  ) %>% dplyr::select(-a,-b,-intersect) 
 
 ##LEFT OFF HERE 
 
@@ -200,16 +203,23 @@ df_control <- df_control %>% rowwise() %>% mutate(
   # //OTHER SCORE
   # if (response[0].length == 0){other_score = 0} //if response was empty set
   # else {
-  # let instrategy = _.union(tri,orth); 
+  # let instrategy = _.union(tri,orth,also); 
   # let difference = _.difference(response,instrategy);
   # other_score = (difference.length);
   # }
-  # 
+  # # 
+  # # //CALCULATE SCORING
   # //CALCULATE SCORING
   # let correct = equalsIgnoreOrder(response,tri); //strict score requires exact match 
-  # let discriminant_score = tri_score -orth_score;
-  # let strict_score = tri_score - orth_score - (1/15*other_score);
-  # console.log("PERFECT? "+correct);
-  # console.log("DISCRIMINANT "+discriminant_score);
-  # console.log("STRICT "+strict_score);
+  # 
+  # console.log("PRECISELY TRUE? "+correct);
+  # console.log("TRI SCORE "+tri_score);
+  # console.log("ORTH SCORE "+orth_score);
+  # console.log("OTHER SCORE "+other_score);
+  # 
+  # //interestingly seems to be same as the [1/n,-1/n] score?
+  # let discriminant_score = tri_score - orth_score - (1/n * other_score);
+  # console.log("DISCRIMINANT SCORE " + discriminant_score);
+  # 
+  # return [correct, discriminant_score, tri_score, orth_score, other_score]; 
 ```
