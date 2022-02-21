@@ -96,7 +96,6 @@ var recordAnswer = function(){
     });
   }  
   //store response values to designated answer element
-  console.log("and imma do this now");
   $('#answer').val([selected, hovered, mouseLog,free]);
   return;
   // console.log("answer is: "+$('#answer').val());
@@ -117,9 +116,3 @@ const equalsIgnoreOrder = (a, b) => {
   return true;
 }
 
-
-// function submitStrategy(){
-//     console.log("submitting strategy");
-//     answer = $("textarea").val();
-//     console.log(answer);
-// }

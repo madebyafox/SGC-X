@@ -87,7 +87,6 @@ var jsPsychExternalHtml = (function (jspsych) {
                 //ADD CONT_KEY LISTENER
                 const key_listener = (e) => {
                   if (this.jsPsych.pluginAPI.compareKeys(e.key, trial.cont_key)) {
-                    console.log("KEY MATCHES!");
                     finish();
                   }
                 };

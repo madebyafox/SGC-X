@@ -125,11 +125,12 @@ let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
 let procedure_timeline, scaffold_timeline, test_timeline;
 
-//INITIALIZE QUESTIONS ARRAYS
-var questions = ["NULL"]; //index as null
-var relations = ["NULL"]; //index as null
-var datas = ["NULL"]; //index as null
-var tri_answers = ["NULL"]; //index as null
+//INITIALIZE QUESTIONS ARRAYS [read from file]
+var questions = ["NULL"]; //q number
+var relations = ["NULL"]; //temporal relation
+var datas = ["NULL"]; //data set
+var ns = ["NULL"]; //num items in dataset
+var tri_answers = ["NULL"]; //items selected for tri 
 var also_answers = ["NULL"]; //index as null
 var orth_answers = ["NULL"]; //index as null
 var tvsky_answers = ["NULL"]; //index as null
@@ -446,8 +447,6 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     button_label_finish: 'Continue'
   };
-
-
   
 //STIMULUS TRIAL
 var stimulus = {
@@ -462,10 +461,9 @@ var stimulus = {
     if (scoring){ //scoring is not null, otherwise bypass
       data.correct = scoring[0];
       data.discriminant = scoring[1];
-      data.strict = scoring[2];
-      data.tri_score = scoring[3];
-      data.orth_score = scoring[4];
-      data.other_score = scoring[5];
+      data.tri_score = scoring[2];
+      data.orth_score = scoring[3];
+      data.other_score = scoring[4];
     }
 
     if(isNaN(data.q)) {//save free response
@@ -792,25 +790,25 @@ function buildProcedure(){
   //--------- TIMELINE ----------/
 
     //ASSEMBLE TIMELINE
-    timeline.push(preload);
-    timeline.push(welcome);
-    timeline.push(devices);
-    timeline.push(browsercheck);
-    timeline.push(consent);
-    if (mode == "synch") {timeline.push(setup_synch);}
-    else {timeline.push(setup_asynch);}
-    timeline.push(enter_fullscreen);
-    timeline.push(instructions);
+    // timeline.push(preload);
+    // timeline.push(welcome);
+    // timeline.push(devices);
+    // timeline.push(browsercheck);
+    // timeline.push(consent);
+    // if (mode == "synch") {timeline.push(setup_synch);}
+    // else {timeline.push(setup_asynch);}
+    // timeline.push(enter_fullscreen);
+    // timeline.push(instructions);
     timeline.push(procedure);
-    timeline.push(almost_there);
-    timeline.push(effort_rating);
-    if (pool != "sona"){
-    //   //TODO MAKE GENERAL DEMOGRAPHICS
-    } else {
-      timeline.push(demographics_sona);
-    }    
-    if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
-    timeline.push(exit_fullscreen);
+    // timeline.push(almost_there);
+    // timeline.push(effort_rating);
+    // if (pool != "sona"){
+    // //   //TODO MAKE GENERAL DEMOGRAPHICS
+    // } else {
+    //   timeline.push(demographics_sona);
+    // }    
+    // if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
+    // timeline.push(exit_fullscreen);
 
 }//end function
 
@@ -830,6 +828,7 @@ function loadQuestions() {
         questions.push(d.TEXT);
         datas.push(d.DATAFILE)
         relations.push(d.RELATION);
+        ns.push(d.N);
         tri_answers.push(d.TRIANGULAR) //triangular-correct answers
         also_answers.push(d.also) //question-redundant but acceptable answers
         orth_answers.push(d.ORTHOGONAL) //orthogonal-correct
@@ -842,10 +841,10 @@ function loadQuestions() {
   });
 } //end function
 
-//SCORE USER RESPONSE
+//SCORE RESPONSE
 var score = function (input, q){
-  // alert("TODO! FOR SCORING, COMPARE # RESPONSES! see r")
 
+  //dont score free respnse items
   if (isNaN(q)){
     return null;
   }
@@ -855,13 +854,16 @@ var score = function (input, q){
   const orth = orth_answers[q].split('') ?? [];
   const also = also_answers[q].split('') ?? [];
   var tri_score, orth_score, other_score;
-  
+
+  // n = num items (# data points)
+  let n = ns[q];
+
   console.log("SCORING RESPONSE...");
   console.log("response: "+response) ;
   console.log("tri: "+ tri);
-  console.log("orth: "+ orth);
-  
-  //uses underscore.js _.intersection, etc.
+  console.log("orth: "+ orth);  
+
+  //DISCRIMINANT SCORE ------------- 
 
   //TRIANGULAR SCORE
   //+1/x pts for each triangular item
@@ -883,21 +885,19 @@ var score = function (input, q){
   
   //CALCULATE SCORING
   let correct = equalsIgnoreOrder(response,tri); //strict score requires exact match 
-  let discriminant_score = tri_score -orth_score;
-  let strict_score = tri_score - orth_score - (1/15*other_score);
-  console.log("PERFECT? "+correct);
-  console.log("DISCRIMINANT "+discriminant_score);
-  console.log("STRICT "+strict_score);
 
-  return [correct, discriminant_score, strict_score, tri_score, orth_score, other_score];
+  console.log("PRECISELY TRUE? "+correct);
+  console.log("TRI SCORE "+tri_score);
+  console.log("ORTH SCORE "+orth_score);
+  console.log("OTHER SCORE "+other_score);
   
+  //interestingly seems to be same as the chronbach score?
+  let discriminant_score = tri_score - orth_score - (1/n * other_score);
+  console.log("DISCRIMINANT SCORE " + discriminant_score);
 
+  return [correct, discriminant_score, tri_score, orth_score, other_score]; 
+}
 
-  // let orth_score;
-  // let tvsky_score;
-  // let satisf_score;
-  
-} //end function
 
 //RUN THE TIMELINE
 async function main() {
@@ -911,3 +911,38 @@ async function main() {
 //ALLONS-Y!
 main();
 
+//STRATEGY DISCRIMINANT SCORE ------------- 
+
+  // // triangular = 1 
+  // // +1/t for each correct r 
+  // let rcorrect  = _.intersection(response,tri);
+  // let partialp  = (1/tri.length) * rcorrect.length; 
+  // console.log( "partial positive: "+ partialp)
+  
+  // // - 1/n for each incorrect [not orthogonal]
+  // let rneither = _.intersection(response,not);
+  // let partialn = (-1/n) * rneither.length; //neither answers are penalized at 1/n
+  // console.log( "partial negative: "+ partialn)
+  
+  // // orthogonal = -1 
+  // let rorth = _.intersection(response,orth);
+  // // let partialo = (-1/(orth.length) * rorth.length); 
+  // let partialo = (-1/(n) * rorth.length); 
+  // console.log( "partial ortho: "+ partialo)
+
+  // let fscore;
+  // //IF EXACTLY TRIANGULAR, SCORE = 1 
+  // //if correct responses are complete and all responses are correct responses
+  // if ( (rcorrect.length  == tri.length) && (response.length == rcorrect.length)){ console.log("perfect"); fscore = 1}
+  // //IF NO RESPONSE, SCORE = 0
+  // else if (response.length == 0) {fscore = 0}
+  // //IF EXACTLY ORTH & TRIANGULAR, SCORE = 0
+  // //if some answers are tri, some are orth, and only tri or orth
+  // else if ( (rcorrect.length != 0) && (rorth.length !=0) && (response.length == (tri.length + orth.length)))
+  // {fscore = 0;}
+  // //IF EXACTLY ORTHOGONAL, SCORE = -1 
+  // //if orth responses are complete and all responses are orth responses
+  // else if ((rorth.length == orth.length) && (response.length == rorth.length)){fscore = -1}
+  // //ELSE PARTIAL CREDIT +1/t(tri) - 1/n - 1/orth
+  // else {fscore = partialp + partialn + partialo;}
+  // console.log("CHRONBACH SCORE: " + fscore);
