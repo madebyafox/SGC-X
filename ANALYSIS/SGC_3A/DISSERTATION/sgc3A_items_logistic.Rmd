@@ -66,9 +66,6 @@ df_online$mode <- "online"
 #Create combined data frame
 df_items <- rbind(df_fall, df_spring,df_online)
 
-#REMOVE Question 6 (attention check)
-df_items <- df_items %>% filter(q != 6)
-
 #Create extra fields 
 df_items$time_sec <- df_items$rt / 1000 #item time in seconds
 
@@ -112,6 +109,11 @@ df_items <- df_items %>% mutate(
 # df_items <- rename(df_items, rs_incorrect = incorrect)
 df_items <- rename(df_items, rs_tri = correct)
 df_items <- rename(df_items, rs_ortho = orth_correct)
+
+#TODOTHIS IS JUST TEMP FOR TESTING
+#Remove items 6 (attn check) and 9 (non discriminant)
+df_others <- df_items %>% filter(q %in% c(6,9))
+df_items <- df_items %>% filter (!q %in% c(6,9) )
 
 #Separate free response from (main) multiple choice blocks
 df_freeResponse <- df_items %>% filter(q==16)
@@ -176,11 +178,12 @@ A contingency table of item accuracy (0=incorrect, 1=correct) for each condition
 #create a contingency table of # of correct responses in each condition
 net.ctable <- table(df_online$condition, df_online$rs_tri)
 #Print table with proportion of incorrect(0) and correct(1) responses for each condition
-net.cprop <- prop.table(lab.ctable,1)
+net.cprop <- prop.table(net.ctable,1)
 net.cprop
 ```
 
 Visualizing the proportions of accurate v innacurate responses across conditions.
+
 ```{r}
 mosaicplot(net.cprop, shade=TRUE, main="Accuracy by Condition", xlab = "Condition", ylab="Accuracy")
 ```
@@ -265,6 +268,7 @@ m[num random effects][num fixed effects]_[sample]
 m0.glm_lab = glm(rs_tri ~ 1, family = binomial, data = df_lab) 
 summary(m0.glm_lab)
 ``` 
+
 **This baseline fixed effects model predicts accuracy from mean, revealing the total variance to be accounted for 
 - Null deviance == residual deviance = 2269.8  on 1763  degrees of freedom.**
 
@@ -405,7 +409,12 @@ PICKUP HERE WITH BODO WINTER TEXTBOOK + ADDRESS EARLIER QUESTIONS
 
 
 
-
+```{r}
+# tab_model(m0.2_lab, m1.2_lab, show.aic = TRUE)
+tab_model(m0.1_rem, m1.1_rem, show.aic = TRUE,
+          dv.labels = c("accuracy ~ (1+subject)+(1+q)", "accuracy ~ condition + (1 + condition|q)+(1+subject)")
+)
+```
 
 
 #TEMPORARY

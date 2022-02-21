@@ -1,22 +1,29 @@
 //--------------------------------------------------------------------
 //Scaffolding Graph Comprehension (for Unconventional Graphs)
+//OMNIBUS CODE BASE FOR STUDIES SGC3 --> SGC6
 //SGCX | Experimental Stimuli
-//Amy Rae Fox   amyraefox@gmail.com
 //
 // +-+-+-+-+ +-+-+ +-+ +-+-+-+ 
 // |m|a|d|e| |b|y| |a| |f|o|x| 
 // +-+-+-+-+ +-+-+ +-+ +-+-+-+ 
 //
-//Experimental Design: x conditions (by scaffold) between subjects measure
-//of problem solving performance using first triangular model graph
-//first 5 questions of each graph are scaffolded, remainder are
-//not. Concludes with demographic survey and preferences before debrief
-//SCAFFOLD, GRAPH and RESPONSETYPE determined by condition code 
+//Amy Rae Fox   amyraefox@gmail.com
+//--------------------------------------------------------------------
 
 //REFERENCE-----------------------------------------------------------
-    
+// @URL VARS   
+// study= [SGC3A, SGC3B ..]
+// session= [freetext] //default blank
+// mode = "synch" || "asynch" //default asynch
+// pool = ? //default sona
+// exp_id = ? //survey code in sona for deciding which study to grant credit to 
+// SONA STUDY 21JH01 = 2218
+// sona_id = ? //survey code from SONA for automatically granting credit [only for asynch study types]
+// q = [1...15] //jump to question
+// condition = (min 3 digit, see below)  
+
     //CONDITION
-    //    [EXPLICIT] [IMPASSE] [AXIS]
+    //    [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN]
 
     //EXPLICIT SCAFFOLD
     //    1 = none (control)
@@ -27,175 +34,421 @@
     //    1 = none (control)
     //    2 = impasse 
     
-    //AXIS 
+    //GRID SCAFFOLD
     //    1 = orthog y(full) x(tri) [control] Orthogonal-XInside-YFull
     //    2 = orthog y(partial) x(tri) [ignore] Orthogonal-XInside-YPartial
     //    3 = tri y(tri) x(tri) [minimal] Triangular-XInside-YInside
     //    4 = orthog y(partial) x(tri) [original] Orthogonal-XInside-YInside
     //    5 = orthog y(full) x(full) [maximal] Orthogonal-XFull-YFull
 
+    //MARK SCAFFOLD
+    //    1 = point
+    //    2 = triangle
+    //    3 = cross
+
+    //IXN TYPE
+    //    1 = none
+    //    2 = //
+    //    3 = //
+    //    4 = //
+    //    5 = // on click data point turns color
+
 //--------------------------------------------------------------------
-    
 
 //INITIALIZE JSPSYCH & TIMELINE
+var timeline = [];
 var jsPsych = initJsPsych({
-  on_finish: function() {
-    jsPsych.data.displayData();
+  extensions: [
+    { type: jsPsychExtensionMouseTracking},
+    // { type: jsPsychExtensionWebgazer}]
+  ],
+  on_finish: function(){  
+
+    //generate subject summary
+    jsPsych.data.get().push(sumSubject(jsPsych)); 
+    
+    //generate ixn summary  
+    jsPsych.data.get().push(sumIxn(jsPsych)); 
+    
+    //display data to screen
+    jsPsych.data.displayData(); //display all data to screen
+
+    //SAVE DATA TO DATABASE
+    $.ajax({
+      type: "POST",
+      url: "/experiment-data",
+      data: JSON.stringify(jsPsych.data.get()),
+      contentType: "application/json"
+    })
+  .done(function() {
+    console.log("----DATA SAVED TO DATABASE!-----");
+    // window.location.href = "finish?subject="+sid; //push subjectID to finish page so it can be entered in qualtrics
+  })
+  .fail(function() {
+    alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
+    // window.location.href = "/";
+  })
+    
+    //assign sona credit for SGC3A via 21JH01
+    if(exp_id == 2218) {
+      console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
+      // window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+    }
+    // window.location.assign('src/debrief.html');
   }
 });
-var timeline = [];
+
+//--------------- INITIALIZE GLOBAL VARIABLES  -------------------//  
+
+//DEFINE CONDITIONS PER STUDY
+const studies = {
+  SGC3A: ["111","121"],
+  SGC3B: ["111", "121", "211", "221", "311","321"]
+};
+
+//DEFINE CONDITION VALUES PER DIGIT 
+const conditions = {
+  1: ["1","2","3"],          //explicit
+  2: ["1","2"],              //impasse
+  3: ["1","2","3","4","5"],  //grid
+  4: ["1","2","3"],          //mark
+  5: ["1","2","3","4","5"]   //ixn
+}
+
+//SET SONA redirect urls 
+const grant_sona_sgc3a = "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=";
 
 //INITIALIZE GLOBAL VARIABLES 
-let block, correct, orth_correct ;
-let graph = "triangular";  //values: linear,triangular
-let experiment = "SGCX"; //overriden by URL
-let session = "default"; //overriden by codes block
-let condition = 0;  //overriden by codes block
-let explicit = 1; //overriden by codes block
-let impasse = 1; //overriden by codes block
-let axis = 1; //overrridden by codes block
-let colorClick = true; //define whether values turn green when clicked
-let q = 1 ; //question number, used for data file override
-let scenario = "acme" //values "acme" "longmire" "bigset"; //determine the order of scenarios by randomly sorting the array
-let sid = jsPsych.randomization.randomID(5);
-sid = sid.toUpperCase();
-console.log(sid);
+let study, session, condition, mode, pool, sona_id, exp_id;
+let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
+let graph, gwidth, gheight, q;
+let block, correct, orth_correct;
+let procedure_timeline, scaffold_timeline, test_timeline;
 
-let questions = [
-  "starttime",
-  "starts",
-  "meets",
-  "endtime",
-  "midpoint",
-  "duration",
-  "duration+starts",
-  "duration+contained",
-  "starttime+before+endtime+during",
-  "ends",
-  "starttime",
-  "starts",
-  "meets",
-  "endtime",
-  "midpoint",
-  "strategy"
-];
+//INITIALIZE QUESTIONS ARRAYS [read from file]
+var questions = ["NULL"]; //q number
+var relations = ["NULL"]; //temporal relation
+var datas = ["NULL"]; //data set
+var ns = ["NULL"]; //num items in dataset
+var tri_answers = ["NULL"]; //items selected for tri 
+var also_answers = ["NULL"]; //index as null
+var orth_answers = ["NULL"]; //index as null
+var tvsky_answers = ["NULL"]; //index as null
+var satisf_answers = ["NULL"]; //index as null
 
+//--------------- DEFINE  TIMELINE COMPONENTS -------------------//  
 
-
-//PRELOAD MEDIA
+  //PRELOAD MEDIA
   var preload = {
     type: jsPsychPreload,
+    data:{block:"preload"},
     images: ['../media/welcome.png',
              '../media/devices.png',
-             '../media/distractions.png']
+             '../media/acme_1.png',
+             '../media/acme_2.png',
+            //  '../media/almost_there_puppy.jpeg',
+            ]
   };
 
-// //DEFINE TRIALS 
-
-var welcome = {
+  //WELCOME SCREEN
+  var welcome = {
     type: jsPsychImageKeyboardResponse,
     stimulus : '../media/welcome.png',
     choices: ['Enter'],
     stimulus_height :  window.innerHeight,
     maintain_aspect_ratio : true,
+    data: {block:"welcome"},
+  };
+
+  //INFORMED CONSENT
+  var consent = {
+    "type": jsPsychExternalHtml,
+    "url": "../src/consent.html",
+    "cont_btn": "start",
+    "force_refresh": true,
+    data:{block:"consent"},
+  };
+
+  //DEVICE REQUIREMENTS
+  var devices = {
+    type: jsPsychImageKeyboardResponse,
+    stimulus : '../media/devices.png',
+    choices: ['Enter'],
+    stimulus_height :  window.innerHeight,
+    maintain_aspect_ratio : true,
+    data: {block:"devices"},
+    on_start: function(data){}  
+  };
+
+  //BROWSER CHECK
+  var browsercheck = {
+    type: jsPsychBrowserCheck,
+    minimum_width: 1125,
+    minimum_height: 680,
+    inclusion_function: (data) => {
+      return data.browser == 'chrome' && data.mobile === false
+    },
+    exclusion_message: (data) => {
+      
+      if(data.mobile){
+        return '<p>You must use a desktop or laptop computer to participate in this experiment.</p>';
+      } 
+      if(data.browser !== 'chrome'){
+        return '<p>This study must be completed in the <b style="color:red">Chrome</b> web browser. To continue, please open Chrome, and copy/paste the URL from the address bar.</p>'
+      }
+      else { //size violation
+        return '<p>You have indicated that you cannot increase the size of your browser window.</p> <p> If you <i>can</i> maximize your window, please do so now, and press the REFRESH button.</p> <p>Otherwise, you can close this tab.</p>';
+      }
+    },
+    data:{block:"browser_check"},
+  };
+
+  //SETUP FOR ASYNCH
+  var setup_asynch = {
+    type: jsPsychInstructions,
+    pages: [
+    '<h2>This study will require [15-30] minutes of your <b>undivided</b> attention.',
+    'Once you start the study, we ask that you <b>do not leave this browser window.</b>',
+    'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
+    '<br>(we collect data on whether you click outside this browser tab ;) ',
+    'Please take a moment (now) to <b> silence your phone.</b>',
+    'Please take a moment (now) to <b> turn off notifications</b> on your computer. <br>(MAC: Do Not Disturb, WINDOWS: Focus Assist)',
+    'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
+    '<h2> We understand your time is valuable. <br> Thank you for contributing to our research with your earnest effort! </h2>'
+    ],
+    show_clickable_nav: true,
+    allow_backward: false,
+    key_forward: 'Enter',
+    data:{block:"setup"},
+  }
+
+  //SETUP FOR SYNCH
+  //assumes experimenter leads through 
+  //silencing notifications
+  var setup_synch = {
+    type: jsPsychInstructions,
+    pages: [
+    '<h2>This study will require [15-30] minutes of your <b>undivided</b> attention.',
+    'Once you start the study, we ask that you <b>do not leave this browser window.</b>',
+    'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
+    '<br>(we collect data on whether you click outside this browser tab ;) ',
+    'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
+    'To receive credit for your participation, please DM the experimenter with the ID CODE you receive on the LAST page of the study',
+    '<h2> We understand your time is valuable. <br> Thank you for contributing to our research with your earnest effort! </h2>'
+    ],
+    show_clickable_nav: true,
+    allow_backward: false,
+    key_forward: 'Enter',
+    data:{block:"setup"},
+  }
+
+  //ENTER FULLSCREEN
+  var enter_fullscreen = {
+    type: jsPsychFullscreen,
+    message: '<p>You will now enter fullscreen mode.</p>',
+    fullscreen_mode: true
+  }
+
+  //EXIT FULLSCREEN
+  var exit_fullscreen = {
+    type: jsPsychFullscreen,
+    fullscreen_mode: false
+  }
+
+  //TASK INSTRUCTIONS
+  var instructions = {
+    type: jsPsychExternalHtml,
+    url: "../src/instructions.html",
+    force_refresh: true,
+    "cont_btn": "start",
+    // on_start: function(){
+    //   scenarios=scenarios;
+    // },
     data: {
-      block:"welcome"
+      block:"instructions"
+    }
+};
+
+  //SCENARIO START
+  var scenario_1 = {
+    type: jsPsychImageKeyboardResponse,
+    stimulus : '../media/acme_1.png',
+    choices: ['Enter'],
+    stimulus_height :  window.innerHeight,
+    maintain_aspect_ratio : true,
+    data: {
+      block:"scenario"
     },
     on_start: function(data){}  
-};
+  };
 
-var devices = {
-  type: jsPsychImageKeyboardResponse,
-  stimulus : '../media/devices.png',
-  choices: ['Enter'],
-  stimulus_height :  window.innerHeight,
-  maintain_aspect_ratio : true,
-  data: {
-    block:"devices"
-  },
-  on_start: function(data){}  
-};
+  //SCENARIO CONTINUE
+  var scenario_2 = {
+    type: jsPsychImageKeyboardResponse,
+    stimulus : '../media/acme_2.png',
+    choices: ['Enter'],
+    stimulus_height :  window.innerHeight,
+    maintain_aspect_ratio : true,
+    data: {
+      block:"scenario"
+    },
+    on_start: function(data){}  
+  };
 
-var browserinstructions = {
-  type: jsPsychHtmlButtonResponse,
-  stimulus: `<p>To participate in this study you must: </p>
-  <ol style="text-align:left">
-  <li>Use a laptop or desktop computer (no tablets or phones).</li>
-  <li>Use the Chrome web browser.</li>
-  <li>Have a minimum screen size of 1000 x 600 px.</li>
-  </ol>`,
-  choices: ['Continue'],
+  //ENCOURAGEMENT
+  var almost_there = {
+    type: jsPsychHtmlButtonResponse,
+    data:{
+      block:"almost_there"
+    },
+    stimulus: '<img src="../media/almost_done_puppy.jpeg"</img>',
+    choices: ['Continue',],
+    // prompt: "<p>Thank you for your effort! You're almost done!</p>"
+  };
+
+  //EFFORT RATINGS
+  var effort_rating = {
+    type: jsPsychSurvey,
+    data:{ block:"effort" },
+    pages: [
+      [ 
+        {
+          type: 'html',
+          prompt: '<h2>Please answer the following questions about your approach to completing the previous task.</h2>',
+        },
+        {
+          type: 'html',
+          prompt: '<i>Your honest responses will help us correctly interpret our data.</i>',
+        },
+        {
+          type: 'drop-down',
+          prompt: "Which of the following best describes the amount of effort you put into the task?", 
+          name: 'effort', 
+          options: ['I tried my best on each question', 'I tried my best on most questions', 'I started out trying hard, but gave up at some point', "I didn't try very hard, or rushed through the questions"], 
+          required: true,
+        }, 
+        {
+          type: 'likert',
+          prompt: 'How difficult was the task?',
+          name:'difficulty',
+          likert_scale_min_label: 'Very Easy',
+          likert_scale_max_label: 'Very Hard',
+          required: true,
+          likert_scale_values: [
+            {value: 1},
+            {value: 2},
+            {value: 3},
+            {value: 4},
+            {value: 5}
+          ]
+        },
+        {
+          type: 'likert',
+          prompt: 'How well (how correctly) do you think you performed the task?',
+          name:'confidence',
+          likert_scale_min_label: 'Very Poorly',
+          likert_scale_max_label: 'Very Well',
+          required: true,
+          likert_scale_values: [
+            {value: 1},
+            {value: 2},
+            {value: 3},
+            {value: 4},
+            {value: 5}
+          ]
+        },
+        {
+          type: 'likert',
+          prompt: 'How enjoyable was the task?',
+          name:'enjoyment',
+          likert_scale_min_label: 'Boring',
+          likert_scale_max_label: 'Interesting',
+          required: true,
+          likert_scale_values: [
+            {value: 1},
+            {value: 2},
+            {value: 3},
+            {value: 4},
+            {value: 5}
+          ]
+        },
+        {
+          type:'text',
+          prompt:"What else do you think would be useful for us to know about your experience?",
+          name:"other",
+          textbox_rows: 2
+        } 
+      ]
+    ],
+    button_label_finish: 'Continue'
+  };
   
-};
-
-var browsercheck = {
-  type: jsPsychBrowserCheck,
-  minimum_width: 1000,
-  minimum_height: 700,
-  inclusion_function: (data) => {
-    return data.browser == 'chrome' && data.mobile === false
-  },
-  exclusion_message: (data) => {
-    if(data.mobile){
-      return '<p>You must use a desktop/laptop computer to participate in this experiment.</p>';
-    } else if(data.browser !== 'chrome'){
-      return '<p>You must use Chrome as your browser to complete this experiment.</p>'
-    }
-  }
-};
-
-var distractions = {
-  type: jsPsychImageKeyboardResponse,
-  stimulus : '../media/distractions.png',
-  choices: ['Enter'],
-  stimulus_height :  window.innerHeight,
-  maintain_aspect_ratio : true,
-  data: {
-    block:"distractions"
-  },
-  on_start: function(data){}  
-};
-
-
-// var relationship = {
-//   type: jsPsychSurvey,
-//   pages: [
-//     [
-//       {
-//         type: 'html',
-//         prompt: 'Please answer the following questions:',
-//       },
-//       {
-//         type: 'multi-choice',
-//         prompt: "Which of the following do you like the most?", 
-//         name: 'VegetablesLike', 
-//         options: ['Tomato', 'Cucumber', 'Eggplant', 'Corn', 'Peas'], 
-//         required: true
-//       }, 
-//       {
-//         type: 'multi-select',
-//         prompt: "Which of the following do you like?", 
-//         name: 'FruitLike', 
-//         options: ['Apple', 'Banana', 'Orange', 'Grape', 'Strawberry'], 
-//         required: false,
-//       }
-//     ]
-//   ],
-// };
-
-// var stimulus = {
-//     type: jsPsychExternalHtml,
-//     url: '../src/stimulus.html',
-//     execute_script: true,
-//     force_refresh:true,
-//     cont_btn: "submit",
-//     on_start: function(){
-//       localStorage.setItem("sid",sid);
-//       localStorage.setItem("scenario",scenario);
-//       localStorage.setItem("question",question);
-//     }
-// };
-
+  //DEMOGRAPHICS SURVEY
+  var demographics_sona = {
+    type: jsPsychSurvey,
+    data:{ block:"demographics" },
+    pages: [
+      [ 
+        {
+          type: 'html',
+          prompt: '<h2>Please answer the following questions about yourself.</h2>',
+        },
+        {
+          type: 'text',
+          prompt: "How old are you?", 
+          name: 'age', 
+          textbox_columns: 5,
+          required: true,
+        },
+        {
+          type: 'text',
+          prompt: "In what country have you lived most of your life?", 
+          name: 'country', 
+          textbox_columns: 15,
+          required: true,
+        },
+        {
+          type: 'drop-down',
+          prompt: "What is your first language?", 
+          name: 'language', 
+          options: ['English', 'Mandarin', 'Cantonese', 'Korean', 'German','Arabic','French','Spanish','X-Other'], 
+          required: true,
+          option_reorder: "asc"
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your year in school?", 
+          name: 'schoolyear', 
+          options: ['First', 'Second', 'Third', 'Fourth', 'Fifth','Grad Student','X-OTHER'], 
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your major area of study?", 
+          name: 'major', 
+          options: ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
+                                "Natural Sciences","Engineering","Humanities","Fine Arts"],
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your gender identity?", 
+          name: 'gender', 
+          options: ['Other-Not Listed','Male','Female'], 
+          required: true
+        },
+        {
+          type:'text',
+          prompt:"Do you have any impairments or disabilities you believe may have influenced your performance on this task?",
+          name:"disability",
+          textbox_rows: 2
+        } 
+      ]
+    ],
+    button_label_finish: 'Continue'
+  };
+  
+//STIMULUS TRIAL
 var stimulus = {
   type: jsPsychExternalHtml,
   url: '../src/stimulus.html',
@@ -203,114 +456,493 @@ var stimulus = {
   force_refresh:true,
   cont_btn: "testingButton",
   on_finish: function(data) {
-    console.log("finished: "+data.internal_node_id);
+    let scoring = score(data.response[0], data.q);
+
+    if (scoring){ //scoring is not null, otherwise bypass
+      data.correct = scoring[0];
+      data.discriminant = scoring[1];
+      data.tri_score = scoring[2];
+      data.orth_score = scoring[3];
+      data.other_score = scoring[4];
+    }
+
+    if(isNaN(data.q)) {//save free response
+      data.freeresponse = data.response[3]
+    }
+
+    data.answer = data.response[0];
+    data.hovered = data.response[1];  
+    data.mouselog = data.response[2];
+    data.response = [];//remove for redundancy
+
+    //suppress mouse data on SGCX demo
+    if (study == "SGCX"){
+      data.mouselog = "";
+      data.mouse_tracking_data = "";
+      data.mouse_tracking_targets = "";
+    }
   },
-  on_start: function(){
-        localStorage.setItem("graph", graph);
-        localStorage.setItem("scenario",  scenario);
-        localStorage.setItem("question",  questions[0]);
-        localStorage.setItem("q",  q);
-        localStorage.setItem("explicit",  explicit);
-        localStorage.setItem("impasse",  impasse);
-        localStorage.setItem("axis",  axis);
-        localStorage.setItem("sid",  sid);
-        localStorage.setItem("colorClick",colorClick);
-        // localStorage.setItem("clicked",  clicked);
-          // window._mfq.push(["newPageView", "/1"]);
+  data:{
+    sid: sid,
+    condition: condition,
+    q: jsPsych.timelineVariable('q'),
+    explicit: jsPsych.timelineVariable('explicit'),
+    impasse: jsPsych.timelineVariable('impasse'),
+    grid: jsPsych.timelineVariable('grid'),
+    mark: jsPsych.timelineVariable('mark'),
+    ixn:  jsPsych.timelineVariable('ixn'),
+    question: jsPsych.timelineVariable('question'),
+    graph:jsPsych.timelineVariable('graph'),
+    datafile: jsPsych.timelineVariable('datafile'),
+    colorClick: jsPsych.timelineVariable('colorClick'),
+    gwidth: jsPsych.timelineVariable('gwidth'),
+    gheight: jsPsych.timelineVariable('gheight'),
+    datafile: jsPsych.timelineVariable('datafile'),
+    relation:  jsPsych.timelineVariable('relation'),
+    block: jsPsych.timelineVariable('block')
+  },
+  on_start: function(){},
+  extensions: [
+    {type: jsPsychExtensionMouseTracking, params: {
+      targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
+      events: ['mousemove','mousedown']
+    }},
+    // {type: jsPsychExtensionWebgazer, params: { 
+    //   targets:['#testingButton','#leftDiv','#rightDiv','#theGraph']
+    // }}
+  ],
+  response_el: 'answer', //name of element where response is stored
+} 
+  
+
+//NOTE:: BLOCKS AND PROCEDURE DEFINED IN buildProcedure() 
+//-----------------------------------------------------------------//  
+
+//--------------- HELPER FUNCTIONS --------------------------------//  
+//SET STUDY-SPECFIC PARAMETERS
+function initializeStudy() {
+  
+  console.log("INITIALIZING STUDY ...");
+  
+  //PARSE PARAMETERS FROM QUERYSTRING
+  var urlvar = jsPsych.data.urlVariables();
+  study = urlvar.study ?? 'SGCX';   //default to demo
+  session = urlvar.session ?? "blank"; 
+  condition = urlvar.condition ?? 'R'; //default to random assign
+  condition = condition.toString();
+  mode = urlvar.mode ?? 'asynch';
+  pool = urlvar.pool ?? 'sona';
+  exp_id = urlvar.exp_id ?? "" ; //SONA EXPERIMENT ID for deciding which study to grant credit to
+  sona_id = urlvar.sona_id ?? ""; //SONA SUBJECT ID  for auto credit grant 
+
+  q = urlvar.q;
+  graph = urlvar.graph ?? "triangular" //need to handle errors
+  gwidth = urlvar.gwidth ?? 600;
+  gheight = urlvar.gheight ?? 600;
+  
+
+  //VALIDATE STUDY 
+  if (Object.keys(studies).indexOf(study) == -1 && (study != "SGCX")) {
+    alert("INVALID STUDY CODE");
   }
-};
+
+  //VALIDATE CONDITION 
+  if (condition != "R"){
+    
+    //IS CONDITION IN VALID FORM?
+    var temp = condition.split('');
+    if(temp.length < 3) {
+      alert("INVALID CONDITION CODE (minimum 3 digits");
+    }
+
+    //VALIDATE CONDITION AGAINST ALL POSSIBLE
+    if (study == "SGCX"){ //allow any valid condition code  
+      temp.forEach(function(value, index, array){
+        if (!conditions[index+1].includes(value)){
+          alert("INVALID CONDITION CODE: no "+value+" in "+(index+1)+" position");
+        };
+      });
+    }
+
+    //VALIDATE CONDITION AGAINST STUDY
+    else { //allow conditions in study
+      if(! studies[study].includes(condition)){
+        alert("INVALID CONDITION FOR STUDY CODE");
+      }
+    }
+    //TODO ERROR HANDLING (DON'T CONTINUE STUDY)
+  }
+
+  //ASSIGN SUBJECT ID 
+  sid = jsPsych.randomization.randomID(5).toUpperCase();
+
+  //CONFIGURE CONDITION-DEPENDENT PARAMETERS
+  console.log("SETUP : "+study);
+  switch (study){
+   
+    case "SGC3A":   
+      //RANDOMIZE CONDITION if not in querystring
+      if(condition == 'R'){  
+        console.log("-- randomizing condition from-- "+studies.SGC3A);
+        let x = jsPsych.randomization.shuffle(studies.SGC3A);
+        condition = x[0].toString();
+      } 
+      question_file = "src/data/questions/SGC3A_"+condition.charAt(1)+"_questions.csv";
+      break;
+
+    case "SGC3B":
+      break;
+      
+    default: //SGCX
+      //read querystring OR DEFAULT
+      if (condition == 'R') {condition = "11111"}; //control default
+      explicit = condition.charAt(0);
+      impasse = condition.charAt(1); 
+      grid = condition.charAt(2); 
+      mark = condition.charAt(3) ?? 1; 
+      ixn =  condition.charAt(4) ?? 1; 
+      colorClick = (ixn == 5 ) ; //only checkbox 
+      question_file = "src/data/questions/SGC3A_"+impasse+"_questions.csv";
+      break; 
+
+    console.log("CONDITION: "+condition);
+    console.log("SESSION: "+session);
+  }
+
+  //ADD STUDY LEVEL PROPERTIES
+  jsPsych.data.addProperties({ 
+    subject:sid, 
+    study:study, 
+    session:session,
+    condition:condition,
+    pool: pool, 
+    mode: mode,
+    exp_id: exp_id,
+    sona_id: sona_id
+  });
+} 
+
+//BUILD STUDY-SPECFIC PROCEDURE
+function buildProcedure(){
   
+  console.log("BUILDING PROCEDURE...."+study);
 
+  switch (study){
+    
+    //---------------------------------------------------
+    //SGC 3A --> 2[IMPASSE | none, impasse]- BS design
+    //PROCEDURE BY CONDITION
+    //impasse == 1 :: [5 none] + [10 none] + free response 
+    //impasse == 2 :: [5 impasse] + [10 none] + free response
+    //if no condition given, random assign on IMPASSE
+    //EXPLICIT = 1, GRID = 1, MARK = 1, IXN = 1
+    //---------------------------------------------------
+    case "SGC3A":
+
+      //last question q="F" is freeresponse, q="F" to bypass scoring
+      let free = "Please describe how to determine what event(s) start at 12pm?";
+
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      scaffold_timeline = [
+         { q:1, impasse: condition.charAt(1), question: questions[1], datafile: datas[1], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
+         { q:2, impasse: condition.charAt(1), question: questions[2], datafile: datas[2], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
+         { q:3, impasse: condition.charAt(1), question: questions[3], datafile: datas[3], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
+         { q:4, impasse: condition.charAt(1), question: questions[4], datafile: datas[4], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
+         { q:5, impasse: condition.charAt(1), question: questions[5], datafile: datas[5], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
+      ];
+      //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE [main dataset]
+      test_timeline = [
+        { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+        { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+        { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
+        { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+        { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+        { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+        { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+        { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+        { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+        { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+        //FREE RESPONSE QUESTION
+        { q:"f", impasse: 1, question: free,          datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
+      ];
+      break;
+
+    //---------------------------------------------------
+    //SGC 3B --> 2[IMPASSE | none, impasse] X 3[EXPL | none, img, ixn]
+    //PROCEDURE BY CONDITION
+    //impasse == 1 :: [5 none] + [10 none] + free response 
+    //impasse == 2 :: [5 impasse] + [10 none] + free response
+    //explicit == 1 :: [5 none] + [10 none] + free response 
+    //explicit == 2 :: [5 img] + [10 none] + free response 
+    //explicit == 3 :: [5 ixn] + [10 none] + free response 
+    //GRID = 1, MARK = 1, IXN = 1, 
+    //---------------------------------------------------  
+    case "SGC3B"  :
+      break;
+    
+    //---------------------------------------------------
+    //SGCX --> DEFAULT DEMO
+    //ALL PARAMETERS SET BY CONDITION
+    //[5 condition] + free response
+    //---------------------------------------------------
+    default: 
+      
+    //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION (repeats q x 2)
+    if (q){
+      console.log("JUMPING TO QUESTION: "+q);
+      scaffold_timeline = [
+        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
+      ];
+      test_timeline=[
+        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
+      ];
+    }
+
+    else { //RUN ALL QUESTIONS BASED ON PARAMETERS 
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      //TODO CHECK THESE
+      scaffold_timeline = [
+        { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
+        { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
+        { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
+        { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
+        { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
+     ];
+     
+     //TODO CHECK THESE
+     //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE
+     test_timeline = [
+       { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+       { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test"},
+       { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test"},
+       { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+       { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+       { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+       { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+       { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+       { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+       { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
+     ];
+    }   
+  }
+ 
+  //--------- ASSEMBLE PROCEDURE BLOCKS ----------/    
+  //SCAFFOLDING BLOCK
+  var block_scaffold = {
+     timeline: [stimulus],
+      timeline_variables: scaffold_timeline,
+      randomize_order: false
+  }
+
+  //TEST BLOCK
+  var block_test = {
+     timeline: [stimulus],
+     timeline_variables: test_timeline, 
+     randomize_order: false
+  }
+
+  // PLACEHOLDER KEEP GOING! 
+
+  //STIMULUS PROCEDURE
+  var procedure = {
+      timeline: [scenario_1, block_scaffold, scenario_2, block_test]
+  }
+
+  //MANUAL CREDIT GRANT
+  var finish_synch = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
+    prompt: "<p style='color:red'>To receive SONA CREDIT, please DM the experimenter with your NAME and subject code now.</p> <br> <i>PRESS ENTER TO FINISH</i>",
+    choices: ["Enter"]
+  };
+
+
+  //NOTES ON AUTO ASSIGNMENT OF SONA CREDIT 
   
-
-// //   /* define trial stimuli array for timeline variables */
-// //   var test_stimuli = [
-// //     { stimulus: "img/blue.png",  correct_response: 'f'},
-// //     { stimulus: "img/orange.png",  correct_response: 'j'}
-// //   ];
-
-//   /* define fixation and test trials */
-// //   var fixation = {
-// //     type: jsPsychHtmlKeyboardResponse,
-// //     stimulus: '<div style="font-size:60px;">+</div>',
-// //     choices: "NO_KEYS",
-// //     trial_duration: function(){
-// //       return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000, 1250, 1500, 1750, 2000], 1)[0];
-// //     },
-// //     data: {
-// //       task: 'fixation'
-// //     }
-// //   };
-
-// //   var test = {
-// //     type: jsPsychImageKeyboardResponse,
-// //     stimulus: jsPsych.timelineVariable('stimulus'),
-// //     choices: ['f', 'j'],
-// //     data: {
-// //       task: 'response',
-// //       correct_response: jsPsych.timelineVariable('correct_response')
-// //     },
-// //     on_finish: function(data){
-// //       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
-// //     }
-// //   };
-
-//   /* define test procedure */
-// //   var test_procedure = {
-// //     timeline: [fixation, test],
-// //     timeline_variables: test_stimuli,
-// //     repetitions: 5,
-// //     randomize_order: true
-// //   };
+  //see https://www.sona-systems.com/help/jspsych.aspx
+  //also https://www.sona-systems.com/help/integration_test.aspx
   
+  // 1 | change the Study URL so it includes ?sona_id=%SURVEY_CODE% in the URL
+  // 2 | Having completed Step 1 ... the Study Information on your Sona Systems site now displays two URLs labeled "Completion URLs". T
+  //    similar to: https://yourschool.sona-systems.com/webstudy_credit.aspx?experiment_id=123&credit_token=4e48f9b638a&survey_code=XXX" 
 
-//   /* define debrief */
-//   var debrief_block = {
-//     type: jsPsychHtmlKeyboardResponse,
-//     stimulus: function() {
+  //EG FOR 21JH01
+  //client side https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=XXXX
+  //server side https://ucsd.sona-systems.com/services/SonaAPI.svc/WebstudyCredit?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=XXXX
 
-//       var trials = jsPsych.data.get().filter({task: 'response'});
-//       var correct_trials = trials.filter({correct: true});
-//       var accuracy = Math.round(correct_trials.count() / trials.count() * 100);
-//       var rt = Math.round(correct_trials.select('rt').mean());
-
-//       return `<p>You responded correctly on ${accuracy}% of the trials.</p>
-//         <p>Your average response time was ${rt}ms.</p>
-//         <p>Press any key to complete the experiment. Thank you!</p>`;
-
-//     }
-//   };
+  //In jsPsych, go to the source code of the task for the experiment 
+  //Add lines similar to the following block for both on_finish line 
+  //and the line beginning with let sona_id. 
+  //Use the Completion URL (client-side) from the Study Information Page in Sona. 
+  //Add lines similar to the following on_finish line to your experiment 
+  //(the URL you saved from the prior step with +sona_id after it as shown in example below) 
+  //and the line defining sona_id at the top.
   
+  
+  //SONA ASYNCH CREDIT GRANT 
+  var grant_sona = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
+    prompt: "<p style='color:red'>To receive SONA CREDIT, please press ENTER now.</p>",
+    choices: ["Enter"]
+  };
 
-//ASSEMBLE TIMELINE
-timeline.push(stimulus);
-// timeline.push(preload);
-timeline.push(welcome);
-// timeline.push(devices);
-// timeline.push(browserinstructions);
-// timeline.push(browsercheck);
-// timeline.push(distractions);
+  //--------- TIMELINE ----------/
 
-// timeline.push(stimulus2);
-//   timeline.push(instructions);
-//   timeline.push(test_procedure);
-// timeline.push(debrief_block);
+    //ASSEMBLE TIMELINE
+    // timeline.push(preload);
+    // timeline.push(welcome);
+    // timeline.push(devices);
+    // timeline.push(browsercheck);
+    // timeline.push(consent);
+    // if (mode == "synch") {timeline.push(setup_synch);}
+    // else {timeline.push(setup_asynch);}
+    // timeline.push(enter_fullscreen);
+    // timeline.push(instructions);
+    timeline.push(procedure);
+    // timeline.push(almost_there);
+    // timeline.push(effort_rating);
+    // if (pool != "sona"){
+    // //   //TODO MAKE GENERAL DEMOGRAPHICS
+    // } else {
+    //   timeline.push(demographics_sona);
+    // }    
+    // if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
+    // timeline.push(exit_fullscreen);
 
-//START EXPERIMENT
-jsPsych.run(timeline);
+}//end function
+
+//LOAD QUESTIONS FILE
+function loadQuestions() {
+  return new Promise(function (resolve, reject) {  
+    
+    d3.csv(question_file, function(error, data){
+      console.log('LOADING DATA...');
+      console.log(question_file);
+      if (error) {
+        alert("Unable to load data file");
+        reject(error);
+      }
+      // var questions= ["NULL"]; //index as null
+      data.forEach(function(d){
+        questions.push(d.TEXT);
+        datas.push(d.DATAFILE)
+        relations.push(d.RELATION);
+        ns.push(d.N);
+        tri_answers.push(d.TRIANGULAR) //triangular-correct answers
+        also_answers.push(d.also) //question-redundant but acceptable answers
+        orth_answers.push(d.ORTHOGONAL) //orthogonal-correct
+        tvsky_answers.push(d.TVERSKY); //lines-connecting answer
+        satisf_answers.push(d.SATISFICE) //satisficing
+      });
+      // resolve(questions);
+      resolve()
+    });
+  });
+} //end function
+
+//SCORE RESPONSE
+var score = function (input, q){
+
+  //dont score free respnse items
+  if (isNaN(q)){
+    return null;
+  }
+
+  const response = input.split(',');
+  const tri = tri_answers[q].split('');
+  const orth = orth_answers[q].split('') ?? [];
+  const also = also_answers[q].split('') ?? [];
+  var tri_score, orth_score, other_score;
+
+  // n = num items (# data points)
+  let n = ns[q];
+
+  console.log("SCORING RESPONSE...");
+  console.log("response: "+response) ;
+  console.log("tri: "+ tri);
+  console.log("orth: "+ orth);  
+
+  //DISCRIMINANT SCORE ------------- 
+
+  //TRIANGULAR SCORE
+  //+1/x pts for each triangular item
+  var tintersect = _.intersection(response,tri);
+  tri_score = (1/tri.length)*tintersect.length;
+  
+  //ORTHOGONAL SCORE
+  //+1/x pts for each orthogonal item
+  var ointersect = _.intersection(response,orth);
+  orth_score = (1/orth.length)*ointersect.length
+  
+  //OTHER SCORE
+  if (response[0].length == 0){other_score = 0} //if response was empty set
+  else {
+  let instrategy = _.union(tri,orth); 
+  let difference = _.difference(response,instrategy);
+  other_score = (difference.length);
+  }
+  
+  //CALCULATE SCORING
+  let correct = equalsIgnoreOrder(response,tri); //strict score requires exact match 
+
+  console.log("PRECISELY TRUE? "+correct);
+  console.log("TRI SCORE "+tri_score);
+  console.log("ORTH SCORE "+orth_score);
+  console.log("OTHER SCORE "+other_score);
+  
+  //interestingly seems to be same as the chronbach score?
+  let discriminant_score = tri_score - orth_score - (1/n * other_score);
+  console.log("DISCRIMINANT SCORE " + discriminant_score);
+
+  return [correct, discriminant_score, tri_score, orth_score, other_score]; 
+}
 
 
-// preload
-// welcome
-// devices
-// browserinstructions
-// browsercheck
-// instructions
-// informed consent 
-// taskintroduction
-// taskexample
-// scenario
-// stimuli X x 
-// feedback 
-// debrief
+//RUN THE TIMELINE
+async function main() {
+  initializeStudy();
+  await loadQuestions();
+  console.log("DATA LOADED");
+  buildProcedure();
+  jsPsych.run(timeline); //START EXPERIMENT
+} //end function
 
+//ALLONS-Y!
+main();
+
+//STRATEGY DISCRIMINANT SCORE ------------- 
+
+  // // triangular = 1 
+  // // +1/t for each correct r 
+  // let rcorrect  = _.intersection(response,tri);
+  // let partialp  = (1/tri.length) * rcorrect.length; 
+  // console.log( "partial positive: "+ partialp)
+  
+  // // - 1/n for each incorrect [not orthogonal]
+  // let rneither = _.intersection(response,not);
+  // let partialn = (-1/n) * rneither.length; //neither answers are penalized at 1/n
+  // console.log( "partial negative: "+ partialn)
+  
+  // // orthogonal = -1 
+  // let rorth = _.intersection(response,orth);
+  // // let partialo = (-1/(orth.length) * rorth.length); 
+  // let partialo = (-1/(n) * rorth.length); 
+  // console.log( "partial ortho: "+ partialo)
+
+  // let fscore;
+  // //IF EXACTLY TRIANGULAR, SCORE = 1 
+  // //if correct responses are complete and all responses are correct responses
+  // if ( (rcorrect.length  == tri.length) && (response.length == rcorrect.length)){ console.log("perfect"); fscore = 1}
+  // //IF NO RESPONSE, SCORE = 0
+  // else if (response.length == 0) {fscore = 0}
+  // //IF EXACTLY ORTH & TRIANGULAR, SCORE = 0
+  // //if some answers are tri, some are orth, and only tri or orth
+  // else if ( (rcorrect.length != 0) && (rorth.length !=0) && (response.length == (tri.length + orth.length)))
+  // {fscore = 0;}
+  // //IF EXACTLY ORTHOGONAL, SCORE = -1 
+  // //if orth responses are complete and all responses are orth responses
+  // else if ((rorth.length == orth.length) && (response.length == rorth.length)){fscore = -1}
+  // //ELSE PARTIAL CREDIT +1/t(tri) - 1/n - 1/orth
+  // else {fscore = partialp + partialn + partialo;}
+  // console.log("CHRONBACH SCORE: " + fscore);

@@ -1,16 +1,46 @@
 
-/**
- * Get the value of a querystring
- * @param  {String} field The field to get the value of
- * @param  {String} url   The URL to get the value from (optional)
- * @return {String}       The field value
- */
-var getQueryString = function ( field, url ) {
-    var href = url ? url : window.location.href;
-    var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
-    var string = reg.exec(href);
-    return string ? string[1] : null;
-};
+//SUMMARIZE INTERACTION DATA 
+let sumIxn = function (jsp){
+  const data = jsp.data.getInteractionData();
+  var interaction_data = {
+    block:"interaction",
+    interaction: data,
+    //get number of entries in the 'trials' [number of disruptive events fired]
+    //divide by 2 bc 2 events fired for every departure
+    violations: (Object.keys(data["trials"]).length)/2
+  };
+  return interaction_data;
+}
+
+//SUMMARIZE SUBJECT LEVEL DATA 
+let sumSubject = function (jsp){
+  const data = jsp.data.get().first(); //get just the last trial
+  const brwsr = jsp.data.get().filter([{trial_type: "browser-check"}]);
+  const ixn = jsp.data.getInteractionData();
+  const scorable = jsp.data.get().filter([{block:"item_scaffold"}, {block:"item_test"}]);
+  var subject_data = {
+     block:"participant",
+     subject:data.select("subject").values[0],
+     study:data.select("study").values[0],
+     session:data.select("session").values[0],
+     condition:data.select("condition").values[0],
+     browser: brwsr.select("browser").values[0],
+     width : brwsr.select("width").values[0],
+     height : brwsr.select("height").values[0],
+     os : brwsr.select("os").values[0],
+     refresh_rate: brwsr.select("refresh_rate").values[0],
+     starttime:jsp.getStartTime(),
+     totaltime:jsp.getTotalTime(),
+     violations: (Object.keys(ixn["trials"]).length)/2,
+     absolute_score : scorable.select('correct').sum(),
+     discriminant_score : scorable.select('discriminant').sum(),
+     strict_score : scorable.select('strict').sum()
+  };
+  return subject_data;
+
+  //don't include scores for 6, 9, 13 [nondiscriminant answers]
+
+}
 
 //check value of consent checkbox
 var check_consent = function(elem) {
@@ -23,17 +53,7 @@ var check_consent = function(elem) {
   return false;
 };
 
-//check value of consent checkbox
-var check_consent = function(elem) {
-  if ($('#consent_checkbox').is(':checked')) {
-    return true;
-  } else {
-    alert("If you wish to participate, you must check the box next to the statement 'I confirm I am using a LAPTOP or DESKTOP computer with a KEYBOARD and MOUSE or TRACKPAD.' If you ARE NOT using an approved device you cannot complete the study, and can close your browser window. ");
-    return false;
-  }
-  return false;
-};
-
+//check value of drawing check checkboxes
 var check_draw = function(elem) {
   var validated = true;
   if($('#check-name').is(':not(:checked)')){validated = false;}
@@ -49,47 +69,50 @@ var check_draw = function(elem) {
 };
 
 
-
-//evaluate correctness of answer onSubmit
-function checkTriangularAnswer() {
-  console.log("end clicked: "+clicked);
-  console.log("end hovered: "+hovered);
+//RECORD TRANSFORM RESPONSES TO DATA
+var recordAnswer = function(){
+  console.log("TRANSFORMING ANSWER...");
   var selected = [];
-    $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-    selected.push(""+$(this).attr('value')+"");
-  });
-  var index = scenario+"."+question+"."+impasse;
-  if ( _.isEqual(selected, triangular_answers[index])) {
-     correct = 1; }
-  else {
-    correct = 0;
+  var free="";
+  //FREE RESPONSE MODE
+  if(isNaN(data.q)){
+    free = $('#freeResponse').val().toString();
+    $('#answer').val(free);
+    
   }
-  console.log("selected: "+selected);
-  answer = selected;
-  // console.log("triangle_correct"+correct);
-  checkOrthogonalAnswer();
+
+  //CLICK ON GRAPH RESPONSE MODE
+  if(colorClick == true){
+    $('circle[selected=true]').each(function(){
+      selected.push($(this).attr("value"))
+    });
+  }
+  //REGULAR RESPONSE MODE 
+  else (colorClick == false)
+  {
+    $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
+      // selected.push(""+$(this).attr('value')+"");
+      selected.push($(this).attr('value'));
+    });
+  }  
+  //store response values to designated answer element
+  $('#answer').val([selected, hovered, mouseLog,free]);
+  return;
+  // console.log("answer is: "+$('#answer').val());
 }
 
-function checkOrthogonalAnswer(){
-  console.log("end clicked: "+clicked);
-  console.log("end hovered: "+hovered);
-  var selected = [];
-    $ (':checked').not('.onoffswitch-checkbox').each(function() { //check each checkbox except help toggle
-    selected.push(""+$(this).attr('value')+"");
-  });
-  var index = scenario+"."+question+"."+impasse;
-  if ( _.isEqual(selected, orthogonal_answers[index])) {
-    orth_correct = 1; }
-  else {
-    orth_correct = 0;
+//COMPARE TWO ARRAYS ANY ORDER
+// iterate over unique values and check if 
+//each one appears the same amount of times in each array
+//VANILLA JS
+const equalsIgnoreOrder = (a, b) => {
+  if (a.length !== b.length) return false;
+  const uniqueValues = new Set([...a, ...b]);
+  for (const v of uniqueValues) {
+    const aCount = a.filter(e => e === v).length;
+    const bCount = b.filter(e => e === v).length;
+    if (aCount !== bCount) return false;
   }
-  console.log("selected: "+selected);
-  answer = selected;
-  // console.log("orthogonal_correct"+orth_correct);
+  return true;
 }
 
-function submitStrategy(){
-    console.log("submitting strategy");
-    answer = $("textarea").val();
-    console.log(answer);
-}
