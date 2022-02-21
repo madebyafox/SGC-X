@@ -830,7 +830,7 @@ function loadQuestions() {
         relations.push(d.RELATION);
         ns.push(d.N);
         tri_answers.push(d.TRIANGULAR) //triangular-correct answers
-        also_answers.push(d.also) //question-redundant but acceptable answers
+        also_answers.push(d.also_allow) //question-redundant but acceptable answers
         orth_answers.push(d.ORTHOGONAL) //orthogonal-correct
         tvsky_answers.push(d.TVERSKY); //lines-connecting answer
         satisf_answers.push(d.SATISFICE) //satisficing
@@ -853,6 +853,9 @@ var score = function (input, q){
   const tri = tri_answers[q].split('');
   const orth = orth_answers[q].split('') ?? [];
   const also = also_answers[q].split('') ?? [];
+  const tversky = tvsky_answers[q].split('') ?? [];
+  const satisfice = satisf_answers[q].split('') ?? [];
+
   var tri_score, orth_score, other_score;
 
   // n = num items (# data points)
@@ -863,8 +866,6 @@ var score = function (input, q){
   console.log("tri: "+ tri);
   console.log("orth: "+ orth);  
 
-  //DISCRIMINANT SCORE ------------- 
-
   //TRIANGULAR SCORE
   //+1/x pts for each triangular item
   var tintersect = _.intersection(response,tri);
@@ -874,25 +875,41 @@ var score = function (input, q){
   //+1/x pts for each orthogonal item
   var ointersect = _.intersection(response,orth);
   orth_score = (1/orth.length)*ointersect.length
-  
-  //OTHER SCORE
+
+  //TVERSKY SCORE
+  var tvintersect = _.intersection(response,tversky)
+  tversky_score = (1/tversky.length)*tvintersect.length;
+
+  //SATISFICE SCORE
+  var stintersect = _.intersection(response,satisfice)
+  satisfice_score = (1/satisfice.length)*stintersect.length;
+
+  //OTHER SCORE 
+  //number of responses not in any strategy
   if (response[0].length == 0){other_score = 0} //if response was empty set
   else {
-  let instrategy = _.union(tri,orth); 
-  let difference = _.difference(response,instrategy);
-  other_score = (difference.length);
+    let instrategy = _.union(tri,orth,also,tversky,satisfice); 
+    let difference1 = _.difference(response,instrategy); //
+    other_score = difference1.length;
+
+    let notmain = _.union(tri,orth);
+    let difference2 = _.difference(response,notmain);
+    not_tri_orth = difference2.length;
   }
   
-  //CALCULATE SCORING
+  
+  //CALCULATE ALL-OR-NOTHING
   let correct = equalsIgnoreOrder(response,tri); //strict score requires exact match 
 
   console.log("PRECISELY TRUE? "+correct);
   console.log("TRI SCORE "+tri_score);
   console.log("ORTH SCORE "+orth_score);
+  console.log("TVERSKY SCORE "+tversky_score);
+  console.log("SATISFICE SCORE "+satisfice_score);
   console.log("OTHER SCORE "+other_score);
   
-  //interestingly seems to be same as the chronbach score?
-  let discriminant_score = tri_score - orth_score - (1/n * other_score);
+  //interestingly seems to be same as the [1/n,-1/n] score?
+  let discriminant_score = tri_score - orth_score - (1/n * not_tri_orth);
   console.log("DISCRIMINANT SCORE " + discriminant_score);
 
   return [correct, discriminant_score, tri_score, orth_score, other_score]; 
