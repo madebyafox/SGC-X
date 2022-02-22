@@ -455,6 +455,9 @@ var stimulus = {
   execute_script: true,
   force_refresh:true,
   cont_btn: "testingButton",
+  on_start: function(){
+    window._mfq.push(["newPageView", "/"+q]);
+  },
   on_finish: function(data) {
     let scoring = score(data.response[0], data.q);
 
@@ -482,6 +485,26 @@ var stimulus = {
       data.mouse_tracking_data = "";
       data.mouse_tracking_targets = "";
     }
+
+    //ADD MOUSEFLOW VARIABLES
+    window._mfq.push(["setVariable", "SID", sid]);
+    window._mfq.push(["setVariable", "STUDY", study]);
+    window._mfq.push(["setVariable", "CONDITION", condition]);
+    window._mfq.push(["setVariable", "SESSION", session]);
+    window._mfq.push(["setVariable", "POOL", pool]);
+    window._mfq.push(["setVariable", "MODE", mode]);
+    window._mfq.push(["setVariable", "Q", q]);
+
+    window._mfq.push(["setVariable", "EXPLICIT", data.explicit]);
+    window._mfq.push(["setVariable", "IMPASSE", data.impasse]);
+    window._mfq.push(["setVariable", "GRID", data.grid]);
+    window._mfq.push(["setVariable", "MARK", data.mark]);
+    window._mfq.push(["setVariable", "IXN", data.ixn]);
+
+    window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
+    window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
+    window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
+    window._mfq.push(["setVariable", "SCORE", scoring[1]]);
   },
   data:{
     sid: sid,
@@ -502,7 +525,6 @@ var stimulus = {
     relation:  jsPsych.timelineVariable('relation'),
     block: jsPsych.timelineVariable('block')
   },
-  on_start: function(){},
   extensions: [
     {type: jsPsychExtensionMouseTracking, params: {
       targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
@@ -621,6 +643,13 @@ function initializeStudy() {
     exp_id: exp_id,
     sona_id: sona_id
   });
+
+  console.log("SUBJECT: "+sid);
+  console.log("STUDY: "+study);
+  console.log("SESSION: "+session);
+  console.log("CONDITION: "+condition);
+  console.log("POOL: "+pool);
+  console.log("MODE: "+mode);
 } 
 
 //BUILD STUDY-SPECFIC PROCEDURE
