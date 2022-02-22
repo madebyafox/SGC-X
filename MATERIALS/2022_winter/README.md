@@ -1,7 +1,9 @@
 # SGC X 
 
 # DEPLOY LOG
-02.22.22 : deploy SGCX working for SGC3 (synch, asynch, pool = sona )
+02.22.22 : deploy SGCX working for SGC3 (synch, asynch, pool = sona ) GITHUB COMMIT cdf21f3333b8a9dfb5d1e5bd8520a43b96c91baf
+
+
 
 
 Important Changes from SGC3A/B prior to winter 2022
