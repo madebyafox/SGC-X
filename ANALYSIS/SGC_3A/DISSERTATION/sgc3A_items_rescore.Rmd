@@ -161,14 +161,18 @@ df_control$answer <- replace(df_control$answer, (df_control$answer == ""),"-")
 df_impasse$answer <- replace(df_impasse$answer, (df_impasse$answer == ""),"-")
 
 #4  | CALCULATE TRIANGULAR SCORE
-#4a | Intersection of response + correct answer = number of correct responses
+
+#4a | Intersections of response with each response mode
 df_control <- df_control %>% rowwise() %>% mutate(
     a = str_split(answer,""), 
-    b = str_split(TRI_CORRECT,""),
-    clicky = nchar(answer) - nchar(TRI_CORRECT),
-    intersect = list(intersect(a,b)), #matches to correct components
-    TRI = peritem_tri * length(intersect)
-  ) %>% select(-a,-b,-intersect) 
+    tri = str_split(TRI_CORRECT,""),
+    orth = str_split(ORTH_CORRECT,""),
+    tri_sect = list(intersect(a,tri)), #matches to correct components
+    orth_sect = list(intersect(a,orth)), #matches to correct components
+    clicky = nchar(answer) - nchar(TRI_CORRECT), #difference between actual & correct num data points
+    
+    # TRI = peritem_tri * length(intersect)
+  ) %>% select(-a,-tri, -orth) 
 
 ##LEFT OFF HERE 
 
