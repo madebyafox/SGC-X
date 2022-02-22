@@ -464,6 +464,7 @@ var stimulus = {
       data.tri_score = scoring[2];
       data.orth_score = scoring[3];
       data.other_score = scoring[4];
+      data.blank_score = scoring[5];
     }
 
     if(isNaN(data.q)) {//save free response
@@ -844,49 +845,64 @@ function loadQuestions() {
 //SCORE RESPONSE
 var score = function (input, q){
 
-  //dont score free respnse items
+  //dont score if not a numeric question 
   if (isNaN(q)){
     return null;
   }
 
-  const response = input.split(',');
-  const tri = tri_answers[q].split('');
-  const orth = orth_answers[q].split('') ?? [];
-  const also = also_answers[q].split('') ?? [];
-  const tversky = tvsky_answers[q].split('') ?? [];
-  const satisfice = satisf_answers[q].split('') ?? [];
+  //GET ANSWERS
+  const response = input.split(','); //user's response 
+  const tri = tri_answers[q].split(''); //tri answer
+  const orth = orth_answers[q].split('') ?? []; //orth answer
+  const also = also_answers[q].split('') ?? []; //also answer
+  const tversky = tvsky_answers[q].split('') ?? []; //tversky answer
+  const satisfice = satisf_answers[q].split('') ?? []; //satisfice answer
 
-  var tri_score, orth_score, other_score;
-
-  // n = num items (# data points)
-  let n = ns[q];
+  //INITIALIZE SCORES
+  let discriminant_score = 0;   
+  let tri_score = 0;  
+  let orth_score = 0;  
+  let other_score = 0;  
+  let blank_score = 0;
 
   console.log("SCORING RESPONSE...");
   console.log("response: "+response) ;
-  console.log("tri: "+ tri);
-  console.log("orth: "+ orth);  
+  console.log("actual-tri: "+ tri);
+  console.log("actual-orth: "+ orth);  
 
   //TRIANGULAR SCORE
   //+1/x pts for each triangular item
   var tintersect = _.intersection(response,tri);
-  tri_score = (1/tri.length)*tintersect.length;
+  // tri_score = (1/tri.length)*tintersect.length;
+  tri_score = tintersect.length;
   
   //ORTHOGONAL SCORE
   //+1/x pts for each orthogonal item
   var ointersect = _.intersection(response,orth);
-  orth_score = (1/orth.length)*ointersect.length
+  // orth_score = (1/orth.length)*ointersect.length
+  orth_score = ointersect.length;
 
   //TVERSKY SCORE
   var tvintersect = _.intersection(response,tversky)
-  tversky_score = (1/tversky.length)*tvintersect.length;
+  // tversky_score =tvintersect.length;
+  // tversky_score = (1/tversky.length)*tvintersect.length;
+  tversky_score = "rescore"
 
   //SATISFICE SCORE
   var stintersect = _.intersection(response,satisfice)
-  satisfice_score = (1/satisfice.length)*stintersect.length;
+  // satisfice_score = stintersect.length;
+  // satisfice_score = (1/satisfice.length)*stintersect.length;
+  satisfice_score = "rescore"
+
+  console.log("tversky answer: "+tversky)
+  //BLANK SCORE 
+  if (response[0].length == 0){blank_score = 1;}
 
   //OTHER SCORE 
   //number of responses not in any strategy
-  if (response[0].length == 0){other_score = 0} //if response was empty set
+  let not_tri_orth = 0;
+  if (response[0].length == 0){ //first element of array, bc empty array returns 1 
+    other_score = 0} //if response was empty set
   else {
     let instrategy = _.union(tri,orth,also,tversky,satisfice); 
     let difference1 = _.difference(response,instrategy); //
@@ -897,22 +913,26 @@ var score = function (input, q){
     not_tri_orth = difference2.length;
   }
   
-  
   //CALCULATE ALL-OR-NOTHING
   let correct = equalsIgnoreOrder(response,tri); //strict score requires exact match 
 
+  //CALCULATE DISCRIMINATING SCORE
+  //interestingly seems to be same as the [1/n,-1/n] score?
+  // = triscore - orthscore - not_tri_orth
+  discriminant_score = ((1/tri.length)*tintersect.length) - ((1/orth.length)*ointersect.length) - (1/n * not_tri_orth);
+
+  console.log("response length "+response.length);
   console.log("PRECISELY TRUE? "+correct);
   console.log("TRI SCORE "+tri_score);
   console.log("ORTH SCORE "+orth_score);
   console.log("TVERSKY SCORE "+tversky_score);
   console.log("SATISFICE SCORE "+satisfice_score);
-  console.log("OTHER SCORE "+other_score);
-  
-  //interestingly seems to be same as the [1/n,-1/n] score?
-  let discriminant_score = tri_score - orth_score - (1/n * not_tri_orth);
+  // console.log("OTHER SCORE "+other_score);
+  console.log("OTHER SCORE "+not_tri_orth);
+  console.log("BLANK SCORE "+blank_score);
   console.log("DISCRIMINANT SCORE " + discriminant_score);
 
-  return [correct, discriminant_score, tri_score, orth_score, other_score]; 
+  return [correct, discriminant_score, tri_score, orth_score, other_score, blank_score]; 
 }
 
 
