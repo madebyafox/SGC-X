@@ -103,7 +103,8 @@ df_items <- rename(df_items, rs_ortho = orth_correct)
 
 #Separate free response from (main) multiple choice blocks
 df_freeResponse <- df_items %>% filter(q==16)
-df_items <- df_items %>% filter (q!=16)
+df_nondiscriminant <- df_items %>% filter(q %in% c(6,9,13)) 
+df_items <- df_items %>% filter (!q %in% c(6,9,13,16))
 
 #Separate into analysis dataframes
 # df_lab <- df_items %>% filter(mode=="lab")
@@ -114,12 +115,6 @@ rm(df_fall, df_spring, df_online)
 ```
 
 ```{r}
-
-#TODOTHIS IS JUST TEMP FOR TESTING
-#Remove items 6 (attn check) and 9 (non discriminant)
-df_others <- df_items %>% filter(q %in% c(6,9,13))
-df_items <- df_items %>% filter (!q %in% c(6,9,13))
-
 #Create TOTAL column for future sorting
 # df_totals <- df_items %>% filter(!q ==16) %>% group_by(subject)  %>% summarise(TOTAL_CORRECT = sum(correct),
 #           ON_STRATEGY   = sum(correct,orth_correct))
