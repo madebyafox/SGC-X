@@ -1,5 +1,9 @@
 # SGC X 
 
+# DEPLOY LOG
+02.22.22 : deploy SGCX working for SGC3 (synch, asynch, pool = sona )
+
+
 Important Changes from SGC3A/B prior to winter 2022
 - upgraded to new version of jsPsych (v7) with multiple API changes 
 - moved most condition-contingent logic out of stimulus and graphs.js into experiment.js

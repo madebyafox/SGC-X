@@ -468,6 +468,13 @@ var stimulus = {
       data.orth_score = scoring[3];
       data.other_score = scoring[4];
       data.blank_score = scoring[5];
+
+      //PUSH mouseflow answers  
+      window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
+      window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
+      window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
+      window._mfq.push(["setVariable", "SCORE", scoring[1]]);
+      window._mfq.push(["setVariable", "RESPONSE", data.response[0]]);
     }
 
     if(isNaN(data.q)) {//save free response
@@ -501,10 +508,7 @@ var stimulus = {
     window._mfq.push(["setVariable", "MARK", data.mark]);
     window._mfq.push(["setVariable", "IXN", data.ixn]);
 
-    window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
-    window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
-    window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
-    window._mfq.push(["setVariable", "SCORE", scoring[1]]);
+   
   },
   data:{
     sid: sid,
