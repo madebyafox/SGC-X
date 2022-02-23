@@ -34,7 +34,11 @@ let sumSubject = function (jsp){
      violations: (Object.keys(ixn["trials"]).length)/2,
      absolute_score : scorable.select('correct').sum(),
      discriminant_score : scorable.select('discriminant').sum(),
-     strict_score : scorable.select('strict').sum()
+     tri_score : scorable.select('tri_score').sum(),
+     orth_score : scorable.select('orth_score').sum(),
+     other_score : scorable.select('other_score').sum(),
+     blank_score : scorable.select('blank_score').sum()
+    //  strict_score : scorable.select('strict').sum()
   };
   return subject_data;
 

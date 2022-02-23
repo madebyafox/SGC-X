@@ -82,19 +82,20 @@ var jsPsych = initJsPsych({
     })
   .done(function() {
     console.log("----DATA SAVED TO DATABASE!-----");
-    // window.location.href = "finish?subject="+sid; //push subjectID to finish page so it can be entered in qualtrics
+    
+    //assign sona credit for SGC3A via 21JH01
+    if(exp_id == 2218) {
+      console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
+      window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+    }
+    window.location.assign('src/debrief.html');
   })
   .fail(function() {
     alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
     // window.location.href = "/";
   })
     
-    //assign sona credit for SGC3A via 21JH01
-    if(exp_id == 2218) {
-      console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
-      // window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
-    }
-    // window.location.assign('src/debrief.html');
+    
   }
 });
 
@@ -824,25 +825,25 @@ function buildProcedure(){
   //--------- TIMELINE ----------/
 
     //ASSEMBLE TIMELINE
-    // timeline.push(preload);
-    // timeline.push(welcome);
-    // timeline.push(devices);
-    // timeline.push(browsercheck);
-    // timeline.push(consent);
-    // if (mode == "synch") {timeline.push(setup_synch);}
-    // else {timeline.push(setup_asynch);}
-    // timeline.push(enter_fullscreen);
-    // timeline.push(instructions);
+    timeline.push(preload);
+    timeline.push(welcome);
+    timeline.push(devices);
+    timeline.push(browsercheck);
+    timeline.push(consent);
+    if (mode == "synch") {timeline.push(setup_synch);}
+    else {timeline.push(setup_asynch);}
+    timeline.push(enter_fullscreen);
+    timeline.push(instructions);
     timeline.push(procedure);
-    // timeline.push(almost_there);
-    // timeline.push(effort_rating);
-    // if (pool != "sona"){
-    // //   //TODO MAKE GENERAL DEMOGRAPHICS
-    // } else {
-    //   timeline.push(demographics_sona);
-    // }    
-    // if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
-    // timeline.push(exit_fullscreen);
+    timeline.push(almost_there);
+    timeline.push(effort_rating);
+    if (pool != "sona"){
+    //   //TODO MAKE GENERAL DEMOGRAPHICS
+    } else {
+      timeline.push(demographics_sona);
+    }    
+    if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
+    timeline.push(exit_fullscreen);
 
 }//end function
 
