@@ -24,6 +24,12 @@ let sumSubject = function (jsp){
      study:data.select("study").values[0],
      session:data.select("session").values[0],
      condition:data.select("condition").values[0],
+     
+     pool: data.select("pool").values[0], 
+     mode: data.select("mode").values[0], 
+     exp_id: data.select("exp_id").values[0], 
+     sona_id: data.select("sona_id").values[0], 
+
      browser: brwsr.select("browser").values[0],
      width : brwsr.select("width").values[0],
      height : brwsr.select("height").values[0],

@@ -452,7 +452,7 @@ var stimulus = {
   cont_btn: "testingButton",
   on_start: function(){
     if(session != "blank"){ //don't track in mouseflow if session is not set in querystring
-      window._mfq.push(["newPageView", "/"+q]);
+      window._mfq.push(["newPageView", "/"+this.data.q]);
     }
   },
   on_finish: function(data) {
