@@ -451,7 +451,9 @@ var stimulus = {
   force_refresh:true,
   cont_btn: "testingButton",
   on_start: function(){
-    window._mfq.push(["newPageView", "/"+q]);
+    if(session != "blank"){ //don't track in mouseflow if session is not set in querystring
+      window._mfq.push(["newPageView", "/"+q]);
+    }
   },
   on_finish: function(data) {
     let scoring = score(data.response[0], data.q);
@@ -465,11 +467,13 @@ var stimulus = {
       data.blank_score = scoring[5];
 
       //PUSH mouseflow answers  
-      window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
-      window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
-      window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
-      window._mfq.push(["setVariable", "SCORE", scoring[1]]);
-      window._mfq.push(["setVariable", "RESPONSE", data.response[0]]);
+      if(session != "blank"){ //don't track in mouseflow if session is not set in querystring
+        window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
+        window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
+        window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
+        window._mfq.push(["setVariable", "SCORE", scoring[1]]);
+        window._mfq.push(["setVariable", "RESPONSE", data.response[0]]);
+      }
     }
 
     if(isNaN(data.q)) {//save free response
