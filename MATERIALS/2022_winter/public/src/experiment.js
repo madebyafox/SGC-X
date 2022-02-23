@@ -644,7 +644,8 @@ function initializeStudy() {
     pool: pool, 
     mode: mode,
     exp_id: exp_id,
-    sona_id: sona_id
+    sona_id: sona_id,
+    source:"limitless-plains"
   });
 
   console.log("SUBJECT: "+sid);
