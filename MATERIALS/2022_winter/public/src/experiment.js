@@ -247,13 +247,15 @@ var satisf_answers = ["NULL"]; //index as null
   var enter_fullscreen = {
     type: jsPsychFullscreen,
     message: '<p>You will now enter fullscreen mode.</p>',
-    fullscreen_mode: true
+    fullscreen_mode: true,
+    data: {block:"fullscreen"}
   }
 
   //EXIT FULLSCREEN
   var exit_fullscreen = {
     type: jsPsychFullscreen,
-    fullscreen_mode: false
+    fullscreen_mode: false,
+    data: {block:"fullscreen"}
   }
 
   //TASK INSTRUCTIONS
@@ -277,10 +279,7 @@ var satisf_answers = ["NULL"]; //index as null
     choices: ['Enter'],
     stimulus_height :  window.innerHeight,
     maintain_aspect_ratio : true,
-    data: {
-      block:"scenario"
-    },
-    on_start: function(data){}  
+    data: {block:"scenario"}
   };
 
   //SCENARIO CONTINUE
@@ -290,18 +289,13 @@ var satisf_answers = ["NULL"]; //index as null
     choices: ['Enter'],
     stimulus_height :  window.innerHeight,
     maintain_aspect_ratio : true,
-    data: {
-      block:"scenario"
-    },
-    on_start: function(data){}  
+    data: {block:"scenario"}
   };
 
   //ENCOURAGEMENT
   var almost_there = {
     type: jsPsychHtmlButtonResponse,
-    data:{
-      block:"almost_there"
-    },
+    data:{block:"almost_there"},
     stimulus: '<img src="../media/almost_done_puppy.jpeg"</img>',
     choices: ['Continue',],
     // prompt: "<p>Thank you for your effort! You're almost done!</p>"
