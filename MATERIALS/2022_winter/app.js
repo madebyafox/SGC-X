@@ -1,54 +1,75 @@
 // --- LOADING MODULES
-var express = require('express'),
+const express = require('express'),
     mongoose = require('mongoose'),
     body_parser = require('body-parser');
 
 // --- INSTANTIATE THE APP
-var app = express();
+const app = express();
 
 // --- DB DRIVERS
 var emptySchema = new mongoose.Schema({}, { strict: false }); //schemaless db
 var Entry = mongoose.model('Entry', emptySchema);
 
-mongoose.connect('mongodb://localhost/local_SGCX'); //FOR LOCAL
-// mongoose.connect(process.env.CONNECTION); //FOR SERVER
+//DB CONNECTION STRING
+var x = 'mongodb://localhost/local_SGCX'; //FOR LOCAL
+// var x = process.env.CONNECTION; //FOR SERVER
+
+//ORIGINAL DB LOGIC -------------------------
+mongoose.connect(x); 
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error'));
 db.once('open', function callback() {
     console.log('database opened');
 });
+//--------------------------------------------------
+
+//————— NEW DB CONNECTION LOGIC———————————————————————————
+// mongoose default connection logic now deprecated
+//https://mongoosejs.com/docs/4.x/docs/connections.html#use-mongo-client
+
+// var promise = mongoose.connect(x, { 
+//     useMongoClient: true,
+//     /* other options */
+//   });
+
+//SERVER 
+// Using `mongoose.connect`...
+// var promise = mongoose.connect(process.env.CONNECTION, { //FOR SERVER
+//     useMongoClient: true,
+//     /* other options */
+//   });
+  
+//   promise.then(function(db) {
+//     // /* Use `db`, for instance `db.model()`
+//     db.on('error', console.error.bind(console, 'connection error'));
+//     db.once('open', function callback() {
+//       console.log('database opened');
+//     });
+//   });
+//---------------———————----------------------------------
 
 // --- STATIC MIDDLEWARE
 app.use(express.static(__dirname + '/public'));
-// app.use('/jsPsych7', express.static(__dirname + "/jsPsych7"));
-// app.use('/jsPsych', express.static(__dirname + "/jsPsych"));
 
 // --- BODY PARSING MIDDLEWARE
-// app.use(body_parser.json());
 app.use(body_parser.json({limit: '500mb'}));
 
-
 // --- VIEW LOCATION, SET UP SERVING STATIC HTML
-app.set('views', __dirname + '/public/views');
+// app.set('', __dirname + '/public');
+app.set('jspsych7', __dirname + '/public/jspsych7');
+
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
 // --- ROUTING
+
+//GET PAGES
 app.get('/', function(request, response) {
     response.render('index.html');
 });
-//the main experiment
-app.get('/experiment', function(request, response) {
-    response.render('experiment.html');
-});
 
-
-
-//log data to node console
-// app.post('/experiment-data', function(request, response) {
-//     console.log(request.body);
-// })
+//POST DATA
 app.post('/experiment-data', function(request, response){
     Entry.create({
         "data":request.body
