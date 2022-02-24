@@ -97,12 +97,18 @@ db.final_participants.aggregate([
 //CREATE A COLLECTION OF TEST ITEMS [with mouse data]
 db.BY_TRIAL.aggregate([
     {$match: {block: {$in: ["item_scaffold","item_nondiscriminant","item_test"] }}},
+    //supress unecessary fields
+    {$project: {
+        url: 0,
+        trial_type: 0,
+        trial_index:0,
+        internal_node_id: 0
+    }},
     {$out: "final_items_mouse"}
 ]);
 
 //CREATE A COLLECTION OF TEST ITEMS [no mouse data]
-db.BY_TRIAL.aggregate([
-    {$match: {block: {$in: ["item_scaffold","item_nondiscriminant","item_test"] }}},
+db.final_items_mouse.aggregate([
     //suppress mouse-related data
     {$project: {
         response : 0,
