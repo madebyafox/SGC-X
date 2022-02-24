@@ -78,31 +78,31 @@ var jsPsych = initJsPsych({
     jsPsych.data.displayData(); //display all data to screen
 
     //SAVE DATA TO DATABASE
-    $.ajax({
-      type: "POST",
-      url: "/experiment-data",
-      data: JSON.stringify(jsPsych.data.get()),
-      contentType: "application/json"
-    })
-  .done(function() {
-    console.log("----DATA SAVED TO DATABASE!-----");
-    
-    //IF THE SUBJECT DIDN'T BROWSER-FAIL OUT
-    if (last_type != "browser-check"){
-      //assign sona credit for SGC3A via 21JH01
-      if(exp_id == 2218) {
-        console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
-        window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
-      }
-      window.location.assign('src/debrief.html');
+    if (!urlvar.q){
+      $.ajax({
+        type: "POST",
+        url: "/experiment-data",
+        data: JSON.stringify(jsPsych.data.get()),
+        contentType: "application/json"
+      })
+      .done(function() {
+        console.log("----DATA SAVED TO DATABASE!-----");
+        //IF THE SUBJECT DIDN'T BROWSER-FAIL OUT
+        if (last_type != "browser-check"){
+          //assign sona credit for SGC3A via 21JH01
+          if(exp_id == 2218) {
+            console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
+            window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+          }
+          window.location.assign('src/debrief.html');
+        }
+      })
+      .fail(function() {
+        alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
+        // window.location.href = "/";
+      })  
     }
-  })
-  .fail(function() {
-    alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
-    // window.location.href = "/";
-  })
-    
-    
+   
   }
 });
 
@@ -127,7 +127,7 @@ const conditions = {
 const grant_sona_sgc3a = "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=";
 
 //INITIALIZE GLOBAL VARIABLES 
-let study, session, condition, mode, pool, sona_id, exp_id;
+let study, session, condition, mode, pool, sona_id, exp_id, urlvar;
 let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
 let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
@@ -562,7 +562,7 @@ function initializeStudy() {
   console.log("INITIALIZING STUDY ...");
   
   //PARSE PARAMETERS FROM QUERYSTRING
-  var urlvar = jsPsych.data.urlVariables();
+  urlvar = jsPsych.data.urlVariables();
   study = urlvar.study ?? 'SGCX';   //default to demo
   session = urlvar.session ?? "blank"; 
   condition = urlvar.condition ?? 'R'; //default to random assign
@@ -835,26 +835,32 @@ function buildProcedure(){
   //--------- TIMELINE ----------/
 
     //ASSEMBLE TIMELINE
-    timeline.push(preload);
-    timeline.push(welcome);
-    timeline.push(devices);
-    timeline.push(browsercheck);
-    timeline.push(consent);
-    if (mode == "synch") {timeline.push(setup_synch);}
-    else {timeline.push(setup_asynch);}
-    timeline.push(enter_fullscreen);
-    timeline.push(instructions);
-    timeline.push(procedure);
-    timeline.push(almost_there);
-    timeline.push(effort_rating);
-    if (pool != "sona"){
-    //   //TODO MAKE GENERAL DEMOGRAPHICS
-    } else {
-      timeline.push(demographics_sona);
-    }    
-    if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
-    timeline.push(exit_fullscreen);
-
+    
+    //skip straight to procedure
+    if (urlvar.q){
+      timeline.push(procedure);
+    }
+    else {
+      timeline.push(preload);
+      timeline.push(welcome);
+      timeline.push(devices);
+      timeline.push(browsercheck);
+      timeline.push(consent);
+      if (mode == "synch") {timeline.push(setup_synch);}
+      else {timeline.push(setup_asynch);}
+      timeline.push(enter_fullscreen);
+      timeline.push(instructions);
+      timeline.push(procedure);
+      timeline.push(almost_there);
+      timeline.push(effort_rating);
+      if (pool != "sona"){
+      //   //TODO MAKE GENERAL DEMOGRAPHICS
+      } else {
+        timeline.push(demographics_sona);
+      }    
+      if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
+      timeline.push(exit_fullscreen);
+    }
 }//end function
 
 //LOAD QUESTIONS FILE
