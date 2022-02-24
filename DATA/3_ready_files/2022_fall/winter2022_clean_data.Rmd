@@ -1,0 +1,203 @@
+---
+title: "Winter 2022 Data Cleaning"
+author: "Amy Rae Fox"
+date: "02/22/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+#SET CONDITION FACTORS FOR EACH STUDY
+#SGC3A is the simple insight study, control (111) vs impasse (121)
+f_sgc3a <- c(111,121) 
+
+#SGC3B is the factorial insight study (111 control, 121 insight, 211 static, 221 static-impasse, 311 ixn 321 ixn-impasse)
+
+f_sgc3b <- c(111,121,211,221,311,321)
+
+#SGC4 is the gridlines study 111, 112, 113
+f_sgc4 <- c(111,112,113)
+
+
+*The purpose of this file is processing the combined data files for Winter 2021 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
+
+```{r SETUP, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(jsonlite)
+library(tidyjson)
+library(dplyr)
+
+#set current folder as working directory
+# setwd("~/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/DATA/3_ready_files/spring_2018")
+```
+
+Data is imported from 2 files, indicating two levels of analysis: participants and blocks (item-level). **Note: mouse-cursor data contained in final_mouse_blocks.json file is not handled here.**
+
+```{r IMPORT}
+
+#IMPORT DATA
+df_participants <- fromJSON("combined_files/winter22_sgc3a_pilot_final_participants.json")
+df_items <- fromJSON('combined_files/winter22_sgc3a_pilot_final_items.json')
+
+#add term indicator
+df_participants$term <- "winter22"
+df_items$term <- "winter22"
+
+#define data collection sessions 
+sessions <- c('wi22sona') #SGC3A on SONA 
+             
+```
+
+
+```{r PARTICIPANTS-SETUP}
+
+#create factors in PARTICIPANTS
+df_participants <- df_participants %>%  
+  mutate( #create factors and remove extraneous ""
+    subject=factor(subject),
+    condition=factor(condition),
+    session=factor(session),
+    term=factor(term),
+    sex = as.factor(gender),
+    age = as.integer(age),
+    country = gsub('"',"",country),
+    year = factor(schoolyear),
+    native_language = factor(language)
+) 
+
+```
+
+```{r ITEMS-SETUP}
+
+df_items <- df_items %>% 
+  mutate(
+    subject=factor(subject),
+    condition=factor(condition),
+    session=factor(session),
+    term=factor(term),
+    explicit=factor(explicit),
+    grid=factor(grid),
+    impasse=factor(impasse),
+    q=factor(q)
+  ) 
+```
+
+### Completion Status
+
+Starting with Winter 2022, data are saved to the database even if the subject's browser did not meet minimum specifications, so that we can learn about the screensizes that folks are using. But these data should be excluded from the analysis datasets, because these individuals did not complete the task. 
+
+```{r STATUS}
+#MANUALLY INSPECT status
+df_participants %>% group_by(status) %>% 
+  dplyr::summarize(n=n())
+```
+
+Exclude data from participants that did not complete the task. 
+
+```{r STATUS-exclude}
+
+ex_participants <- df_participants %>% 
+  filter( !status %in% c('success','na') )  %>% 
+  mutate(reason="browser-fail")
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+```
+
+### Sessions
+
+The (string) session code is embedded in the URL querystring by the experimenter to differentiate testing sessions in SONA and test/environment checkout. 
+
+```{r SESSIONS}
+#MANUALLY INSPECT sessions
+df_participants %>% group_by(session) %>% 
+  dplyr::summarize(n=n())
+```
+
+Data from sessions not corresponding to valid sessions should be discarded. 
+
+```{r SESSIONS}
+
+#DISCARD participants from invalid sessions 
+exclude_session <- df_participants %>% 
+          filter(!session %in% sessions) %>% 
+          mutate(reason="invalid-session")
+
+ex_participants <- rbind(ex_participants, exclude_session)
+rm(exclude_session)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+
+```
+
+
+### TODO: EFFORT
+
+
+### Wrangle Items
+
+Finally, discard item-level data for excluded participants. 
+
+```{r FILTER-ITEMS}
+
+ex_items <- df_items %>% 
+  filter (subject %in% ex_participants$subject) 
+
+df_items <- df_items %>% 
+  filter (!subject %in% ex_participants$subject )
+  
+```
+
+
+### Conditions
+
+The condition code is either entered via the querystring (by the experimenter), or randomly assigned by the system. The condition code determines the stimulus that the participant experiences during the study. 
+
+```{r CONDITIONS}
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
+
+
+
+Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition. 
+```{r GENERATE FILES}
+
+#SEPARATE PARTICIPANTS FILES
+df_sgc3a <- df_participants %>% filter (condition %in% f_sgc3a)
+df_sgc3a %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+write.csv(df_sgc3a,"study_files/fall21_sgc3a_participants.csv", row.names = FALSE)
+
+df_sgc3b <- df_participants %>% filter (condition %in% f_sgc3b)
+df_sgc3b %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc3b,"study_files/fall21_sgc3b_participants.csv", row.names = FALSE)
+
+df_sgc4 <- df_participants %>% filter (condition %in% f_sgc4)
+df_sgc4 %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc4,"study_files/fall21_sgc4_participants.csv", row.names = FALSE)
+
+#WRITE FILES FOR DUPS
+write.csv(df_duplicate_participants,"study_files/fall21_SGCDUPLICATE_participants.csv", row.names = FALSE)
+write.csv(df_duplicate_blocks,"study_files/fall21_SGCDUPLICATE_blocks.csv", row.names = FALSE)
+
+#SEPARATE BLOCKS FILES
+df_sgc3a <- df_blocks %>% filter (condition %in% f_sgc3a)
+df_sgc3a %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc3a,"study_files/fall21_sgc3a_blocks.csv", row.names = FALSE)
+
+df_sgc3b <- df_blocks %>% filter (condition %in% f_sgc3b)
+df_sgc3b %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc3b,"study_files/fall21_sgc3b_blocks.csv", row.names = FALSE)
+
+df_sgc4 <- df_blocks %>% filter (condition %in% f_sgc4)
+df_sgc4 %>% group_by(condition) %>% 
+  summarize(n=n())
+write.csv(df_sgc4,"study_files/fall21_sgc4_blocks.csv", row.names = FALSE)
+
+```
