@@ -14,30 +14,39 @@ let sumIxn = function (jsp){
 
 //SUMMARIZE SUBJECT LEVEL DATA 
 let sumSubject = function (jsp){
-  const data = jsp.data.get().first(); //get just the last trial
+  const data = jsp.data.get().first(); //get just the first trial
+  const last = jsp.data.get().last(); //get just the last trial
+  let status = "success";
+  //was last trial the browsercheck?
+  let type = last.select("trial_index").values[0];
+  if (type == "browser-check"){
+    status = "browser-fail";
+  }
   const brwsr = jsp.data.get().filter([{trial_type: "browser-check"}]);
   const ixn = jsp.data.getInteractionData();
   const scorable = jsp.data.get().filter([{block:"item_scaffold"}, {block:"item_test"}]);
   var subject_data = {
      block:"participant",
+     status: status,
      subject:data.select("subject").values[0],
      study:data.select("study").values[0],
      session:data.select("session").values[0],
      condition:data.select("condition").values[0],
-     
      pool: data.select("pool").values[0], 
      mode: data.select("mode").values[0], 
      exp_id: data.select("exp_id").values[0], 
      sona_id: data.select("sona_id").values[0], 
-
+     last_trial: last.select("trial_index").values[0],
      browser: brwsr.select("browser").values[0],
      width : brwsr.select("width").values[0],
      height : brwsr.select("height").values[0],
      os : brwsr.select("os").values[0],
      refresh_rate: brwsr.select("refresh_rate").values[0],
+     
      starttime:jsp.getStartTime(),
      totaltime:jsp.getTotalTime(),
      violations: (Object.keys(ixn["trials"]).length)/2,
+     
      absolute_score : scorable.select('correct').sum(),
      discriminant_score : scorable.select('discriminant').sum(),
      tri_score : scorable.select('tri_score').sum(),
