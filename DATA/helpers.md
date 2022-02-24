@@ -1,12 +1,25 @@
-#HOWTO
+# HOWTO
+
+
+## Export Log
+
+- @2.23.22 EXPORT pilot data from server 
+mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_pilot.json
+
+- @2.23.22 IMPORT pilot data to local
+mongoimport -d local_SGCX -c entries --file wi22_pilot.json
+
+- @2.23.22 EXPORT flattened data for validation
+mongoexport -d local_SGCX -c final_participants --jsonArray --out winter22_sgc3a_pilot_final_participants.json
+mongoexport -d local_SGCX -c final_items --jsonArray --out winter22_sgc3a_pilot_final_items.json
+
+- @1.27.22 Download data from server database
+mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out fall_2021_backup.json
+
 
 -query embedded/nested fields in mongodb
 https://docs.mongodb.com/manual/tutorial/query-embedded-documents/
 db.getCollection('entries').find({"data.subject":'8QMTP'})
-
-
-@1.27.22 Download data from server database
-mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out fall_2021_backup.json
 
 
 mongoimport -d FALL2021 -c fall_wip --file fall2021-wip.json
