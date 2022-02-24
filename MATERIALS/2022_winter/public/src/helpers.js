@@ -17,11 +17,13 @@ let sumSubject = function (jsp){
   const data = jsp.data.get().first(); //get just the first trial
   const last = jsp.data.get().last(); //get just the last trial
   let status = "success";
+  
   //was last trial the browsercheck?
-  let type = last.select("trial_index").values[0];
-  if (type == "browser-check"){
+  let last_type = last.select("trial_type").values[0];
+  if (last_type == "browser-check"){
     status = "browser-fail";
   }
+  
   const brwsr = jsp.data.get().filter([{trial_type: "browser-check"}]);
   const ixn = jsp.data.getInteractionData();
   const scorable = jsp.data.get().filter([{block:"item_scaffold"}, {block:"item_test"}]);

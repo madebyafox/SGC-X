@@ -64,6 +64,10 @@ var jsPsych = initJsPsych({
   ],
   on_finish: function(){  
 
+    //get last trial type
+    const last = jsPsych.data.get().last(); //get just the last trial
+    let last_type = last.select("trial_type").values[0];
+
     //generate subject summary
     jsPsych.data.get().push(sumSubject(jsPsych)); 
     
@@ -83,12 +87,15 @@ var jsPsych = initJsPsych({
   .done(function() {
     console.log("----DATA SAVED TO DATABASE!-----");
     
-    //assign sona credit for SGC3A via 21JH01
-    if(exp_id == 2218) {
-      console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
-      window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+    //IF THE SUBJECT DIDN'T BROWSER-FAIL OUT
+    if (last_type != "browser-check"){
+      //assign sona credit for SGC3A via 21JH01
+      if(exp_id == 2218) {
+        console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
+        window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+      }
+      window.location.assign('src/debrief.html');
     }
-    window.location.assign('src/debrief.html');
   })
   .fail(function() {
     alert("A problem occurred while writing to the database. Please contact the researcher for more information.")
@@ -198,7 +205,11 @@ var satisf_answers = ["NULL"]; //index as null
         return '<p>This study must be completed in the <b style="color:red">Chrome</b> web browser. To continue, please open Chrome, and copy/paste the URL from the address bar.</p>'
       }
       else { //size violation
-        return '<p>You have indicated that you cannot increase the size of your browser window.</p> <p> If you <i>can</i> maximize your window, please do so now, and press the REFRESH button.</p> <p>Otherwise, you can close this tab.</p>';
+        return '<p>You have indicated that you cannot increase the size of your browser window.</p>'+
+        '<p> If you <i>can</i> maximize your window, please do so now, and press the REFRESH button.</p>'+ 
+        '<p>Otherwise, you will (unfortunately) be unable to complete this study.</p>'+ 
+        '<p style = "color:red"> Your SONA record will be updated to EXCUSED NO SHOW (no penalty to yourself).</p>'+
+        '<p style = "color:black"> You can now close this tab.</p>';
       }
     },
     data:{block:"browser_check"},
