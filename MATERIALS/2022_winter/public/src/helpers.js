@@ -23,7 +23,7 @@ let sumSubject = function (jsp){
   if (last_type == "browser-check"){
     status = "browser-fail";
   }
-  
+
   const brwsr = jsp.data.get().filter([{trial_type: "browser-check"}]);
   const ixn = jsp.data.getInteractionData();
   const scorable = jsp.data.get().filter([{block:"item_scaffold"}, {block:"item_test"}]);
