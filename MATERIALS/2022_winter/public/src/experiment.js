@@ -92,7 +92,7 @@ var jsPsych = initJsPsych({
           //assign sona credit for SGC3A via 21JH01
           if(exp_id == 2218) {
             console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
-            window.open(grant_sona_sgc3a+sona_id, '_blank'); //open in new tab
+            window.open(grant_sona[study]+sona_id, '_blank'); //open in new tab
           }
           window.location.assign('src/debrief.html');
         }
@@ -111,10 +111,17 @@ var jsPsych = initJsPsych({
 //DEFINE CONDITIONS PER STUDY
 const studies = {
   SGC3A: ["111","121"],
-  SGC3B: ["111", "121", "211", "221", "311","321"]
+  // SGC3B: ["111", "121", "211", "221", "311","321"],
+  SGC4A: ["115","111","114","113"]
 };
 
-//DEFINE CONDITION VALUES PER DIGIT 
+//SET SONA REDIRECTS
+const grant_sona = {
+  SGC3A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
+  SGC4A:  "TODO"
+}
+
+//DEFINE VALID VALUES PER DIGIT CONDITION
 const conditions = {
   1: ["1","2","3"],          //explicit
   2: ["1","2"],              //impasse
@@ -123,15 +130,12 @@ const conditions = {
   5: ["1","2","3","4","5"]   //ixn
 }
 
-//SET SONA redirect urls 
-const grant_sona_sgc3a = "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=";
-
 //INITIALIZE GLOBAL VARIABLES 
 let study, session, condition, mode, pool, sona_id, exp_id, urlvar;
 let sid, explicit, impasse, grid, mark, ixn, colorClick, question_file; 
 let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
-let procedure_timeline, scaffold_timeline, test_timeline;
+let procedure_timeline, scaffold_timeline, test_timeline, free;
 
 //INITIALIZE QUESTIONS ARRAYS [read from file]
 var questions = ["NULL"]; //q number
@@ -143,6 +147,7 @@ var also_answers = ["NULL"]; //index as null
 var orth_answers = ["NULL"]; //index as null
 var tvsky_answers = ["NULL"]; //index as null
 var satisf_answers = ["NULL"]; //index as null
+
 
 //--------------- DEFINE  TIMELINE COMPONENTS -------------------//  
 
@@ -235,9 +240,8 @@ var satisf_answers = ["NULL"]; //index as null
   }
 
   //SETUP FOR SYNCH
-  //assumes experimenter leads through 
-  //silencing notifications
   var setup_synch = {
+    //assumes experimenter leads through silencing notifications
     type: jsPsychInstructions,
     pages: [
     '<h2>This study will require [15-30] minutes of your <b>undivided</b> attention.',
@@ -245,7 +249,7 @@ var satisf_answers = ["NULL"]; //index as null
     'Please <b>do not</b> take any breaks, or switch to another tab or application.'+
     '<br>(we collect data on whether you click outside this browser tab ;) ',
     'Please make your best effort to complete the study tasks, <b>without</b> consulting additional resources (aka. the internet)',
-    'To receive credit for your participation, please DM the experimenter with the ID CODE you receive on the LAST page of the study',
+    '<p style = "color:red"> To receive credit for your participation, please message the experimenter with the ID CODE you receive on the LAST page of the study</p>',
     '<h2> We understand your time is valuable. <br> Thank you for contributing to our research with your earnest effort! </h2>'
     ],
     show_clickable_nav: true,
@@ -453,9 +457,17 @@ var satisf_answers = ["NULL"]; //index as null
     ],
     button_label_finish: 'Continue'
   };
+
+  //MANUAL CREDIT GRANT
+  var finish_synch = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
+    prompt: "<p style='color:red'>To receive SONA CREDIT, please DM the experimenter with your NAME and subject code now.</p> <br> <i>PRESS ENTER TO FINISH</i>",
+    choices: ["Enter"]
+  };
   
-//STIMULUS TRIAL
-var stimulus = {
+  //STIMULUS TRIAL
+  var stimulus = {
   type: jsPsychExternalHtml,
   url: '../src/stimulus.html',
   execute_script: true,
@@ -549,102 +561,97 @@ var stimulus = {
     // }}
   ],
   response_el: 'answer', //name of element where response is stored
-} 
+  } 
   
 
 //NOTE:: BLOCKS AND PROCEDURE DEFINED IN buildProcedure() 
 //-----------------------------------------------------------------//  
 
 //--------------- HELPER FUNCTIONS --------------------------------//  
+
 //SET STUDY-SPECFIC PARAMETERS
 function initializeStudy() {
   
   console.log("INITIALIZING STUDY ...");
-  
+
   //PARSE PARAMETERS FROM QUERYSTRING
   urlvar = jsPsych.data.urlVariables();
   study = urlvar.study ?? 'SGCX';   //default to demo
   session = urlvar.session ?? "blank"; 
   condition = urlvar.condition ?? 'R'; //default to random assign
   condition = condition.toString();
-  mode = urlvar.mode ?? 'asynch';
-  pool = urlvar.pool ?? 'sona';
+  mode = urlvar.mode ?? 'asynch'; //asynch or synch delivery
+  pool = urlvar.pool ?? 'sona'; //sona or prolific or amt
   exp_id = urlvar.exp_id ?? "" ; //SONA EXPERIMENT ID for deciding which study to grant credit to
   sona_id = urlvar.sona_id ?? ""; //SONA SUBJECT ID  for auto credit grant 
-
-  q = urlvar.q;
+  q = urlvar.q; //demo mode jump straight to q
   graph = urlvar.graph ?? "triangular" //need to handle errors
-  gwidth = urlvar.gwidth ?? 600;
-  gheight = urlvar.gheight ?? 600;
+  gwidth = urlvar.gwidth ?? 600; //graph width 
+  gheight = urlvar.gheight ?? 600; //graph height
   
+  //ASSIGN SUBJECT ID 
+  sid = jsPsych.randomization.randomID(5).toUpperCase();
 
   //VALIDATE STUDY 
   if (Object.keys(studies).indexOf(study) == -1 && (study != "SGCX")) {
     alert("INVALID STUDY CODE");
   }
 
-  //VALIDATE CONDITION 
-  if (condition != "R"){
+  //SET CONDITION
+  //validate condition from querystring, and random assign
+  switch(condition){
     
-    //IS CONDITION IN VALID FORM?
-    var temp = condition.split('');
-    if(temp.length < 3) {
-      alert("INVALID CONDITION CODE (minimum 3 digits");
-    }
-
-    //VALIDATE CONDITION AGAINST ALL POSSIBLE
-    if (study == "SGCX"){ //allow any valid condition code  
-      temp.forEach(function(value, index, array){
-        if (!conditions[index+1].includes(value)){
-          alert("INVALID CONDITION CODE: no "+value+" in "+(index+1)+" position");
-        };
-      });
-    }
-
-    //VALIDATE CONDITION AGAINST STUDY
-    else { //allow conditions in study
-      if(! studies[study].includes(condition)){
-        alert("INVALID CONDITION FOR STUDY CODE");
-      }
-    }
-    //TODO ERROR HANDLING (DON'T CONTINUE STUDY)
-  }
-
-  //ASSIGN SUBJECT ID 
-  sid = jsPsych.randomization.randomID(5).toUpperCase();
-
-  //CONFIGURE CONDITION-DEPENDENT PARAMETERS
-  console.log("SETUP : "+study);
-  switch (study){
-   
-    case "SGC3A":   
-      //RANDOMIZE CONDITION if not in querystring
-      if(condition == 'R'){  
-        console.log("-- randomizing condition from-- "+studies.SGC3A);
-        let x = jsPsych.randomization.shuffle(studies.SGC3A);
-        condition = x[0].toString();
-      } 
-      question_file = "src/data/questions/SGC3A_"+condition.charAt(1)+"_questions.csv";
-      break;
-
-    case "SGC3B":
-      break;
+    //RANDOM ASSIGN
+    case "R": 
       
-    default: //SGCX
-      //read querystring OR DEFAULT
-      if (condition == 'R') {condition = "11111"}; //control default
-      explicit = condition.charAt(0);
-      impasse = condition.charAt(1); 
-      grid = condition.charAt(2); 
-      mark = condition.charAt(3) ?? 1; 
-      ixn =  condition.charAt(4) ?? 1; 
-      colorClick = (ixn == 5 ) ; //only checkbox 
-      question_file = "src/data/questions/SGC3A_"+impasse+"_questions.csv";
-      break; 
-
-    console.log("CONDITION: "+condition);
-    console.log("SESSION: "+session);
+      condition = randomAssign(study);
+      break;
+    
+    //VALIDATE CONDITION FORM
+    default:
+      
+      //IS CONDITION LONG ENOUGH?
+      var temp = condition.split('');
+      if(temp.length < 3) {
+        alert("INVALID CONDITION CODE (minimum 3 digits");
+      }
+      
+      //IS CONDITION IN VALID FORM?
+      if (study == "SGCX"){ //allow any valid condition code  
+        temp.forEach(function(value, index, array){
+         if (!conditions[index+1].includes(value)){
+            alert("INVALID CONDITION CODE: no "+value+" in "+(index+1)+" position");
+          };
+        });
+      }
+      
+      //IS CONDITION VALID FOR GIVEN STUDYSTUDY?
+      else { //allow conditions in study
+        if(! studies[study].includes(condition)){
+          alert("INVALID CONDITION FOR STUDY CODE");
+        }
+      }
+      
+      //TODO ERROR HANDLING (DON'T CONTINUE STUDY)
+      break;
   }
+
+  //SET PARAMETERS
+  explicit = condition.charAt(0);
+  impasse = condition.charAt(1); 
+  grid = condition.charAt(2); 
+  mark = condition.charAt(3) ?? 1; 
+  ixn =  condition.charAt(4) ?? 1; 
+  colorClick = (ixn == 5 ) ; //only checkbox 
+  question_file = "src/data/questions/SGC3A_"+impasse+"_questions.csv";
+
+  console.log("SUBJECT: "+sid);
+  console.log("STUDY: "+study);
+  console.log("SESSION: "+session);
+  console.log("CONDITION: "+condition);
+  console.log("POOL: "+pool);
+  console.log("MODE: "+mode);
+  console.log("Q: "+q);
 
   //ADD STUDY LEVEL PROPERTIES
   jsPsych.data.addProperties({ 
@@ -659,13 +666,7 @@ function initializeStudy() {
     source:"limitless-plains"
   });
 
-  console.log("SUBJECT: "+sid);
-  console.log("STUDY: "+study);
-  console.log("SESSION: "+session);
-  console.log("CONDITION: "+condition);
-  console.log("POOL: "+pool);
-  console.log("MODE: "+mode);
-} 
+}//end function
 
 //BUILD STUDY-SPECFIC PROCEDURE
 function buildProcedure(){
@@ -685,7 +686,7 @@ function buildProcedure(){
     case "SGC3A":
 
       //last question q="F" is freeresponse, q="F" to bypass scoring
-      let free = "Please describe how to determine what event(s) start at 12pm?";
+      free = "Please describe how to determine what event(s) start at 12pm?";
 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
@@ -724,7 +725,39 @@ function buildProcedure(){
     //---------------------------------------------------  
     case "SGC3B"  :
       break;
-    
+
+    //---------------------------------------------------
+    //SGC 4A --> 4 GRID [ maximal, control, minimal, triangular ]
+    //PROCEDURE SAME across all conditions
+    //CONDITION controls stimuli
+    //EXPLICIT = 1, IMPASSE = 1, MARK = 1, IXN = 1, 
+    //---------------------------------------------------  
+    case "SGC4A"  :
+      //last question q="F" is freeresponse, q="F" to bypass scoring
+      free = "Please describe how to determine what event(s) start at 12pm?";
+
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      test_timeline = [
+         { q:1,  grid : condition.charAt(3), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
+         { q:2,  grid : condition.charAt(3), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
+         { q:3,  grid : condition.charAt(3), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
+         { q:4,  grid : condition.charAt(3), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
+         { q:5,  grid : condition.charAt(3), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" },
+         { q:6,  grid : condition.charAt(3), impasse: 1, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+         { q:7,  grid : condition.charAt(3), impasse: 1, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+         { q:8,  grid : condition.charAt(3), impasse: 1, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
+         { q:9,  grid : condition.charAt(3), impasse: 1, question: questions[9],  datafile: datas[9],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+         { q:10, grid : condition.charAt(3), impasse: 1, question: questions[10], datafile: datas[10], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+         { q:11, grid : condition.charAt(3), impasse: 1, question: questions[11], datafile: datas[11], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+         { q:12, grid : condition.charAt(3), impasse: 1, question: questions[12], datafile: datas[12], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+         { q:13, grid : condition.charAt(3), impasse: 1, question: questions[13], datafile: datas[13], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+         { q:14, grid : condition.charAt(3), impasse: 1, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+         { q:15, grid : condition.charAt(3), impasse: 1, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+         //FREE RESPONSE QUESTION
+         { q:"f", grid : condition.charAt(1),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
+      ];
+      break;
+      
     //---------------------------------------------------
     //SGCX --> DEFAULT DEMO
     //ALL PARAMETERS SET BY CONDITION
@@ -732,20 +765,17 @@ function buildProcedure(){
     //---------------------------------------------------
     default: 
       
-    //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION (repeats q x 2)
+    //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION 
     if (q){
       console.log("JUMPING TO QUESTION: "+q);
-      scaffold_timeline = [
-        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
-      ];
-      test_timeline=[
+      console.log("PRINTING GRID: "+grid);
+      test_timeline = [
         { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
       ];
     }
 
     else { //RUN ALL QUESTIONS BASED ON PARAMETERS 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
-      //TODO CHECK THESE
       scaffold_timeline = [
         { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
         { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
@@ -754,7 +784,6 @@ function buildProcedure(){
         { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
      ];
      
-     //TODO CHECK THESE
      //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE
      test_timeline = [
        { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
@@ -786,58 +815,24 @@ function buildProcedure(){
      randomize_order: false
   }
 
-  // PLACEHOLDER KEEP GOING! 
+  const procedures = {
+    SGC3A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
+    SGC4A: {timeline: [scenario_1, block_test]},
+    SGCX:  {timeline: [block_test]},
+  };
 
   //STIMULUS PROCEDURE
-  var procedure = {
-      timeline: [scenario_1, block_scaffold, scenario_2, block_test]
-  }
-
-  //MANUAL CREDIT GRANT
-  var finish_synch = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
-    prompt: "<p style='color:red'>To receive SONA CREDIT, please DM the experimenter with your NAME and subject code now.</p> <br> <i>PRESS ENTER TO FINISH</i>",
-    choices: ["Enter"]
-  };
-
-
-  //NOTES ON AUTO ASSIGNMENT OF SONA CREDIT 
-  
-  //see https://www.sona-systems.com/help/jspsych.aspx
-  //also https://www.sona-systems.com/help/integration_test.aspx
-  
-  // 1 | change the Study URL so it includes ?sona_id=%SURVEY_CODE% in the URL
-  // 2 | Having completed Step 1 ... the Study Information on your Sona Systems site now displays two URLs labeled "Completion URLs". T
-  //    similar to: https://yourschool.sona-systems.com/webstudy_credit.aspx?experiment_id=123&credit_token=4e48f9b638a&survey_code=XXX" 
-
-  //EG FOR 21JH01
-  //client side https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=XXXX
-  //server side https://ucsd.sona-systems.com/services/SonaAPI.svc/WebstudyCredit?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=XXXX
-
-  //In jsPsych, go to the source code of the task for the experiment 
-  //Add lines similar to the following block for both on_finish line 
-  //and the line beginning with let sona_id. 
-  //Use the Completion URL (client-side) from the Study Information Page in Sona. 
-  //Add lines similar to the following on_finish line to your experiment 
-  //(the URL you saved from the prior step with +sona_id after it as shown in example below) 
-  //and the line defining sona_id at the top.
-  
-  
-  //SONA ASYNCH CREDIT GRANT 
-  var grant_sona = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: '<p> Your subject code is: <b>'+sid+'</b></p>',
-    prompt: "<p style='color:red'>To receive SONA CREDIT, please press ENTER now.</p>",
-    choices: ["Enter"]
-  };
+  // var procedure = {
+  //     timeline: [scenario_1, block_scaffold, scenario_2, block_test]
+  // }
+  var procedure = procedures[study]
 
   //--------- TIMELINE ----------/
 
     //ASSEMBLE TIMELINE
     
     //skip straight to procedure
-    if (urlvar.q){
+    if (urlvar.q) {
       timeline.push(procedure);
     }
     else {
@@ -854,7 +849,7 @@ function buildProcedure(){
       timeline.push(almost_there);
       timeline.push(effort_rating);
       if (pool != "sona"){
-      //   //TODO MAKE GENERAL DEMOGRAPHICS
+      //  TODO MAKE GENERAL DEMOGRAPHICS
       } else {
         timeline.push(demographics_sona);
       }    
@@ -862,6 +857,14 @@ function buildProcedure(){
       timeline.push(exit_fullscreen);
     }
 }//end function
+
+//RANDOM ASSIGNMENT TO CONDITION
+function randomAssign(study){
+  console.log("-- randomizing condition from-- "+studies[study]);
+  let x = jsPsych.randomization.shuffle(studies[study]);
+  condition = x[0].toString(); 
+  return condition;
+}
 
 //LOAD QUESTIONS FILE
 function loadQuestions() {
@@ -985,7 +988,6 @@ var score = function (input, q){
   return [correct, discriminant_score, tri_score, orth_score, other_score, blank_score]; 
 }
 
-
 //RUN THE TIMELINE
 async function main() {
   initializeStudy();
@@ -998,7 +1000,8 @@ async function main() {
 //ALLONS-Y!
 main();
 
-//STRATEGY DISCRIMINANT SCORE ------------- 
+
+//STRATEGY DISCRIMINANT SCORE ---------------------------------------- 
 
   // // triangular = 1 
   // // +1/t for each correct r 
