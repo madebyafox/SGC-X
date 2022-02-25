@@ -192,32 +192,39 @@ function drawYGrid_Inside (x,y,min,max,range){
 //-----------VERTICAL GRID HELPER FUNCTIONS ---------------------------//
 function drawXGrid_Full (x,y,min,max,range){
 
+  console.log("DRAWING FULL X GRID");
   var t0 = min.clone();
   var t1 = max.clone();
   var r = range;  // the range of the data values
   var g = r;      //number of gradiations in the grid system (number of tickmarks)
   var i = r/g;    //size of each interval in the grid system
   // console.log("t0: "+ t0.format("HH:mm")+" t1: "+t1.format("HH:mm")+" r: "+r+" g: "+g+" i: "+i);
-
+console.log ("r is: "+r+" and i is "+i);
   svg.append("g")
      .attr("class", "xgrid");
 
-
+  //BUILD DIAGONAL GRID    
   for (n = 0; n < g; n++) {
       // console.log("n: "+n+"-------------------");
       // console.log("n*i"+ (n*i));
 
+      //define x start time 
       var x1 = t0.clone();
           x1 = x1.add(n*i,'hours');
 
+      //define x end time      
       var x2 = x1.clone();
           x2 = x2.add(6,'hours');
 
+      //don't extend beyond end of graph    
       if (x2 > t1){
         x2 = t1;
       }
+
+      //find duration
       y2 = x2.diff(x1,'minutes')/60*2;
 
+      //build right leaning line 
       svg.selectAll(".xgrid")
         .append("line")
         .attr("class","rgrid")
@@ -231,12 +238,14 @@ function drawXGrid_Full (x,y,min,max,range){
 
       x2 = x1.clone();
       x2 = x2.add(-6,'hours');
-
+      
+      //don't extend beyond end of graph    
       if (x2 < t0){
         x2 = t0;
       }
       y2 = x1.diff(x2,'minutes')/60*2;
 
+      //build left leaning lines
       svg.selectAll(".xgrid")
         .append("line")
         .attr("class","lgrid")
@@ -244,7 +253,69 @@ function drawXGrid_Full (x,y,min,max,range){
         .attr("y1",y(0))
         .attr("x2",x(x2))
         .attr("y2",y(y2))
-      }
+  }
+
+  //FILL IN ENDS    
+  let e = r / 2; //number of lines to fill in
+  let iy = i*2 ; //size of interval in y grid 
+  console.log("e is: "+e);
+  var a1, a2 ; //start time end time x  
+  var b1, b2 ; //star end duration  
+  
+  //build right leading fill ins
+  for ( z = 1; z < e ; z++) {
+    
+    //x start time 
+    a1 = t0.clone();
+
+    //x end time      
+    a2 = a1.clone();
+    a2 = a2.add(6-z,'hours');
+
+    //start duration 
+    b1 = z*iy;
+    //end  duration
+    b2 = r;
+    console.log("b1: "+b1+" b2 "+b2);
+
+    //build right leaning line 
+    svg.selectAll(".xgrid")
+      .append("line")
+      .attr("class","rgrid")
+      .attr("style","stroke:black")
+      .attr("x1",x(a1))
+      .attr("y1",y(b1))
+      .attr("x2",x(a2))
+      .attr("y2",y(b2))
+  }//end second for 
+
+  //build left leading fill ins
+  for ( z = 1; z < e ; z++) {
+    
+    //x start time 
+    a1 = t1.clone();
+
+    //x end time      
+    a2 = a1.clone();
+    a2 = a2.add(-6+z,'hours');
+
+    //start duration 
+    b1 = z*iy;
+    //end  duration
+    b2 = r;
+    console.log("b1: "+b1+" b2 "+b2);
+
+    //build right leaning line 
+    svg.selectAll(".xgrid")
+      .append("line")
+      .attr("class","rgrid")
+      .attr("style","stroke:black")
+      .attr("x1",x(a1))
+      .attr("y1",y(b1))
+      .attr("x2",x(a2))
+      .attr("y2",y(b2))
+  }//end second for 
+
 }//end drawFullX
 
 function drawXGrid_Triangular (x,y,min,max,range){
@@ -278,7 +349,7 @@ function drawXGrid_Triangular (x,y,min,max,range){
         .attr("class","rgrid")
         .attr("x1", x(x1))
         .attr("y1", y(0))
-        .attr("x2",x(x2))
+        .attr("x2", x(x2))
         .attr("y2", y(y2))
 
       x1 = moment(t1);
