@@ -3,6 +3,21 @@
 
 ## Export Log
 
+### WIP VERIFICATION OF BROWSER FAILURES 
+
+- @2.25.22 EXPORT wip data from server 
+mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_wip.json
+
+- @2.25.22 IMPORT pilot data to local
+mongoimport -d local_SGCX -c ALL_RAW --file wi22_wip.json
+
+
+- @2.25.22 EXPORT flattened data for validation
+mongoexport -d local_SGCX -c final_participants --jsonArray --out winter22_sgc3a_WIP_final_participants.json
+mongoexport -d local_SGCX -c final_items --jsonArray --out winter22_sgc3a_WIP_final_items.json
+
+### PILOT 
+
 - @2.23.22 EXPORT pilot data from server 
 mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_pilot.json
 
