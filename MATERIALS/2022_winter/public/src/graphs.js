@@ -523,7 +523,10 @@ function displayAnswer(action, item) {
 }
 
 //-----------GRAPH DRAWING FUNCTIONS ------------------------//
-function drawTriangleModel(datafile, axis, explicit) {
+
+
+//TRIANGULAR MODEL —————————————————————————————————————————————————————————
+function drawTriangleModel(datafile, axis, explicit, mark) {
 
   // console.log("axis: "+axis);
   // console.log("explicit: "+explicit);
@@ -677,12 +680,48 @@ function drawTriangleModel(datafile, axis, explicit) {
                   .enter()
                   .append("g");
 
-    //draw the data points
-    var dot = node.append("circle")
+  
+  //size of triangle mark
+  let size = 20;
+
+    //unfilled triangle
+    var tri = {
+      draw: function(context, size) {      
+        context.moveTo(0,0)
+        context.lineTo((0-size/4), size/2);
+        context.closePath();
+        context.moveTo(0,0)
+        context.lineTo(size/4, size/2);
+        context.closePath();
+      }
+    }
+
+    var dot = node.append("path")
       .attr("class", "dot")
+  
+    //DRAW THE DATA POINTS
+    if (mark == 2 ) //DRAW TRIANGLE MARK
+    {
+      //working unfilled triangle
+      dot
+      .attr("d", d3.symbol().type(tri).size(size))
+      .attr("transform", function(d) {  return "translate(" + x(d.midpoint) + "," + (y(d.duration)) + ")"; })
+      .attr("style","fill:white; stroke:black; stroke-width:2.5px")
+     
+      //working filled triangle
+      //dot
+      // .attr("d", d3.symbol().type(d3.symbolTriangle).size(80))
+      // .attr("transform", function(d) {  return "translate(" + x(d.midpoint) + "," + (y(d.duration)+8) + ")"; })
+
+    }
+    else {//draw regular
+      var dot = node.append("circle")
       .attr("cx", function(d) { return x(d.midpoint);})
       .attr("cy", function(d) { return y(d.duration);})
-      // .attr("r", 6) //moved to css
+      .attr("r", 5) 
+    }
+       
+      dot    
       .attr("value", function(d){return d.events;})
       .attr("selected",false)
       .on("mouseover", function(d) {
@@ -765,6 +804,7 @@ function drawTriangleModel(datafile, axis, explicit) {
 }//end drawTriangleModel
 
 
+//LINEAR MODEL —————————————————————————————————————————————————————————
 function drawLinearModel(datafile, explicit) {
 
   //---------HELPER FUNCTIONS -----------------------//

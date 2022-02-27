@@ -112,13 +112,13 @@ var jsPsych = initJsPsych({
 const studies = {
   SGC3A: ["111","121"],
   // SGC3B: ["111", "121", "211", "221", "311","321"],
-  SGC4A: ["115","111","114","113"]
+  SGC4A: ["115","114","113","111","1112"]
 };
 
 //SET SONA REDIRECTS
 const grant_sona = {
   SGC3A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
-  SGC4A:  "TODO"
+  SGC4A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code="
 }
 
 //DEFINE VALID VALUES PER DIGIT CONDITION
@@ -529,7 +529,6 @@ var satisf_answers = ["NULL"]; //index as null
     window._mfq.push(["setVariable", "GRID", data.grid]);
     window._mfq.push(["setVariable", "MARK", data.mark]);
     window._mfq.push(["setVariable", "IXN", data.ixn]);
-
    
   },
   data:{
@@ -597,13 +596,17 @@ function initializeStudy() {
     alert("INVALID STUDY CODE");
   }
 
-  //SET CONDITION
+  //set condition as default control 
+  if (study == 'SGCX' && condition == "R"){
+    condition = '11111';
+  }
+  else {
+    //SET CONDITION
   //validate condition from querystring, and random assign
   switch(condition){
     
     //RANDOM ASSIGN
-    case "R": 
-      
+    case "R":   
       condition = randomAssign(study);
       break;
     
@@ -635,7 +638,8 @@ function initializeStudy() {
       //TODO ERROR HANDLING (DON'T CONTINUE STUDY)
       break;
   }
-
+  }
+  
   //SET PARAMETERS
   explicit = condition.charAt(0);
   impasse = condition.charAt(1); 
@@ -690,11 +694,11 @@ function buildProcedure(){
 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
-         { q:1, impasse: condition.charAt(1), question: questions[1], datafile: datas[1], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
-         { q:2, impasse: condition.charAt(1), question: questions[2], datafile: datas[2], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
-         { q:3, impasse: condition.charAt(1), question: questions[3], datafile: datas[3], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
-         { q:4, impasse: condition.charAt(1), question: questions[4], datafile: datas[4], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
-         { q:5, impasse: condition.charAt(1), question: questions[5], datafile: datas[5], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
+         { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
+         { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
+         { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
+         { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
+         { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
       ];
       //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE [main dataset]
       test_timeline = [
@@ -738,21 +742,21 @@ function buildProcedure(){
 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       test_timeline = [
-         { q:1,  grid : condition.charAt(2), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
-         { q:2,  grid : condition.charAt(2), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
-         { q:3,  grid : condition.charAt(2), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
-         { q:4,  grid : condition.charAt(2), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
-         { q:5,  grid : condition.charAt(2), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" },
-         { q:6,  grid : condition.charAt(2), impasse: 1, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
-         { q:7,  grid : condition.charAt(2), impasse: 1, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
-         { q:8,  grid : condition.charAt(2), impasse: 1, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
-         { q:9,  grid : condition.charAt(2), impasse: 1, question: questions[9],  datafile: datas[9],  graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
-         { q:10, grid : condition.charAt(2), impasse: 1, question: questions[10], datafile: datas[10], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
-         { q:11, grid : condition.charAt(2), impasse: 1, question: questions[11], datafile: datas[11], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
-         { q:12, grid : condition.charAt(2), impasse: 1, question: questions[12], datafile: datas[12], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
-         { q:13, grid : condition.charAt(2), impasse: 1, question: questions[13], datafile: datas[13], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
-         { q:14, grid : condition.charAt(2), impasse: 1, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
-         { q:15, grid : condition.charAt(2), impasse: 1, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+         { q:1,  grid : condition.charAt(2), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
+         { q:2,  grid : condition.charAt(2), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
+         { q:3,  grid : condition.charAt(2), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
+         { q:4,  grid : condition.charAt(2), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
+         { q:5,  grid : condition.charAt(2), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" },
+         { q:6,  grid : condition.charAt(2), impasse: 1, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+         { q:7,  grid : condition.charAt(2), impasse: 1, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+         { q:8,  grid : condition.charAt(2), impasse: 1, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
+         { q:9,  grid : condition.charAt(2), impasse: 1, question: questions[9],  datafile: datas[9],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+         { q:10, grid : condition.charAt(2), impasse: 1, question: questions[10], datafile: datas[10], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+         { q:11, grid : condition.charAt(2), impasse: 1, question: questions[11], datafile: datas[11], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+         { q:12, grid : condition.charAt(2), impasse: 1, question: questions[12], datafile: datas[12], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+         { q:13, grid : condition.charAt(2), impasse: 1, question: questions[13], datafile: datas[13], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+         { q:14, grid : condition.charAt(2), impasse: 1, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+         { q:15, grid : condition.charAt(2), impasse: 1, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
          //FREE RESPONSE QUESTION
          { q:"f", grid : condition.charAt(2),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
       ];
@@ -770,32 +774,32 @@ function buildProcedure(){
       console.log("JUMPING TO QUESTION: "+q);
       console.log("PRINTING GRID: "+grid);
       test_timeline = [
-        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
+        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
       ];
     }
 
     else { //RUN ALL QUESTIONS BASED ON PARAMETERS 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
-        { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
-        { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
-        { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
-        { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
-        { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
+        { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
+        { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
+        { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
+        { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
+        { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
      ];
      
      //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE
      test_timeline = [
-       { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
-       { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test"},
-       { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test"},
-       { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
-       { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
-       { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
-       { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
-       { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
-       { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
-       { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : explicit, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
+       { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+       { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test"},
+       { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test"},
+       { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+       { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+       { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+       { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+       { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+       { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+       { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
      ];
     }   
   }
