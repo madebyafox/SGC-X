@@ -846,15 +846,15 @@ function buildProcedure(){
       timeline.push(procedure);
     }
     else {
-      // timeline.push(preload);
-      // timeline.push(welcome);
-      // timeline.push(devices);
-      // timeline.push(browsercheck);
-      // timeline.push(consent);
-      // if (mode == "synch") {timeline.push(setup_synch);}
-      // else {timeline.push(setup_asynch);}
-      // timeline.push(enter_fullscreen);
-      // timeline.push(instructions);
+      timeline.push(preload);
+      timeline.push(welcome);
+      timeline.push(devices);
+      timeline.push(browsercheck);
+      timeline.push(consent);
+      if (mode == "synch") {timeline.push(setup_synch);}
+      else {timeline.push(setup_asynch);}
+      timeline.push(enter_fullscreen);
+      timeline.push(instructions);
       timeline.push(procedure);
       timeline.push(almost_there);
       timeline.push(effort_rating);
