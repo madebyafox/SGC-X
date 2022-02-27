@@ -112,13 +112,15 @@ var jsPsych = initJsPsych({
 const studies = {
   SGC3A: ["111","121"],
   // SGC3B: ["111", "121", "211", "221", "311","321"],
-  SGC4A: ["115","114","113","111","1112"]
+  SGC4A: ["115","114","113"], //+ 111 (prioritize unique collection first) should be 111,113,114,115
+  SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
 };
 
 //SET SONA REDIRECTS
 const grant_sona = {
   SGC3A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
-  SGC4A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code="
+  SGC4A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
+  SGC4B:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code="
 }
 
 //DEFINE VALID VALUES PER DIGIT CONDITION
@@ -468,98 +470,98 @@ var satisf_answers = ["NULL"]; //index as null
   
   //STIMULUS TRIAL
   var stimulus = {
-  type: jsPsychExternalHtml,
-  url: '../src/stimulus.html',
-  execute_script: true,
-  force_refresh:true,
-  cont_btn: "testingButton",
-  on_start: function(){
-    if(session != "blank"){ //don't track in mouseflow if session is not set in querystring
-      window._mfq.push(["newPageView", "/"+this.data.q]);
-    }
-  },
-  on_finish: function(data) {
-    let scoring = score(data.response[0], data.q);
-
-    if (scoring){ //scoring is not null, otherwise bypass
-      data.correct = scoring[0];
-      data.discriminant = scoring[1];
-      data.tri_score = scoring[2];
-      data.orth_score = scoring[3];
-      data.other_score = scoring[4];
-      data.blank_score = scoring[5];
-
-      //PUSH mouseflow answers  
+    type: jsPsychExternalHtml,
+    url: '../src/stimulus.html',
+    execute_script: true,
+    force_refresh:true,
+    cont_btn: "testingButton",
+    on_start: function(){
       if(session != "blank"){ //don't track in mouseflow if session is not set in querystring
-        window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
-        window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
-        window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
-        window._mfq.push(["setVariable", "SCORE", scoring[1]]);
-        window._mfq.push(["setVariable", "RESPONSE", data.response[0]]);
+        window._mfq.push(["newPageView", "/"+this.data.q]);
       }
-    }
+    },
+    on_finish: function(data) {
+      let scoring = score(data.response[0], data.q);
 
-    if(isNaN(data.q)) {//save free response
-      data.freeresponse = data.response[3]
-    }
+      if (scoring){ //scoring is not null, otherwise bypass
+        data.correct = scoring[0];
+        data.discriminant = scoring[1];
+        data.tri_score = scoring[2];
+        data.orth_score = scoring[3];
+        data.other_score = scoring[4];
+        data.blank_score = scoring[5];
 
-    data.answer = data.response[0];
-    data.hovered = data.response[1];  
-    data.mouselog = data.response[2];
-    data.response = [];//remove for redundancy
+        //PUSH mouseflow answers  
+        if(session != "blank"){ //don't track in mouseflow if session is not set in querystring
+          window._mfq.push(["setVariable", "TRI_CORRECT", scoring[2]]);
+          window._mfq.push(["setVariable", "ORTH_CORRECT", scoring[3]]);
+          window._mfq.push(["setVariable", "BLANK?", scoring[5]]);
+          window._mfq.push(["setVariable", "SCORE", scoring[1]]);
+          window._mfq.push(["setVariable", "RESPONSE", data.response[0]]);
+        }
+      }
 
-    //suppress mouse data on SGCX demo
-    if (study == "SGCX"){
-      data.mouselog = "";
-      data.mouse_tracking_data = "";
-      data.mouse_tracking_targets = "";
-    }
+      if(isNaN(data.q)) {//save free response
+        data.freeresponse = data.response[3]
+      }
 
-    //ADD MOUSEFLOW VARIABLES
-    window._mfq.push(["setVariable", "SID", sid]);
-    window._mfq.push(["setVariable", "STUDY", study]);
-    window._mfq.push(["setVariable", "CONDITION", condition]);
-    window._mfq.push(["setVariable", "SESSION", session]);
-    window._mfq.push(["setVariable", "POOL", pool]);
-    window._mfq.push(["setVariable", "MODE", mode]);
-    window._mfq.push(["setVariable", "Q", q]);
+      data.answer = data.response[0];
+      data.hovered = data.response[1];  
+      data.mouselog = data.response[2];
+      data.response = [];//remove for redundancy
 
-    window._mfq.push(["setVariable", "EXPLICIT", data.explicit]);
-    window._mfq.push(["setVariable", "IMPASSE", data.impasse]);
-    window._mfq.push(["setVariable", "GRID", data.grid]);
-    window._mfq.push(["setVariable", "MARK", data.mark]);
-    window._mfq.push(["setVariable", "IXN", data.ixn]);
+      //suppress mouse data on SGCX demo
+      if (study == "SGCX"){
+        data.mouselog = "";
+        data.mouse_tracking_data = "";
+        data.mouse_tracking_targets = "";
+      }
+
+      //ADD MOUSEFLOW VARIABLES
+      window._mfq.push(["setVariable", "SID", sid]);
+      window._mfq.push(["setVariable", "STUDY", study]);
+      window._mfq.push(["setVariable", "CONDITION", condition]);
+      window._mfq.push(["setVariable", "SESSION", session]);
+      window._mfq.push(["setVariable", "POOL", pool]);
+      window._mfq.push(["setVariable", "MODE", mode]);
+      window._mfq.push(["setVariable", "Q", q]);
+
+      window._mfq.push(["setVariable", "EXPLICIT", data.explicit]);
+      window._mfq.push(["setVariable", "IMPASSE", data.impasse]);
+      window._mfq.push(["setVariable", "GRID", data.grid]);
+      window._mfq.push(["setVariable", "MARK", data.mark]);
+      window._mfq.push(["setVariable", "IXN", data.ixn]);
    
-  },
-  data:{
-    sid: sid,
-    condition: condition,
-    q: jsPsych.timelineVariable('q'),
-    explicit: jsPsych.timelineVariable('explicit'),
-    impasse: jsPsych.timelineVariable('impasse'),
-    grid: jsPsych.timelineVariable('grid'),
-    mark: jsPsych.timelineVariable('mark'),
-    ixn:  jsPsych.timelineVariable('ixn'),
-    question: jsPsych.timelineVariable('question'),
-    graph:jsPsych.timelineVariable('graph'),
-    datafile: jsPsych.timelineVariable('datafile'),
-    colorClick: jsPsych.timelineVariable('colorClick'),
-    gwidth: jsPsych.timelineVariable('gwidth'),
-    gheight: jsPsych.timelineVariable('gheight'),
-    datafile: jsPsych.timelineVariable('datafile'),
-    relation:  jsPsych.timelineVariable('relation'),
-    block: jsPsych.timelineVariable('block')
-  },
-  extensions: [
-    {type: jsPsychExtensionMouseTracking, params: {
-      targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
-      events: ['mousemove','mousedown']
-    }},
-    // {type: jsPsychExtensionWebgazer, params: { 
-    //   targets:['#testingButton','#leftDiv','#rightDiv','#theGraph']
-    // }}
-  ],
-  response_el: 'answer', //name of element where response is stored
+    },
+    data:{
+      sid: sid,
+      condition: condition,
+      q: jsPsych.timelineVariable('q'),
+      explicit: jsPsych.timelineVariable('explicit'),
+      impasse: jsPsych.timelineVariable('impasse'),
+      grid: jsPsych.timelineVariable('grid'),
+      mark: jsPsych.timelineVariable('mark'),
+      ixn:  jsPsych.timelineVariable('ixn'),
+      question: jsPsych.timelineVariable('question'),
+      graph:jsPsych.timelineVariable('graph'),
+      datafile: jsPsych.timelineVariable('datafile'),
+      colorClick: jsPsych.timelineVariable('colorClick'),
+      gwidth: jsPsych.timelineVariable('gwidth'),
+      gheight: jsPsych.timelineVariable('gheight'),
+      datafile: jsPsych.timelineVariable('datafile'),
+      relation:  jsPsych.timelineVariable('relation'),
+      block: jsPsych.timelineVariable('block')
+    },
+    extensions: [
+      {type: jsPsychExtensionMouseTracking, params: {
+        targets:['#testingButton','#leftDiv','#rightDiv','#theGraph'],
+        events: ['mousemove','mousedown']
+      }},
+      // {type: jsPsychExtensionWebgazer, params: { 
+      //   targets:['#testingButton','#leftDiv','#rightDiv','#theGraph']
+      // }}
+    ],
+    response_el: 'answer', //name of element where response is stored
   } 
   
 
@@ -736,17 +738,20 @@ function buildProcedure(){
     //CONDITION controls stimuli
     //EXPLICIT = 1, IMPASSE = 1, MARK = 1, IXN = 1, 
     //---------------------------------------------------  
-    case "SGC4A"  :
+    case "SGC4A" || "SGC4B" :
       //last question q="F" is freeresponse, q="F" to bypass scoring
       free = "Please describe how to determine what event(s) start at 12pm?";
 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      scaffold_timeline = [
+        { q:1,  grid : condition.charAt(2), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
+        { q:2,  grid : condition.charAt(2), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
+        { q:3,  grid : condition.charAt(2), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
+        { q:4,  grid : condition.charAt(2), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
+        { q:5,  grid : condition.charAt(2), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" }
+      ]
+      
       test_timeline = [
-         { q:1,  grid : condition.charAt(2), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
-         { q:2,  grid : condition.charAt(2), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
-         { q:3,  grid : condition.charAt(2), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
-         { q:4,  grid : condition.charAt(2), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
-         { q:5,  grid : condition.charAt(2), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" },
          { q:6,  grid : condition.charAt(2), impasse: 1, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
          { q:7,  grid : condition.charAt(2), impasse: 1, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
          { q:8,  grid : condition.charAt(2), impasse: 1, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
@@ -758,7 +763,7 @@ function buildProcedure(){
          { q:14, grid : condition.charAt(2), impasse: 1, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
          { q:15, grid : condition.charAt(2), impasse: 1, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
          //FREE RESPONSE QUESTION
-         { q:"f", grid : condition.charAt(2),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
+         { q:"f", grid : condition.charAt(2),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
       ];
       break;
       
@@ -821,7 +826,8 @@ function buildProcedure(){
 
   const procedures = {
     SGC3A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
-    SGC4A: {timeline: [scenario_1, block_test]},
+    SGC4A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
+    SGC4B: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGCX:  {timeline: [block_test]},
   };
 
@@ -840,15 +846,15 @@ function buildProcedure(){
       timeline.push(procedure);
     }
     else {
-      timeline.push(preload);
-      timeline.push(welcome);
-      timeline.push(devices);
-      timeline.push(browsercheck);
-      timeline.push(consent);
-      if (mode == "synch") {timeline.push(setup_synch);}
-      else {timeline.push(setup_asynch);}
-      timeline.push(enter_fullscreen);
-      timeline.push(instructions);
+      // timeline.push(preload);
+      // timeline.push(welcome);
+      // timeline.push(devices);
+      // timeline.push(browsercheck);
+      // timeline.push(consent);
+      // if (mode == "synch") {timeline.push(setup_synch);}
+      // else {timeline.push(setup_asynch);}
+      // timeline.push(enter_fullscreen);
+      // timeline.push(instructions);
       timeline.push(procedure);
       timeline.push(almost_there);
       timeline.push(effort_rating);

@@ -199,32 +199,26 @@ function drawXGrid_Full (x,y,min,max,range){
   var g = r;      //number of gradiations in the grid system (number of tickmarks)
   var i = r/g;    //size of each interval in the grid system
   // console.log("t0: "+ t0.format("HH:mm")+" t1: "+t1.format("HH:mm")+" r: "+r+" g: "+g+" i: "+i);
-  // console.log ("r is: "+r+" and i is "+i);
+
   svg.append("g")
      .attr("class", "xgrid");
 
-  //BUILD DIAGONAL GRID    
+  //BUILD TRIANGULAR GRID    
   for (n = 0; n < g; n++) {
       // console.log("n: "+n+"-------------------");
       // console.log("n*i"+ (n*i));
 
-      //define x start time 
       var x1 = t0.clone();
           x1 = x1.add(n*i,'hours');
 
-      //define x end time      
       var x2 = x1.clone();
           x2 = x2.add(6,'hours');
 
-      //don't extend beyond end of graph    
       if (x2 > t1){
         x2 = t1;
       }
-
-      //find duration
       y2 = x2.diff(x1,'minutes')/60*2;
 
-      //build right leaning line 
       svg.selectAll(".xgrid")
         .append("line")
         .attr("class","rgrid")
@@ -238,14 +232,12 @@ function drawXGrid_Full (x,y,min,max,range){
 
       x2 = x1.clone();
       x2 = x2.add(-6,'hours');
-      
-      //don't extend beyond end of graph    
+
       if (x2 < t0){
         x2 = t0;
       }
       y2 = x1.diff(x2,'minutes')/60*2;
 
-      //build left leaning lines
       svg.selectAll(".xgrid")
         .append("line")
         .attr("class","lgrid")
@@ -255,66 +247,27 @@ function drawXGrid_Full (x,y,min,max,range){
         .attr("y2",y(y2))
   }
 
-  //FILL IN ENDS    
-  let e = r / 2; //number of lines to fill in
-  let iy = i*2 ; //size of interval in y grid 
-  // console.log("e is: "+e);
-  var a1, a2 ; //start time end time x  
-  var b1, b2 ; //star end duration  
+  //FILL IN ENDS 
+  //manual fill in ends
+  let x_start = [8,8,8,8,8,8];
+  let x_end = [8,8,8,8,8,8]
+
+  // x1 = t0.clone();
+  // x1 = x1.add(n*i,'hours');
+  var a = t0.clone();
+      a = a.add(5,'hours');
+  console.log(a);
   
-  //build right leading fill ins
-  for ( z = 1; z < e ; z++) {
-    
-    //x start time 
-    a1 = t0.clone();
+  
+      svg.selectAll(".xgrid")
+        .append("line")
+        .attr("class","rgrid")
+        .attr("style","stroke:red")
+        .attr("x1",x(t0))
+        .attr("y1",y(2))
+        .attr("x2",x(a))
+        .attr("y2",y(12))
 
-    //x end time      
-    a2 = a1.clone();
-    a2 = a2.add(6-z,'hours');
-
-    //start duration 
-    b1 = z*iy;
-    //end  duration
-    b2 = r;
-    // console.log("b1: "+b1+" b2 "+b2);
-
-    //build right leaning line 
-    svg.selectAll(".xgrid")
-      .append("line")
-      .attr("class","rgrid")
-      .attr("style","stroke:black")
-      .attr("x1",x(a1))
-      .attr("y1",y(b1))
-      .attr("x2",x(a2))
-      .attr("y2",y(b2))
-  }//end second for 
-
-  //build left leading fill ins
-  for ( z = 1; z < e ; z++) {
-    
-    //x start time 
-    a1 = t1.clone();
-
-    //x end time      
-    a2 = a1.clone();
-    a2 = a2.add(-6+z,'hours');
-
-    //start duration 
-    b1 = z*iy;
-    //end  duration
-    b2 = r;
-    // console.log("b1: "+b1+" b2 "+b2);
-
-    //build right leaning line 
-    svg.selectAll(".xgrid")
-      .append("line")
-      .attr("class","rgrid")
-      .attr("style","stroke:black")
-      .attr("x1",x(a1))
-      .attr("y1",y(b1))
-      .attr("x2",x(a2))
-      .attr("y2",y(b2))
-  }//end second for 
 
 }//end drawFullX
 
@@ -523,10 +476,7 @@ function displayAnswer(action, item) {
 }
 
 //-----------GRAPH DRAWING FUNCTIONS ------------------------//
-
-
-//TRIANGULAR MODEL —————————————————————————————————————————————————————————
-function drawTriangleModel(datafile, axis, explicit, mark) {
+function drawTriangleModel(datafile, axis, explicit) {
 
   // console.log("axis: "+axis);
   // console.log("explicit: "+explicit);
@@ -679,80 +629,13 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
                   .data(data)
                   .enter()
                   .append("g");
-  
-    //unfilled triangle
-    var tri = {
-      draw: function(context, size) {      
-        context.moveTo(0,0)
-        context.lineTo((0-size/4), size/2);
-        context.closePath();
-        context.moveTo(0,0)
-        context.lineTo(size/4, size/2);
-        context.closePath();
-      }
-    }
 
-    //unfilled cross
-    var cross = {
-      draw: function(context, size) {      
-        context.moveTo(size/2,0)
-        context.lineTo((size/2), size);
-        context.closePath();
-        context.moveTo(0,size/2)
-        context.lineTo(size, size/2);
-        context.closePath();
-      }
-    }
-
-    var dot = node.append("path")
-      .attr("class", "dot")
-  
-    //DRAW THE DATA POINTS
-    if (mark == 2 ) //DRAW TRIANGLE MARK
-    {
-      //working unfilled triangle
-      dot
-      .attr("d", d3.symbol().type(tri).size(20))
-      .attr("transform", function(d) {  return "translate(" + x(d.midpoint) + "," + (y(d.duration)) + ")"; })
-      .attr("style","fill:white; stroke:black; stroke-width:2.5px")
-     
-      //working filled triangle
-      //dot
-      // .attr("d", d3.symbol().type(d3.symbolTriangle).size(80))
-      // .attr("transform", function(d) {  return "translate(" + x(d.midpoint) + "," + (y(d.duration)+8) + ")"; })
-
-    }
-    else if (mark == 3 ) //DRAW CROSS
-    {
-      //working cross 
-      dot
-      .attr("d", d3.symbol().type(cross).size(13))
-      .attr("transform", function(d) {  return "translate(" + (x(d.midpoint)-6) + "," + (y(d.duration)-6) + ")"; })
-      .attr("style","fill:white; stroke:black; stroke-width:2.5px")
-     
-    }
-     
-  
-    let dotSize = function(){
-      switch(mark){
-        case "1":
-          return 5;
-          break;
-        case "2":
-          return 4;
-          break;
-        case "3":
-          return 2;
-          break;    
-        default:
-          return 5;  
-      }
-    }
-       
+    //draw the data points
     var dot = node.append("circle")
+      .attr("class", "dot")
       .attr("cx", function(d) { return x(d.midpoint);})
       .attr("cy", function(d) { return y(d.duration);})
-      .attr("r", function(d){return dotSize()})  
+      // .attr("r", 6) //moved to css
       .attr("value", function(d){return d.events;})
       .attr("selected",false)
       .on("mouseover", function(d) {
@@ -835,7 +718,6 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
 }//end drawTriangleModel
 
 
-//LINEAR MODEL —————————————————————————————————————————————————————————
 function drawLinearModel(datafile, explicit) {
 
   //---------HELPER FUNCTIONS -----------------------//
