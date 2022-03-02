@@ -3,7 +3,43 @@
 
 ## Export Log
 
+### WRANGLE WI22 SGC_3A_R data 
+- same database is being used for SGC_4A, though SGC_3A collection is complete
+- need to download current entries, and filter for only SGC_3A data 
+
+- @3.02.22 EXPORT wip data from server [includes both complete SGC_3A_R and in progress SGC_4A]
+mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_SGC3A.json
+
+- @3.02.22 IMPORT wip data to local for analysis
+mongoimport -d analyze_SGC3A -c entries --file wi22_SGC3A.json
+
+- @3.02.22 FILTER data by study to isolate **just** SGC_3A entries
+run filter.js against entries collection
+
+- @3.02.22 EXPORT resulting collection as SGC_3A_R raw data 
+mongoexport -d analyze_SGC3A -c SGC_3A --type JSON --out wi22_SGC3A.json
+
+- @3.02.22 IMPORT into local DB as SGC_3A_R raw data (after removing all local entries)
+mongoimport -d analyze_SGC3A -c entries --file wi22_SGC3A.json
+
+- @3.02.22 WRANGLE STATUS
+run status.js against entries
+summary shows that 
+condition 111 (control) has 38 successful subjects and 16 browser failures
+condition 121 (impasse) has 44 successful subjects and 9 browser failures
+ 
+- @3.02.22 WRANGLE prepare participant, item and mouse data files
+run flatten.js against entries
+
+- @3.02.22 WRANGLE export cleaning-ready files
+mongoexport -d analyze_SGC3A -c final_participants --jsonArray --out winter22_sgc3a_final_participants.json
+mongoexport -d analyze_SGC3A -c final_items --jsonArray --out winter22_sgc3a_final_items.json
+mongoexport -d analyze_SGC3A -c final_items_mouse --jsonArray --out winter22_sgc3a_final_items_mouse.json
+
+
+
 ### WIP VERIFICATION OF BROWSER FAILURES 
+
 
 - @2.25.22 EXPORT wip data from server 
 mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_wip.json
