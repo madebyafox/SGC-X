@@ -8,8 +8,10 @@
 
 
 //CREATE A COLLECTION OF ALL SUBJECTS
-db.ALL_RAW.aggregate(
+db.entries.aggregate(
  [
+     //select only successful participants 
+    {$match: {"data.trials.status": {$in: ["success"] }}},  
     {$unwind: "$data"},
     {$replaceRoot: { newRoot: "$data" }},
     {$out: "BY_SUBJECT"}
@@ -23,7 +25,8 @@ db.BY_SUBJECT.aggregate([
 ]);
        
 //COLLECTION OF PARTICIPANT-LEVEL DATA 
-db.BY_TRIAL.aggregate([
+//limited by subjects who finished the study
+db.BY_TRIAL.aggregate([  
   //select relevant trials
   {$match: {block: {$in: ["item_free", "effort", "demographics", "participant"] }}},
   {$project: {
