@@ -1775,6 +1775,30 @@ df_participants &lt;- df_participants %&gt;%
   filter( ! subject %in% ex_participants$subject)</code></pre>
 <p><em>Three participants are excluded for low (self-rated) effort.</em></p>
 </div>
+<div id="attention-check" class="section level3">
+<h3>Attention Check</h3>
+<p>The 6th question in the study is non-discriminatory (can easily get correct answer regardless of strategy) and serves as an attention check question.</p>
+<pre class="r"><code>#MANUALLY INSPECT attention
+df_participants %&gt;% group_by(attn_check) %&gt;% 
+  dplyr::summarize(n=n())</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   attn_check     n
+##   &lt;lgl&gt;      &lt;int&gt;
+## 1 FALSE          9
+## 2 TRUE          68</code></pre>
+<p>Participants who answered the attention check question incorrectly should be excluded.</p>
+<pre class="r"><code>#DISCARD participants who indicated they did not expend adequate effort on the study
+exclude_attn &lt;- df_participants %&gt;% 
+          filter(attn_check == FALSE) %&gt;% 
+          mutate(reason=&quot;failed-attnchk&quot;)
+
+ex_participants &lt;- rbind(ex_participants, exclude_attn)
+rm(exclude_attn)     
+
+df_participants &lt;- df_participants %&gt;% 
+  filter( ! subject %in% ex_participants$subject)</code></pre>
+<p><em>Nine participants are excluded for failing the attention check question.</em></p>
+</div>
 <div id="items" class="section level3">
 <h3>Items</h3>
 <p>Finally, we need to discard item_level data for excluded participants.</p>

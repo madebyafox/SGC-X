@@ -230,6 +230,37 @@ df_participants <- df_participants %>%
 
 _Three participants are excluded for low (self-rated) effort._
 
+
+
+### Attention Check
+
+The 6th question in the study is non-discriminatory (can easily get correct answer regardless of strategy) and serves as an attention check question. 
+
+```{r inspect-ATTN, message=FALSE}
+#MANUALLY INSPECT attention
+df_participants %>% group_by(attn_check) %>% 
+  dplyr::summarize(n=n())
+```
+
+Participants who answered the attention check question incorrectly should be excluded. 
+
+```{r handle-ATTN}
+
+#DISCARD participants who indicated they did not expend adequate effort on the study
+exclude_attn <- df_participants %>% 
+          filter(attn_check == FALSE) %>% 
+          mutate(reason="failed-attnchk")
+
+ex_participants <- rbind(ex_participants, exclude_attn)
+rm(exclude_attn)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+```
+
+_Nine participants are excluded for failing the attention check question._
+
+
 ### Items
 
 Finally, we need to discard item_level data for excluded participants. 
