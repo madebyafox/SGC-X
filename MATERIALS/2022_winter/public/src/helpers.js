@@ -89,7 +89,6 @@ var check_draw = function(elem) {
   return validated;
 };
 
-
 //RECORD TRANSFORM RESPONSES TO DATA
 var recordAnswer = function(){
   console.log("TRANSFORMING ANSWER...");
