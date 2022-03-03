@@ -113,14 +113,16 @@ const studies = {
   SGC3A: ["111","121"],
   // SGC3B: ["111", "121", "211", "221", "311","321"],
   SGC4A: ["115","114","113"], //+ 111 (prioritize unique collection first) should be 111,113,114,115
+  //SGC4A: ["111"], //fill the n last 
   SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
+  //SGC4B: ["1111"] fill the n last
 };
 
 //SET SONA REDIRECTS
 const grant_sona = {
-  SGC3A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
-  SGC4A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
-  SGC4B:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code="
+  SGC3A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=", //running on 21JH01
+  SGC4A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=", //running on 21JH01
+  SGC4B:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2217&credit_token=4da88233b56842b7b57bb7a03bdb2311&survey_code="  //running on 21JH02
 }
 
 //DEFINE VALID VALUES PER DIGIT CONDITION
