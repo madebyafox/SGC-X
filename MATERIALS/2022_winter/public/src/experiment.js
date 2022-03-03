@@ -90,10 +90,10 @@ var jsPsych = initJsPsych({
         //IF THE SUBJECT DIDN'T BROWSER-FAIL OUT
         if (last_type != "browser-check"){
           //assign sona credit for SGC3A via 21JH01
-          if(exp_id == 2218) {
-            console.log("ASSIGNING CREDIT FOR STUDY 21JHO1 EXP 2218")
-            window.open(grant_sona[study]+sona_id, '_blank'); //open in new tab
-          }
+          // if(exp_id == 2218) {
+            console.log("ASSIGNING CREDIT FOR STUDY: "+exp_id)
+            window.open(grant_sona[exp_id]+sona_id, '_blank'); //open in new tab
+          // }
           window.location.assign('src/debrief.html');
         }
       })
@@ -113,14 +113,15 @@ const studies = {
   SGC3A: ["111","121"],
   // SGC3B: ["111", "121", "211", "221", "311","321"],
   SGC4A: ["115","114","113"], //+ 111 (prioritize unique collection first) should be 111,113,114,115
+  //SGC4A: ["111"], //fill the n last 
   SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
+  //SGC4B: ["1111"] fill the n last
 };
 
 //SET SONA REDIRECTS
 const grant_sona = {
-  SGC3A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
-  SGC4A:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=",
-  SGC4B:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code="
+  2218:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=", //running on 21JH01
+  2217:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2217&credit_token=4da88233b56842b7b57bb7a03bdb2311&survey_code="  //running on 21JH02
 }
 
 //DEFINE VALID VALUES PER DIGIT CONDITION
@@ -630,12 +631,13 @@ function initializeStudy() {
         });
       }
       
+      //temporarily allow study-condition ovverid
       //IS CONDITION VALID FOR GIVEN STUDYSTUDY?
-      else { //allow conditions in study
-        if(! studies[study].includes(condition)){
-          alert("INVALID CONDITION FOR STUDY CODE");
-        }
-      }
+      // else { //allow conditions in study
+      //   if(! studies[study].includes(condition)){
+      //     alert("INVALID CONDITION FOR STUDY CODE");
+      //   }
+      // }
       
       //TODO ERROR HANDLING (DON'T CONTINUE STUDY)
       break;
