@@ -1634,7 +1634,9 @@ df_participants &lt;- df_participants %&gt;%
     country = gsub(&#39;&quot;&#39;,&quot;&quot;,country),
     year = factor(schoolyear),
     native_language = factor(language)
-) </code></pre>
+   ) %&gt;% select(
+     -&quot;_id&quot;
+   )  </code></pre>
 <pre class="r"><code>df_items &lt;- df_items %&gt;% 
   mutate(
     subject=factor(subject),
@@ -1645,7 +1647,9 @@ df_participants &lt;- df_participants %&gt;%
     grid=factor(grid),
     impasse=factor(impasse),
     q=factor(q)
-  ) </code></pre>
+  ) %&gt;% select(
+     -&quot;_id&quot;
+   ) </code></pre>
 <div id="data-validation" class="section level2">
 <h2>Data Validation</h2>
 <div id="completion-status" class="section level3">
@@ -1792,6 +1796,7 @@ write.csv(ex_items,&quot;study_files/excluded_items.csv&quot;, row.names = FALSE
 <div id="analysis-ready-files" class="section level3">
 <h3>Analysis-Ready Files</h3>
 <pre class="r"><code>#save participant file
+
 write.csv(df_participants,&quot;study_files/winter22_sgc3a_participants.csv&quot;, row.names = FALSE)
 
 #save item file

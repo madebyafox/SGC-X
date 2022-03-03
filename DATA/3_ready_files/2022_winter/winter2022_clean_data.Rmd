@@ -3,8 +3,6 @@ title: "Winter 2022 SGC 3A Data Cleaning"
 author: "Amy Rae Fox"
 date: "02/22/2022"
 output:
-  pdf_document: default
-  # html_document: default
   html_document:
     code_folding: hide
     toc: true
@@ -12,6 +10,8 @@ output:
     toc_float:
       collapsed: false
       smooth_scroll: false
+  # html_document: default
+  pdf_document: default
 ---
 
 *The purpose of this file is processing the combined data files for Winter 2021 into study-level files that contain only valid data for analysis, excluding invalid sessions and participants*
@@ -61,7 +61,9 @@ df_participants <- df_participants %>%
     country = gsub('"',"",country),
     year = factor(schoolyear),
     native_language = factor(language)
-) 
+   ) %>% select(
+     -"_id"
+   )  
 
 ```
 
@@ -77,7 +79,9 @@ df_items <- df_items %>%
     grid=factor(grid),
     impasse=factor(impasse),
     q=factor(q)
-  ) 
+  ) %>% select(
+     -"_id"
+   ) 
 ```
 
 ## Data Validation
@@ -261,9 +265,13 @@ write.csv(ex_items,"study_files/excluded_items.csv", row.names = FALSE)
 ```{r GENERATE-FILES}
 
 #save participant file
+
 write.csv(df_participants,"study_files/winter22_sgc3a_participants.csv", row.names = FALSE)
 
 #save item file
 write.csv(df_items,"study_files/winter22_sgc3a_items.csv", row.names = FALSE)
 
+ 
+
 ```
+
