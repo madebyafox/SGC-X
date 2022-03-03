@@ -3,6 +3,12 @@
 
 ## Export Log
 
+
+### REFACTOR data wrangling scripts for consistent format 
+
+
+
+
 ### WRANGLE WI22 SGC_3A_R data 
 - same database is being used for SGC_4A, though SGC_3A collection is complete
 - need to download current entries, and filter for only SGC_3A data 
