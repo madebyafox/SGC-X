@@ -89,18 +89,67 @@ subjects_winter22$format <- "new"
 
 ##TEMPORARILY combine data files 
 legacy_subjects <- rbind(subjects_fall17, subjects_spring18, subjects_fall21) 
-new_subjects <- winter_22
+new_subjects <- subjects_winter22
 
 ```
 
+First, we restructure the legacy dataframe to match the new dataframe
 ```{r}
 #REFACTOR legacy PARTICIPANT dataframe
 
-participants <- df_
+legacy_subjects <- legacy_subjects %>% 
+  #drop redundant subject-level fields, should be on item
+  select(-explicit,-impasse,-axis) %>% 
+  mutate(
+    attn_check = as.logical(attn_check), #should all be true, as false is excluded in cleaning)
+    study = "SGC3A", #only dealing with SGC3A
+    pool = "sona", #all from sona pool
+    sona_id = 0, #didn't record
+    exp_id =  0, #didn't record
+    status = "success", #browser failures aren't allowed to get that far
+    absolute_score = triangular_score,
+    discriminant_score = "TODO",
+    tri_score = triangular_score,
+    orth_score = orthogonal_score,
+    other_score = "TODO",
+    blank_score = "TODO",
+    starttime = "NA",
+    totaltime = totalTime,
+    explanation = "TODO",
+    browser = "blank",
+    width = "blank",
+    height = "blank",
+    os = "blank",
+    violations = "blank",
+    effort = "blank",
+    difficulty = "blank",
+    confidence = "blank",
+    enjoyment = "blank",
+    other = "blank",
+    language = "blank",
+    schoolyear = "blank",
+    gender = "blank",
+    disability = "blank"
+  ) %>%  
+  #drop summary scoring by phase, should be done manually on items
+  select(-ts_n, -tt_n, -os_n, -ot_n) %>% 
+  #drop redundant scoring fields
+  select(-triangular_score, -orthogonal_score) %>%
+  #drop redundant time fields
+  select(-ts_t, -tt_t, -totalTime, -triangular_time)
+  
+```
 
-
+Next, we join the dataframes to validate they share structure
+```{r}
+df_subjects <- rbind(legacy_subjects, new_subjects)
+df_subjects$totaltime_min <- df_subjects$totaltime/ 1000 / 60
 
 ```
+TODO:: rescoring algorithm
+TODO :: join explanation free response from legacy to participants
+
+
 
 
 ########### 

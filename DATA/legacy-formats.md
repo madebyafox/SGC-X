@@ -81,15 +81,18 @@ $ condition        <int> 111, 121, 121, 121, 121, 111, 111, 121, 111, 111, 121, 
 $ explicit         <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
 $ impasse          <int> 1, 2, 2, 2, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 1, 1, …
 $ axis             <chr> "full", "full", "full", "full", "full", "full", "full", "full", "full", …
+
+#cast attn_check 1/0 to true/false
 $ attn_check       <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
 
-
 <scoring>
+#drop summary scoring by phase, should be done manually on items
 $ ts_n             <int> 0, 4, 0, 1, 4, 0, 5, 3, 0, 5, 5, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 5, 1, 4, …
 $ tt_n             <int> 2, 9, 2, 2, 10, 2, 10, 8, 2, 10, 8, 2, 8, 3, 1, 2, 2, 2, 2, 1, 2, 9, 6, …
 $ os_n             <int> 4, 0, 0, 0, 0, 4, 0, 0, 5, 0, 0, 4, 0, 0, 0, 0, 0, 5, 5, 2, 0, 0, 2, 0, …
 $ ot_n             <int> 10, 1, 10, 9, 2, 10, 2, 1, 8, 2, 1, 9, 1, 5, 7, 8, 10, 10, 10, 8, 7, 1, …
 
+//save with new names and drop
 $ triangular_score <int> 2, 13, 2, 3, 14, 2, 15, 11, 2, 15, 13, 2, 11, 4, 1, 2, 2, 2, 2, 1, 2, 14…
 $ orthogonal_score <int> 14, 1, 10, 9, 2, 14, 2, 1, 13, 2, 1, 13, 1, 5, 7, 8, 10, 15, 15, 10, 7, …
 
@@ -108,3 +111,35 @@ $ sex              <chr> "Female", "Male", "Male", "Male", "Male", "Female", "Fe
 $ year             <chr> "Fourth", "First", "First", "Fifth", "First", "Third", "Second", "Third"…
 $ age              <int> 21, 18, 18, 27, 19, 20, 19, 20, 20, 22, 18, 22, 19, 19, 33, 25, 20, 19, …
 $ major            <chr> "Social Sciences (incl. CogSci)", "Engineering", "Social Sciences (incl
+
+
+
+
+
+
+$ absolute_score
+$ discriminant_score
+$ tri_score
+$ orth_score
+$ other_score
+$ blank_score
+$ start_time
+$ totaltime
+
+
+$ starttime          
+$ totaltime          
+$ absolute_score     
+$ discriminant_score 
+$ tri_score          
+$ orth_score         
+$ other_score        
+$ blank_score        
+            
+
+
+
+
+
+
+
