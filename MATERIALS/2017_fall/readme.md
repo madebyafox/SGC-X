@@ -1,16 +1,14 @@
 # Experimental Stimuli 
 AUTHOR: AMY RAE FOX amyraefox@gmail.com
 Experimental Stimuli Codebase for 2YP - Scaffolding Unconventional Graphs - Study 3: Eye Tracking
+
 _was deployed at_ https://aqueous-gorge-88321.herokuapp.com/
+supports study: [no SGC project data collected]
 
+## INPUT
 
-##  CONTEXT
-- no SGC project data were collected with this stimuli set
-- in person, computer-based study, configured to record trial-level data for integration with MangoldVision eye tracker (Comp.Cognition Lab)
-- [mingled w/ Celia Art Eye tracking study]
-- random assignment via condition condition code (card) given by experimenter
-- SESSION CODE given by experimenter to track data collection session
-- CONDITION CODE given to subject by card (random assignment)
+session code = "test"
+condition code = [0,1,2,3,4]
 
 First Digit    | explicit scaffolding
  ------------- |-------------
@@ -29,6 +27,13 @@ Third Digit    | grid format
 2 | partial orthogonal
 3 | diagonal
 
+##  CONTEXT
+- no SGC project data were collected with this stimuli set
+- in person, computer-based study, configured to record trial-level data for integration with MangoldVision eye tracker (Comp.Cognition Lab)
+- [mingled w/ Celia Art Eye tracking study]
+- random assignment via condition condition code (card) given by experimenter
+- SESSION CODE given by experimenter to track data collection session
+- CONDITION CODE given to subject by card (random assignment)
 
 
 ## TECH - NOTES 
@@ -41,5 +46,6 @@ Third Digit    | grid format
 - nodemon for reload
 - Body-parser is middleware for Node.js that allows you to parse key-value data
 - mongoose is a MongoDB driver for the Express framework
+
 > thanks to https://github.com/Tuuleh/jsPsychBackendStart for boilerplate Mongo-Express-Node stack for db connectivity
 
