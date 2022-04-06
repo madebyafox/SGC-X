@@ -23,7 +23,7 @@ CONDITION CODE | scaffold condition
  
 
 USES
-- jsPsych http://docs.jspsych.org/ library for structuring experiment
+- jsPsych http://docs.jspsych.org/ version 5.0.3 [+customization for external html plugin]
 - d3 http://d3js.org/ for data visualization stimuli
 - node.js
 - express node runtime framework
