@@ -116,6 +116,7 @@ const studies = {
   //SGC4A: ["111"], //fill the n last 
   SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
   //SGC4B: ["1111"] fill the n last
+  SGC5A: ["11115"]
 };
 
 //SET SONA REDIRECTS
@@ -660,6 +661,14 @@ function initializeStudy() {
   console.log("POOL: "+pool);
   console.log("MODE: "+mode);
   console.log("Q: "+q);
+  console.log("explicit: "+explicit);
+  console.log("impasse: "+impasse);
+  console.log("grid: "+grid);
+  console.log("mark: "+mark);
+  console.log("ixn: "+ixn);
+  console.log("colorClick: "+colorClick);
+  console.log("question_file: "+question_file);
+
 
   //ADD STUDY LEVEL PROPERTIES
   jsPsych.data.addProperties({ 
@@ -768,6 +777,39 @@ function buildProcedure(){
          { q:"f", grid : condition.charAt(2),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
       ];
       break;
+    //---------------------------------------------------
+    //SGC 5A --> 
+    //PROCEDURE SAME across all conditions
+    //CONDITION controls stimuli
+    //---------------------------------------------------  
+    case "SGC5A" :
+      //last question q="F" is freeresponse, q="F" to bypass scoring
+      free = "Please describe how to determine what event(s) start at 12pm?";
+
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      scaffold_timeline = [
+        { q:1,  grid : grid, impasse: impasse, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
+        { q:2,  grid : grid, impasse: impasse, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
+        { q:3,  grid : grid, impasse: impasse, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
+        { q:4,  grid : grid, impasse: impasse, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
+        { q:5,  grid : grid, impasse: impasse, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" }
+      ]
+      
+      test_timeline = [
+         { q:6,  grid : grid, impasse: impasse, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+         { q:7,  grid : grid, impasse: impasse, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+         { q:8,  grid : grid, impasse: impasse, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
+         { q:9,  grid : grid, impasse: impasse, question: questions[9],  datafile: datas[9],  graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+         { q:10, grid : grid, impasse: impasse, question: questions[10], datafile: datas[10], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+         { q:11, grid : grid, impasse: impasse, question: questions[11], datafile: datas[11], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+         { q:12, grid : grid, impasse: impasse, question: questions[12], datafile: datas[12], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+         { q:13, grid : grid, impasse: impasse, question: questions[13], datafile: datas[13], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+         { q:14, grid : grid, impasse: impasse, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+         { q:15, grid : grid, impasse: impasse, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+         //FREE RESPONSE QUESTION
+         { q:"f", grid : grid,impasse: impasse, question: free,          datafile: datas[15], graph: "triangular",  explicit : explicit, mark: mark, ixn : ixn, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
+      ];
+      break;  
       
     //---------------------------------------------------
     //SGCX --> DEFAULT DEMO
@@ -830,6 +872,7 @@ function buildProcedure(){
     SGC3A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4B: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
+    SGC5A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGCX:  {timeline: [block_test]},
   };
 
