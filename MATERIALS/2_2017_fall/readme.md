@@ -1,6 +1,6 @@
 # Experimental Stimuli 
 AUTHOR: AMY RAE FOX amyraefox@gmail.com  
-Experimental Stimuli Codebase for 2YP - Scaffolding Unconventional Graphs - Study TBD: Eye Tracking
+Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs - Study TBD: Eye Tracking
 
 _was deployed at_ https://aqueous-gorge-88321.herokuapp.com/  
 supports study: [no SGC project data collected]
@@ -38,7 +38,8 @@ Third Digit    | grid format
 
 ## TECH - NOTES 
 
-- jsPsych http://docs.jspsych.org/ library for structuring experiment
+- deployed on heroku + atlas/mongodb database
+- jsPsych http://docs.jspsych.org/ version 5.0.3 [+customization for external html plugin]
 - d3 http://d3js.org/ for data visualization stimuli
 - node.js
 - express node runtime framework
@@ -46,6 +47,7 @@ Third Digit    | grid format
 - nodemon for reload
 - Body-parser is middleware for Node.js that allows you to parse key-value data
 - mongoose is a MongoDB driver for the Express framework
+- manually SET MIN, MAX AND RANGE IN GRAPHS.JS
 
 > thanks to https://github.com/Tuuleh/jsPsychBackendStart for boilerplate Mongo-Express-Node stack for db connectivity
 

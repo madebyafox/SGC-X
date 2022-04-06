@@ -28,6 +28,7 @@ CONDITION CODE | scaffold condition
 - CONDITION CODE given to subject by card (random assignment)
 
 ##  TECH - NOTES
+- deployed on heroku + atlas/mongodb database
 - jsPsych http://docs.jspsych.org/ version 5.0.3 [+customization for external html plugin]
 - d3 http://d3js.org/ for data visualization stimuli
 - node.js

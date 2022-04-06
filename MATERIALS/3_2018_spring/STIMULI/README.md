@@ -1,53 +1,45 @@
-AMY RAE FOX
-amyraefox@gmail.com
-@2017
-
+# Experimental Stimuli 
+AUTHOR: AMY RAE FOX amyraefox@gmail.com  
 Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs:
 Study 3: The Insight Hypothesis
 Study 4: The Graph Schema
 
-SAMPLE URL FOR HEROKUAPP:
-https://warm-citadel-75324.herokuapp.com/
+_was deployed at_ https://warm-citadel-75324.herokuapp.com/
 
-Notes
-----------
-Experimental Design:
-Random assignment via condition condition code
-SESSION CODE -> alphanumeric string chose by experimenter to indicate data collection SESSION
-CONDITION CODE -> 3 digits
-first digit: explicit scaffold
-1 - control
-2 - text/image
-3 - interactive
+## INPUT
 
-second digit: implicit scaffold
-1 - control
-2 - impasse
+session code = "test"  
+condition code = [3 digit code see below]
 
-third digit: grid format
-1 - full orthogonal
-2 - partial orthogonal
-3 - diagonal
+First Digit    | explicit scaffolding
+ ------------- |-------------
+ 1      | control (no-scaffold)
+ 2      | text/image (static)
+ 3      | interactive
 
-MANUALLY SET MIN, MAX AND RANGE IN GRAPHS.JS
+Second Digit    | implicit scaffolding
+ ------------- |-------------
+1      | control (no-scaffold)
+2      | impasse (no orthogonal answer)
 
+Third Digit    | grid format
+------------- |-------------
+1 | full orthogonal
+2 | partial orthogonal
+3 | diagonal
 
-Installation & Notes
-------------------
-https://github.com/Tuuleh/jsPsychBackendStart as reference
-0 Requires node.js
------------------- RUNNING LOCAL ------------------
-1. After download of files from github, run [ npm update ] to install node_modules
-2. Check app.js file for proper configuration of local vs. hosted db information and server connections
-3. Run local Mongodb    [ mongod in terminal ]
-4. Start application [node app.js]
-5. Navigate to localhost:3000
-6. View database by running viewer (like RoboMongo)
-------------------
+##  CONTEXT
 
-Technical Notes
-------------------
-- jsPsych http://docs.jspsych.org/ library for structuring experiment
+- in person, computer-based study (~30 minutes)
+- web-based graph reading task 
+- subject completes one experimental block (first five questions are scaffolded based on CONDITION, next 10 are not scaffolded)
+- SESSION CODE given by experimenter to track data collection session
+- CONDITION CODE given to subject by card (random assignment)
+
+## TECH - NOTES 
+
+- deployed on heroku + atlas/mongodb database
+- jsPsych http://docs.jspsych.org/ version 5.0.3 [+customization for external html plugin]
 - d3 http://d3js.org/ for data visualization stimuli
 - node.js
 - express node runtime framework
@@ -55,16 +47,7 @@ Technical Notes
 - nodemon for reload
 - Body-parser is middleware for Node.js that allows you to parse key-value data
 - mongoose is a MongoDB driver for the Express framework
+- manually SET MIN, MAX AND RANGE IN GRAPHS.JS
+
 > thanks to https://github.com/Tuuleh/jsPsychBackendStart for boilerplate Mongo-Express-Node stack for db connectivity
 
-Dev Notes
--------------------
-> configure for local dev (check app.js file and un-comment local dev)
-> for heroku deploy... setup new database on mlab
-> setup new heroku application
-> see https://github.com/Tuuleh/jsPsychBackendStart for reference
-> see https://devcenter.heroku.com/articles/git for reference
-> set mongo path in heroku with
-heroku config:set CONNECTION = [mongolabs uri]
-> heroku for deploy
-> mlabs for db
