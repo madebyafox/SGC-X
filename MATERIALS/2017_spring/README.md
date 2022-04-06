@@ -1,11 +1,14 @@
 # 2YP-Experiment
-_deployed at_ https://morning-gorge-17056.herokuapp.com/
-session code = "test", condition code = [0,1,2,3,4]
 
 Experimental Stimuli for 2nd Year Project: 'Evaluating Scaffolds for Triangle Model'
- 
 
-CONTEXT
+_deployed at_ https://morning-gorge-17056.herokuapp.com/
+
+session code = "test", condition code = [0,1,2,3,4]
+supports study: SGC-2
+
+
+##  CONTEXT
 - in person, computer-based study (~45 minutes)
 - web-based graph reading task + paper-based graph drawing task
 - instructions delivered in person
@@ -22,7 +25,7 @@ CONDITION CODE | scaffold condition
  4             | interactive image
  
 
-USES
+##  TECH - NOTES
 - jsPsych http://docs.jspsych.org/ version 5.0.3 [+customization for external html plugin]
 - d3 http://d3js.org/ for data visualization stimuli
 - node.js
