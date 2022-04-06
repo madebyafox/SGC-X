@@ -1,14 +1,14 @@
 # Experimental Stimuli 
-AUTHOR: AMY RAE FOX amyraefox@gmail.com
-Experimental Stimuli Codebase for 2YP - Scaffolding Unconventional Graphs - Study 3: Eye Tracking
+AUTHOR: AMY RAE FOX amyraefox@gmail.com  
+Experimental Stimuli Codebase for 2YP - Scaffolding Unconventional Graphs - Study TBD: Eye Tracking
 
-_was deployed at_ https://aqueous-gorge-88321.herokuapp.com/
+_was deployed at_ https://aqueous-gorge-88321.herokuapp.com/  
 supports study: [no SGC project data collected]
 
 ## INPUT
 
-session code = "test"
-condition code = [0,1,2,3,4]
+session code = "test"  
+condition code = [3 digit code see below]
 
 First Digit    | explicit scaffolding
  ------------- |-------------
