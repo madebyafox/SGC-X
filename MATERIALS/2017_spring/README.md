@@ -1,9 +1,7 @@
-# 2YP-Experiment
-
+# Experimental Stimuli
+AUTHOR: AMY RAE FOX amyraefox@gmail.com
 Experimental Stimuli for 2nd Year Project: 'Evaluating Scaffolds for Triangle Model'
-
 _deployed at_ https://morning-gorge-17056.herokuapp.com/
-
 session code = "test", condition code = [0,1,2,3,4]
 supports study: SGC-2
 
@@ -12,9 +10,9 @@ supports study: SGC-2
 - in person, computer-based study (~45 minutes)
 - web-based graph reading task + paper-based graph drawing task
 - instructions delivered in person
+- subject completes two experimental blocks (one linear model, one triangular model) order counterbalanced
 - SESSION CODE given by experimenter to track data collection session
 - CONDITION CODE given to subject by card (random assignment)
-- subject completes two experimental blocks (one linear model, one triangular model) order counterbalanced
 
 CONDITION CODE | scaffold condition
  ------------- |-------------
@@ -34,5 +32,7 @@ CONDITION CODE | scaffold condition
 - nodemon for reload
 - Body-parser is middleware for Node.js that allows you to parse key-value data
 - mongoose is a MongoDB driver for the Express framework
+- manually SET MIN, MAX AND RANGE IN GRAPHS.JS
+
 
 > thanks to https://github.com/Tuuleh/jsPsychBackendStart for boilerplate Mongo-Express-Node stack for db connectivity
