@@ -4,7 +4,7 @@ Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs:
 Study 3: The Insight Hypothesis _in remote asynch data collection mode_
 Study 4: The Graph Schema _in remote asynch data collection mode_
 
-_deployed at_ https://warm-citadel-75324.herokuapp.com/
+_deployed at_ https://nameless-oasis-92655.herokuapp.com/
 
 ## INPUT
 
@@ -14,8 +14,8 @@ condition code = [3 digit code see below]
 First Digit    | explicit scaffolding
  ------------- |-------------
  1      | control (no-scaffold)
- 2      | text/image (static)
- 3      | interactive
+ 2      | static image
+ 3      | interactive image
 
 Second Digit    | implicit scaffolding
  ------------- |-------------

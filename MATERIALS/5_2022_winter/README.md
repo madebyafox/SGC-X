@@ -1,66 +1,70 @@
-# SGC X 
+# Experimental Stimuli 
+AUTHOR: AMY RAE FOX amyraefox@gmail.com  
+Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs:
+Study 3: The Insight Hypothesis _in remote asynch data collection mode_  
+Study 4: The Graph Schema _in remote asynch data collection mode_  
+Study 5: Interaction _in remote asynch data collection mode_  
 
-# DEPLOY LOG
-02.22.22 : deploy SGCX working for SGC3 (synch, asynch, pool = sona ) GITHUB COMMIT cdf21f3333b8a9dfb5d1e5bd8520a43b96c91baf
+_deployed at_ https://limitless-plains-85018.herokuapp.com/
+
+## INPUT
+[all input as URL vars]
+
+study = [SGC3A, SGC4A, SGC4B, SGC5A]  
+session= [freetext] //default blank  
+mode = "synch" || "asynch" //default asynch  
+pool = ? //default sona  
+exp_id = ? //survey code in sona for deciding which study to grant credit to  
+sona_id = ? //survey code from SONA for automatically granting credit [only for asynch study types]  
+q = [1...15] //jump to question  
+condition = (minimum 3 digit) [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN]
+
+First Digit    | explicit scaffolding
+ ------------- |-------------
+ 1      | control (no-scaffold)
+ 2      | statuc image 
+ 3      | interactive image
+
+Second Digit    | implicit scaffolding
+ ------------- |-------------
+1      | control (no-scaffold)
+2      | impasse (no orthogonal answer)
+
+Third Digit    | grid format
+------------- |-------------
+ 1 | cartesian axes, full y, triag x
+ 2 | cartesian axes, into triag y, triag x
+ 3 | triangular axes, inside triag y, triag x
+ 4 | cartesian axes, inside y, triag x
+ 5 | cartesian axes, full y, full x
+
+Fourth Digit    | mark scaffold
+------------- |-------------
+ 1 | point
+ 2 | triangle
+ 3 | cross
+
+ Fifth digit  | interaction type
+------------- |-------------
+ 1 | none
+ 5 | click on data point turns color 
 
 
+##  CONTEXT
+- asynchronous, remote, web-based collection with SONA integration
+- subject completes X experimental blocks contingent on STUDY variable
+- STUDY, SESSION, POOL, CONDITION codes determined via querystring
+- integration with mouseflow
+- manual mouse tracking 
 
-
-Important Changes from SGC3A/B prior to winter 2022
+## Tech — Notes
+**Important Changes from SGC3A/B prior to winter 2022**
 - upgraded to new version of jsPsych (v7) with multiple API changes 
 - moved most condition-contingent logic out of stimulus and graphs.js into experiment.js
 - pass data to stimulus.html via a hidden <data> element that populates based on data: in trial, based on customized version of external-html plugin (customized by me:)
 - numerous URV vars added for customization 
 - auto assign credit to sona if configured via exp_id
 
-DATA CHANGES
+**DATA CHANGES**
 - previously, IMPASSE, EXPLICIT were recorded at the condition level, not the item level. So a non-scaffolded question 6 still had an impasse == 2 if the person was in condition 121. Now, the impasse attribute on each item reflects whether that iTEM had an impasse structure 
 - STRUCTURE of the stimulus is always determined by the condition, unless condition is not defined 
-
-
-//REFERENCE-----------------------------------------------------------
-// @URL VARS   
-// study= [SGC3A, SGC3B ..]
-// session= [freetext] //default blank
-// mode = "synch" || "asynch" //default asynch
-// pool = ? //default sona
-// exp_id = ? //survey code in sona for deciding which study to grant credit to 
-// SONA STUDY 21JH01 = 2218
-// sona_id = ? //survey code from SONA for automatically granting credit [only for asynch study types]
-// q = [1...15] //jump to question
-// condition = (min 3 digit, see below)  
-
-    //CONDITION
-    //    [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN]
-
-    //EXPLICIT SCAFFOLD
-    //    1 = none (control)
-    //    2 = static image
-    //    3 = interactive image 
-
-    //IMPASSE SCAFFOLD
-    //    1 = none (control)
-    //    2 = impasse 
-    
-    //GRID SCAFFOLD
-    //    1 = orthog y(full) x(tri) [control] Orthogonal-XInside-YFull
-    //    2 = orthog y(partial) x(tri) [ignore] Orthogonal-XInside-YPartial
-    //    3 = tri y(tri) x(tri) [minimal] Triangular-XInside-YInside
-    //    4 = orthog y(partial) x(tri) [original] Orthogonal-XInside-YInside
-    //    5 = orthog y(full) x(full) [maximal] Orthogonal-XFull-YFull
-
-    //MARK SCAFFOLD
-    //    1 = point
-    //    2 = triangle
-    //    3 = cross
-
-    //IXN TYPE
-    //    1 = none
-    //    2 = //
-    //    3 = //
-    //    4 = //
-    //    5 = // on click data point turns color
-
-//--------------------------------------------------------------------
-
-
