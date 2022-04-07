@@ -116,7 +116,11 @@ var recordAnswer = function(){
     });
   }  
   //store response values to designated answer element
+  
   $('#answer').val([selected, hovered, mouseLog,free]);
+  console.log("ANSWER")
+  console.log($('#answer').val())
+  
   return;
   // console.log("answer is: "+$('#answer').val());
 }

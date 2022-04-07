@@ -116,7 +116,7 @@ const studies = {
   //SGC4A: ["111"], //fill the n last 
   SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
   //SGC4B: ["1111"] fill the n last
-  SGC5A: ["11115"]
+  SGC5A: ["11115","11111"]
 };
 
 //SET SONA REDIRECTS
@@ -483,9 +483,12 @@ var satisf_answers = ["NULL"]; //index as null
       }
     },
     on_finish: function(data) {
+      console.log("SAVING ANSWER");
+      console.log($(data.response[0]));
       let scoring = score(data.response[0], data.q);
 
       if (scoring){ //scoring is not null, otherwise bypass
+        console.log("scoring is not null");
         data.correct = scoring[0];
         data.discriminant = scoring[1];
         data.tri_score = scoring[2];
@@ -953,6 +956,9 @@ function loadQuestions() {
 //SCORE RESPONSE
 var score = function (input, q){
 
+  console.log("IN SCORING FUNCTION")
+  console.log(input)
+  console.log(q)
   //dont score if not a numeric question 
   if (isNaN(q)){
     return null;

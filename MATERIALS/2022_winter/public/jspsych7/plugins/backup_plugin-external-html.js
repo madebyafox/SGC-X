@@ -57,7 +57,8 @@ var jsPsychExternalHtml = (function (jspsych) {
           this.jsPsych = jsPsych;
       }
       trial(display_element, trial, on_load) {
-          // hold the .resolve() function from the Promise that ends the trial
+          
+        // hold the .resolve() function from the Promise that ends the trial
           let trial_complete;
           var url = trial.url;
           if (trial.force_refresh) {
