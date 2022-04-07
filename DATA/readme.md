@@ -3,29 +3,28 @@
 
 The data processing pipeline for the SGC-X studies includes the following steps:
 
-0: Subjects complete computer-based study deployed as web application (via Heroku)
-1: EXPORT SESSION FILES: (terminal, mongod) Manually download data from server (mLab/Atlas) at regular intervals, as raw .json (from MongoDB)
-2: WRANGLING: (js, mongoDB client) Import raw session files to local mongodb for data wrangling (unravelling and restructuring data format for different types of analysis [participant/item/mouse])
-3: EXPORT STUDY FILES: (terminal, mongod) Manually download wrangled data from local as .json
+0: Subjects complete computer-based study deployed as web application (via Heroku)  
+1: EXPORT SESSION FILES: (terminal, mongod) Manually download data from server (mLab/Atlas) at regular intervals, as raw .json (from MongoDB)  
+2: WRANGLING: (js, mongoDB client) Import raw session files to local mongodb for data wrangling (unravelling and restructuring data format for different types of analysis [participant/item/mouse])  
+3: EXPORT STUDY FILES: (terminal, mongod) Manually download wrangled data from local as .json  
 4: STUDY SEPARATION: (R) Import wrangled files and separate data by condition code for analysis based on particular study version [because multiple studies were conducted at the same time]
-_cleaning, exploratory data analysis and analysis are documented in `ANALYSIS` folder
 
-5: CLEAN: (R) process study-level files (items and participants) for cleaning and data exclusion
+_cleaning, exploratory data analysis and analysis are documented in `ANALYSIS` folder_
 
 
 ## TERMINOLOGY
 
-`/raw_data` contains raw exports (json) from each session, downloaded from DB server
-`/db_scripts` scripts to extract (wrangled) data from local mongoDB to files for analysis in R
+`/raw_data` contains raw exports (json) from each session, downloaded from DB server  
+`/db_scripts` scripts to extract (wrangled) data from local mongoDB to files for analysis in R  
 `/ready_files` contains wrangled data ready for analysis in R
 
-`.json` files are MongoDB extracts 
-`.csv` are wrangled data files 
-`_items` files are _question level_ data 
-`_participants` files are aggregated _subject level_ data 
+`.json` files are MongoDB extracts   
+`.csv` are wrangled data files   
+`_items` files are _question level_ data   
+`_participants` files are aggregated _subject level_ data   
 `_mouse_blocks` files are item level data _mouse tracking_ data 
 
-`SESSION`: refers to experimental session name (input by subjects to start study); used to track in-person study sessions
+`SESSION`: refers to experimental session name (input by subjects to start study); used to track in-person study sessions  
 `CONDITION`: input by subject to start study, controls which experimental stimuli are shown.
 
 First Digit    | explicit scaffolding
@@ -141,8 +140,9 @@ have chrome open a tab for each URL on the list, which automatically starts the 
 (recommend "Don't load tabs until selected" option, and only loading 100-500 at a time so that chrome doesn't crash)
 
 ## OPTIONAL
--------------------------------------------------------------
+
 REGEX FOR WRANGLING JSON FILES
+
 /* x */ == \/\* .+ \*\/ (replace with comma)
 [objectID line]        =="_id" : ([A-Z])\w+\("\w+"\),
--------------------------------------------------------------
+
