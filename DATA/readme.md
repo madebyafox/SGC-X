@@ -1,40 +1,37 @@
-DATA PROCESSING PIPELINE
+# DATA PROCESSING PIPELINE
 
-:: /raw_data contains raw exports (json) from each session, downloaded from DB server
-:: /db_scripts scripts to extract (wrangled) data from local mongoDB to files for analysis in R
-:: /ready_files contains wrangled data ready for analysis in R
-
-:: _participants.json is a participant level data file
-:: _items is a question level data file
-:: _mouse_blocks is a question level file with mouse tracking data
-
-
-# COLLECTION NOTES
-- Initial data collection completed in Fall of 2017,
-It seems there were some issues with the size of the response buttons leading to possible missing answers, as the students may have thought they were selecting an answer, but it was not recorded.
-
-- Replication in spring 2018 includes clarifications to the questions to mitigate language differences.
-
-# OVERVIEW
 
 The data processing pipeline for the SGC-X studies includes the following steps:
 
-0: Subjects complete computer-based study deployed as web application (via Heroku)
+0: Subjects complete computer-based study deployed as web application (via Heroku)  
+1: EXPORT SESSION FILES: (terminal, mongod) Manually download data from server (mLab/Atlas) at regular intervals, as raw .json (from MongoDB)  
+2: WRANGLING: (js, mongoDB client) Import raw session files to local mongodb for data wrangling (unravelling and restructuring data format for different types of analysis [participant/item/mouse])  
+3: EXPORT STUDY FILES: (terminal, mongod) Manually download wrangled data from local as .json  
+4: STUDY SEPARATION: (R) Import wrangled files and separate data by condition code for analysis based on particular study version [because multiple studies were conducted at the same time]
 
-1: DOWNLOAD SESSION FILES: Manually download data from server (mLab/Atlas) at regular intervals, as raw .json (from MongoDB)
-2: WRANGLING: Import raw session files to local mongodb for data wrangling (unravelling and restructuring data format for different types of analysis [participant/item/mouse])
-3: STUDY SEPARATION: Import wrangled files and separate data by condition code for analysis based on particular study version [because multiple studies were conducted at the same time]
+_cleaning, exploratory data analysis and analysis are documented in `ANALYSIS` folder_
 
-# TERMINOLOGY
-SESSION: refers to experimental session name (input by subjects to start study); used to track in-person study sessions
 
-CONDITION: input by subject to start study, controls which experimental stimuli are shown.
+## TERMINOLOGY
+
+`/raw_data` contains raw exports (json) from each session, downloaded from DB server  
+`/db_scripts` scripts to extract (wrangled) data from local mongoDB to files for analysis in R  
+`/ready_files` contains wrangled data ready for analysis in R
+
+`.json` files are MongoDB extracts   
+`.csv` are wrangled data files   
+`_items` files are _question level_ data   
+`_participants` files are aggregated _subject level_ data   
+`_mouse_blocks` files are item level data _mouse tracking_ data 
+
+`SESSION`: refers to experimental session name (input by subjects to start study); used to track in-person study sessions  
+`CONDITION`: input by subject to start study, controls which experimental stimuli are shown.
 
 First Digit    | explicit scaffolding
  ------------- |-------------
  1      | control (no-scaffold)
- 2      | text/image (static)
- 3      | interactive
+ 2      | statuc image 
+ 3      | interactive image
 
 Second Digit    | implicit scaffolding
  ------------- |-------------
@@ -43,17 +40,30 @@ Second Digit    | implicit scaffolding
 
 Third Digit    | grid format
 ------------- |-------------
-1 | full orthogonal
-2 | partial orthogonal
-3 | diagonal
+ 1 | cartesian axes, full y, triag x
+ 2 | cartesian axes, into triag y, triag x
+ 3 | triangular axes, inside triag y, triag x
+ 4 | cartesian axes, inside y, triag x
+ 5 | cartesian axes, full y, full x
+
+Fourth Digit    | mark scaffold
+------------- |-------------
+ 1 | point
+ 2 | triangle
+ 3 | cross
+
+ Fifth digit  | interaction type
+------------- |-------------
+ 1 | none
+ 5 | click on data point turns color 
 
 
 
 # PIPELINE INSTRUCTIONS
 
-## 1 DOWNLOAD RAW DATA
+## 1 EXPORT SESSION FILES
 
-During experimental runs, download data from the db server to local machine for wrangling.
+During experimental runs, download raw data from the db server to local machine for wrangling.
 
 FOR EACH session (OR as often as desired), export the records into a json file for the session from the server
 
@@ -63,10 +73,7 @@ FOR EACH session (OR as often as desired), export the records into a json file f
 4. Save data files to github
 5. Delete data from server [using mLab/Atlas interface ]
 
-
-//FORM
 >>mongoexport -h [connectionstring] -d [dbname] -c [tablename] -u [username] -p [password] --out [filename]
-
 //SEE [NOTES] for login information
 
 
@@ -90,15 +97,8 @@ brew services start mongodb/brew/mongodb-community
 >>mongoimport -d [DBNAME] -c [SESSIONNAME] --file [filename.json]
 
 //for example : import all session files into a collection called 'ALL_RAW'
-mongoimport -d XFALL2017 -c ALL_RAW  --file alfa-bravo-charlie.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file delta.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file echo.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file foxtrot.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file golf.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file hotel.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file india-juliet-kilo-lima.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file mike.json
-mongoimport -d XFALL2017 -c ALL_RAW  --file november-EXTRA.json
+>>mongoimport -d XFALL2017 -c ALL_RAW  --file alfa-bravo-charlie.json 
+>>mongoimport -d XFALL2017 -c ALL_RAW  --file delta.json
 
 
 4. OPEN data wrangling script 'flatten.js' in RoboT and run against the desired database in order to generate new 'collections' containing the wrangled data. Wrangling script may need to be updated if the stimulus code changed in a way that changes how the data is saved, and/or due to changes in the mongoDB specifications (deprecated functions, etc). Wrangling is the most challenging part of the pipeline, as it requires converting from the noSQL db to a relational form.
@@ -112,17 +112,18 @@ OPEN the relevant JS file in the mongo client (eg robo3T). Run the script, and i
 cd into data dump folder
 >> mongodump -h localhost -d [DB NAME]
 
-5. Export final collections to files. When data is in its final structure ready for data analysis in R, the final step to generate the required data files is exporting the desired collections (marked x_final_ in DB) to file. The --jsonArray parameter is VERY important
+## 3 EXPORT STUDY FILES 
+Export final collections to files. When data is in its final structure ready for data analysis in R, the final step to generate the required data files is exporting the desired collections (marked x_final_ in DB) to file. The --jsonArray parameter is VERY important
 
 //TERMINAL
 >>mongoexport --collection = [collection name] --db=[DB NAME] --jsonArray --out=[filename]
 
 //EXAMPLE
-mongoexport --collection=X_participants --db=XFALL2017 --jsonArray --out=final_participants.json
+>> mongoexport --collection=X_participants --db=XFALL2017 --jsonArray --out=final_participants.json
 mongoexport --collection=X_blocks --db=XFALL2017 --jsonArray --out=final_blocks.json
 mongoexport --collection=X_blocks_mouse --db=XFALL2017 --jsonArray --out=final_blocks_mouse.json
 
-## 3 SEPARATE CONDITIONS INTO STUDIES
+## 4 SEPARATE CONDITIONS INTO STUDIES
 
 Because data for multiple studies was collected at the same time (fall 2017, spring 2018), it is necessary to separate the data files once again based on condition. It is easier to do this in R.
 
@@ -138,9 +139,10 @@ Using the chrome extension Open Multiple URLs 1.3.2.1,
 have chrome open a tab for each URL on the list, which automatically starts the download.
 (recommend "Don't load tabs until selected" option, and only loading 100-500 at a time so that chrome doesn't crash)
 
-# OPTIONAL
--------------------------------------------------------------
+## OPTIONAL
+
 REGEX FOR WRANGLING JSON FILES
+
 /* x */ == \/\* .+ \*\/ (replace with comma)
 [objectID line]        =="_id" : ([A-Z])\w+\("\w+"\),
--------------------------------------------------------------
+
