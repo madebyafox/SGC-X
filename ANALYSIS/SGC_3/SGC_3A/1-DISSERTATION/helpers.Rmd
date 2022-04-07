@@ -1,0 +1,131 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+# PEEKING 
+
+```{r}
+df_test <- df_items %>% filter(block == "item_test")
+```
+
+```{r}
+
+library(ggformula)
+gf_dhistogram(~discriminant_score, data = df_participants, fill = ~condition ) + 
+  facet_grid(condition~.)
+
+
+```
+
+```{r}
+
+#ITEMS 
+#create a contingency table of # of correct responses in each condition
+net.ctable <- table(df_items$condition, df_items$correct)
+#Print table with proportion of incorrect(0) and correct(1) responses for each condition
+items.cprop <- prop.table(net.ctable,1)
+items.cprop
+
+#JUST TEST ITEMS 
+#create a contingency table of # of correct responses in each condition
+net.ctable <- table(df_test$condition, df_test$correct)
+#Print table with proportion of incorrect(0) and correct(1) responses for each condition
+test.cprop <- prop.table(net.ctable,1)
+test.cprop
+
+```
+```{r}
+library(mosaic)
+
+mosaicplot(items.cprop, shade=TRUE, main="Accuracy by Condition", xlab = "Condition", ylab="Accuracy")
+
+mosaicplot(test.cprop, shade=TRUE, main="Accuracy by Condition", xlab = "Condition", ylab="Accuracy")
+
+
+```
+
+```{r}
+library(lme4)
+
+#SIMPLE LINEAR REGRESSION ON DISCRIMINANT SCORE
+m1 = lm(discriminant_score ~ condition , data = df_participants)
+summary(m1)
+
+#LINEAR MIXED EFFECTS ON ITEMS
+m2 = lmer(discriminant ~ condition + (1|subject), data = df_test)
+m3 = lmer(discriminant ~ condition + (1|subject) + (1|q), data = df_test)
+anova(m2,m3)
+summary(m3)
+
+#BINOMIAL MIXED EFFECTS ON ITEMS
+m4 = glmer(correct ~ condition + (1|subject), family = binomial, data = df_items)
+m5 = glmer(correct ~ condition + (1|subject) + (1|q), family = binomial, data = df_items)
+anova(m4,m5)
+
+#BINOMIAL MIXED EFFECTS ON TEST ITEMS
+m6 = glmer(correct ~ condition + (1|subject), family = binomial, data = df_test)
+m7 = glmer(correct ~ condition + (1|subject) + (1|q), family = binomial, data = df_test)
+anova(m6,m7)
+```
+
+
+```{r}
+#VISUALIZE item level discriminant scores
+
+gf_dhistogram(~discriminant, data = df_items, fill = ~condition ) + 
+  facet_grid(condition~.)
+
+gf_point(discriminant ~ condition, data = df_items)
+
+library(ggdist)
+
+df_participants %>% 
+  ggplot(aes(x = discriminant_score, y = condition, side = ifelse(condition == "121", "bottom", "top"))) +
+  geom_dots(scale = 0.5) +
+  ggtitle(
+    "geom_dots(scale = 0.5)",
+  ) 
+
+# see https://mjskay.github.io/ggdist/articles/dotsinterval.html 
+df_items %>% 
+  ggplot(aes(x = correct, y = condition, side = ifelse(condition == "121", "bottom", "top"))) +
+  geom_dots(scale = 0.5) +
+  ggtitle(
+    "geom_dots(scale = 0.5)",
+  ) 
+
+df_participants %>% 
+ggplot(aes(y = condition, x = discriminant_score, fill = condition)) +
+  stat_slab(aes(thickness = stat(pdf*n)), scale = 0.7) +
+  stat_dotsinterval(side = "bottom", scale = 0.7, slab_size = NA) +
+  scale_fill_brewer(palette = "Set2") +
+  ggtitle(paste0(
+      'stat_slab(aes(thickness = stat(pdf*n)), scale = 0.7) +\n',
+      'stat_dotsinterval(side = "bottom", scale = 0.7, slab_size = NA)'
+    ),
+    'aes(fill = abc)'
+  )
+
+
+
+
+
+df_items %>% filter(block=="item_test") %>% mutate(total = sum(correct == "true")) %>% 
+ggplot(aes(y = condition, x = total, fill = condition)) +
+  stat_slab(aes(thickness = stat(pdf*n)), scale = 0.7) +
+  stat_dotsinterval(side = "bottom", scale = 0.7, slab_size = NA) +
+  scale_fill_brewer(palette = "Set2") +
+  ggtitle(paste0(
+      'stat_slab(aes(thickness = stat(pdf*n)), scale = 0.7) +\n',
+      'stat_dotsinterval(side = "bottom", scale = 0.7, slab_size = NA)'
+    ),
+    'aes(fill = abc)'
+  )
+
+
+
+```
+
