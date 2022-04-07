@@ -1,6 +1,7 @@
 # Experimental Stimuli
 AUTHOR: AMY RAE FOX amyraefox@gmail.com  
-Experimental Stimuli for 2nd Year Project: 'Evaluating Scaffolds for Triangle Model'
+Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs  
+SGC 2: Evaluating Scaffolds for the Triangle Model
 
 _deployed at_ https://morning-gorge-17056.herokuapp.com/  
 supports study: SGC-2

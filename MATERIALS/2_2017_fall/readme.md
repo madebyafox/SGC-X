@@ -1,6 +1,7 @@
 # Experimental Stimuli 
 AUTHOR: AMY RAE FOX amyraefox@gmail.com  
-Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs - Study TBD: Eye Tracking
+Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs  
+Study TBD: Eye Tracking
 
 _was deployed at_ https://aqueous-gorge-88321.herokuapp.com/  
 supports study: [no SGC project data collected]

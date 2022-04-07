@@ -1,6 +1,6 @@
 # Experimental Stimuli 
 AUTHOR: AMY RAE FOX amyraefox@gmail.com  
-Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs:
+Experimental Stimuli Codebase for SGC - Scaffolding Unconventional Graphs:  
 Study 3: The Insight Hypothesis _in remote asynch data collection mode_  
 Study 4: The Graph Schema _in remote asynch data collection mode_  
 Study 5: Interaction _in remote asynch data collection mode_  
