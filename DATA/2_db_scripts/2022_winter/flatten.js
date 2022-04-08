@@ -8,7 +8,7 @@
 
 
 //CREATE A COLLECTION OF ALL SUBJECTS
-db.winter_22.aggregate(
+db.entries.aggregate(
  [
      //select only successful participants 
     {$match: {"data.trials.status": {$in: ["success"] }}},  
