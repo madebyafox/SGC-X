@@ -29,6 +29,21 @@ mongoexport -d XWINTER2022 -c SGC3A_final_participants --jsonArray --out winter2
 mongoexport -d XWINTER2022 -c SGC3A_final_items --jsonArray --out winter22_sgc3a_final_items.json
 mongoexport -d XWINTER2022 -c SGC3A_final_items_mouse --jsonArray --out winter22_sgc3a_final_items_mouse.json
 
+[4A]
+mongoexport -d XWINTER2022 -c SGC4A_final_participants --jsonArray --out winter22_sgc4a_final_participants.json
+mongoexport -d XWINTER2022 -c SGC4A_final_items --jsonArray --out winter22_sgc4a_final_items.json
+mongoexport -d XWINTER2022 -c SGC4A_final_items_mouse --jsonArray --out winter22_sgc4a_final_items_mouse.json
+
+[4B]
+mongoexport -d XWINTER2022 -c SGC4B_final_participants --jsonArray --out winter22_sgc4b_final_participants.json
+mongoexport -d XWINTER2022 -c SGC4B_final_items --jsonArray --out winter22_sgc4b_final_items.json
+mongoexport -d XWINTER2022 -c SGC4B_final_items_mouse --jsonArray --out winter22_sgc4b_final_items_mouse.json
+
+[5A]
+mongoexport -d XWINTER2022 -c SGC5A_final_participants --jsonArray --out winter22_sgc5a_final_participants.json
+mongoexport -d XWINTER2022 -c SGC5A_final_items --jsonArray --out winter22_sgc5a_final_items.json
+mongoexport -d XWINTER2022 -c SGC5A_final_items_mouse --jsonArray --out winter22_sgc5a_final_items_mouse.json
+
 ### reconcilliation
 - 1380 total records `entries`
 - minus 330 failures (sum in `_fail`)
