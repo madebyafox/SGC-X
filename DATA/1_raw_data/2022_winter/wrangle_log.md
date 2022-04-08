@@ -1,8 +1,27 @@
 
+## Download complete WI22 
 
-## Export Log
+### 4/7/2022
+- download from server 
+>> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22.json
 
-mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_WIP-DUMP.json
+- file to big for github, have to split using python script, download JSON ARRAY version
+>> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --jsonArray --out wi22_jsonArray.json
+
+- IMPORT into local DB 
+- note: WIP-DUMP is data from the first part of datacollection, needed to be dumped to file and db cleared because ran out of space on free mongoDB
+>> mongoimport -d XWINTER2022 -c entries --file wi22.json
+>> mongoimport -d XWINTER2022 -c entries --file wi22_WIP-DUMP.json
+
+- EXPORT from local DB into one file to split for upload raw to github (1380 subjects)
+>> mongoexport -d XWINTER2022 -c entries --jsonArray --out wi22_all_raw.json
+
+>> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22.json
+
+## mid-collection DB dump
+- note: WIP-DUMP is data from the first part of datacollection, needed to be dumped to file and db cleared because ran out of space on free mongoDB
+
+>> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_WIP-DUMP.json
 
 ### REFACTOR data wrangling scripts for consistent format 
 
