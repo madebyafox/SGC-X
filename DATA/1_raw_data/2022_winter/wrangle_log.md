@@ -18,6 +18,27 @@
 
 >> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22.json
 
+- WRANGLE customized flatten.js files per study, due to size
+- ran flatten.js against entries (see reconcilliation below for totals)
+
+- DOWNLOAD study specific files (split here rather than in Rmd for size restrictions)
+- store files in 3_ready_files
+
+[3A]
+mongoexport -d XWINTER2022 -c SGC3A_final_participants --jsonArray --out winter22_sgc3a_final_participants.json
+mongoexport -d XWINTER2022 -c SGC3A_final_items --jsonArray --out winter22_sgc3a_final_items.json
+mongoexport -d XWINTER2022 -c SGC3A_final_items_mouse --jsonArray --out winter22_sgc3a_final_items_mouse.json
+
+### reconcilliation
+- 1380 total records `entries`
+- minus 330 failures (sum in `_fail`)
+- equals 1050 `final_participants`
+- SGC5A : 137
+- SGC4B : 249
+- SGC4A : 582
+- SGC3A : 82
+
+
 ## mid-collection DB dump
 - note: WIP-DUMP is data from the first part of datacollection, needed to be dumped to file and db cleared because ran out of space on free mongoDB
 
