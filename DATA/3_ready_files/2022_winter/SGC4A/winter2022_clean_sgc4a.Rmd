@@ -258,6 +258,11 @@ df_items_split <- df_items %>% filter(subject %in% df_participants_split$subject
 nrow(df_items) == nrow(df_items_keep) + nrow(df_items_split)
 
 #WRITE SGC4B FILES
+
+#set study = SGC4B
+df_participants_split$study <- "SGC4B"
+df_items_split$study <- "SGC4B"
+
 #export other half control for SGC4B
 write.csv(df_participants_split,"output/winter22_sgc4b_CONTROL_participants.csv", row.names = FALSE)
 write.csv(df_items_split,"output/winter22_sgc4b_CONTROL_items.csv", row.names = FALSE)
