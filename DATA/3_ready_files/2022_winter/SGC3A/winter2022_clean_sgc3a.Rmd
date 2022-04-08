@@ -187,8 +187,8 @@ df_items <- df_items %>%
 
 # Data Validation
 
-
-## Completion Status
+## Exclusions
+### Completion Status
 
 Starting with Winter 2022, data are saved to the database even if the subject's browser did not meet minimum specifications (at which point they are prompted to change browsers, or end the study). This allows us to learn about the browsers, screen sizes and OS that (potential) subjects are using. However, these data are _not_ exported from the database for analysis (see flatten.js and status.js scripts). Thus, only subjects who successfully completed the entire study are included in this file. 
 
@@ -215,7 +215,7 @@ df_participants <- df_participants %>%
 
 _No data need to be excluded on account of completion status._
 
-## Conditions
+### Conditions
 
 Participants are randomly assigned to an experimental condition when starting the study. Here we validate that only conditions for the current study are included in this dataset.
 
@@ -244,7 +244,7 @@ df_participants <- df_participants %>%
 
 _No data need to be excluded on account of condition._
 
-## Sessions
+### Sessions
 
 The (string) `session code` is embedded in the URL querystring by the experimenter to differentiate testing sessions in SONA from demo and other environment setup tasks. 
 
@@ -273,7 +273,7 @@ df_participants <- df_participants %>%
 
 _No data need to be excluded on account of session._
 
-## Browser Interaction Violations
+### Browser Interaction Violations
 
 Browser interaction data is recorded by jspsych allowing us to determine if subjects violate our instructions not to leave the browser tab (or exit fullscreen mode) during test. These incidents are recorded in jspsych interaction data object, and the number of violations is counted and added to the participant data file. 
 
@@ -303,7 +303,7 @@ df_participants <- df_participants %>%
 _Two participants were excluded for exceeding the maximum allowed number of browser interaction violations._
 
 
-## Effort
+### Effort
 
 To assist in mitigating increased noise in data collected asynchronously from the UCSD student subject pool, we added explicit ratings of how much effort the participant expended on the task. This question was implemented as a multiple-choice drop-down on an 'Effort' page prior to the 'Demographics' survey at the end of the study. Subjects were given four options : (1) I tried my best on each question, (2) I tried my best on most questions, (3) I started out trying hard, but gave up at some point, (4) I didn't try very hard, or rushed through the questions.
 
@@ -333,7 +333,7 @@ _Three participants are excluded for low (self-rated) effort._
 
 
 
-## Attention Check
+### Attention Check
 
 The 6th question in the study is non-discriminatory (can easily get correct answer regardless of strategy) and serves as an attention check question. 
 
@@ -362,7 +362,7 @@ df_participants <- df_participants %>%
 _Nine participants are excluded for failing the attention check question._
 
 
-## Items
+### Items
 
 Next, we need to discard item_level data for excluded participants. 
 
@@ -375,15 +375,21 @@ df_items <- df_items %>%
   filter (!subject %in% ex_participants$subject )
 ```
 
+
+
 ## Validation
 
+After all exclusions, we are left with the following number of participants per condition:
+```{r inspect-CONDITIONS-2,message=FALSE}
+#MANUALLY INSPECT conditions
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
 Finally, we need to validate we have a complete set of items for all valid participants. 
 
 ```{r VALIDATE-ITEMS}
-
 count(df_items)[[1]] == count(df_participants)[[1]]* n_items 
 ```
-
 
 
 # Participants Codebook
