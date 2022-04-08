@@ -1,0 +1,488 @@
+---
+title: "Winter 2022 SGC 3A Data Cleaning"
+author: "Amy Rae Fox"
+date: "04/07/2022"
+always_allow_html: true  
+geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm"
+output:
+  pdf_document: 
+    toc: true
+    toc_depth: 2
+    latex_engine: xelatex
+  html_document:
+    theme: yeti
+    code_folding: hide
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+    toc_depth: 4
+font-family: "DejaVu Sans"
+mainfont: "DejaVu Sans"
+---
+
+*The purpose of this file is processing the combined data files for Winter 2022 into files that contain only valid data for analysis, excluding invalid sessions and participants*
+
+```{r SETUP, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(jsonlite)
+library(tidyjson)
+library(dplyr)
+
+# codebook stuff 
+library(codebook) #core codebook functions 
+library(labelled) #labelling conveninence functions
+
+#check output mode [for conditional display of codebook]
+checkMode <- function() {
+  knitr::opts_current$get('dev')
+}
+```
+
+Data is imported from 2 files, indicating two levels of analysis: participants and blocks (item-level). 
+
+**Note: mouse-cursor data contained in final_mouse_blocks.json file is not handled here.**
+
+```{r IMPORT}
+
+#IMPORT DATA
+df_participants <- fromJSON("input/winter22_sgc3a_final_participants.json")
+df_items <- fromJSON('input/winter22_sgc3a_final_items.json')
+
+#add term indicator
+df_participants$term <- "winter22"
+df_items$term <- "winter22"
+
+#DEFINE SGC_3A validity crieria
+sessions <- c('wi22sona') #SGC3A second online replication on SONA 
+conditions <-c(111,121) #2 conditions
+violation_threshold = 3 #number of allowable browser violations
+effort_exclusion = c("I didn't try very hard, or rushed through the questions", "I started out trying hard, but gave up at some point")
+n_items = 15 #fifteen items is complete dataset per participant
+
+#placeholder for excluding participants
+ex_participants = data.frame()
+```
+
+```{r PARTICIPANTS-SETUP}
+
+#create factors in PARTICIPANTS
+df_participants <- df_participants %>%  
+  mutate( #create factors and remove extraneous ""
+    subject=factor(subject),
+    condition=factor(condition),
+    study = factor(study),
+    condition = factor(condition),
+    session = factor(session),
+    exp_id = factor(exp_id),
+    sona_id = factor(sona_id),
+    pool = factor(pool),
+    mode = factor(mode),
+    attn_check = factor(attn_check),
+    status=factor(status),
+    term=factor(term),
+    gender = as.factor(gender),
+    age = as.integer(age),
+    country = gsub('"',"",country),
+    year = factor(schoolyear),
+    major = factor(major),
+    browser = factor(browser),
+    os = factor(os),
+    native_language = factor(language),
+    totaltime_m = totaltime/1000/60,
+   ) %>% select( #order cols 
+    subject,
+    study,
+    condition,
+    session,
+    exp_id,
+    sona_id,
+    pool,
+    mode,
+    attn_check,
+    explanation,
+    effort,
+    difficulty,
+    confidence,
+    enjoyment,
+    other,
+    age,
+    country,
+    language,
+    schoolyear,
+    major,
+    gender,
+    disability,
+    browser,
+    width,
+    height,
+    os,
+    starttime,
+    status,
+    term,
+    violations,
+    absolute_score,
+    discriminant_score,
+    tri_score,
+    orth_score,
+    other_score,
+    blank_score,
+    totaltime_m
+   )  
+
+```
+
+```{r ITEMS-SETUP}
+
+df_items <- df_items %>% 
+  mutate(
+    subject=factor(subject),
+    condition=factor(condition),
+    pool=factor(pool),
+    mode = factor(mode),
+    explicit=factor(explicit),
+    impasse = factor(impasse),
+    grid = factor(grid),
+    mark = factor(mark),
+    ixn = factor(ixn),
+    term=factor(term),
+    relation = factor(relation),
+    block = factor(block),
+    correct = factor(correct),
+    q=factor(q),
+    rt_s = rt/1000,
+    time_elapsed_m = time_elapsed/1000/60
+  ) %>% select(
+     subject,
+     study,
+     term,
+     pool,
+     mode,
+     block,
+     explicit,
+     impasse,
+     grid,
+     mark,
+     ixn,
+     gwidth,
+     gheight,
+     graph,
+     time_elapsed_m,
+     question,
+     relation,
+     q,
+     correct,
+     discriminant,
+     tri_score,
+     orth_score,
+     other_score,
+     blank_score,
+     answer,
+     rt_s,
+     condition
+   ) 
+```
+
+# Data Validation
+
+
+## Completion Status
+
+Starting with Winter 2022, data are saved to the database even if the subject's browser did not meet minimum specifications (at which point they are prompted to change browsers, or end the study). This allows us to learn about the browsers, screen sizes and OS that (potential) subjects are using. However, these data are _not_ exported from the database for analysis (see flatten.js and status.js scripts). Thus, only subjects who successfully completed the entire study are included in this file. 
+
+```{r inspect-STATUS, message=FALSE}
+#MANUALLY INSPECT status
+df_participants %>% group_by(status) %>% 
+  dplyr::summarize(n=n())
+```
+
+```{r handle-STATUS}
+
+#DISCARD participants from invalid sessions 
+exclude_status <- df_participants %>% 
+          filter(status != "success") %>% 
+          mutate(reason="invalid-status")
+
+ex_participants <- rbind(ex_participants, exclude_status)
+rm(exclude_status)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+
+```
+
+_No data need to be excluded on account of completion status._
+
+## Conditions
+
+Participants are randomly assigned to an experimental condition when starting the study. Here we validate that only conditions for the current study are included in this dataset.
+
+```{r inspect-CONDITIONS,message=FALSE}
+#MANUALLY INSPECT conditions
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
+
+Data from conditions _not_ corresponding to valid conditions should be discarded. 
+
+```{r handle-CONDITIONS}
+
+#DISCARD participants from conditions invalid for this study
+exclude_condition <- df_participants %>% 
+          filter(!condition %in% conditions) %>% 
+          mutate(reason="invalid-condition")
+
+ex_participants <- rbind(ex_participants, exclude_condition)
+rm(exclude_condition)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+
+```
+
+_No data need to be excluded on account of condition._
+
+## Sessions
+
+The (string) `session code` is embedded in the URL querystring by the experimenter to differentiate testing sessions in SONA from demo and other environment setup tasks. 
+
+```{r inspect-SESSIONS,message=FALSE}
+#MANUALLY INSPECT sessions
+df_participants %>% group_by(session) %>% 
+  dplyr::summarize(n=n())
+```
+
+Data from sessions not corresponding to valid sessions should be discarded. 
+
+```{r handle-SESSIONS}
+
+#DISCARD participants from invalid sessions 
+exclude_session <- df_participants %>% 
+          filter(!session %in% sessions) %>% 
+          mutate(reason="invalid-session")
+
+ex_participants <- rbind(ex_participants, exclude_session)
+rm(exclude_session)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+
+```
+
+_No data need to be excluded on account of session._
+
+## Browser Interaction Violations
+
+Browser interaction data is recorded by jspsych allowing us to determine if subjects violate our instructions not to leave the browser tab (or exit fullscreen mode) during test. These incidents are recorded in jspsych interaction data object, and the number of violations is counted and added to the participant data file. 
+
+Due to eccentricity of the browser events captured, 1-2 browser violations can be captured even if the subject did not leave the browser window (eg. in case of resizing window to meet minimum requirements.)
+
+```{r inspect-VIOLATIONS, message=FALSE}
+#MANUALLY INSPECT violations
+df_participants %>% group_by(violations) %>% 
+  dplyr::summarize(n=n())
+```
+
+```{r handle-VIOLATIONS}
+
+#DISCARD participants exceeding the threshold of browser interaction violations 
+exclude_violations <- df_participants %>% 
+          filter(violations > violation_threshold) %>% 
+          mutate(reason="exceeded-violations")
+
+ex_participants <- rbind(ex_participants, exclude_violations)
+rm(exclude_violations)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+
+```
+
+_Two participants were excluded for exceeding the maximum allowed number of browser interaction violations._
+
+
+## Effort
+
+To assist in mitigating increased noise in data collected asynchronously from the UCSD student subject pool, we added explicit ratings of how much effort the participant expended on the task. This question was implemented as a multiple-choice drop-down on an 'Effort' page prior to the 'Demographics' survey at the end of the study. Subjects were given four options : (1) I tried my best on each question, (2) I tried my best on most questions, (3) I started out trying hard, but gave up at some point, (4) I didn't try very hard, or rushed through the questions.
+
+
+```{r inspect-EFFORT, message=FALSE}
+#MANUALLY INSPECT effort
+df_participants %>% group_by(effort) %>% 
+  dplyr::summarize(n=n())
+```
+Participants answering with options _I didn't try very hard, or rushed through the questions_ or _I started out trying hard, but gave up at some point_ are excluded from analysis. 
+
+```{r handle-EFFORT}
+
+#DISCARD participants who indicated they did not expend adequate effort on the study
+exclude_effort <- df_participants %>% 
+          filter(effort %in% effort_exclusion) %>% 
+          mutate(reason="selfrated-effort")
+
+ex_participants <- rbind(ex_participants, exclude_effort)
+rm(exclude_effort)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+```
+
+_Three participants are excluded for low (self-rated) effort._
+
+
+
+## Attention Check
+
+The 6th question in the study is non-discriminatory (can easily get correct answer regardless of strategy) and serves as an attention check question. 
+
+```{r inspect-ATTN, message=FALSE}
+#MANUALLY INSPECT attention
+df_participants %>% group_by(attn_check) %>% 
+  dplyr::summarize(n=n())
+```
+
+Participants who answered the attention check question incorrectly should be excluded. 
+
+```{r handle-ATTN}
+
+#DISCARD participants who indicated they did not expend adequate effort on the study
+exclude_attn <- df_participants %>% 
+          filter(attn_check == FALSE) %>% 
+          mutate(reason="failed-attnchk")
+
+ex_participants <- rbind(ex_participants, exclude_attn)
+rm(exclude_attn)     
+
+df_participants <- df_participants %>% 
+  filter( ! subject %in% ex_participants$subject)
+```
+
+_Nine participants are excluded for failing the attention check question._
+
+
+## Items
+
+Next, we need to discard item_level data for excluded participants. 
+
+```{r FILTER-ITEMS}
+
+ex_items <- df_items %>% 
+  filter (subject %in% ex_participants$subject) 
+
+df_items <- df_items %>% 
+  filter (!subject %in% ex_participants$subject )
+```
+
+## Validation
+
+Finally, we need to validate we have a complete set of items for all valid participants. 
+
+```{r VALIDATE-ITEMS}
+
+count(df_items)[[1]] == count(df_participants)[[1]]* n_items 
+```
+
+
+
+# Participants Codebook
+
+```{r SUBJECTS-CODEBOOK}
+
+#see https://cran.r-project.org/web/packages/codebook/vignettes/codebook_tutorial.html
+
+#ADD VARIABLE METADATA
+dict <- rio::import("input/dictionary_sgc3a_participants.csv", "csv") #import data dictionary
+var_label(df_participants) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
+
+#ADD DATASET METATDATA
+metadata(df_participants)$name <- "Experimental PARTICIPANTS for study SGC3A"
+metadata(df_participants)$description <- "Data for study SGC3A summarized at PARTICIPANT  level"
+metadata(df_participants)$creator <- "Amy Rae Fox"
+metadata(df_participants)$contact <- "amyraefox@gmail.com"
+
+```
+
+
+```{r}
+#{r, eval = checkMode() == "pdf"} #ONLY FOR PDF KNIT
+codebook::skim_codebook(df_participants) 
+```
+
+```{r, eval = checkMode() == "png"}
+codebook(df_participants, #ONLY FOR HTML KNIT
+         metadata_table = TRUE,
+         detailed_variables = FALSE,
+         detailed_scales = FALSE,
+         metadata_json = FALSE,
+         survey_overview = FALSE,
+         missingness_report = FALSE)
+```
+
+
+# Items Codebook
+
+```{r ITEMS-CODEBOOK}
+
+#see https://cran.r-project.org/web/packages/codebook/vignettes/codebook_tutorial.html
+
+#ADD VARIABLE METADATA
+dict <- rio::import("input/dictionary_sgc3a_items.csv", "csv") #import data dictionary
+
+var_label(df_items) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
+
+#ADD DATASET METATDATA
+metadata(df_items)$name <- "Experimental ITEMS for study SGC3A"
+metadata(df_items)$description <- "Data for study SGC3A summarized at participant-item level"
+metadata(df_items)$creator <- "Amy Rae Fox"
+metadata(df_items)$contact <- "Amy Rae Fox"
+
+```
+
+```{r}
+#{r, eval = checkMode() == "pdf"} #ONLY FOR PDF EXPORT
+skim_codebook(df_items) 
+```
+
+```{r, eval = checkMode() == "png"}
+codebook(df_items,#ONLY FOR HTML EXPORT
+         metadata_table = TRUE,
+         detailed_variables = FALSE,
+         detailed_scales = FALSE,
+         metadata_json = FALSE,
+         survey_overview = FALSE,
+         missingness_report = FALSE)
+```
+
+# Data Export
+
+
+## Save Exclusions
+
+For transparency, we save and identify the excluded data. 
+
+```{r save-EXCLUSIONS}
+
+write.csv(ex_participants,"output/excluded_participants_winter22_sgc3a.csv", row.names = FALSE)
+write.csv(ex_items,"output/excluded_items_winter22_sgc3a.csv", row.names = FALSE)
+
+```
+
+
+
+## Analysis-Ready Files
+
+```{r GENERATE-FILES}
+
+#save participant file
+
+write.csv(df_participants,"output/winter22_sgc3a_participants.csv", row.names = FALSE)
+
+#save item file
+write.csv(df_items,"output/winter22_sgc3a_items.csv", row.names = FALSE)
+
+ 
+
+```
+
