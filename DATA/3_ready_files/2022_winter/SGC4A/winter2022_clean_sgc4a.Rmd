@@ -1,5 +1,5 @@
 ---
-title: "Winter 2022 SGC 3A Data Cleaning"
+title: "Winter 2022 SGC 4A Data Cleaning"
 author: "Amy Rae Fox"
 date: "04/07/2022"
 always_allow_html: true  
@@ -48,16 +48,16 @@ Data is imported from 2 files, indicating two levels of analysis: participants a
 ```{r IMPORT}
 
 #IMPORT DATA
-df_participants <- fromJSON("input/winter22_sgc3a_final_participants.json")
-df_items <- fromJSON('input/winter22_sgc3a_final_items.json')
+df_participants <- fromJSON("input/winter22_sgc4a_final_participants.json")
+df_items <- fromJSON('input/winter22_sgc4a_final_items.json')
 
 #add term indicator
 df_participants$term <- "winter22"
 df_items$term <- "winter22"
 
-#DEFINE SGC_3A validity crieria
-sessions <- c('wi22sona') #SGC3A second online replication on SONA 
-conditions <-c(111,121) #2 conditions
+#DEFINE SGC_4A validity crieria
+sessions <- c('wi22sona') #SGC4A second online replication on SONA 
+conditions <-c(11111,113,114,115) #4 conditions
 violation_threshold = 3 #number of allowable browser violations
 effort_exclusion = c("I didn't try very hard, or rushed through the questions", "I started out trying hard, but gave up at some point")
 n_items = 15 #fifteen items is complete dataset per participant
@@ -187,8 +187,8 @@ df_items <- df_items %>%
 
 # Data Validation
 
-
-## Completion Status
+## Exclusions
+### Completion Status
 
 Starting with Winter 2022, data are saved to the database even if the subject's browser did not meet minimum specifications (at which point they are prompted to change browsers, or end the study). This allows us to learn about the browsers, screen sizes and OS that (potential) subjects are using. However, these data are _not_ exported from the database for analysis (see flatten.js and status.js scripts). Thus, only subjects who successfully completed the entire study are included in this file. 
 
@@ -197,6 +197,7 @@ Starting with Winter 2022, data are saved to the database even if the subject's 
 df_participants %>% group_by(status) %>% 
   dplyr::summarize(n=n())
 ```
+`r nrow(df_participants)` successfully completed the study. 
 
 ```{r handle-STATUS}
 
@@ -215,7 +216,7 @@ df_participants <- df_participants %>%
 
 _No data need to be excluded on account of completion status._
 
-## Conditions
+### Conditions
 
 Participants are randomly assigned to an experimental condition when starting the study. Here we validate that only conditions for the current study are included in this dataset.
 
@@ -226,6 +227,54 @@ df_participants %>% group_by(condition) %>%
 ```
 
 Data from conditions _not_ corresponding to valid conditions should be discarded. 
+
+**Split Control Condition**
+
+238	subjects were collected under SGC4A condition 11111.  However, _half_ of these subjects were _actually_ SGC4B (also control condition, identical design), but the study code was hardcoded.  Thus, we need to _split_ and take half the SGC4A 11111 participants, remove them from this dataset, and export them to be moved to SGC4B. 
+
+```{r split-control-condition}
+
+#SPLIT PARTICIPANT FILE
+
+#divide df_participants into control and experimental conditions
+df_participants_control <- df_participants %>% filter(condition == "11111")
+df_participants_experimental <- df_participants %>% filter(condition %in%  c("113","114","115"))
+
+#split control condition participants into two halves
+df_participants_keep <- df_participants_control[seq_len(nrow(df_participants_control)) %% 2 == 0, ]   # Extracting even rows
+df_participants_split <- df_participants_control[seq_len(nrow(df_participants_control)) %% 2 == 1, ]   # Extracting odd rows
+
+#validate keep + split = control 
+nrow(df_participants_control) == nrow(df_participants_keep) + nrow(df_participants_split)
+
+#RECONSTRUCT DF_PARTICIPANTS
+df_participants <- rbind(df_participants_experimental, df_participants_keep)
+
+#SPLIT ITEMS FILE
+df_items_keep <- df_items %>% filter(subject %in% df_participants$subject)
+df_items_split <- df_items %>% filter(subject %in% df_participants_split$subject)
+
+#validate all items have been split
+nrow(df_items) == nrow(df_items_keep) + nrow(df_items_split)
+
+#WRITE SGC4B FILES
+#export other half control for SGC4B
+write.csv(df_participants_split,"output/winter22_sgc4b_CONTROL_participants.csv", row.names = FALSE)
+write.csv(df_items_split,"output/winter22_sgc4b_CONTROL_items.csv", row.names = FALSE)
+
+#RECONSTRUCT DF_ITEMS
+df_items <- df_items_keep
+
+#cleanup temp dataframes
+rm(df_participants_control,df_participants_experimental, df_participants_keep, df_participants_split)
+```
+
+After splitting the extra control condition participants into SGC4, we are left with: 
+```{r inspect-CONDITIONS-2,message=FALSE}
+#MANUALLY INSPECT conditions
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
 
 ```{r handle-CONDITIONS}
 
@@ -244,7 +293,7 @@ df_participants <- df_participants %>%
 
 _No data need to be excluded on account of condition._
 
-## Sessions
+### Sessions
 
 The (string) `session code` is embedded in the URL querystring by the experimenter to differentiate testing sessions in SONA from demo and other environment setup tasks. 
 
@@ -273,7 +322,7 @@ df_participants <- df_participants %>%
 
 _No data need to be excluded on account of session._
 
-## Browser Interaction Violations
+### Browser Interaction Violations
 
 Browser interaction data is recorded by jspsych allowing us to determine if subjects violate our instructions not to leave the browser tab (or exit fullscreen mode) during test. These incidents are recorded in jspsych interaction data object, and the number of violations is counted and added to the participant data file. 
 
@@ -300,10 +349,10 @@ df_participants <- df_participants %>%
 
 ```
 
-_Two participants were excluded for exceeding the maximum allowed number of browser interaction violations._
+_Thirty two participants were excluded for exceeding the maximum allowed number of browser interaction violations._
 
 
-## Effort
+### Effort
 
 To assist in mitigating increased noise in data collected asynchronously from the UCSD student subject pool, we added explicit ratings of how much effort the participant expended on the task. This question was implemented as a multiple-choice drop-down on an 'Effort' page prior to the 'Demographics' survey at the end of the study. Subjects were given four options : (1) I tried my best on each question, (2) I tried my best on most questions, (3) I started out trying hard, but gave up at some point, (4) I didn't try very hard, or rushed through the questions.
 
@@ -329,11 +378,10 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Three participants are excluded for low (self-rated) effort._
+_Thirty-four participants are excluded for low (self-rated) effort._
 
 
-
-## Attention Check
+### Attention Check
 
 The 6th question in the study is non-discriminatory (can easily get correct answer regardless of strategy) and serves as an attention check question. 
 
@@ -359,10 +407,10 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Nine participants are excluded for failing the attention check question._
+_Thirty seven participants are excluded for failing the attention check question._
 
 
-## Items
+### Items
 
 Next, we need to discard item_level data for excluded participants. 
 
@@ -377,15 +425,17 @@ df_items <- df_items %>%
 
 ## Validation
 
+After all exclusions, we are left with the following number of participants per condition:
+```{r inspect-CONDITIONS-3,message=FALSE}
+#MANUALLY INSPECT conditions
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
 Finally, we need to validate we have a complete set of items for all valid participants. 
 
 ```{r VALIDATE-ITEMS}
-
 count(df_items)[[1]] == count(df_participants)[[1]]* n_items 
 ```
-
-
-
 # Participants Codebook
 
 ```{r SUBJECTS-CODEBOOK}
@@ -393,12 +443,12 @@ count(df_items)[[1]] == count(df_participants)[[1]]* n_items
 #see https://cran.r-project.org/web/packages/codebook/vignettes/codebook_tutorial.html
 
 #ADD VARIABLE METADATA
-dict <- rio::import("input/dictionary_sgc3a_participants.csv", "csv") #import data dictionary
+dict <- rio::import("input/dictionary_sgc4a_participants.csv", "csv") #import data dictionary
 var_label(df_participants) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
 
 #ADD DATASET METATDATA
-metadata(df_participants)$name <- "Experimental PARTICIPANTS for study SGC3A"
-metadata(df_participants)$description <- "Data for study SGC3A summarized at PARTICIPANT  level"
+metadata(df_participants)$name <- "Experimental PARTICIPANTS for study SGC4A"
+metadata(df_participants)$description <- "Data for study SGC4A summarized at PARTICIPANT  level"
 metadata(df_participants)$creator <- "Amy Rae Fox"
 metadata(df_participants)$contact <- "amyraefox@gmail.com"
 
@@ -428,15 +478,15 @@ codebook(df_participants, #ONLY FOR HTML KNIT
 #see https://cran.r-project.org/web/packages/codebook/vignettes/codebook_tutorial.html
 
 #ADD VARIABLE METADATA
-dict <- rio::import("input/dictionary_sgc3a_items.csv", "csv") #import data dictionary
+dict <- rio::import("input/dictionary_sgc4a_items.csv", "csv") #import data dictionary
 
 var_label(df_items) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
 
 #ADD DATASET METATDATA
-metadata(df_items)$name <- "Experimental ITEMS for study SGC3A"
-metadata(df_items)$description <- "Data for study SGC3A summarized at participant-item level"
+metadata(df_items)$name <- "Experimental ITEMS for study SGC4A"
+metadata(df_items)$description <- "Data for study SGC4A summarized at participant-item level"
 metadata(df_items)$creator <- "Amy Rae Fox"
-metadata(df_items)$contact <- "Amy Rae Fox"
+metadata(df_items)$contact <- "amyraefox@gmail.com"
 
 ```
 
@@ -464,8 +514,8 @@ For transparency, we save and identify the excluded data.
 
 ```{r save-EXCLUSIONS}
 
-write.csv(ex_participants,"output/excluded_participants_winter22_sgc3a.csv", row.names = FALSE)
-write.csv(ex_items,"output/excluded_items_winter22_sgc3a.csv", row.names = FALSE)
+write.csv(ex_participants,"output/excluded_participants_winter22_sgc4a.csv", row.names = FALSE)
+write.csv(ex_items,"output/excluded_items_winter22_sgc4a.csv", row.names = FALSE)
 
 ```
 
@@ -477,10 +527,10 @@ write.csv(ex_items,"output/excluded_items_winter22_sgc3a.csv", row.names = FALSE
 
 #save participant file
 
-write.csv(df_participants,"output/winter22_sgc3a_participants.csv", row.names = FALSE)
+write.csv(df_participants,"output/winter22_sgc4a_participants.csv", row.names = FALSE)
 
 #save item file
-write.csv(df_items,"output/winter22_sgc3a_items.csv", row.names = FALSE)
+write.csv(df_items,"output/winter22_sgc4a_items.csv", row.names = FALSE)
 
  
 

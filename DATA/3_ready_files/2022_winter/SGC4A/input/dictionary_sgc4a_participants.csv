@@ -1,0 +1,38 @@
+﻿VARIABLE ,TYPE,DATA TYPE,RANGE OF VALUES,NOTES,DESCRIPTION
+subject,ID,string factor,alphanumeric,,ID of subject (randomly assigned in stimulus app)
+study,ID,string factor,"""SGC4A""",,ID study name
+condition,ID,string factor,"[11111,113,114,115]",,"ID indicates randomly assigned condition (111 -> control, 121 -> impasse)"
+session,ID,string factor,"""wi22w9""",,ID data collection session 
+exp_id,ID,numeric factor,[4 digit numeric],,ID of study in SONA system 
+sona_id,ID,numeric factor,[5 digit numeric],,ID of subject in SONA system 
+pool,ID,string factor,"""sona""",,ID subject pool 
+mode,context ,string factor,"""asynch""",,indicates if session was run with experimenter present or asynchronously
+attn_check,RESPONSE ,logical,"[TRUE, FALSE]",,indicates whether participant answered question 6 (non discriminant duration question) correctly
+explanation,RESPONSE ,string,(free response),,Please describe how to determine what event(s) start at 12pm?
+effort,RESPONSE ,string,(free response),,Which of the following best describes the amount of effort you put into the task?
+difficulty,RESPONSE ,string,(free response),,How difficult was the task?
+confidence,RESPONSE ,string,(free response),,How well (how correctly) do you think you performed the task?
+enjoyment,RESPONSE ,string,(free response),,How enjoyable was the task?
+other,RESPONSE ,string,(free response),,What else do you think would be useful for us to know about your experience?
+age,DEMOGRAPHICS,numeric factor,,,How old are you?
+country,DEMOGRAPHICS,string factor,,,In what country have you lived most of your life?
+language,DEMOGRAPHICS,string factor,"['English', 'Mandarin', 'Cantonese', 'Korean', 'German','Arabic','French','Spanish','X-Other']",,What is your first language?
+schoolyear,DEMOGRAPHICS,string factor,"['First', 'Second', 'Third', 'Fourth', 'Fifth','Grad Student','X-OTHER']",,What is your year in school?
+major,DEMOGRAPHICS,string factor,"[""Math or Computer Sciences"",""Social Sciences (incl. CogSci)"", ""Biomedical & Health Sciences"", ""Natural Sciences"",""Engineering"",""Humanities"",""Fine Arts""]",,What is your major area of study?
+gender,DEMOGRAPHICS,string factor,"['Other-Not Listed','Male','Female']",,What is your gender identity?
+disability,DEMOGRAPHICS,string factor,(free response),,Do you have any impairments or disabilities you believe may have influenced your performance on this task?
+browser,context ,string factor,"[""firefox"", ""chrome"", ""safari"", ""edge-chromium""]",,browser name 
+width,context ,numeric ,min: 1000,,browser screen width 
+height,context ,numeric ,min: 650,,browser screen height 
+os,context ,string factor,,,operating system
+starttime,context ,string (date/time),,recorded in local time to browser clinet,localtime when subject started the study 
+status,context ,string factor,"""success""",,Was the study successfully completed?
+term,context ,string factor,"""winter22""",,term the data were collected
+violations,exclusion criteria,numeric,min: 0 ,,"number of browser interaction violations (eg. leaving fullscreen, entering dev tools, window losing focus)"
+absolute_score,TOTAL,numeric,"[0,12]",,number of (strictly) correct answers (only counts the 12 discriminant questions)
+discriminant_score,TOTAL,numeric,"[-12, 12]",,"scaled score that assigns credit based on content of answer [orthog = -1, blank, nonsense = 0, triangular = 1], discriminant_score = ((1/tri.length)*tintersect.length) - ((1/orth.length)*ointersect.length) - (1/n * not_tri_orth);"
+tri_score,TOTAL,numeric,,,number of triangular_correct answers
+orth_score,TOTAL,numeric,,,number of orthongal_correct answers
+other_score,TOTAL,numeric,,,number of other_ answers
+blank_score,TOTAL,numeric,,,number of blank answers
+totaltime_m,TOTAL,numeric,,in minutes,total study completion time in minutes
