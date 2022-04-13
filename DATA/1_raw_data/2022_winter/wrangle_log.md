@@ -1,7 +1,45 @@
 
 ## Download complete WI22 
 
-### 4/7/2022
+
+### 4/13/2022 WRANGLE ON iMAC
+
+- replicate data downloaded from server into iMac local mongoDB (this was done on MacBookPro on 4/7/2022)
+- import raw data files from github into local 
+- after import of all files, record count == 1380 (matches MBP)
+(note, syntax below uses --jsonArray tag to allow import of a jsonArray formatted file. imported to a 'test' collection to test this out. later renamed 'test' to 'entries')
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_1.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_2.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_3.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_4.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_5.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_6.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_7.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_8.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_9.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_10.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_11.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_12.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_13.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_14.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_15.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_16.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_17.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_18.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_19.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_20.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_21.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_22.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_23.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_24.json
+mongoimport -d analyze_SGCX -c test --jsonArray --file wi22_all_raw_25.json
+
+- run WRANGLE SCRIPTS against local DB
+- see 2_db_scripts/2022_winter/flatten_SGC3A ... (run 3A, 4A, 4B, 5A)
+- run status.js
+
+
+### 4/7/2022 WRANGLE ON MBP
 - download from server 
 >> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22.json
 
