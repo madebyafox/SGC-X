@@ -19,6 +19,18 @@ db.entries.aggregate(
     {$out: "SGC3A_BY_SUBJECT"}
 ]);
 
+//CREATE A COLLECTION OF ALL FAILED SUBJECTS    
+db.entries.aggregate(
+ [
+     //select only successful participants 
+    {$match: {"data.trials.status": {$nin: ["success"] }}},  
+    //only in SGC3A
+    {$match: {'data.trials.study' : 'SGC3A'}},
+    {$unwind: "$data"},
+    {$replaceRoot: { newRoot: "$data" }},
+    {$out: "SGC3A_FAILS"}
+]);
+
 //CREATE A COLLECTION OF ALL TRIALS
 db.SGC3A_BY_SUBJECT.aggregate([
        {$unwind: "$trials"},

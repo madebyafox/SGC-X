@@ -18,6 +18,18 @@ db.entries.aggregate(
     {$replaceRoot: { newRoot: "$data" }},
     {$out: "SGC4B_BY_SUBJECT"}
 ]);
+    
+//CREATE A COLLECTION OF ALL FAILED SUBJECTS    
+db.entries.aggregate(
+ [
+     //select only successful participants 
+    {$match: {"data.trials.status": {$nin: ["success"] }}},  
+    //only in SGC3A
+    {$match: {'data.trials.study' : 'SGC4B'}},
+    {$unwind: "$data"},
+    {$replaceRoot: { newRoot: "$data" }},
+    {$out: "SGC4B_FAILS"}
+]);    
 
 //CREATE A COLLECTION OF ALL TRIALS
 db.SGC4B_BY_SUBJECT.aggregate([
