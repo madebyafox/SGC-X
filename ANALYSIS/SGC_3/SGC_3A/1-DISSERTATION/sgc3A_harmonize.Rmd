@@ -43,6 +43,7 @@ Winter 2022: asynchronous, online, SONA
 
 Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducated online (asynchronously). 
 
+## VALIDATION
 
 ```{r IMPORT-SUBJECTS}
 #IMPORT PARTICIPANT DATA
@@ -81,6 +82,7 @@ df_subjects <- rbind(df_subjects, df_subjects_winter22) %>%
     mode = as.factor(mode),
   )
 
+rm(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_winter22)
 ```
 
 
@@ -122,15 +124,78 @@ df_items <- rbind(df_items, df_items_winter22) %>%
     answer = as.factor(answer)
   )
 
+#separate 'free response' items into independent dataframe 
+df_freeresponse <- df_items %>% filter(q == 16)
+df_items <- df_items %>% filter (q != 16)
+
+rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22)
 ```
 
 ```{r RECONCILE}
 
-nrow(df_items_winter22) == 15* nrow(df_subjects_winter22) #TRUE #winter has 15 questions
-nrow(df_items_fall21) == 16* nrow(df_subjects_fall21) #FALSE #fall had 15 questions + free response
-nrow(df_items_spring18) == 16* nrow(df_subjects_spring18) #FALSE
-nrow(df_items_fall17) == 15* nrow(df_subjects_fall17) #TRUE #fall had 15 questions
+#the number of items should be equal to 15 x the number of subjects
+nrow(df_items) == 15* nrow(df_subjects) #TRUE
+
+#each subject should have 15 items
+df_items %>% group_by(subject) %>% summarise(n = n()) %>% filter(n != 15) %>% nrow() == 0
 
 ```
+_All collection periods have the correct number of blocks (i.e. items) based on the number of included participants, except for Spring 2018. Some subjects from Spring 2018 have 15 records, and others have 16. This reflects the addition of the free-response (q #16) near the start of the quarter._ 
 
-Some subjects from Spring 2018 have 15 records, and others have 16. This reflects the addition of the free-response (q #16) near the start of the quarter. 
+
+## RESCORE ITEMS
+
+```{r KEY}
+key_111 <- read_csv('static/SGC3A_111_key.csv')
+key_121 <- read_csv('static/SGC3A_121_key.csv')
+```
+
+
+
+
+
+```{r}
+# 
+# #strip punctuation from response (this was added in some version of the web app and not others)
+# try <- df_items %>% sample_n(10)
+# 
+# 
+# 
+# test <- df_items %>% filter( (q == 1) & (condition == "111")) %>% sample(10)
+# 
+# # names = c("q1", "q2", "q3", "q4","q5", "q6", "q7", "q8","q9", "q10", "q11", "q12","q13", "q14", "q15")
+# 
+# 
+# 
+# key = "F"
+# test = data.frame(answer=c("F","A","AF","FA",""))
+# 
+# 
+# #calculate absolute score
+# #answer is detected, and string is of same length
+# test$score_absolute <- (str_detect(test$answer,key)) & (nchar(test$answer) == nchar(key))
+# test$score_partial <- str_count(test$answer,key)
+# test
+# 
+# 
+# ##NEXT GET ACTUAL SCORING LOGIC FROM JAVASCRIPT FILE
+# 
+# 
+# #calculate absolute score
+# #TRUE if absolute match, otherwise FALSE
+# # test$score_absolute <- str_detect(test$answer, key_111[1,]$CORRECT)
+# # test$score_absolute <- str_count(test$answer, paste('^',key_111[1,]$CORRECT,'$'))
+# try$score_absolute <- str_detect(try$answer, key_111[1,]$CORRECT)
+# # text anchor start ^ end $
+# # test$score_triangular <- str_detect(test$answer, paste('^',key_111[1,]$TRIANGULAR,'$'))
+# 
+# try %>% select(answer,correct,score_absolute)
+```
+>>strip punctuation
+>>remove non-discriminant questions
+
+## SUMMARIZE PARTICIPANTS
+
+>> add free response to dataframe
+
+# EXPORT 
