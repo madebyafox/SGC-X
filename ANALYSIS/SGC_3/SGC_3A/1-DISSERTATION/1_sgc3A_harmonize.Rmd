@@ -220,7 +220,8 @@ df_items <- rbind(df_items, df_items_winter22,df_items_before) %>%
   rename(response = answer) %>% 
   #remove all commas and make as character string
   mutate(
-    response = str_remove_all(as.character(response), ",")
+    response = str_remove_all(as.character(response), ","),
+    num_o = str_length(response)
   )
 
 
@@ -232,11 +233,12 @@ var_label(df_items$term) <- "indicates if session was run with experimenter pres
 var_label(df_items$mode) <- "indicates mode in which the participant completed the study"
 var_label(df_items$q) <- "Question Number (in order)"
 var_label(df_items$correct) <- "Is the response (strictly) correct? [dichotomous scoring]"
-var_label(df_items$response) <- "DataPoints selected by the subject"
+var_label(df_items$response) <- "options (datapoints) selected by the subject"
+var_label(df_items$num_o) <- "number of options selected by the subject"
 
 #HANDLE FREE RESPONSE QUESTION #16 
 #save `free response` Q#16 in its own dataframe
-df_freeresponse <- df_items %>% filter(q == 16) %>% select(-question,-correct,-rt_s)
+df_freeresponse <- df_items %>% filter(q == 16) %>% select(-question,-correct,-rt_s,-num_o)
 #add data from wi22 [stored on subject data]
 df_freeresponse <- rbind(df_freeresponse, df_winter22_q16)
 #add question description

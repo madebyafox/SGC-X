@@ -1870,7 +1870,8 @@ df_items &lt;- rbind(df_items, df_items_winter22,df_items_before) %&gt;%
   rename(response = answer) %&gt;% 
   #remove all commas and make as character string
   mutate(
-    response = str_remove_all(as.character(response), &quot;,&quot;)
+    response = str_remove_all(as.character(response), &quot;,&quot;),
+    num_o = str_length(response)
   )
 
 
@@ -1882,11 +1883,12 @@ var_label(df_items$term) &lt;- &quot;indicates if session was run with experimen
 var_label(df_items$mode) &lt;- &quot;indicates mode in which the participant completed the study&quot;
 var_label(df_items$q) &lt;- &quot;Question Number (in order)&quot;
 var_label(df_items$correct) &lt;- &quot;Is the response (strictly) correct? [dichotomous scoring]&quot;
-var_label(df_items$response) &lt;- &quot;DataPoints selected by the subject&quot;
+var_label(df_items$response) &lt;- &quot;options (datapoints) selected by the subject&quot;
+var_label(df_items$num_o) &lt;- &quot;number of options selected by the subject&quot;
 
 #HANDLE FREE RESPONSE QUESTION #16 
 #save `free response` Q#16 in its own dataframe
-df_freeresponse &lt;- df_items %&gt;% filter(q == 16) %&gt;% select(-question,-correct,-rt_s)
+df_freeresponse &lt;- df_items %&gt;% filter(q == 16) %&gt;% select(-question,-correct,-rt_s,-num_o)
 #add data from wi22 [stored on subject data]
 df_freeresponse &lt;- rbind(df_freeresponse, df_winter22_q16)
 #add question description
