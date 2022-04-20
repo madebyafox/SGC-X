@@ -397,7 +397,11 @@ df_participants %>% group_by(condition) %>%
 Finally, we need to validate we have a complete set of items for all valid participants. 
 
 ```{r VALIDATE-ITEMS}
+#the number of items should equal the number of items * number of participants
 count(df_items)[[1]] == count(df_participants)[[1]]* n_items 
+
+#there should be 15 items and only 15 items for each participant
+df_items %>% group_by(subject) %>% summarise(n=n()) %>% filter(n != 15) %>% nrow() == 0
 ```
 
 
@@ -487,17 +491,18 @@ write.csv(ex_items,"output/excluded_items_winter22_sgc3a.csv", row.names = FALSE
 
 
 ## Analysis-Ready Files
+Finally, we generate analysis ready files as .csv and .rds(containing data dictionary metatdata)
 
 ```{r GENERATE-FILES}
 
 #save participant file
-
 write.csv(df_participants,"output/winter22_sgc3a_participants.csv", row.names = FALSE)
-
 #save item file
 write.csv(df_items,"output/winter22_sgc3a_items.csv", row.names = FALSE)
 
- 
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_participants, "output/winter22_sgc3a_participants.rds") # to R data structure file
+rio::export(df_items, "output/winter22_sgc3a_items.rds") # to R data structure file
 
 ```
 
