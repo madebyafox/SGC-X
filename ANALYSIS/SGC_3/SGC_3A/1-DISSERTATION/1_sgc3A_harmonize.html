@@ -1842,7 +1842,7 @@ df_items &lt;- df_items_winter22 %&gt;% filter(condition==&#39;X&#39;) %&gt;% se
   
 #reduce data collected using old webapp
 df_items_before &lt;- rbind(df_items_fall17, df_items_spring18, df_items_fall21) %&gt;% 
-  mutate(rt_s = rt / 1000) %&gt;% 
+  mutate(rt_s = rt / 1000, correct = as.logical(correct)) %&gt;% 
   select(subject, condition, term, mode, question, q, answer, correct, rt_s) 
   
 #reduce data collected using new webapp
@@ -1854,7 +1854,7 @@ df_items_winter22 &lt;- df_items_winter22 %&gt;%
     term = as.character(term),
     mode = as.character(mode),
     q = as.integer(q),
-    correct = as.character(correct)
+    correct = as.logical(correct)
   )
 
 #combine dataframes from old and new webapps
