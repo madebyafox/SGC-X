@@ -28,6 +28,7 @@ mainfont: "DejaVu Sans"
 
 ```{r SETUP, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(eval = FALSE) #knit w/o execution
 
 #IMPORT LIBRARIES
 library(tidyverse) #ALL THE THINGS
@@ -35,7 +36,11 @@ library(kableExtra) #printing tables
 
 ```
 
-_The purpose of this notebook is to **rescore** the response data for the SGC_3A study.  This is required because the question type on the graph comprehension task used a 'Multiple Answer Multiple Choice' design (MCMA)._  
+_The purpose of this notebook is to re-score the response accuracy data for the SGC_3A study.  This is required because the question type on the graph comprehension task used a 'Multiple Answer Multiple Choice' design (MCMA)._  Warning: this notebook takes several minutes to execute.
+
+|Pre-Requisite     |Followed By |
+|------------------|-------------|
+|1_sgc3a_harmonize.Rmd | 3_sgc3A_descriptives.Rmd|
 
 ```{r IMPORT-ITEMS}
 #read datafiles, set mode and term
@@ -64,7 +69,9 @@ In this example (Figure 2), we see an example of a question with four response o
 
 _In our analysis, we will transform the MAMC response string recorded for the participant (given in column TODO), to an MTF encoding._
 
-## Dichotomous Scoring
+## Scoring Schemes 
+
+### Dichotomous Scoring
 
 **Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is _exactly_ correct, meaning the respondent includes _only true-correct_ options, and does select any additional (i.e. true_incorrect) options that should not be selected. This is also known as _all or nothing scoring_, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the true-correct options, and one or more but not all of the false-correct items, but receive the same score as a respondent selects none of the true-correct options, or all of the false-correct options. In this sense, dichotomous scoring tells us only about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating. 
 
@@ -74,7 +81,7 @@ _In our analysis, we will transform the MAMC response string recorded for the pa
 - does not account for _partial knowledge_. 
 - with increasing number of response options, scoring becomes stricter as each statement must be marked correctly. 
 
-## Partial Scoring
+### Partial Scoring
 
 **Partial Scoring** refers to a class or scoring schemes that award the respondent partial credit depending on pattern of options they select.  Schmidt et. al. identify twenty-six different partial credit scoring schemes in the literature, varying in the range of possible scores, and the relative weighting of incorrectly selected (vs) incorrectly unselected options. A particularly effective (and elegant!) approach to partial scoring is referred to as the $[-1/n, +1/n]$ approach (Schmidt. et. al 2021 #17).  This approach is particularly appealing in the context of SGC3A, because it: (1) takes into account all information provided by the respondent: the pattern of what the select, and choose not to select; and (2) weights an unsure/blank/non-response as _superior_ to an incorrect response. This scoring is more consistent with the motivating theory that Triangular Graph readers start out with an incorrect (i.e. orthongal, cartesian) interpretation of the coordinate system, and transition to a correct (i.e. triangular) interpretation. But the first step in making this transition is realizing the cartesian interpration _is incorrect_, which may yield blank responses where the respondent is essentially saying, 'there is no correct answer to this question'.  Schmidt. et. al (2021) describe the $\text{Partial}_{[-1/n, +1/n]}$ scoring scheme as the _only_ scoring method (of the 27 described) where respondents' scoring results can be interpreted as a percentage of their true knowledge. 
 
@@ -86,7 +93,8 @@ _In our analysis, we will transform the MAMC response string recorded for the pa
 - This results in _at chance performance_ (i.e. half of the given options marked correctly), being awarded 0 points are awarded  
 - No response (blanks) yields 0 points
 
-## Scoring Algorithms and Properties
+
+### Scoring Algorithms and Properties
 
 For each scoring scheme we can define an algorithm and examine the scheme's statistical properties. 
 
@@ -108,6 +116,7 @@ f =
   0, \text{otherwise}    
 \end{cases}
 \end{gather*}
+\tag{1}
 \text{where } 0 \le i \le n
 $$
 ```{r}
@@ -200,6 +209,7 @@ f_chance <- function(n, scheme) {
 }
 ```
 
+
 ### Comparison of Scoring Schemes 
 
 ```{r}
@@ -289,6 +299,50 @@ kbl(dt, col.names = names, caption = title)%>%
   footnote(general = paste("$n=18$ response options yields $2^n = 2^{18} =$",2^(18),"possible responses"),
            general_title = "Note: ",footnote_as_chunk = T)
 ```
+
+## Discriminant Score 
+
+Although _partial_ scoring gives us an indication of how close the respondent is to approximating the complete pattern of 'correct' responses, including _partial knowledge_, it does distinguish between different _types_ of partial knowledge. Subjects are rewarded (or penalized) by the same amount regardless of which the false-selections or true-nonselections they make.  In the case of SGC_3A, however, the choice of which options the subject selects reveals important information about their understanding of the graph stimulus.  Specifically, there are certain patterns of options that correspond to a _triangular_ versus _orthogonal_ interpretations.  We can apply the ideas behind the partial scoring strategy to the response option subgroups given by the graph interpretations to produce a single score (scaled from $-1$  to  $+1$) that captures the _nature_ of the respondent's partial knowledge. 
+
+A _Discriminant Score_ offers: 
+
++1 for a complete triangular response  
+-1 for a complete orthogonal response  
++/- fraction of complete triangular or orthogonal response  
+0 for non-strategy responses  
+0 for blank
+
+$$
+\begin{align}
+\text{Score}_{discriminant} &= 0 + 1*(t_s / t) - 1 * (r_s / r) + 0*(d_s / d) \\
+&= (t_s / t) - (r_s / r) 
+\tag{4}
+\end{align}
+$$
+
+Where:  
+t = number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$  
+r = number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$  
+d = number of non-strategy options (not consistent with either interpretation), $t \gt 0$  
+n = number of response options   
+n = t + r + d  (15 for scaffold phase, 18 for test phase)
+t_s = number of triangular-correct options selected, $t_s \ge 0$  
+r_s = number of orthogonal-correct options selected, $r_s \ge 0$   
+d_s = number of non-strategy options options selected, $d_s \ge 0$  
+s = number of options selected, $s \ge 0$   
+s = t_s + r_s + d_s 
+
+
+TODO:: add 0.5*(tversky) - 0.5*(satisficing) 
+
+```{r}
+f_discrim <- function(t_s,t,r_s,r){
+  return((t_s / t) - (r_s / r))
+}
+```
+
+
+
 # RESCORING 
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus).  The _graph comprehension task_ asks them to select the data points in the graph that meet the criteria posed in the question. This is known as a _first order graph reading_ (i.e. extracting values from a graph).  
@@ -567,7 +621,7 @@ For sanity check, we veryify that the answer key for test phase questions (q > 5
 key_111 %>% filter(Q >5) %>% select(TRIANGULAR, ORTHOGONAL)== key_121 %>% filter(Q >5)%>% select(TRIANGULAR, ORTHOGONAL)
 ```
 
-## Calculate $i$ number correctly selected options
+## Calculate i _number correctly selected options_
 
 Next, we calculate the $i$, number of correctly indicated options, based on the answer key for each question. 
 
@@ -615,6 +669,20 @@ write_i <- function(items,keys){
   }  
   return(items) #return mutated items dataframe
 }
+
+#------------------------------------------------------------------
+#count_match: count the number of matching characters in the two strings
+#response <- response string
+#key <- key string
+#returns count of matches
+#------------------------------------------------------------------
+count_match <- function(response, key){
+  count = 0
+  response = unlist(str_split(response,""))
+  key = unlist(str_split(key,""))
+  count = sum(table(response[response %in% key]))
+  return(count)
+}
 ```
 
 
@@ -630,109 +698,67 @@ item_responses_test <- write_i(item_responses_test,key_test)
 ```
 
 
-## Discriminant Score 
-
-A _Discriminant Score_ offers: 
-
-- +1 for a complete triangular response
-- -1 for a complete orthogonal response
-- +/- fraction of complete triangular or orthogonal response
-- 0 for non-strategy responses  
-- 0 for blank
-
-$$
-\begin{align}
-\text{Score}_{discriminant} &= 0 + 1*(t_s / t) - 1 * (r_s / r) + 0*(d_s / d) \\
-&= (t_s / t) - (r_s / r) 
-
-\end{align}
-$$
-
-Where: 
-t = number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$
-r = number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$
-d = number of non-strategy options (not consistent with either interpretation), $t \gt 0$ 
-n = number of response options 
-n = t + r + d
 
 
-t_s = number of triangular-correct options selected, $ t_s \ge 0$
-r_s = number of orthogonal-correct options selected, $ r_s \ge 0$ 
-d_s = number of non-strategy options options selected, $ d_s \ge 0$
-s = number of options selected, $ s \ge 0$ 
-s = t_s + r_s + d_s 
 
+## Calculate Scores 
 
-TODO:: add 0.5*(tversky) - 0.5*(satisficing) 
-
-```{r}
-
-# FIRST is correct triangular 1option response
-# SECOND is correct triangular 2option response
-# THIRD is correct orthogonal 1option response
-# FOURTH is correct orthogonal 2option response
-# FIFTH is partial credit 2option triangular (split with other)
-# SIXTH is partial credit 2option orthogonal (split with other)
-# SEVENTH is partial credit 2option tri-orth split
-# EIGHTH is blank 1correct
-# NINTH is blank 2correct
-predict = c(1, 1, -1, -1, 0.5, -0.5, 0, 0, 0)
-
-#test key options
-t = c(1, 2, 1, 2, 2, 2, 2, 1)
-r = c(1, 2, 1, 2, 2, 2, 2, 1)
-d = c(13,11,13,11,11,11,11, 13)
-n = t + r + d
-n == 15
-t > 0
-
-
-#test selected options
-t_s = c(1,2,0,0,1,0,1,0,0)
-r_s = c(0,0,1,2,0,1,1,0,0)
-d_s = c(0,0,0,0,1,1,0,0,0)
-s = t_s + r_s + d_s 
-
-#score
-S = (t_s / t) - (r_s / r)
-
-#score as predicted?
-unique(predict == S)
-
-predict
-S
-```
-
-
-## Calculate Interpretation Scores
-
-Finally, we calculate the scores, based on the calculated values for $i$. 
+Finally, we calculate the interpretation scores, absolute score, and discriminant score. 
 ```{r SCORE-I}
 
 #set n = number of answer options
 n_scaffold <- 15
 n_test <- 18
 
-# TODO calculate discrimi
 #calculate scores for scaffold phase control condition 
 item_responses_scaffold_111 <- item_responses_scaffold_111  %>% mutate(
   s_ABS = f_dichom(tri_i, n_scaffold),
   s_TRI = f_partial(tri_i, n_scaffold),
-  s_ORTH = f_partial(orth_i,n_scaffold)
+  s_ORTH = f_partial(orth_i,n_scaffold),
+   #number of options in key
+  t = str_length(TRI),
+  r = str_length(ORTH),
+  d = n_scaffold - (t+r),
+  #number of selected options matching key
+  t_s = Vectorize(count_match)(response,TRI),
+  r_s = Vectorize(count_match)(response,ORTH),
+  # d_s = , #todo add selections for other strategies
+  # s = t_s + r_s + d_s 
+  s_DISC = Vectorize(f_discrim)(t_s,t,r_s,r)
 )
 
 #calculate scores for scaffold phase impasse condition 
 item_responses_scaffold_121 <- item_responses_scaffold_121  %>% mutate(
   s_ABS = f_dichom(tri_i, n_scaffold),
   s_TRI = f_partial(tri_i, n_scaffold),
-  s_ORTH = f_partial(orth_i, n_scaffold)
+  s_ORTH = f_partial(orth_i, n_scaffold),
+   #number of options in key
+  t = str_length(TRI),
+  r = str_length(ORTH),
+  d = n_scaffold - (t+r),
+  #number of selected options matching key
+  t_s = Vectorize(count_match)(response,TRI),
+  r_s = Vectorize(count_match)(response,ORTH),
+  # d_s = , #todo add selections for other strategies
+  # s = t_s + r_s + d_s 
+  s_DISC = Vectorize(f_discrim)(t_s,t,r_s,r)
 )
 
 #calculate scores for test phase 
 item_responses_test <- item_responses_test  %>% mutate(
   s_ABS = f_dichom(tri_i, n_test),
   s_TRI = f_partial(tri_i, n_test),
-  s_ORTH = f_partial(orth_i, n_test)
+  s_ORTH = f_partial(orth_i, n_test),
+   #number of options in key
+  t = str_length(TRI),
+  r = str_length(ORTH),
+  d = n_scaffold - (t+r),
+  #number of selected options matching key
+  t_s = Vectorize(count_match)(response,TRI),
+  r_s = Vectorize(count_match)(response,ORTH),
+  # d_s = , #todo add selections for other strategies
+  # s = t_s + r_s + d_s 
+  s_DISC = Vectorize(f_discrim)(t_s,t,r_s,r)
 )
 ```
 
@@ -762,7 +788,7 @@ unique(validate <- item_responses_test$s_ORTH == f_partial(item_responses_test$o
 
 ```
 
-## Integrate data frames
+## Reintegrate item dataframe
 The final step in the process is to re_combine_ the item dataframes. 
 
 ```{r COMBINE-DFS}
@@ -772,21 +798,21 @@ item_responses_scaffold_111 <- item_responses_scaffold_111 %>%
   select(subject, condition, term, mode, question, rt_s,
          q, correct, response, TRI, ORTH, 
          num_o, tri_i, orth_i, 
-         s_ABS, s_TRI, s_ORTH) %>% 
+         s_ABS, s_TRI, s_ORTH, s_DISC) %>% 
   mutate(phase = "LEARN")
 
 item_responses_scaffold_121 <- item_responses_scaffold_121 %>% 
   select(subject, condition, term, mode, question, rt_s,
          q, correct, response, TRI, ORTH, 
          num_o, tri_i, orth_i, 
-         s_ABS, s_TRI, s_ORTH) %>% 
+         s_ABS, s_TRI, s_ORTH,s_DISC) %>% 
   mutate(phase = "LEARN")
 
 item_responses_test <- item_responses_test %>% 
   select(subject, condition, term, mode, question, rt_s,
          q, correct, response, TRI, ORTH, 
          num_o, tri_i, orth_i, 
-         s_ABS, s_TRI, s_ORTH) %>% 
+         s_ABS, s_TRI, s_ORTH,s_DISC) %>% 
   mutate(phase = "TEST")
 
 #combine data frames
@@ -806,14 +832,21 @@ rm(key_111, key_121, key_scaffolded_c111, key_scaffolded_c121, key_test)
 rm(temp)
 ```
 
+# SUMMARIZING SCORES BY SUBJECT
+
+TODO:: summarize item_level data, then add those scores to the subject data 
 
 
+# EXPORT
+**TODO EXPORTS**
 
 # PEEKING
-
+**todo remove** 
 ```{r}
 library(ggformula)
 
+#only count discriminating items
+df <- df_items %>% filter(!q %in% c(6,9) ) 
 
 gf_histogram(~s_TRI, data = df_items) + 
   facet_wrap(condition ~.)
@@ -827,8 +860,31 @@ gf_histogram(~s_ABS, data = df_items) +
 gf_bar(~correct, data = df_items) + 
   facet_wrap(condition ~ phase)
 
+
+gf_histogram(~s_DISC, data = df) + 
+  facet_wrap(condition ~.)
+
+test <- df %>% group_by(subject,condition,phase) %>% summarise(score = sum(s_DISC))
+gf_dhistogram(~score, data = test) + 
+  facet_wrap(condition ~ phase)
+
+
+
+
 ```
 
+
+
+```{r}
+# 
+# ggplot(df_subjects, aes(y = condition, x = absolute_score, fill = condition)) +
+#   stat_slab() +
+#   stat_dotsinterval(side = "bottom", scale = 0.5, slab_size = NA) +
+#   facet_grid(~mode) +
+#   theme_modern() +
+#   scale_fill_material_d(palette = "ice")
+
+```
 # DATA DICTIONARY 
 
 TODO document final data dictionary
