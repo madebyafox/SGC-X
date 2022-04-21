@@ -1,6 +1,6 @@
 ---
 title: 'SGC_3A: The Insight Hypothesis'
-subtitle: 'Response Rescoring'
+subtitle: '2-Response Rescoring'
 author: 'Amy Rae Fox'
 always_allow_html: true  
 header-includes:
@@ -35,52 +35,11 @@ library(kableExtra) #printing tables
 
 ```
 
-_The purpose of this notebook is to **rescore** the response data for the SGC_3A study.  This is required because the question type on the graph comprehension task used a 'Multiple Answer Multiple Choice' design (MCMA), also known as 'Multiple True False' (MTF)._  
+_The purpose of this notebook is to **rescore** the response data for the SGC_3A study.  This is required because the question type on the graph comprehension task used a 'Multiple Answer Multiple Choice' design (MCMA)._  
 
 ```{r IMPORT-ITEMS}
-
-#set datafiles
-fall17 <- "data/fall17_sgc3a_blocks.csv"
-spring18 <- "data/spring18_sgc3a_blocks.csv"
-fall21 <- "data/fall21_sgc3a_blocks.csv"
-winter22 <- "data/winter22_sgc3a_items.csv"
-
 #read datafiles, set mode and term
-df_items_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
-df_items_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_items_fall21 <- read.csv(fall21) %>% mutate(mode = "online-asynch", term = "fall21")
-df_items_winter22 <- read.csv(winter22) %>% mutate(mode = "online-asynch", term = "winter22")
-
-#get relations mapping encoded in winter22 data files
-map_relations <- df_items_winter22 %>% group_by(q) %>% select(q,relation) %>% unique()
-  
-#reduce extraneous columns from data collected using old webapp
-df_items <- rbind(df_items_fall17, df_items_spring18, df_items_fall21) %>% 
-  mutate(rt_s = rt / 1000) %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s)
-  
-#reduce extraneous columns from data collected using new webapp
-df_items_winter22 <- df_items_winter22 %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s)
-
-#combine dataframes from old and new webapps
-df_items <- rbind(df_items, df_items_winter22) %>% 
-  mutate(
-    subject = as.factor(subject),
-    condition = as.factor(condition),
-    term = as.factor(term),
-    mode = as.factor(mode),
-    question = as.factor(question),
-    q = as.factor(q),
-    answer = as.factor(answer)
-  )
-
-#separate 'free response' items into independent dataframe 
-df_freeresponse <- df_items %>% filter(q == 16)
-df_items <- df_items %>% filter (q != 16)
-
-#clean up
-rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22, map_relations)
+df_items <- read_rds('data/sgc3a_items.rds')
 ```
 
 # INTRODUCTION
@@ -154,14 +113,17 @@ $$
 ```{r}
 f_dichom <- function(i, n) {
  
- if (n == 0 ) {
-   "ERROR: n should not be 0"
- } 
-  else if (i > n) {
-   "ERROR: i CANNOT BE GREATER THAN n"
- } 
-  else if(i == n){1}
-  else {0}
+  # print(paste("i is :",i," n is:",n))
+  
+  #if (n == 0 ) return error 
+  ifelse( (n == 0), print("ERROR n can't be 0"), "")
+  
+  #if (i > n ) return error 
+  ifelse( (i > n), print("i n can't > n"), "")
+  
+  #if (i==n) return 1, else 0
+  return (ifelse( (i==n), 1 , 0))
+ 
 }
 ```
 
@@ -179,15 +141,15 @@ $$
 ```{r}
 f_partial <- function(i, n) {
  
- if (n == 0 ) {
-   "ERROR: n should not be 0"
- } 
-  else if (i > n) {
-   "ERROR: i CANNOT BE GREATER THAN n"
- } 
-  else {
-    (2*i - n) / n
-  }
+  # print(paste("i is :",i," n is:",n))
+  
+  #if(n==0) return error
+  ifelse((n==0),print("ERROR: n should not be 0"),"")
+ 
+  #if(i >n ) return error
+  ifelse((i > n),print("ERROR: i CANNOT BE GREATER THAN n"),"")
+  
+  return ((2*i - n) / n) 
 }
 ```
 
@@ -262,7 +224,9 @@ dt <- cbind(schemes,f_0,f_1,f_2,f_3,f_4,ecs)
 
 kbl(dt, col.names = names, caption = title)%>%
   kable_classic() %>%
-  add_header_above(c(" " = 1, "score for $i$ of 4 correctly marked options" = 5, " "=1))
+  add_header_above(c(" " = 1, "score for $i$ of 4 correctly marked options" = 5, " "=1)) %>% 
+  footnote(general = paste("$n=4$ response options yields $2^n = 2^4 =$",2^4,"possible responses"),
+           general_title = "Note: ",footnote_as_chunk = T)
 
 ```
 ```{r}
@@ -291,7 +255,9 @@ dt <- cbind(schemes,f_0,f_1,f_2,f_3,f_4,f_e,f_15,ecs)
 
 kbl(dt, col.names = names, caption = title)%>%
   kable_classic() %>%
-  add_header_above(c(" " = 1, "score for $i$ of 15 correctly marked options" = 7, " "=1))
+  add_header_above(c(" " = 1, "score for $i$ of 15 correctly marked options" = 7, " "=1)) %>% 
+  footnote(general = paste("$n=15$ response options yields $2^n = 2^{15} =$",2^(15),"possible responses"),
+           general_title = "Note: ",footnote_as_chunk = T)
 ```
 ```{r}
 title <- "Properties of each scoring scheme for question with $n=18$ response options (SGC3A Q6 - Q15)"
@@ -319,7 +285,9 @@ dt <- cbind(schemes,f_0,f_1,f_2,f_3,f_4,f_e,f_18,ecs)
 
 kbl(dt, col.names = names, caption = title)%>%
   kable_classic() %>%
-  add_header_above(c(" " = 1, "score for $i$ of 18 correctly marked options" = 7, " "=1))
+  add_header_above(c(" " = 1, "score for $i$ of 18 correctly marked options" = 7, " "=1)) %>% 
+  footnote(general = paste("$n=18$ response options yields $2^n = 2^{18} =$",2^(18),"possible responses"),
+           general_title = "Note: ",footnote_as_chunk = T)
 ```
 # RESCORING 
 
@@ -339,7 +307,7 @@ _A single composite score scaled to reward correct and penalize incorrect interp
 4. **Discriminant Score**: using partial scoring [+1/n,-1/n] with theoretically motivated distinction of correct/incorrect/partial correct responses
 
 
-## Encode MAMC as MTF
+## Encode MAMC Respones as MTF
 
 To calculate partial scores, first we need re-encode participant responses  which are currently captured in the `answer` column of the `df_items` dataframe. In the present encoding, the letter corresponding to each response item (corresponding to a data point in the stimulus graph) the subject selected on the task interface, is concatenated and stored in `answer`.
 
@@ -348,18 +316,34 @@ For example, if the respondent selected data points A and B, `answer = AB`. We n
 ```{r ENCODE-MTF}
 
 
-#split items into 3 dataframes, one for each phase + nondiscriminanting questions
-#in each new dataframe, split the answer column into binary for each reponse option
+#SPLIT DF_ITEMS 
+#into sub dfs to allow a 1-1 mapping with appropriate answer key
 
-#SCAFFOLD PHASE ITEMS
-#setup responses data frame for scaffolding phase questions(Q1-5)
-item_responses_scaffold <- df_items %>% 
+#scaffold phase control condition
+item_responses_scaffold_111 <- df_items %>% 
   #filter only q < 6, the 'scaffold' items
-  filter(as.integer(q)<6) %>% 
-  #select only the cols we need 
-  select(subject,condition, correct, q, answer) %>% 
-  #rename 'answers' to 'response' and remove commas
-  mutate(response = str_remove_all(as.character(answer), ",")) %>% 
+  filter(q < 6) %>% 
+  #filter only the control condition 
+  filter(condition == "111")
+
+#scaffold phase impasse condition
+item_responses_scaffold_121 <- df_items %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(q < 6) %>% 
+  #filter only the control condition 
+  filter(condition == "121")
+
+#test phase descriminant
+item_responses_test <- df_items %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(q > 5 ) 
+  #note we don't need to filter condition bc qs and data are same across conditions
+
+#SPREAD MCMA RESPONSE TO MTF COLUMNS
+#encode the response column [response] as a series of T/F statements per data point
+
+#scaffold phase CONTROL condition
+item_responses_scaffold_111 <- item_responses_scaffold_111 %>% 
   #split response to TF columns
   mutate(
     r_A = as.integer(str_detect(response,"A")), #is there a A?
@@ -377,17 +361,31 @@ item_responses_scaffold <- df_items %>%
     r_G = as.integer(str_detect(response,"G")), #is there a G?
     r_B = as.integer(str_detect(response,"B")), #is there a B?
     r_Z = as.integer(str_detect(response,"Z"))  #is there a Z?
-) %>% select (-answer)
+) 
 
-#TEST PHASE ITEMS
-#setup responses data frame for scaffolding phase questions(Q6-16)
-item_responses_test <- df_items %>% 
-  #filter only q >5, the 'test' items, discluding Q6 and Q9
-  filter(as.integer(q) >5 & !as.integer(q) %in% c(6,9)) %>%  
-  #select only the cols we need 
-  select(subject,condition, correct, q, answer) %>% 
-  #rename 'answers' to 'response' and remove commas
-  mutate(response = str_remove_all(as.character(answer), ",")) %>% 
+#scaffold phase IMPASSE condition
+item_responses_scaffold_121 <- item_responses_scaffold_121 %>% 
+  #split response to TF columns
+  mutate(
+    r_A = as.integer(str_detect(response,"A")), #is there a A?
+    r_X = as.integer(str_detect(response,"X")), #is there a X?
+    r_C = as.integer(str_detect(response,"C")), #is there a C?
+    r_O = as.integer(str_detect(response,"O")), #is there a O?
+    r_I = as.integer(str_detect(response,"I")), #is there a I?
+    r_J = as.integer(str_detect(response,"J")), #is there a J?
+    r_H = as.integer(str_detect(response,"H")), #is there a H?
+    r_F = as.integer(str_detect(response,"F")), #is there a F?
+    r_K = as.integer(str_detect(response,"K")), #is there a K?
+    r_D = as.integer(str_detect(response,"D")), #is there a D?
+    r_U = as.integer(str_detect(response,"U")), #is there a U?
+    r_E = as.integer(str_detect(response,"E")), #is there a E?
+    r_G = as.integer(str_detect(response,"G")), #is there a G?
+    r_B = as.integer(str_detect(response,"B")), #is there a B?
+    r_Z = as.integer(str_detect(response,"Z"))  #is there a Z?
+) 
+
+#test phase 
+item_responses_test <- item_responses_test %>% 
   #split response to TF columns
   mutate(
     r_A = as.integer(str_detect(response,"A")), #is there a A?
@@ -408,48 +406,17 @@ item_responses_test <- df_items %>%
     r_P = as.integer(str_detect(response,"P")), #is there a P?
     r_Z = as.integer(str_detect(response,"Z")), #is there a Z?
     r_X = as.integer(str_detect(response,"X"))  #is there a X?
-) %>% select (-answer)
+) 
 
-#NONDISCRIMINANT ITEMS
-#setup responses data frame for questions where answers are the same across strategies (Q6, Q9)
-item_responses_indiscriminant <- df_items %>% 
-  #filter only q == 6 or 9, the 'indiscriminant' items
-  filter(as.integer(q) %in% c(6,9)) %>% 
-  #select only the cols we need 
-  select(subject,condition, correct, q, answer) %>% 
-  #rename 'answers' to 'response' and remove commas
-  mutate(response = str_remove_all(as.character(answer), ",")) %>% 
-  #split response to TF columns
-  mutate(
-    r_A = as.integer(str_detect(response,"A")), #is there a A?
-    r_B = as.integer(str_detect(response,"B")), #is there a B?
-    r_C = as.integer(str_detect(response,"C")), #is there a C?
-    r_D = as.integer(str_detect(response,"D")), #is there a D?
-    r_E = as.integer(str_detect(response,"E")), #is there a E?
-    r_F = as.integer(str_detect(response,"F")), #is there a F?
-    r_G = as.integer(str_detect(response,"G")), #is there a G?
-    r_H = as.integer(str_detect(response,"H")), #is there a H?
-    r_I = as.integer(str_detect(response,"I")), #is there a I?
-    r_J = as.integer(str_detect(response,"J")), #is there a J?
-    r_K = as.integer(str_detect(response,"K")), #is there a K?
-    r_L = as.integer(str_detect(response,"L")), #is there a L?
-    r_M = as.integer(str_detect(response,"M")), #is there a M?
-    r_N = as.integer(str_detect(response,"N")), #is there a N?
-    r_O = as.integer(str_detect(response,"O")), #is there a O?
-    r_P = as.integer(str_detect(response,"P")), #is there a P?
-    r_Z = as.integer(str_detect(response,"Z")), #is there a Z?
-    r_X = as.integer(str_detect(response,"X"))  #is there a X?
-) %>% select (-answer)
 
-#veryify that each item made it into a subdataframe
-nrow(df_items) == (
-  nrow(item_responses_indiscriminant) + 
-  nrow(item_responses_scaffold) + 
-  nrow(item_responses_test) )
+#VALIDATE SPLIT
+#n rows in df_items should match sum of nrows in the sub dfs 
+nrow(df_items) == sum(nrow(item_responses_scaffold_111), nrow(item_responses_scaffold_121),
+                  nrow(item_responses_test))
 ```
 Now we have three dataframes (one for each group of questions: scaffold phase, test phase, nondiscriminant) with subjects' response encoded as a series of T/F [1,0] states across all response options (represented as colums prefaced with `r_`)
 
-## Create Answer Keys
+## Encode MAMC Answer Keys as MTF
 
 Next, we read the answer keys for the question sets. Note that there is an answer key unique to each experimental condition, because the experimental manipulation (impasse vs. control) is established by changing the pattern of the underlying dataset, which in turn yields different 'correct' answers. The divergence in answers across conditions only holds for the first five questions (the scaffold manipulation), while the following 10 questions are displayed with the same dataset (and thus have the same answers, regardless of condition).
 
@@ -459,6 +426,7 @@ key_121 <- read_csv('static/SGC3A_121_key.csv', show_col_types = FALSE)
 ```
 
 Next, we split the answer key encoding into MTF encoding, just as we did for the response data. 
+Each column indicates whether that response option _should be selected_ in order to count as a correct response.  Columns prefixed with `tri_` represent triangularly-correct response key, and those prefixed with `orth_` represent orthongally-correct response key. 
 
 ```{r ENCODE-KEYS-MTF}
 
@@ -503,52 +471,367 @@ key_scaffolded_c111 <- key_111 %>%
     orth_Z = as.integer(str_detect(ORTHOGONAL,"Z"))  #is there a Z in ORTHOGONAL?
    ) 
 
+#SCAFFOLD KEY CONDITION 121
+key_scaffolded_c121 <- key_121 %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(Q<6) %>% 
+  #create "triangle correct" columns
+  mutate(
+    tri_A = as.integer(str_detect(TRIANGULAR,"A")), #is there a A in TRIANGULAR?
+    tri_X = as.integer(str_detect(TRIANGULAR,"X")), #is there a X in TRIANGULAR?
+    tri_C = as.integer(str_detect(TRIANGULAR,"C")), #is there a C in TRIANGULAR?
+    tri_O = as.integer(str_detect(TRIANGULAR,"O")), #is there a O in TRIANGULAR?
+    tri_I = as.integer(str_detect(TRIANGULAR,"I")), #is there a I in TRIANGULAR?
+    tri_J = as.integer(str_detect(TRIANGULAR,"J")), #is there a J in TRIANGULAR?
+    tri_H = as.integer(str_detect(TRIANGULAR,"H")), #is there a H in TRIANGULAR?
+    tri_F = as.integer(str_detect(TRIANGULAR,"F")), #is there a F in TRIANGULAR?
+    tri_K = as.integer(str_detect(TRIANGULAR,"K")), #is there a K in TRIANGULAR?
+    tri_D = as.integer(str_detect(TRIANGULAR,"D")), #is there a D in TRIANGULAR?
+    tri_U = as.integer(str_detect(TRIANGULAR,"U")), #is there a U in TRIANGULAR?
+    tri_E = as.integer(str_detect(TRIANGULAR,"E")), #is there a E in TRIANGULAR?
+    tri_G = as.integer(str_detect(TRIANGULAR,"G")), #is there a G in TRIANGULAR?
+    tri_B = as.integer(str_detect(TRIANGULAR,"B")), #is there a B in TRIANGULAR?
+    tri_Z = as.integer(str_detect(TRIANGULAR,"Z"))  #is there a Z in TRIANGULAR?
+   ) %>% 
+  #create "orthogonal correct" columns
+  mutate(
+    orth_A = as.integer(str_detect(ORTHOGONAL,"A")), #is there a A in ORTHOGONAL?
+    orth_X = as.integer(str_detect(ORTHOGONAL,"X")), #is there a X in ORTHOGONAL?
+    orth_C = as.integer(str_detect(ORTHOGONAL,"C")), #is there a C in ORTHOGONAL?
+    orth_O = as.integer(str_detect(ORTHOGONAL,"O")), #is there a O in ORTHOGONAL?
+    orth_I = as.integer(str_detect(ORTHOGONAL,"I")), #is there a I in ORTHOGONAL?
+    orth_J = as.integer(str_detect(ORTHOGONAL,"J")), #is there a J in ORTHOGONAL?
+    orth_H = as.integer(str_detect(ORTHOGONAL,"H")), #is there a H in ORTHOGONAL?
+    orth_F = as.integer(str_detect(ORTHOGONAL,"F")), #is there a F in ORTHOGONAL?
+    orth_K = as.integer(str_detect(ORTHOGONAL,"K")), #is there a K in ORTHOGONAL?
+    orth_D = as.integer(str_detect(ORTHOGONAL,"D")), #is there a D in ORTHOGONAL?
+    orth_U = as.integer(str_detect(ORTHOGONAL,"U")), #is there a U in ORTHOGONAL?
+    orth_E = as.integer(str_detect(ORTHOGONAL,"E")), #is there a E in ORTHOGONAL?
+    orth_G = as.integer(str_detect(ORTHOGONAL,"G")), #is there a G in ORTHOGONAL?
+    orth_B = as.integer(str_detect(ORTHOGONAL,"B")), #is there a B in ORTHOGONAL?
+    orth_Z = as.integer(str_detect(ORTHOGONAL,"Z"))  #is there a Z in ORTHOGONAL?
+   ) 
 
+#TEST KEY
+#key_111 == key_121 across both conditions for q>5
+key_test <- key_111 %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(Q>5) %>% 
+  #create "triangle correct" columns
+  mutate(
+    tri_A = as.integer(str_detect(TRIANGULAR, "A")), #is there a A in TRIANGULAR?
+    tri_B = as.integer(str_detect(TRIANGULAR, "B")), #is there a B in TRIANGULAR?
+    tri_C = as.integer(str_detect(TRIANGULAR, "C")), #is there a C in TRIANGULAR?
+    tri_D = as.integer(str_detect(TRIANGULAR, "D")), #is there a D in TRIANGULAR?
+    tri_E = as.integer(str_detect(TRIANGULAR, "E")), #is there a E in TRIANGULAR?
+    tri_F = as.integer(str_detect(TRIANGULAR, "F")), #is there a F in TRIANGULAR?
+    tri_G = as.integer(str_detect(TRIANGULAR, "G")), #is there a G in TRIANGULAR?
+    tri_H = as.integer(str_detect(TRIANGULAR, "H")), #is there a H in TRIANGULAR?
+    tri_I = as.integer(str_detect(TRIANGULAR, "I")), #is there a I in TRIANGULAR?
+    tri_J = as.integer(str_detect(TRIANGULAR, "J")), #is there a J in TRIANGULAR?
+    tri_K = as.integer(str_detect(TRIANGULAR, "K")), #is there a K in TRIANGULAR?
+    tri_L = as.integer(str_detect(TRIANGULAR, "L")), #is there a L in TRIANGULAR?
+    tri_M = as.integer(str_detect(TRIANGULAR, "M")), #is there a M in TRIANGULAR?
+    tri_N = as.integer(str_detect(TRIANGULAR, "N")), #is there a N in TRIANGULAR?
+    tri_O = as.integer(str_detect(TRIANGULAR, "O")), #is there a O in TRIANGULAR?
+    tri_P = as.integer(str_detect(TRIANGULAR, "P")), #is there a P in TRIANGULAR?
+    tri_Z = as.integer(str_detect(TRIANGULAR, "Z")), #is there a Z in TRIANGULAR?
+    tri_X = as.integer(str_detect(TRIANGULAR, "X"))  #is there a X in TRIANGULAR?
+  ) %>% 
+  #create "orthogonal correct" columns
+  mutate(
+    orth_A = as.integer(str_detect(ORTHOGONAL, "A")), #is there a A in ORTHOGONAL?
+    orth_B = as.integer(str_detect(ORTHOGONAL, "B")), #is there a B in ORTHOGONAL?
+    orth_C = as.integer(str_detect(ORTHOGONAL, "C")), #is there a C in ORTHOGONAL?
+    orth_D = as.integer(str_detect(ORTHOGONAL, "D")), #is there a D in ORTHOGONAL?
+    orth_E = as.integer(str_detect(ORTHOGONAL, "E")), #is there a E in ORTHOGONAL?
+    orth_F = as.integer(str_detect(ORTHOGONAL, "F")), #is there a F in ORTHOGONAL?
+    orth_G = as.integer(str_detect(ORTHOGONAL, "G")), #is there a G in ORTHOGONAL?
+    orth_H = as.integer(str_detect(ORTHOGONAL, "H")), #is there a H in ORTHOGONAL?
+    orth_I = as.integer(str_detect(ORTHOGONAL, "I")), #is there a I in ORTHOGONAL?
+    orth_J = as.integer(str_detect(ORTHOGONAL, "J")), #is there a J in ORTHOGONAL?
+    orth_K = as.integer(str_detect(ORTHOGONAL, "K")), #is there a K in ORTHOGONAL?
+    orth_L = as.integer(str_detect(ORTHOGONAL, "L")), #is there a L in ORTHOGONAL?
+    orth_M = as.integer(str_detect(ORTHOGONAL, "M")), #is there a M in ORTHOGONAL?
+    orth_N = as.integer(str_detect(ORTHOGONAL, "N")), #is there a N in ORTHOGONAL?
+    orth_O = as.integer(str_detect(ORTHOGONAL, "O")), #is there a O in ORTHOGONAL?
+    orth_P = as.integer(str_detect(ORTHOGONAL, "P")), #is there a P in ORTHOGONAL?
+    orth_Z = as.integer(str_detect(ORTHOGONAL, "Z")), #is there a Z in ORTHOGONAL?
+    orth_X = as.integer(str_detect(ORTHOGONAL, "X"))  #is there a X in ORTHOGONAL?
+  )
 
-# key_scaffolded_c121
-# key_test
-# key_nondiscriminant
-
-#TODO, CREATE REST OF THEM
 ```
+For sanity check, we veryify that the answer key for test phase questions (q > 5) is the _same_ across the two condition specific answer keys.  As long as this is TRUE, its OK to use `key_111`.  
+```{r verify-key}
+#verify that key_111 == key 121 for q>5
+key_111 %>% filter(Q >5) %>% select(TRIANGULAR, ORTHOGONAL)== key_121 %>% filter(Q >5)%>% select(TRIANGULAR, ORTHOGONAL)
+```
+
+## Calculate $i$ number correctly selected options
 
 Next, we calculate the $i$, number of correctly indicated options, based on the answer key for each question. 
 
-
-```{r RESCORE-SCAFFOLDED}
+```{r RESCORE-HELPERS}
 
 #------------------------------------------------------------------
-#calculate tri_i: number of triangularly-correct indicated options
+#calculate i: number of correctly indicated options
+#responses <- vector of T/F responses
+#key <- vector of T/F answers
+#RETURNS SUM correctly indicated items
 #NOTE: THIS IS SUPER BRITTLE 
 #relies on fact that columns were ordered the same across the dataframes!
 #should refactor in less imperative mode (more R like!)
 #------------------------------------------------------------------
-tri_i <- function(responses,key){
-  print(responses)
-  print(key)
+calc_i <- function(responses,key){
+  # print(responses)
+  # print(key)
   assessment <- responses == key
-  sum(assessment)
+  return(sum(assessment))
 }
 
-
-test <- item_responses_scaffold %>% filter(condition==111) 
-
-#rescore scaffolded items in condition 111
-for (x in 1:nrow(test)) {
-  #get question number
-  q = test[x,"q"]
-  #get subjects response vector for this question
-  response <- as_tibble(test[x,] %>% select(starts_with("r_")))
-  #get key vector for this question
-  key = as_tibble(key_scaffolded_c111 %>% filter(Q==q) %>% select(starts_with("tri_")))
-  #calculate number of triangular-correct-options
-  test[x,"tri_i"] <- tri_i(response,key)
+#------------------------------------------------------------------
+#write_i: write i to response dataframe
+#items <- dataframe of items 
+#key <- MTF answerkey for this dataframe
+#RETURNS MUTATING items dataframe
+#------------------------------------------------------------------
+write_i <- function(items,keys){
+  #for each row(item) in the items input dataframe
+  for (x in 1:nrow(items)) {
+    #get the question number
+    q = items[x,"q"]
+    #get the subjects response vector
+    responses <- as_tibble(items[x,] %>% select(starts_with("r_")))
+    #get key vectors for this question
+    tri_key = as_tibble(keys %>% filter(Q==q) %>% select(starts_with("tri_")))
+    orth_key = as_tibble(keys %>% filter(Q==q) %>% select(starts_with("orth_")))
+    #write TRI and ORTH response keys to row 
+    items[x,"TRI"] <- keys %>% filter(Q==q) %>% select(TRIANGULAR)
+    items[x,"ORTH"] <- keys %>% filter(Q==q) %>% select(ORTHOGONAL)
+    #calculate number of triangular-correct-options
+    items[x,"tri_i"] <- calc_i(responses,tri_key)
+    #calculate number of orthogonal-correct-options
+    items[x,"orth_i"] <- calc_i(responses,orth_key)
+  }  
+  return(items) #return mutated items dataframe
 }
+```
+
+
+```{r CALC-I}
+#WARNING :: TAKES SEVERAL MINUTES TO RUN
+
+#WRITE I_s
+#~30seconds to run on 800 items
+item_responses_scaffold_111 <- write_i(item_responses_scaffold_111,key_scaffolded_c111)
+item_responses_scaffold_121 <- write_i(item_responses_scaffold_121,key_scaffolded_c121)
+item_responses_test <- write_i(item_responses_test,key_test)
 
 ```
 
 
+## Discriminant Score 
 
+A _Discriminant Score_ offers: 
+
+- +1 for a complete triangular response
+- -1 for a complete orthogonal response
+- +/- fraction of complete triangular or orthogonal response
+- 0 for non-strategy responses  
+- 0 for blank
+
+$$
+\begin{align}
+\text{Score}_{discriminant} &= 0 + 1*(t_s / t) - 1 * (r_s / r) + 0*(d_s / d) \\
+&= (t_s / t) - (r_s / r) 
+
+\end{align}
+$$
+
+Where: 
+t = number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$
+r = number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$
+d = number of non-strategy options (not consistent with either interpretation), $t \gt 0$ 
+n = number of response options 
+n = t + r + d
+
+
+t_s = number of triangular-correct options selected, $ t_s \ge 0$
+r_s = number of orthogonal-correct options selected, $ r_s \ge 0$ 
+d_s = number of non-strategy options options selected, $ d_s \ge 0$
+s = number of options selected, $ s \ge 0$ 
+s = t_s + r_s + d_s 
+
+
+TODO:: add 0.5*(tversky) - 0.5*(satisficing) 
+
+```{r}
+
+# FIRST is correct triangular 1option response
+# SECOND is correct triangular 2option response
+# THIRD is correct orthogonal 1option response
+# FOURTH is correct orthogonal 2option response
+# FIFTH is partial credit 2option triangular (split with other)
+# SIXTH is partial credit 2option orthogonal (split with other)
+# SEVENTH is partial credit 2option tri-orth split
+# EIGHTH is blank 1correct
+# NINTH is blank 2correct
+predict = c(1, 1, -1, -1, 0.5, -0.5, 0, 0, 0)
+
+#test key options
+t = c(1, 2, 1, 2, 2, 2, 2, 1)
+r = c(1, 2, 1, 2, 2, 2, 2, 1)
+d = c(13,11,13,11,11,11,11, 13)
+n = t + r + d
+n == 15
+t > 0
+
+
+#test selected options
+t_s = c(1,2,0,0,1,0,1,0,0)
+r_s = c(0,0,1,2,0,1,1,0,0)
+d_s = c(0,0,0,0,1,1,0,0,0)
+s = t_s + r_s + d_s 
+
+#score
+S = (t_s / t) - (r_s / r)
+
+#score as predicted?
+unique(predict == S)
+
+predict
+S
+```
+
+
+## Calculate Interpretation Scores
+
+Finally, we calculate the scores, based on the calculated values for $i$. 
+```{r SCORE-I}
+
+#set n = number of answer options
+n_scaffold <- 15
+n_test <- 18
+
+# TODO calculate discrimi
+#calculate scores for scaffold phase control condition 
+item_responses_scaffold_111 <- item_responses_scaffold_111  %>% mutate(
+  s_ABS = f_dichom(tri_i, n_scaffold),
+  s_TRI = f_partial(tri_i, n_scaffold),
+  s_ORTH = f_partial(orth_i,n_scaffold)
+)
+
+#calculate scores for scaffold phase impasse condition 
+item_responses_scaffold_121 <- item_responses_scaffold_121  %>% mutate(
+  s_ABS = f_dichom(tri_i, n_scaffold),
+  s_TRI = f_partial(tri_i, n_scaffold),
+  s_ORTH = f_partial(orth_i, n_scaffold)
+)
+
+#calculate scores for test phase 
+item_responses_test <- item_responses_test  %>% mutate(
+  s_ABS = f_dichom(tri_i, n_test),
+  s_TRI = f_partial(tri_i, n_test),
+  s_ORTH = f_partial(orth_i, n_test)
+)
+```
+
+
+As a sanity check, we validate the equivalence of the scores
+```{r}
+#validate that ABS score is always  == f_dichom(tri_i, 15)
+unique(validate <- item_responses_scaffold_111$s_ABS == f_dichom(item_responses_scaffold_111$tri_i,n_scaffold))
+unique(validate <- item_responses_scaffold_121$s_ABS == f_dichom(item_responses_scaffold_121$tri_i,n_scaffold))
+unique(validate <- item_responses_test$s_ABS == f_dichom(item_responses_test$tri_i,n_test))
+
+#validate that ABS score is == 'correct' (calculated in stimulus)
+unique(validate <- as.logical(item_responses_scaffold_111$s_ABS) == (item_responses_scaffold_111$correct))
+unique(validate <- as.logical(item_responses_scaffold_121$s_ABS) == (item_responses_scaffold_121$correct))
+unique(validate <- as.logical(item_responses_test$s_ABS) == (item_responses_test$correct))
+
+
+#validate that TRI score is always  == f_partial(tri_i, 15)
+unique(validate <- item_responses_scaffold_111$s_TRI == f_partial(item_responses_scaffold_111$tri_i,n_scaffold))
+unique(validate <- item_responses_scaffold_121$s_TRI == f_partial(item_responses_scaffold_121$tri_i,n_scaffold))
+unique(validate <- item_responses_test$s_TRI == f_partial(item_responses_test$tri_i,n_test))
+
+#validate that ORTH score is always  == f_partial(orth_i, 15)
+unique(validate <- item_responses_scaffold_111$s_ORTH == f_partial(item_responses_scaffold_111$orth_i,n_scaffold))
+unique(validate <- item_responses_scaffold_121$s_ORTH == f_partial(item_responses_scaffold_121$orth_i,n_scaffold))
+unique(validate <- item_responses_test$s_ORTH == f_partial(item_responses_test$orth_i,n_test))
+
+```
+
+## Integrate data frames
+The final step in the process is to re_combine_ the item dataframes. 
+
+```{r COMBINE-DFS}
+
+#reduce dataframes before combination
+item_responses_scaffold_111 <- item_responses_scaffold_111 %>% 
+  select(subject, condition, term, mode, question, rt_s,
+         q, correct, response, TRI, ORTH, 
+         num_o, tri_i, orth_i, 
+         s_ABS, s_TRI, s_ORTH) %>% 
+  mutate(phase = "LEARN")
+
+item_responses_scaffold_121 <- item_responses_scaffold_121 %>% 
+  select(subject, condition, term, mode, question, rt_s,
+         q, correct, response, TRI, ORTH, 
+         num_o, tri_i, orth_i, 
+         s_ABS, s_TRI, s_ORTH) %>% 
+  mutate(phase = "LEARN")
+
+item_responses_test <- item_responses_test %>% 
+  select(subject, condition, term, mode, question, rt_s,
+         q, correct, response, TRI, ORTH, 
+         num_o, tri_i, orth_i, 
+         s_ABS, s_TRI, s_ORTH) %>% 
+  mutate(phase = "TEST")
+
+#combine data frames
+temp <- rbind(item_responses_scaffold_111,item_responses_scaffold_121,item_responses_test)
+
+#dblck all items are accounted for 
+if ( nrow(df_items)==nrow(temp) ) {
+  df_items <- temp 
+} else {
+    print("ERROR! sub dfs don't contain all the df_items")
+  }
+
+
+#CLEANUP MTF ENCODED ITEMS
+rm(item_responses_scaffold_111, item_responses_scaffold_121, item_responses_test)
+rm(key_111, key_121, key_scaffolded_c111, key_scaffolded_c121, key_test)
+rm(temp)
+```
+
+
+
+
+# PEEKING
+
+```{r}
+library(ggformula)
+
+
+gf_histogram(~s_TRI, data = df_items) + 
+  facet_wrap(condition ~.)
+
+gf_histogram(~s_ORTH, data = df_items) + 
+  facet_wrap(condition ~.)
+
+gf_histogram(~s_ABS, data = df_items) + 
+  facet_wrap(condition ~.)
+
+gf_bar(~correct, data = df_items) + 
+  facet_wrap(condition ~ phase)
+
+```
+
+# DATA DICTIONARY 
+
+TODO document final data dictionary
 
 
 
@@ -564,3 +847,9 @@ Albanese, M. A., & Sabers, D. L. (1988). Multiple True-False Items: A Study of I
 
 _on kable tables_  
 https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+
+## Session
+
+```{r}
+sessionInfo()
+```
