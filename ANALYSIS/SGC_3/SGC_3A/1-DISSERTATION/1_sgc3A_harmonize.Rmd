@@ -60,6 +60,7 @@ The underlying data structure of the stimulus web application changed across the
 ## Participants
 
 First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_subjects` containing one row for each subject (across all periods). 
+Note that we _are not_ discarding any _response_ data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run. 
 
 _Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook._
 ```{r IMPORT-SUBJECTS}
@@ -169,8 +170,7 @@ rm(fall17,fall21,spring18,winter22)
 ## Items
 
 Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_items` containing one row for each _graph comprehension task question_ (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022)
-
-_Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook._
+Note that we _do not_ discard any _response_ data.  Rather, we _do_ discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved. 
 
 ```{r IMPORT-ITEMS}
 
