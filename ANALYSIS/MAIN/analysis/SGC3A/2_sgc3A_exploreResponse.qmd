@@ -1,0 +1,189 @@
+---
+title: "Response Exploration"
+subtitle: 'SGC3A-2-Response Exploration'
+---
+
+*The purpose of this notebook is to explore item-level response data collected for study SGC-3: The Insight Hypothesis*
+
+```{r SETUP, include=FALSE}
+
+#IMPORT LIBRARIES 
+library(tidyverse) #ALL THE THINGS 
+library(kableExtra) #adv table rendering
+
+```
+
+First we import item-level data from the cleaned and wrangled R data structure file.
+
+```{r IMPORT DATA}
+df_items <- read_rds('data/sgc3a_items.rds')
+```
+
+## Control Condition
+
+### Question #1
+
+We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
+
+In the 'interpretation' column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.
+
+```{r Q1-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","lines-connect","(both ortho & tri)","?","?","triangular")
+
+title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
+df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
+  summarise( count = n()) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 2) %>% 
+  pack_rows("Orthongal", 3, 3) %>% 
+  pack_rows("Lines-Connect", 4, 4) %>% 
+  pack_rows("other", 5, 7) 
+
+```
+
+Nearly all of the subjects selected a response consistent with one of the identified interpretations.
+
+*Note that options highlighted in light grey are considered within the range of 'visual error'.*
+
+| Correct --- Triangular                                        | Incorrect --- Lines Connect                                                                                                             | Incorrect --- Orthogonal                                                   |
+|-------------------------|------------------------|------------------------|
+| ![](keys/control/interpretations/Q1_111_TRI.png)              | ![](keys/control/interpretations/Q1_111_TVERSKY.png)                                                                                    | ![](keys/control/interpretations/Q1_111_ORTH.png)                          |
+| indicates the correct interpretation of the coordinate system | a triangular-like interpretation, where the respondent selects any datapoints intersecting the lines that connect to the reference time | indicates the incorrect, Cartesian interpretation of the coordinate system |
+
+### Question #2
+
+```{r Q2-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","LINES-CONNECT","ORTHONGAL",
+                     "LINES-CONNECT","","","(reference point)","ortho + satisfice","TRIANGULAR")
+
+title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
+df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
+  summarise( count = n()) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 2) %>% 
+  pack_rows("Orthogonal", 3, 5) %>% 
+  pack_rows("Lines-Connect", 6, 7) %>% 
+  pack_rows("other", 8, 10) 
+
+```
+
+Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point *in addition* to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )
+
+| Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |
+|------------------------|------------------------|------------------------|
+| ![](keys/control/interpretations/Q2_111_TRI.png)                                    | ![](keys/control/interpretations/Q2_111_TVERSKY.png)                                                                                                                  | ![](keys/control/interpretations/Q2_111_ORTH.png)                                                                                           |
+| A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |
+
+### Question #3
+
+```{r Q3-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","LINES-CONNECT","ORTHONGAL","LINES-CONNECT",
+                     "lines-connect","LINES-CONNECT","","","(reference point)",
+                     "","","","","","","")
+
+title <- "Frequency of Selected Response Options for Question #3 (Control Condition)"
+df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>% 
+  summarise( count = n()) %>% arrange(-count)  %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthogonal", 2, 3) %>% 
+  pack_rows("Lines-Connect", 4, 7) %>% 
+  pack_rows("other", 8, 17) 
+
+```
+
+| Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |
+|------------------------|------------------------|------------------------|
+| ![](keys/control/interpretations/Q3_111_TRI.png)                                    | ![](keys/control/interpretations/Q3_111_TVERSKY.png)                                                                                                                  | ![](keys/control/interpretations/Q3_111_ORTH.png)                                                                                           |
+| A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |
+
+### Question #4
+
+```{r Q4-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","orth-lines connect","BLANK","orth-lines connect",
+                     "lines-connect","orthogonal","","","",
+                     "","","","","","" )
+
+title <- "Frequency of Selected Response Options for Question #4 (Control Condition)"
+df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>% 
+  summarise( count = n())  %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthogonal", 2, 5) %>% 
+  pack_rows("Lines-Connect", 6, 6) %>% 
+  pack_rows("other", 7, 16) 
+
+
+```
+
+In Question 4 we see more than one variant of an orthogonal interpretation emerge.
+
+| Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
+|---------------------------------------|----------------------------------------------|
+| ![](keys/control/interpretations/Q4_111_ORTH.png)                                                                                                                                                                      | ![](keys/control/interpretations/Q4_111_ORTH-LC.png)                                                                                                                                                                                                                                                                                                                                            |
+| If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |
+
+### Question #5
+
+```{r Q5-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","orth-satistice","BLANK","orth-satisfice",
+                     "orth-satistice","","","","","orth-satisfice","","orth-satisfice","","orth-satisfice","","orth-satisfice",
+                     "(reference point)","","","","lines-connect")
+
+title <- "Frequency of Selected Response Options for Question #4 (Control Condition)"
+df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>% 
+  summarise( count = n())  %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthogonal", 2, 9) %>% 
+  pack_rows("Lines Connect", 10, 10) %>% 
+  pack_rows("other", 11, 22) 
+
+
+```
+
+TODO note the compelling cases of internal inconsistency (HJDE)
+
+## Impasse Condition
+
+We can compare these responses to those produced by participants in the experimental impasse condition (`condition` = 121).
+
+```{r Q1-impasse}
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+interpretation = c("BLANK","TRIANGULAR","partial-satisfice","LINES-CONNECT",
+                   "partial-satisfice","partial-satisfice","partial-lines-connect",
+                   "","partial-satisfice","partial-satisfice","partial-satisfice","partial-satisfice","")
+
+title <- "Frequency of Selected Response Options for Question #1 (Impasse Condition)"
+df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>% 
+  summarise( count = n()) %>% arrange(-count)  %>% cbind(interpretation) %>% 
+  kbl(caption = title) %>%  kable_classic() 
+
+```

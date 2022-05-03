@@ -1,6 +1,6 @@
 ---
-title: 'Response Rescoring'
-subtitle: 'SGC3A-2-Response Rescoring'
+title: 'Response Scoring'
+subtitle: 'SGC3A-2-Response Scoring'
 # author: 'Amy Rae Fox'
 # always_allow_html: true  
 # header-includes:
@@ -28,7 +28,7 @@ subtitle: 'SGC3A-2-Response Rescoring'
 
 ```{r SETUP, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE) 
-knitr::opts_chunk$set(eval = FALSE) #knit w/o execution
+# knitr::opts_chunk$set(eval = FALSE) #knit w/o execution
 # knitr::opts_chunk$set('digits' = 4) #rounding
 options(scipen=1, digits=3)
 
@@ -39,7 +39,7 @@ library(kableExtra) #printing tables
 
 ```
 
-*The purpose of this notebook is to re-score the response accuracy data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Answer Multiple Choice' design (MCMA).* Warning: this notebook takes several minutes to execute.
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Answer Multiple Choice' design (MCMA). Here, we evaluate different approaches to scoring MCMA questions, and transform raw question responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
 
 | Pre-Requisite         | Followed By              |
 |-----------------------|--------------------------|
@@ -56,20 +56,19 @@ The *graph comprehension task* of study SGC 3A presents readers with a graph, a 
 
 ![**Figure 1. Sample Graph Comprehension (Question \# 6)**](static/img/sample_graphComprehensionTask.png)
 
-In the psychological and education literatures on Tests & Measures, the format of this type of question is referred to as *Multiple Choice Multiple Answer* (MCMA) or *Multiple Answer Multiple Choice* (MAMC).\
-It has a number of properties that make it different from traditional *Single Answer Multiple Choice* (SAMC) questions, where the respondent marks a single response from a number of options In particular, there are a number of very different ways that MAMC questions can be *scored*.
+In the psychological and education literatures on Tests & Measures, the format of this type of question is referred to as *Multiple Choice Multiple Answer* (MCMA) or *Multiple Answer Multiple Choice* (MAMC). It has a number of properties that make it different from traditional *Single Answer Multiple Choice* (SAMC) questions, where the respondent marks a single response from a number of options. In particular, there are a number of very different ways that MAMC questions can be *scored*.
 
-Traditionally in SAMC questions, one point is given for selecting the option designated as correct, and zero points given for marking any of the alternative (i.e. distractor) options. Responses on MAMC questions, however might be partially correct ($i$), while responses on other answer options within the same item might be incorrect ($n – i$). In MAMC, it is not obvious how to allocate points when the respondent marks a true-correct option (i.e. options that *should* be selected), as well as one or more false-correct options (i.e. options that *should not* be selected). Should partial credit be awarded? If so, are options that respondents false-selected and false-unselected items equally penalized?
+In tranditional SAMC format questions, one point is given for selecting the option designated as correct, and zero points given for marking any of the alternative (i.e. distractor) options. Individual response options on MAMC questions, however might be partially correct ($i$), while responses on other answer options within the same item might be incorrect ($n – i$). In MAMC, it is not obvious how to allocate points when the respondent marks a true-correct option (i.e. options that *should* be selected), as well as one or more false-correct options (i.e. options that *should not* be selected). Should partial credit be awarded? If so, are options that respondents false-selected and false-unselected items equally penalized?
 
-Schmidt et. al (2021) performed a systematic literature review of publications proposing MAMC (or equivalent) scoring schemes, ultimately synthesizing over 80sources into 27 distinct scoring approaches. Upon reviewing the benefits of tradeoffs of each approach, for this study we choose utilize two of the schemes: **dichotomous scoring** (Schmidt. et. al scheme #1), and **partial scoring** $[-1/q,0, +1/p]$ (Schmidt et. al. scheme #26), as well as a scaled **discriminant score** that leverages partial scoring to discriminate between strategy-specific patterns of response.
+@schmidtRelationExamineesTrue2021 performed a systematic literature review of publications proposing MAMC (or equivalent) scoring schemes, ultimately synthesizing over 80 sources into 27 distinct scoring approaches. Upon reviewing the benefits of trade-offs of each approach, for this study we choose utilize two of the schemes: **dichotomous scoring** ( @schmidtRelationExamineesTrue2021 scheme #1), and **partial scoring** $[-1/q,0, +1/p]$ ( @schmidtRelationExamineesTrue2021 scheme #26), as well as a scaled **discriminant score** that leverages partial scoring to discriminate between strategy-specific patterns of response.
 
 ## Response Encoding
 
-First, we note that the question type evaluated by Schmidt et. al. (2021) is referred to as *Multiple True-False* (MTF), a variant of MAMC where respondents are presented with a question (stem) and series of response options with True/False (e.g. radio buttons) for each. Depending on the implementation of the underlying instrument, it may or may not be possible for respondents to *not respond* to a particular option (i.e. leave the item 'blank'). Although MTF questions have a different underlying implementation (and potentially different psychometric properties) they are identical in their mathematical properties; that is, responses to a MAMC question of 'select all that apply' can be coded as a series of T/F responses to each response option
+First, we note that the question type evaluated by @schmidtRelationExamineesTrue2021 is referred to as *Multiple True-False* (MTF), a variant of MAMC where respondents are presented with a question (stem) and series of response options with True/False (e.g. radio buttons) for each. Depending on the implementation of the underlying instrument, it may or may not be possible for respondents to *not respond* to a particular option (i.e. leave the item 'blank'). Although MTF questions have a different underlying implementation (and potentially different psychometric properties) they are identical in their mathematical properties; that is, responses to a MAMC question of 'select all that apply' can be coded as a series of T/F responses to each response option
 
-![**Figure 2. SAMC (vs) MAMC (vs) MTF**](static/img/MAMC-MTF.png)
+![**Figure 2. SAMC (vs) MAMC (vs) MTF**](static/img/MAMC-MTF.png){#fig-ItemTypes}
 
-In this example (Figure 2), we see an example of a question with four response options ($n=4$) in each question type. In the **SAMC** approach (at left), there are four possible responses, given explicitly by the response options (respondent can select only one) $(\text{number of possible responses} = n)$. With only four possible responses, we cannot entirely discriminate between all combinations of the underlying response variants we might be interested in, and must always choose an 'ideal subset' of possible distractors to present as response options. In the MAMC (middle) and MTF (at right), the *same number of response options* ($n=4$) yield a much greater number $(\text{number of possible responses} = 2^{n})$. We can also see the equivalence between a MAMC and MTF format questions with the same response options. Options the respondent *selects* in MAMC are can be coded as T, and options they leave *unselected* can be coded as F. Thus, for response options (ABCD), a response of \[AB\] can be encoded as \[TTFF\].
+In this example (@fig-ItemTypes), we see an example of a question with four response options ($n=4$) in each question type. In the **SAMC** approach (at left), there are four possible responses, given explicitly by the response options (respondent can select only one) $(\text{number of possible responses} = n)$. With only four possible responses, we cannot entirely discriminate between all combinations of the underlying response variants we might be interested in, and must always choose an 'ideal subset' of possible distractors to present as response options. In the MAMC (middle) and MTF (at right), the *same number of response options* ($n=4$) yield a much greater number $(\text{number of possible responses} = 2^{n})$. We can also see the equivalence between a MAMC and MTF format questions with the same response options. Options the respondent *selects* in MAMC are can be coded as T, and options they leave *unselected* can be coded as F. Thus, for response options (ABCD), a response of \[AB\] can be encoded as \[TTFF\].
 
 ::: {.callout-caption appearance="simple"}
 ## Decision
@@ -91,7 +90,7 @@ n &= \text{number of response options} \\
   q &= \text{number of true-unselect options (i.e. should not be selected)} 
 \end{align}
 $$
-  
+
 **Properties of the Subject's Response**
 
 $$
@@ -103,11 +102,11 @@ $$
 
 ### Dichotomous Scoring
 
-**Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is *exactly* correct, meaning the respondent includes *only true-correct* options, and does select any additional (i.e. true_incorrect) options that should not be selected. This is also known as *all or nothing scoring*, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the true-correct options, and one or more but not all of the false-correct items, but receive the same score as a respondent selects none of the true-correct options, or all of the false-correct options. In this sense, dichotomous scoring tells us only about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating.
+**Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is *exactly* correct, meaning the respondent includes *only correct-select* options, and does select any additional (i.e. incorrect-select) options that should not be selected. This is also known as *all or nothing scoring*, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the correct-select options, and one or more but not all of the correct-unselect items, but receive the same score as a respondent selects none of the correct-select options, or all of the correct-unselect options. In this sense, dichotomous scoring tells us *only* about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating through their selection of response options.
 
 **In Dichotomous Scoring**
 
--   question score is either 0 or 1
+-   score for the question is either 0 or 1
 -   full credit is only given if all responses are correct; otherwise no credit
 -   does not account for *partial knowledge*. - with increasing number of response options, scoring becomes stricter as each statement must be marked correctly.
 
@@ -144,9 +143,9 @@ f_dichom <- function(i, n) {
 
 ### Partial Scoring \[-1/n, +1/n\]
 
-**Partial Scoring** refers to a class or scoring schemes that award the respondent partial credit depending on pattern of options they select. Schmidt et. al. identify twenty-six different partial credit scoring schemes in the literature, varying in the range of possible scores, and the relative weighting of incorrectly selected (vs) incorrectly unselected options.
+**Partial Scoring** refers to a class or scoring schemes that award the respondent partial credit depending on pattern of options they select. @schmidtRelationExamineesTrue2021 identify twenty-six different partial credit scoring schemes in the literature, varying in the range of possible scores, and the relative weighting of incorrectly selected (vs) incorrectly unselected options.
 
-A particularly elegant approach to partial scoring is referred to as the $[-1/n, +1/n]$ approach (Schmidt. et. al 2021 #17). This approach is particularly appealing in the context of SGC3A, because it: (1) takes into account all information provided by the respondent: the pattern of what the select, and choose not to select; and (2) weights an unsure/blank/non-response as *superior* to an incorrect response.
+A particularly elegant approach to partial scoring is referred to as the $[-1/n, +1/n]$ approach ( @schmidtRelationExamineesTrue2021 #17). This approach is appealing in the context of SGC3A, because it: (1) takes into account all information provided by the respondent: the pattern of what the select, and choose not to select.
 
 **In Partial Scoring** $[-1/n, +1/n]$:
 
@@ -156,45 +155,47 @@ A particularly elegant approach to partial scoring is referred to as the $[-1/n,
 -   Intermediate results are credited as fractions accordingly ($+1/n$ for each correct, $-1/n$ for each incorrect)
 -   This results in *at chance performance* (i.e. half of the given options marked correctly), being awarded 0 points are awarded
 
-This scoring is more consistent with the motivating theory that Triangular Graph readers start out with an incorrect (i.e. orthogonal, cartesian) interpretation of the coordinate system, and transition to a correct (i.e. triangular) interpretation. But the first step in making this transition is realizing the cartesian interpretation *is incorrect*, which may yield blank responses where the respondent is essentially saying, 'there is no correct answer to this question'.\
+This scoring is more consistent with the motivating theory that Triangular Graph readers start out with an incorrect (i.e. orthogonal, cartesian) interpretation of the coordinate system, and transition to a correct (i.e. triangular) interpretation. But the first step in making this transition is realizing the cartesian interpretation *is incorrect*, which may yield blank responses where the respondent is essentially saying, 'there is no correct answer to this question'.
 
-Schmidt. et. al (2021) describe the *Partial* ${[-1/n, +1/n]}$ scoring scheme as the *only* scoring method (of the 27 described) where respondents' scoring results can be interpreted as a percentage of their true knowledge. One important drawback of this method is that a respondent may receive credit (a great deal of credit, depending on the number of answer options n) even if she did not select *any* options. In the case (such as ours) where n is much greater than p (there are many more answer options than there are options meant to be selected), the previous partial scoring algorithm poses a challenge because the respondent can achieve an almost completely perfect score by selecting a small number of incorrect options.
+@schmidtRelationExamineesTrue2021 describe the *Partial* ${[-1/n, +1/n]}$ scoring scheme as the *only* scoring method (of the 27 described) where respondents' scoring results can be interpreted as a percentage of their true knowledge. One important drawback of this method is that a respondent may receive credit (a great deal of credit, depending on the number of answer options n) even if she did not select *any* options. In the case (such as ours) where there are many more response options $n$ than there are options meant to be selected $p$, this partial scoring algorithm poses a challenge because the respondent can achieve an almost completely perfect score by selecting a small number of options that should not be selected.
 
 The algorithm for **partial scoring**$[-1/n, +1/n]$ is given by:
-  
-  $$
+
+$$
   \begin{align}
 f &= (1/n * i) - (1/n * (n-i)) \\
 &= (2i - n)/{n} 
 \tag{2}
 \end{align}
 $$
-  
-  ```{r}
+
+```{r}
 f_partialN <- function(i, n) {
-  
-  # print(paste("i is :",i," n is:",n))
-  
-  #if(n==0) return error
-  ifelse((n==0),print("ERROR: n should not be 0"),"")
-  
-  #if(i >n ) return error
-  ifelse((i > n),print("ERROR: i CANNOT BE GREATER THAN n"),"")
-  
-  return ((2*i - n) / n) 
+
+# print(paste("i is :",i," n is:",n))
+
+#if(n==0) return error
+ifelse((n==0),print("ERROR: n should not be 0"),"")
+
+#if(i >n ) return error
+ifelse((i > n),print("ERROR: i CANNOT BE GREATER THAN n"),"")
+
+return ((2*i - n) / n) 
 }
 ```
 
 ### Partial Scoring \[-1/p, +1/p\]
 
-One drawback of the Partial Scoring $[-1/n, +1/n]$ approach is that treats all answer options (n) as equally indicative of the respondent's understanding. That is to say, incorrectly selecting one particular option is no more or less informative than incorrectly selecting a different item. *This is not the case*, however, in our study, where the selection of any particular option (remember options represent data points on the stimulus graph) is indicative of a particular interpretation of the stimulus. Incorrectly selecting an option indicates an interpretation of the graph with respect to that particular option. Whereas failing to select a correct option *might* mean the individual has a different interpretation, *or* that they failed to find *all* the data points consistent with the interpretation.
+One drawback of the Partial Scoring $[-1/n, +1/n]$ approach is that treats the choice to select, and choice to not select options as equally indicative of the respondent's understanding. That is to say, incorrectly selecting one particular option is no more or less informative than incorrectly not-selecting a different item. This represents an important difference between MAMC (i.e. "select all correct options") vs MTF (i.e. "Mark each option as true or false") questions.
 
-For this reason, we consider another alternative Partial Scoring scheme that takes into consideration only the selected statements, without penalizing statements incorrectly *not selected*. (See Schmidt. et. al. method #26. Also referred to as the Morgan-Method) This partial scoring scheme takes into consideration that the most effort-free (or 'default') response for any given item is the null, or blank response. Blank responses indicate *no understanding*, perhaps *confusion*, or refusal to answer. These lack of responses are awarded zero credit. Whereas taking the action to select an *incorrect* option is effortful, and is indicative of *incorrect understanding*.
+In our study, the selection of any particular option (remember options represent data points on the stimulus graph) is indicative of a particular interpretation of the stimulus. Incorrectly selecting an option indicates an interpretation of the graph with respect to that particular option. Alternatively, failing to select a correct option *might* mean the individual has a different interpretation, or that they failed to find *all* the data points consistent with the interpretation.
+
+For this reason, we consider another alternative Partial Scoring scheme that takes into consideration only the selected statements, without penalizing statements incorrectly *not selected*. (See @schmidtRelationExamineesTrue2021 method #26; also referred to as the Morgan-Method) This partial scoring scheme takes into consideration that the most effort-free (or 'default') response for any given item is the null, or blank response. Blank responses indicate *no understanding*, perhaps *confusion*, or refusal to answer. These lack of responses are awarded zero credit. Whereas taking the action to select an *incorrect* option is effortful, and is indicative of *incorrect understanding*.
 
 **Partial Scoring** $[-1/q, +1/p]$:
 
--   awards +1/p for each correctly selected option ($p_s$), and subtracts 1/(n-p) = 1/q for each incorrectly selected option ($q_s$)
--   only considers selected options; does not penalize nor reward unselected options
+-   awards +1/p for each correctly selected option ($p_s$), and subtracts $1/(n-p) = 1/q$ for each incorrectly selected option ($q_s$)
+-   only considers *selected* options; does not penalize nor reward *unselected* options
 
 **Properties of Item**
 
@@ -245,7 +246,7 @@ Consider the following example:
 *For a question with* $n = 5$ response options (data points A, B, C, D and E) with a correct response of A, the schemes under consideration yield the following scores:
 
 ```{r}
-title <- "Comparison of Scoring Schemes for $n = 5$ options [ A,B,C,D,E ]"
+title <- "Comparison of Scoring Schemes for n = 5 options [ A,B,C,D,E ]"
 
 correct <- c( "A____",  
               "A____",      
@@ -313,10 +314,10 @@ partial2 <- c(f_partialP(1,1,0,4),
 
 names = c(    "Correct Answer",
               "Response",
-              "$i$ ",
+              "i ",
               "Dichotomous",
-              "Partial$_{-1/n, +1/n}$",
-              "Partial$_{-1/q, +1/p}$")
+              "Partial [-1/n, +1/n]",
+              "Partial[-1/q, +1/p]")
 
 dt <- data.frame(correct, response, i, abs, partial1 , partial2)
 
@@ -328,7 +329,7 @@ kbl(dt, col.names = names, caption = title, digits=3) %>%
     pack_rows("Only Incorrect Selections", 5, 6) %>%
     pack_rows("Completely Inverse Response ", 7, 7) %>%
     pack_rows("Selected ALL or NONE", 8, 9) %>%
-    footnote(general = paste("$i$ = number of options in correct state; _ indicates option not selected"),
+    footnote(general = paste("i = number of options in correct state; _ indicates option not selected"),
            general_title = "Note: ",footnote_as_chunk = T)
 
 ```
@@ -343,7 +344,7 @@ Next we consider an example from our study, with $n = 15$ options and $p = 1$ co
 
 ```{r}
 
-title <- "Comparison of Scoring Schemes for SGC3 with $n=15$ and $p=1$ options [A,B...N,O]  "
+title <- "Comparison of Scoring Schemes for SGC3 with n=15 and p=1 options [A,B...N,O]  "
 
 correct <- c( "A____",  
               "A____",      
@@ -409,8 +410,8 @@ names = c(    "Correct Answer",
               "Response",
               "$i$ ",
               "Dichotomous",
-              "Partial$_{-1/n, +1/n}$",
-              "Partial$_{-1/q, +1/p}$")
+              "Partial [-1/n, +1/n]",
+              "Partial [-1/q, +1/p]")
 
 dt <- data.frame(correct, response, i, abs, partial1 , partial2)
 
@@ -422,27 +423,35 @@ kbl(dt, col.names = names, caption = title, digits=3) %>%
     pack_rows("Only Incorrect Selections", 5, 6) %>%
     pack_rows("Completely Inverse Response ", 7, 7) %>%
     pack_rows("Selected ALL or NONE", 8, 9) %>%
-    footnote(general = paste("$i$ = number of options in correct state; _ indicates option not selected"),
+    footnote(general = paste("i = number of options in correct state; _ indicates option not selected"),
            general_title = "Note: ",footnote_as_chunk = T)
 
 ```
 
 Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate between patterns of responses, in a way that is more sensible for the goals of the SGC3 graph comprehension task.
 
-> The Partial $[-1/q, +1/p]$ scheme is more appropriate for scoring the graph comprehension task than the Partial $[-1/n, +1/n]$ scheme because it allows us to differentially penalize incorrectly *selected* and incorrectly *not selected* answer options.
+::: {.callout-caption appearance="simple" icon="false"}
+## Decision
+
+The Partial $[-1/q, +1/p]$ scheme is more appropriate for scoring the graph comprehension task than the Partial $[-1/n, +1/n]$ scheme because it allows us to differentially penalize incorrectly *selected* and incorrectly *not selected* answer options.
+:::
 
 ## A Discriminant Score
 
-Though it appears the Partial $[-1/q, +1/p]$ scheme is a more appropriate scoring method for differentiating between meaningful patterns of responses, it does have one significant limitation: it treats all incorrectly selected answer options *the same*. In the previous example, rows 2 and 3 both indicate a subject has selected the correct option (A) plus one additional option (B or O). Both responses receive the same score under $[-1/q, +1/q]$. These two responses may be very meaningfully different, however if one of the alternate options chosen indicates *a different interpretation of the stimulus.* The inclusion of data-point B might be reasonable under some degree of visual tracing error, while the inclusion of data-point O might indicate a cartesian misinterpretation of the coordinate system. Essentially, some answer options are *more incorrect* than others. We want to be able to differentiate between these responses.
+Though it appears the Partial $[-1/q, +1/p]$ scheme is a more appropriate scoring method for differentiating between meaningful patterns of responses, it does have one significant limitation: it treats all incorrectly selected answer options in the same way.
 
-To accomplish this task, we need to sets of interpretation-consistent options for each item. Based on our prior work, we define **four interpretations** for which to define options.
+In the case of the SGC study paradigm, the choice of which options the subject selects reveals important information about their understanding of the graph stimulus. Specifically, there are certain patterns of options that correspond to a *triangular* versus *orthogonal* interpretations. In the previous example, rows 2 and 3 both indicate a subject has selected the correct option (A) plus one additional option (B or O). Both responses receive the same score under $[-1/q, +1/q]$. These two responses may be very meaningfully different, however if one of the alternate options chosen indicates a different interpretation of the stimulus. The inclusion of data-point B might be reasonable under some degree of visual tracing error, while the inclusion of data-point O might indicate a cartesian misinterpretation of the coordinate system. Essentially, some answer options are *more incorrect* than others. We want to be able to differentiate between these responses.
 
-1.  Triangular : the (true, correct) triangular interpretation of the coordinate system; indicated by data points intersecting the appropriate diagonal projection from the x-axis.
-2.  Orthogonal: the (incorrect) cartesian interpretation of the coordinate system; indicated by data points intersecting an (invisible) orthogonal projection from the x-axis.
+To accomplish this task, we need to sets of interpretation-consistent options for each item. Based on our prior work, we define **four interpretations** for which to define options. We can think of these as four different answer keys, each defining the set of 'correct' options (those that should be selected) under each interpretation of the graph.
+
+1.  Triangular : the (true, actually correct) triangular interpretation of the coordinate system; indicated by data points intersecting the appropriate diagonal projection from the x-axis.
+2.  Orthogonal: the (incorrect but most common) cartesian interpretation of the coordinate system; indicated by data points intersecting an (invisible) orthogonal projection from the x-axis.
 3.  Lines-Connect: an (incorrect) interpretation that is partially-triangular, insofar as it is indicated by data points intersecting any diagonal projection from the x-axis (not necessarily the *correct* projection).
 4.  Satisficing: an (incorrect) interpretation that indicated by selecting the data points nearest to the (invisible) orthogonal projection from the x-axis; indicates an orthogonal interpretation in absence of an available orthogonal intersect.
 
-Thus for *each* item, in the graph_comprehension task, we will define five sets, whose members constitute a partition of the set of answer options.
+TODO FIX THIS SECTION ONWARDS ... RESPONSE SETS NEED NOT BE MUTUTALLY EXCLUSIVE
+
+Thus for *each* item, in the graph comprehension task, we will define five sets, whose members constitute a partition of the set of answer options.
 
 $$
 \begin{align}
@@ -474,18 +483,11 @@ D &= \{ f, g\} \\
 \end{align}
 $$
 
-option that is consistent with the incorrect-orthogonal interpretation in fact indicates *less* understanding than incorrectly selecting a nearby but *not* orthgonally consistent option.
-
-TODO: correct this section, the actual discriminant score algorithm does not rely on partial scoring \[1/n\] Although *partial* scoring gives us an indication of how close the respondent is to approximating the complete pattern of 'correct' responses, including *partial knowledge*, when the partial score is calculated with respect to a singular 'correct' set of answer options, it does *does not distinguish between different types* of partial knowledge. Subjects are rewarded (or penalized) by the same amount regardless of which the false-selections or true-non selections they make.
-
-In the case of SGC_3A, however, the choice of which options the subject selects reveals important information about their understanding of the graph stimulus.\
-Specifically, there are certain patterns of options that correspond to a *triangular* versus *orthogonal* interpretations.
-
-To capture this important source of variation, we can apply the idea behind the partial scoring strategy in combination with the response option subgroups given by the graph interpretations to produce a single score (scaled from $-1$ to $+1$) that captures the *nature* of the respondent's partial knowledge.
+To capture this important source of variation, we can apply the idea behind the partial scoring $[-1/q, +1/p]$ scheme in combination with the response option subgroups given by the graph interpretations to produce a single score (scaled from $-1$ to $+1$) that captures the *nature* of the respondent's partial knowledge.
 
 A **Discriminant Score** will offer:
-  
-  -   +1 for a complete triangular response
+
+-   +1 for a complete triangular response
 -   -1 for a complete orthogonal response
 -   +/- fraction of complete triangular or orthogonal response
 -   0 for non-strategy responses
@@ -498,21 +500,21 @@ $$
 \tag{4}
 \end{align}
 $$
-  
-  Where:
-  
-  -   $t = |T| =$ number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$
-  -   $r = |R| =$ number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$
-  -   $d$ = number of non-strategy options (not consistent with either interpretation), $t \gt 0$
-  -   $n$ = total number of response options (equals the number of checkboxes in the question; equals the number of data points in the stimulus graph)
+
+Where:
+
+-   $t = |T| =$ number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$
+-   $r = |R| =$ number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$
+-   $d$ = number of non-strategy options (not consistent with either interpretation), $t \gt 0$
+-   $n$ = total number of response options (equals the number of checkboxes in the question; equals the number of data points in the stimulus graph)
 -   $n = t + r + d$ (15 for scaffold phase, 18 for test phase)
 -   $t_s$ = number of triangular-correct options selected, $t_s \ge 0$
-  -   $r_s$ = number of orthogonal-correct options selected, $r_s \ge 0$
-  -   $d_s$ = number of non-strategy options options selected, $d_s \ge 0$
-  -   $s$ = number of options selected, $s \ge 0$
-  -   $s = t_s + r_s + d_s$
-  
-  TODO:: add 0.5*(tversky) - 0.5*(satisficing)
+-   $r_s$ = number of orthogonal-correct options selected, $r_s \ge 0$
+-   $d_s$ = number of non-strategy options options selected, $d_s \ge 0$
+-   $s$ = number of options selected, $s \ge 0$
+-   $s = t_s + r_s + d_s$
+
+TODO:: add 0.5*(tversky) - 0.5*(satisficing)
 
 ```{r}
 f_discrim <- function(t_s,t,r_s,r){
@@ -522,19 +524,19 @@ f_discrim <- function(t_s,t,r_s,r){
 
 ## 
 
-# RESCORING
+# SCORING THE DATA
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The *graph comprehension task* asks them to select the data points in the graph that meet the criteria posed in the question. This is known as a *first order graph reading* (i.e. extracting values from a graph).
 
-To assess a particpant's performance, for each question (q=15) we will calculate the following scores:
+To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
 *An overall, strict score:*\
 1. **Absolute Score** : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)
 
-*Subscores, for each observed graph interpretation*\
+*Sub-scores, for each observed graph interpretation*\
 2. **Triangular Score** : using partial scoring \[+1/n,-1/n\] referencing true (Triangular) answer.\
 3. **Orthongal Score** : using partial scoring \[+1/n,-1/n\] referencing (incorrect Orthogonal) answer.\
-**TODO: should I subscore for Tversky & Satisficing as well?**
+**TODO: should I sub-score for Tversky & Satisficing as well?**
 
 *A single composite score scaled to reward correct and penalize incorrect interpretation*\
 4. **Discriminant Score**: using partial scoring \[+1/n,-1/n\] with theoretically motivated distinction of correct/incorrect/partial correct responses
@@ -1080,7 +1082,7 @@ Albanese, M. A., & Sabers, D. L. (1988). Multiple True-False Items: A Study of I
 
 -   *on kable tables*\
     <https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html>
--   on Rmd math symbols \
+-   on Rmd math symbols\
     <https://rpruim.github.io/s341/S19/from-class/MathinRmd.html>
 -   on installing missing TEX packages\
     <https://bookdown.org/yihui/rmarkdown-cookbook/install-latex-pkgs.html>
@@ -1239,6 +1241,3 @@ kbl(dt, col.names = names, caption = title)%>%
 #cleanup
 rm(f_0, f_1, f_2, f_3, f_4, f_e, f_18, ecs, names, schemes, title)           
 ```
-
-
-
