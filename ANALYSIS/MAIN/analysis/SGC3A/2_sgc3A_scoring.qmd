@@ -1,6 +1,6 @@
 ---
-title: 'Response Scoring'
-subtitle: 'SGC3A-2-Response Scoring'
+# title: 'Response Scoring'
+subtitle: 'Study SGC3A | 2 Response Scoring'
 # author: 'Amy Rae Fox'
 # always_allow_html: true  
 # header-includes:
@@ -26,18 +26,25 @@ subtitle: 'SGC3A-2-Response Scoring'
 
 \newpage
 
-```{r SETUP, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE) 
+# Response Scoring {#sec-SGC3A-scoring}
+
+```{r}
+#| label: SETUP
+#| echo : true
+#| warning : false
+#| message : false
+
+
 # knitr::opts_chunk$set(eval = FALSE) #knit w/o execution
-# knitr::opts_chunk$set('digits' = 4) #rounding
 options(scipen=1, digits=3)
 
-
-#IMPORT LIBRARIES
 library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
+library(ggformula) #quick graphs
 
 ```
+
+**THIS NOTEBOOK IS INCOMPLETE**
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
 
@@ -45,7 +52,7 @@ library(kableExtra) #printing tables
 |-----------------------|--------------------------|
 | 1_sgc3a_harmonize.qmd | 3_sgc3A_descriptives.qmd |
 
-# INTRODUCTION
+# INTRODUCTION 
 
 The *graph comprehension task* of study SGC 3A presents readers with a graph, a question, and a series of checkboxes. Participants are instructed to use the graph to answer the question, and respond by selecting all the checkboxes that apply, where each checkbox corresponds to a datapoint in the graph.
 
@@ -688,19 +695,16 @@ rm(N,A,P,Q,n_q,s,x,tempunion)
   
 ```
 
-To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once). 
+To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once).
 
 `r verify`
 
-
-
-## Prepare Response Data 
-
+## Prepare Response Data
 
 ```{r}
+df_items <- read_rds('data/sgc3a_items.rds')
 df_items <- df_items %>% filter( condition == 111) %>% filter(q<6) 
 ```
-
 
 ```{r}
 
@@ -779,7 +783,6 @@ gf_dhistogram(~df_items$DISC, data = df_items)
 
 ```
 
-
 ## Summarize By subject
 
 ```{r}
@@ -793,7 +796,6 @@ subjects <- df_items %>% group_by(subject) %>% summarize(
 
 ```
 
-
 ```{r}
 gf_dhistogram(~DISCRIM, data = subjects)  %>%  gf_facet_grid(~condition)
 
@@ -802,9 +804,6 @@ gf_dhistogram(~ABSOLUTE, data = subjects)
 gf_jitter(ABSOLUTE ~ DISCRIM, data = subjects, alpha = 0.2)
 
 ```
-
-
-
 
 TODO TRAPDOOR?
 
