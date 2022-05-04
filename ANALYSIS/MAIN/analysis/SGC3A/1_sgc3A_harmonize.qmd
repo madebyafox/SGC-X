@@ -1,6 +1,6 @@
 ---
-title: 'Harmonization'
-subtitle: 'SGC3A-1-Data File Harmonization'
+# title: 'Harmonization' 
+subtitle: 'Study SGC3A | 1 Data File Harmonization'
 #RMD YAML
 # author: 'Amy Rae Fox'
 # always_allow_html: true  
@@ -25,22 +25,32 @@ subtitle: 'SGC3A-1-Data File Harmonization'
 
 \newpage
 
-```{r SETUP, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE) 
+# Harmonization  {#sec-SGC3A-harmonize}
 
-#IMPORT LIBRARIES
+```{r}
+#| label: SETUP
+#| echo : false
+#| warning: false
+#| message : false
+
 library(tidyverse) #ALL THE THINGS
 library(codebook) #data dictionary
 
+#set some output options
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
 ```
+
 
 *The purpose of this notebook is to harmonize data files for study SGC_3A.*
 
 | Pre-Requisite                                                                                                   | Followed By           |
-|--------------------------------------------------------|----------------|
+|------------------------------------------------------|------------------|
 | spring17_clean_data.Rmd <br> spring18_clean_data.Rmd <br> fall21_clean_data.Rmd <br> winter2022_clean_sgc3a.Rmd | 2_sgc3A_rescoring.qmd |
 
-# INTRODUCTION
+## INTRODUCTION 
 
 Data for study SGC_3A were collected across four time periods, interrupted by the Covid-19 pandemic.
 
@@ -53,11 +63,11 @@ Data for study SGC_3A were collected across four time periods, interrupted by th
 
 Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.
 
-# HARMONIZATION
+## HARMONIZATION
 
 The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
 
-## Participants
+### Participants
 
 First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_subjects` containing one row for each subject (across all periods). Note that we *are not* discarding any *response* data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.
 
@@ -75,7 +85,7 @@ winter22 <- "data/session-level/winter22_sgc3a_participants.rds"
 #read datafiles, set mode and term
 df_subjects_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_subjects_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_subjects_fall21 <- read.csv(fall21) %>% mutate(mode = "online-asynch", term = "fall21")
+df_subjects_fall21 <- read.csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_subjects_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #SAVE METADATA FROM WINTER, but no rows 
@@ -167,7 +177,7 @@ rm(fall17,fall21,spring18,winter22)
 
 ```
 
-## Items
+### Items
 
 Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_items` containing one row for each *graph comprehension task question* (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we *do not* discard any *response* data. Rather, we *do* discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.
 
@@ -182,7 +192,7 @@ winter22 <- "data/session-level/winter22_sgc3a_items.rds"
 #read datafiles, set mode and term
 df_items_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_items_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_items_fall21 <- read.csv(fall21) %>% mutate(mode = "online-asynch", term = "fall21")
+df_items_fall21 <- read.csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
@@ -259,7 +269,7 @@ rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22, df_ite
 rm(fall17,fall21,spring18,winter22, map_relations)
 ```
 
-### Validation
+#### Validation
 
 Next, we validate that we have the complete number of item-level records based on the number of subject-level records
 
@@ -273,7 +283,7 @@ df_items %>% group_by(subject) %>% summarise(n = n()) %>% filter(n != 15) %>% nr
 
 ```
 
-# EXPORT
+## EXPORT
 
 Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)
 
@@ -291,7 +301,7 @@ rio::export(df_items, "data/sgc3a_items.rds") # to R data structure file
 
 ```
 
-# RESOURCES
+## RESOURCES
 
 ```{r}
 sessionInfo()
