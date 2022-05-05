@@ -3,8 +3,6 @@ title: "Response Exploration"
 subtitle: 'SGC3A-2-Response Exploration'
 ---
 
-# THIS NOTEBOOK IS INCOMPLETE
-
 *The purpose of this notebook is to explore item-level response data collected for study SGC-3: The Insight Hypothesis*
 
 ```{r SETUP, include=FALSE}
@@ -21,41 +19,7 @@ First we import item-level data from the cleaned and wrangled R data structure f
 df_items <- read_rds('data/sgc3a_items.rds')
 ```
 
-## Control Condition
 
-### Question #1
-
-We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
-
-In the 'interpretation' column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.
-
-```{r Q1-control}
-#| warning: false
-
-#define interpretation for each response
-#NOTE: this is manually defined, based on inspecting answer options
-  interpretation = c("ORTHOGONAL","TRIANGULAR","lines-connect","(both ortho & tri)","?","?","triangular")
-
-title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
-df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
-  summarise( count = n()) %>% arrange(-count) %>% cbind(interpretation) %>% 
-  arrange(desc(interpretation)) %>% 
-  kbl(caption = title) %>%  kable_classic() %>% 
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Orthongal", 3, 3) %>% 
-  pack_rows("Lines-Connect", 4, 4) %>% 
-  pack_rows("other", 5, 7) 
-
-```
-
-Nearly all of the subjects selected a response consistent with one of the identified interpretations.
-
-*Note that options highlighted in light grey are considered within the range of 'visual error'.*
-
-| Correct --- Triangular                                        | Incorrect --- Lines Connect                                                                                                             | Incorrect --- Orthogonal                                                   |
-|------------------|-----------------------------------|--------------------|
-| ![](keys/control/interpretations/Q1_111_TRI.png)              | ![](keys/control/interpretations/Q1_111_TVERSKY.png)                                                                                    | ![](keys/control/interpretations/Q1_111_ORTH.png)                          |
-| indicates the correct interpretation of the coordinate system | a triangular-like interpretation, where the respondent selects any datapoints intersecting the lines that connect to the reference time | indicates the incorrect, Cartesian interpretation of the coordinate system |
 
 ### Question #2
 

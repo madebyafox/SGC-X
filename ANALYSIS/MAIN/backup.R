@@ -1,0 +1,1145 @@
+$$
+  \begin{align} 
+i &= \text{number of options in correct state}, (0 ≤ i ≤ n) \\ 
+f &= \text{resulting score} 
+\end{align}
+$$
+
+### Dichotomous Scoring
+
+**Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is *exactly* correct, meaning the respondent includes *only true-correct* options, and does select any additional (i.e. true_incorrect) options that should not be selected. This is also known as *all or nothing scoring*, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the true-correct options, and one or more but not all of the false-correct items, but receive the same score as a respondent selects none of the true-correct options, or all of the false-correct options. In this sense, dichotomous scoring tells us only about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating.
+
+**In Dichotomous Scoring**
+
+-   question score is either 0 or 1
+-   full credit is only given if all responses are correct; otherwise no credit
+-   does not account for *partial knowledge*. - with increasing number of response options, scoring becomes stricter as each statement must be marked correctly.
+
+The algorithm for **dichotomous scoring** is given by:
+
+$$ 
+\begin{gather*}
+f = 
+\begin{cases}
+  1, \text{if } i = n \\    
+  0, \text{otherwise}    
+\end{cases}
+\end{gather*}
+\tag{1}
+\text{where } 0 \le i \le n
+$$
+
+```{r}
+f_dichom <- function(i, n) {
+ 
+  # print(paste("i is :",i," n is:",n)) 
+  
+  #if (n == 0 ) return error 
+  ifelse( (n == 0), print("ERROR n can't be 0"), "")
+  
+  #if (i > n ) return error 
+  ifelse( (i > n), print("i n can't > n"), "")
+  
+  #if (i==n) return 1, else 0
+  return (ifelse( (i==n), 1 , 0))
+ 
+}
+```
+
+### Partial Scoring \[-1/n, +1/n\]
+
+**Partial Scoring** refers to a class or scoring schemes that award the respondent partial credit depending on pattern of options they select. Schmidt et. al. identify twenty-six different partial credit scoring schemes in the literature, varying in the range of possible scores, and the relative weighting of incorrectly selected (vs) incorrectly unselected options.
+
+A particularly elegant approach to partial scoring is referred to as the $[-1/n, +1/n]$ approach (Schmidt. et. al 2021 #17). This approach is particularly appealing in the context of SGC3A, because it: (1) takes into account all information provided by the respondent: the pattern of what the select, and choose not to select; and (2) weights an unsure/blank/non-response as *superior* to an incorrect response.
+
+**In Partial Scoring** $[-1/n, +1/n]$:
+
+-   Scores range from \[-1, +1\]
+-   One point is awarded if all options are *correct*
+-   One point point is subtracted if all options are *incorrect*.
+-   Intermediate results are credited as fractions accordingly ($+1/n$ for each correct, $-1/n$ for each incorrect)
+-   This results in *at chance performance* (i.e. half of the given options marked correctly), being awarded 0 points are awarded
+
+This scoring is more consistent with the motivating theory that Triangular Graph readers start out with an incorrect (i.e. orthogonal, cartesian) interpretation of the coordinate system, and transition to a correct (i.e. triangular) interpretation. But the first step in making this transition is realizing the cartesian interpretation *is incorrect*, which may yield blank responses where the respondent is essentially saying, 'there is no correct answer to this question'.\
+
+Schmidt. et. al (2021) describe the *Partial* ${[-1/n, +1/n]}$ scoring scheme as the *only* scoring method (of the 27 described) where respondents' scoring results can be interpreted as a percentage of their true knowledge. One important drawback of this method is that a respondent may receive credit (a great deal of credit, depending on the number of answer options n) even if she did not select *any* options. In the case (such as ours) where n is much greater than p (there are many more answer options than there are options meant to be selected), the previous partial scoring algorithm poses a challenge because the respondent can achieve an almost completely perfect score by selecting a small number of incorrect options.
+
+The algorithm for **partial scoring**$[-1/n, +1/n]$ is given by:
+  
+  $$
+  \begin{align}
+f &= (1/n * i) - (1/n * (n-i)) \\
+&= (2i - n)/{n} 
+\tag{2}
+\end{align}
+$$
+  
+  ```{r}
+f_partialN <- function(i, n) {
+  
+  # print(paste("i is :",i," n is:",n))
+  
+  #if(n==0) return error
+  ifelse((n==0),print("ERROR: n should not be 0"),"")
+  
+  #if(i >n ) return error
+  ifelse((i > n),print("ERROR: i CANNOT BE GREATER THAN n"),"")
+  
+  return ((2*i - n) / n) 
+}
+```
+
+### Partial Scoring \[-1/p, +1/p\]
+
+One drawback of the Partial Scoring $[-1/n, +1/n]$ approach is that treats all answer options (n) as equally indicative of the respondent's understanding. That is to say, incorrectly selecting one particular option is no more or less informative than incorrectly selecting a different item. *This is not the case*, however, in our study, where the selection of any particular option (remember options represent data points on the stimulus graph) is indicative of a particular interpretation of the stimulus. Incorrectly selecting an option indicates an interpretation of the graph with respect to that particular option. Whereas failing to select a correct option *might* mean the individual has a different interpretation, *or* that they failed to find *all* the data points consistent with the interpretation.
+
+For this reason, we consider another alternative Partial Scoring scheme that takes into consideration only the selected statements, without penalizing statements incorrectly *not selected*. (See Schmidt. et. al. method #26. Also referred to as the Morgan-Method) This partial scoring scheme takes into consideration that the most effort-free (or 'default') response for any given item is the null, or blank response. Blank responses indicate *no understanding*, perhaps *confusion*, or refusal to answer. These lack of responses are awarded zero credit. Whereas taking the action to select an *incorrect* option is effortful, and is indicative of *incorrect understanding*.
+
+**Partial Scoring** $[-1/q, +1/p]$:
+
+-   awards +1/p for each correctly selected option ($p_s$), and subtracts 1/(n-p) = 1/q for each incorrectly selected option ($q_s$)
+-   only considers selected options; does not penalize nor reward unselected options
+
+**Properties of Item**
+
+$$
+\begin{align}
+p &= \text{number of true-select options (i.e. should be selected)} \\
+q &= \text{number of true-unselect options (i.e. should not be selected)} \\
+n &= \text{number of options} \: ( n = p + q)
+\end{align}
+$$
+
+**Properties of Response**
+
+$$
+\begin{align}
+p_s &= \text{number of true-select options selected (i.e. number of correctly checked options)}\\
+q_s &= \text{number of true-unselect options selected (i.e. number of incorrectly checked options }
+\end{align}
+$$
+
+The algorithm for **partial scoring** $[-1/q, +1/p]$ is given by:
+
+$$
+\begin{align}
+f &= (p_m / p) - ({q_m}/{q}) \\
+\tag{3}
+\end{align}
+$$
+
+```{r}
+f_partialP <- function(t,p,f,q) {
+
+  #t = number of correct-selected options
+  #p = number of true options
+  #f = number of incorrect-selected options
+  #q = number of false options
+  #n = number of options + p + q
+  return( (t / p) - (f/q))
+}
+```
+
+### Comparison of Schemes
+
+Which scoring scheme is most appropriate for the goals of the graph comprehension task?
+
+Consider the following example:
+
+*For a question with* $n = 5$ response options (data points A, B, C, D and E) with a correct response of A, the schemes under consideration yield the following scores:
+
+```{r}
+title <- "Comparison of Scoring Schemes for $n = 5$ options [ A,B,C,D,E ]"
+
+correct <- c( "A____",  
+              "A____",      
+              "A____",        
+              "A____",        
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____" ) 
+
+response <- c("A____",  
+              "AB___",      
+              "A___E",      
+              "AB__E",        
+              "____E",
+              "___DE",
+              "_BCDE",      
+              "ABCDE",      
+              "_____" )
+
+i <- c(        5,       
+               4,              
+               4,              
+               3,               
+               
+               3,
+               2,
+               0,
+               1,
+               4)
+
+abs <- c(f_dichom(5,5), 
+         f_dichom(4,5), 
+         f_dichom(4,5), 
+         f_dichom(3,5), 
+         
+         f_dichom(3,5), 
+         f_dichom(2,5),
+         f_dichom(0,5),
+         f_dichom(1,5),
+         f_dichom(4,5))
+
+partial1 <- c(f_partialN(5,5), 
+              f_partialN(4,5), 
+              f_partialN(4,5), 
+              f_partialN(3,5), 
+              
+              f_partialN(3,5), 
+              f_partialN(2,5),
+              f_partialN(0,5),
+              f_partialN(1,5),
+              f_partialN(4,5))
+
+partial2 <- c(f_partialP(1,1,0,4), 
+              f_partialP(1,1,1,4), 
+              f_partialP(1,1,1,4), 
+              f_partialP(1,1,2,4), 
+              
+              f_partialP(0,1,1,4),
+              f_partialP(0,1,2,4),
+              f_partialP(0,1,4,4),
+              f_partialP(1,1,4,4), 
+              f_partialP(0,1,0,4))
+
+names = c(    "Correct Answer",
+              "Response",
+              "$i$ ",
+              "Dichotomous",
+              "Partial$_{-1/n, +1/n}$",
+              "Partial$_{-1/q, +1/p}$")
+
+dt <- data.frame(correct, response, i, abs, partial1 , partial2)
+
+kbl(dt, col.names = names, caption = title, digits=3) %>%
+  kable_classic() %>%
+    add_header_above(c("Response Scenario " = 3, "Scores" = 3)) %>% 
+    pack_rows("Perfect Response", 1, 1) %>%
+    pack_rows("Correct + Extra Incorrect Selections", 2, 4) %>%
+    pack_rows("Only Incorrect Selections", 5, 6) %>%
+    pack_rows("Completely Inverse Response ", 7, 7) %>%
+    pack_rows("Selected ALL or NONE", 8, 9) %>%
+    footnote(general = paste("$i$ = number of options in correct state; _ indicates option not selected"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+```
+
+-   We see that in the Dichotomous scheme, only the precisely correct response (row 1) yields a score other than zero. This scheme does now allow us to differentiate between different response patters.
+
+-   The Partial $[-1/n, +1/n]$ scheme yields a range from $[-1,1]$, differentiating between responses. However, a blank response (bottom row) receives the same score (0.6) as the selection of the correct option + 1 incorrect option (row 2), which is problematic with for the goals of this study, where we need to differentiate between states of confusion or uncertainty yielding blank responses and the intentional selection of incorrect items.
+
+-   The Partial $[-1/q, +1/p]$ scheme also yields a range of scores from $[-1,1]$. A blank response (bottom row) yields the same score ($0$) as the selection of *all* answer options (row 7); both are patterns of behavior we would expect to see if a respondent is confused or uncertain that there is a correct answer to the question.
+
+Next we consider an example from our study, with $n = 15$ options and $p = 1$ correct option to be selected.
+
+```{r}
+
+title <- "Comparison of Scoring Schemes for SGC3 with $n=15$ and $p=1$ options [A,B...N,O]  "
+
+correct <- c( "A____",  
+              "A____",      
+              "A____",      
+              "A____",        
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____" ) 
+
+response <- c("A__...__",  
+              "AB_...__",      
+              "A__..._O",      
+              "AB_..._O",        
+              "___..._O",      
+              "___...NO",      
+              "_BC...NO",
+              "ABC...NO",      
+              "___...__" )
+
+i <- c(        15,       
+               14,              
+               14,              
+               13,
+               13,               
+               12,          
+               0,
+               1,
+               14)
+
+abs <- c(f_dichom(15,15), 
+         f_dichom(14,15), 
+         f_dichom(14,15), 
+         f_dichom(13,15), 
+         f_dichom(13,15),
+         f_dichom(12,15),
+         f_dichom(0,15),
+         f_dichom(1,15),
+         f_dichom(14,15))
+
+partial1 <- c(f_partialN(15,15), 
+              f_partialN(14,15), 
+              f_partialN(14,15), 
+              f_partialN(13,15), 
+              f_partialN(13,15),
+              f_partialN(12,15),
+              f_partialN(0,15),
+              f_partialN(1,15),
+              f_partialN(14,15))
+
+partial2 <- c(f_partialP(1,1,0,14), 
+              f_partialP(1,1,1,14), 
+              f_partialP(1,1,1,14), 
+              f_partialP(1,1,2,14), 
+              f_partialP(0,1,1,14),
+              f_partialP(0,1,2,14),
+              f_partialP(0,1,14,14),
+              f_partialP(1,1,14,14), 
+              f_partialP(0,1,0,14))
+
+names = c(    "Correct Answer",
+              "Response",
+              "$i$ ",
+              "Dichotomous",
+              "Partial$_{-1/n, +1/n}$",
+              "Partial$_{-1/q, +1/p}$")
+
+dt <- data.frame(correct, response, i, abs, partial1 , partial2)
+
+kbl(dt, col.names = names, caption = title, digits=3) %>%
+  kable_classic() %>%
+    add_header_above(c("Response Scenario " = 3, "Scores" = 3)) %>% 
+    pack_rows("Perfect Response", 1, 1) %>%
+    pack_rows("Correct + Extra Incorrect Selections", 2, 4) %>%
+    pack_rows("Only Incorrect Selections", 5, 6) %>%
+    pack_rows("Completely Inverse Response ", 7, 7) %>%
+    pack_rows("Selected ALL or NONE", 8, 9) %>%
+    footnote(general = paste("$i$ = number of options in correct state; _ indicates option not selected"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+```
+
+Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate between patterns of responses, in a way that is more sensible for the goals of the SGC3 graph comprehension task.
+
+> The Partial $[-1/q, +1/p]$ scheme is more appropriate for scoring the graph comprehension task than the Partial $[-1/n, +1/n]$ scheme because it allows us to differentially penalize incorrectly *selected* and incorrectly *not selected* answer options.
+
+## A Discriminant Score
+
+Though it appears the Partial $[-1/q, +1/p]$ scheme is a more appropriate scoring method for differentiating between meaningful patterns of responses, it does have one significant limitation: it treats all incorrectly selected answer options *the same*. In the previous example, rows 2 and 3 both indicate a subject has selected the correct option (A) plus one additional option (B or O). Both responses receive the same score under $[-1/q, +1/q]$. These two responses may be very meaningfully different, however if one of the alternate options chosen indicates *a different interpretation of the stimulus.* The inclusion of data-point B might be reasonable under some degree of visual tracing error, while the inclusion of data-point O might indicate a cartesian misinterpretation of the coordinate system. Essentially, some answer options are *more incorrect* than others. We want to be able to differentiate between these responses.
+
+To accomplish this task, we need to sets of interpretation-consistent options for each item. Based on our prior work, we define **four interpretations** for which to define options.
+
+1.  Triangular : the (true, correct) triangular interpretation of the coordinate system; indicated by data points intersecting the appropriate diagonal projection from the x-axis.
+2.  Orthogonal: the (incorrect) cartesian interpretation of the coordinate system; indicated by data points intersecting an (invisible) orthogonal projection from the x-axis.
+3.  Lines-Connect: an (incorrect) interpretation that is partially-triangular, insofar as it is indicated by data points intersecting any diagonal projection from the x-axis (not necessarily the *correct* projection).
+4.  Satisficing: an (incorrect) interpretation that indicated by selecting the data points nearest to the (invisible) orthogonal projection from the x-axis; indicates an orthogonal interpretation in absence of an available orthogonal intersect.
+
+Thus for *each* item, in the graph_comprehension task, we will define five sets, whose members constitute a partition of the set of answer options.
+
+$$
+\begin{align}
+Q &= \text{the (universal) set of all answer options } \\
+\\
+T &=  \{o:o \:is\:triangular  \}, |T| \ne 0  \\
+R &=  \{o:o \:is\:orthogonal \} \\
+L &=  \{o:o \:is\:line-connecting \} \\
+S &=  \{o:o \:is\:satisficing \} \\
+\\
+\emptyset &= T \cap R \cap L \cap S  \: \text{(the interpretation sets are disjoint)}\\
+D &= Q - \{T \cup R \cup L \cup S \} , \text{(distractors; the remaining options not consistent with any interpretation})
+\\
+\end{align}
+$$
+
+For example, for the following sample stimuli, TODO IMAGE
+
+$$
+\begin{align}
+Q &= \{a, b, c, d, e, f, g \} \\
+  &= \{ \{a \}\}, \{b\}, \{c,d\}, \{e\},  \{f,g\}\} \\
+\\
+T &= \{ a \} \\
+R &= \{ b \} \\
+L &= \{ c,d \} \\
+S &= \{ e \} \\
+D &= \{ f, g\} \\
+\end{align}
+$$
+
+option that is consistent with the incorrect-orthogonal interpretation in fact indicates *less* understanding than incorrectly selecting a nearby but *not* orthgonally consistent option.
+
+TODO: correct this section, the actual discriminant score algorithm does not rely on partial scoring \[1/n\] Although *partial* scoring gives us an indication of how close the respondent is to approximating the complete pattern of 'correct' responses, including *partial knowledge*, when the partial score is calculated with respect to a singular 'correct' set of answer options, it does *does not distinguish between different types* of partial knowledge. Subjects are rewarded (or penalized) by the same amount regardless of which the false-selections or true-non selections they make.
+
+In the case of SGC_3A, however, the choice of which options the subject selects reveals important information about their understanding of the graph stimulus.\
+Specifically, there are certain patterns of options that correspond to a *triangular* versus *orthogonal* interpretations.
+
+To capture this important source of variation, we can apply the idea behind the partial scoring strategy in combination with the response option subgroups given by the graph interpretations to produce a single score (scaled from $-1$ to $+1$) that captures the *nature* of the respondent's partial knowledge.
+
+A **Discriminant Score** will offer:
+  
+  -   +1 for a complete triangular response
+-   -1 for a complete orthogonal response
+-   +/- fraction of complete triangular or orthogonal response
+-   0 for non-strategy responses
+-   0 for blank (empty) responses
+
+$$
+  \begin{align}
+\text{Score}_{discriminant} &= 0 + 1*(t_s / t) - 1 * (r_s / r) + 0*(d_s / d) \\
+&= (t_s / t) - (r_s / r) 
+\tag{4}
+\end{align}
+$$
+  
+  Where:
+  
+  -   $t = |T| =$ number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$
+  -   $r = |R| =$ number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$
+  -   $d$ = number of non-strategy options (not consistent with either interpretation), $t \gt 0$
+  -   $n$ = total number of response options (equals the number of checkboxes in the question; equals the number of data points in the stimulus graph)
+-   $n = t + r + d$ (15 for scaffold phase, 18 for test phase)
+-   $t_s$ = number of triangular-correct options selected, $t_s \ge 0$
+  -   $r_s$ = number of orthogonal-correct options selected, $r_s \ge 0$
+  -   $d_s$ = number of non-strategy options options selected, $d_s \ge 0$
+  -   $s$ = number of options selected, $s \ge 0$
+  -   $s = t_s + r_s + d_s$
+  
+  TODO:: add 0.5*(tversky) - 0.5*(satisficing)
+
+```{r}
+f_discrim <- function(t_s,t,r_s,r){
+  return((t_s / t) - (r_s / r))
+}
+```
+
+## 
+
+# RESCORING
+
+In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The *graph comprehension task* asks them to select the data points in the graph that meet the criteria posed in the question. This is known as a *first order graph reading* (i.e. extracting values from a graph).
+
+To assess a particpant's performance, for each question (q=15) we will calculate the following scores:
+
+*An overall, strict score:*\
+1. **Absolute Score** : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)
+
+*Subscores, for each observed graph interpretation*\
+2. **Triangular Score** : using partial scoring \[+1/n,-1/n\] referencing true (Triangular) answer.\
+3. **Orthongal Score** : using partial scoring \[+1/n,-1/n\] referencing (incorrect Orthogonal) answer.\
+**TODO: should I subscore for Tversky & Satisficing as well?**
+
+*A single composite score scaled to reward correct and penalize incorrect interpretation*\
+4. **Discriminant Score**: using partial scoring \[+1/n,-1/n\] with theoretically motivated distinction of correct/incorrect/partial correct responses
+
+## Encode MAMC Responses as MTF
+
+To calculate partial scores, first we need re-encode participant responses which are currently captured in the `answer` column of the `df_items` dataframe. In the present encoding, the letter corresponding to each response item (corresponding to a data point in the stimulus graph) the subject selected on the task interface, is concatenated and stored in `answer`.
+
+For example, if the respondent selected data points A and B, `answer = AB`. We need to transform this into a single column for each possible response option, encoding whether or not the option was selected `A = 1, B = 1, C = 0 ...`
+
+```{r ENCODE-MTF}
+
+
+#SPLIT DF_ITEMS 
+#into sub dfs to allow a 1-1 mapping with appropriate answer key
+
+#scaffold phase control condition
+item_responses_scaffold_111 <- df_items %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(q < 6) %>% 
+  #filter only the control condition 
+  filter(condition == "111")
+
+#scaffold phase impasse condition
+item_responses_scaffold_121 <- df_items %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(q < 6) %>% 
+  #filter only the control condition 
+  filter(condition == "121")
+
+#test phase descriminant
+item_responses_test <- df_items %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(q > 5 ) 
+  #note we don't need to filter condition bc qs and data are same across conditions
+
+#SPREAD MCMA RESPONSE TO MTF COLUMNS
+#encode the response column [response] as a series of T/F statements per data point
+
+#scaffold phase CONTROL condition
+item_responses_scaffold_111 <- item_responses_scaffold_111 %>% 
+  #split response to TF columns
+  mutate(
+    r_A = as.integer(str_detect(response,"A")), #is there a A?
+    r_X = as.integer(str_detect(response,"X")), #is there a X?
+    r_C = as.integer(str_detect(response,"C")), #is there a C?
+    r_O = as.integer(str_detect(response,"O")), #is there a O?
+    r_I = as.integer(str_detect(response,"I")), #is there a I?
+    r_J = as.integer(str_detect(response,"J")), #is there a J?
+    r_H = as.integer(str_detect(response,"H")), #is there a H?
+    r_F = as.integer(str_detect(response,"F")), #is there a F?
+    r_K = as.integer(str_detect(response,"K")), #is there a K?
+    r_D = as.integer(str_detect(response,"D")), #is there a D?
+    r_U = as.integer(str_detect(response,"U")), #is there a U?
+    r_E = as.integer(str_detect(response,"E")), #is there a E?
+    r_G = as.integer(str_detect(response,"G")), #is there a G?
+    r_B = as.integer(str_detect(response,"B")), #is there a B?
+    r_Z = as.integer(str_detect(response,"Z"))  #is there a Z?
+  ) 
+
+#scaffold phase IMPASSE condition
+item_responses_scaffold_121 <- item_responses_scaffold_121 %>% 
+  #split response to TF columns
+  mutate(
+    r_A = as.integer(str_detect(response,"A")), #is there a A?
+    r_X = as.integer(str_detect(response,"X")), #is there a X?
+    r_C = as.integer(str_detect(response,"C")), #is there a C?
+    r_O = as.integer(str_detect(response,"O")), #is there a O?
+    r_I = as.integer(str_detect(response,"I")), #is there a I?
+    r_J = as.integer(str_detect(response,"J")), #is there a J?
+    r_H = as.integer(str_detect(response,"H")), #is there a H?
+    r_F = as.integer(str_detect(response,"F")), #is there a F?
+    r_K = as.integer(str_detect(response,"K")), #is there a K?
+    r_D = as.integer(str_detect(response,"D")), #is there a D?
+    r_U = as.integer(str_detect(response,"U")), #is there a U?
+    r_E = as.integer(str_detect(response,"E")), #is there a E?
+    r_G = as.integer(str_detect(response,"G")), #is there a G?
+    r_B = as.integer(str_detect(response,"B")), #is there a B?
+    r_Z = as.integer(str_detect(response,"Z"))  #is there a Z?
+  ) 
+
+#test phase 
+item_responses_test <- item_responses_test %>% 
+  #split response to TF columns
+  mutate(
+    r_A = as.integer(str_detect(response,"A")), #is there a A?
+    r_B = as.integer(str_detect(response,"B")), #is there a B?
+    r_C = as.integer(str_detect(response,"C")), #is there a C?
+    r_D = as.integer(str_detect(response,"D")), #is there a D?
+    r_E = as.integer(str_detect(response,"E")), #is there a E?
+    r_F = as.integer(str_detect(response,"F")), #is there a F?
+    r_G = as.integer(str_detect(response,"G")), #is there a G?
+    r_H = as.integer(str_detect(response,"H")), #is there a H?
+    r_I = as.integer(str_detect(response,"I")), #is there a I?
+    r_J = as.integer(str_detect(response,"J")), #is there a J?
+    r_K = as.integer(str_detect(response,"K")), #is there a K?
+    r_L = as.integer(str_detect(response,"L")), #is there a L?
+    r_M = as.integer(str_detect(response,"M")), #is there a M?
+    r_N = as.integer(str_detect(response,"N")), #is there a N?
+    r_O = as.integer(str_detect(response,"O")), #is there a O?
+    r_P = as.integer(str_detect(response,"P")), #is there a P?
+    r_Z = as.integer(str_detect(response,"Z")), #is there a Z?
+    r_X = as.integer(str_detect(response,"X"))  #is there a X?
+  ) 
+
+
+#VALIDATE SPLIT
+#n rows in df_items should match sum of nrows in the sub dfs 
+nrow(df_items) == sum(nrow(item_responses_scaffold_111), nrow(item_responses_scaffold_121),
+                      nrow(item_responses_test))
+```
+
+Now we have three dataframes (one for each group of questions: scaffold phase, test phase, nondiscriminant) with subjects' response encoded as a series of T/F \[1,0\] states across all response options (represented as colums prefaced with `r_`)
+
+## Encode MAMC Answer Keys as MTF
+
+Next, we read the answer keys for the question sets. Note that there is an answer key unique to each experimental condition, because the experimental manipulation (impasse vs. control) is established by changing the pattern of the underlying dataset, which in turn yields different 'correct' answers. The divergence in answers across conditions only holds for the first five questions (the scaffold manipulation), while the following 10 questions are displayed with the same dataset (and thus have the same answers, regardless of condition).
+
+```{r ANSWER-KEYS}
+key_111 <- read_csv('static/keys/SGC3A_111_key.csv')
+key_121 <- read_csv('static/keys/SGC3A_121_key.csv')
+```
+
+Next, we split the answer key encoding into MTF encoding, just as we did for the response data. Each column indicates whether that response option *should be selected* in order to count as a correct response. Columns prefixed with `tri_` represent triangularly-correct response key, and those prefixed with `orth_` represent orthongally-correct response key.
+
+```{r ENCODE-KEYS-MTF}
+
+#SCAFFOLD KEY CONDITION 111
+key_scaffolded_c111 <- key_111 %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(Q<6) %>% 
+  #create "triangle correct" columns
+  mutate(
+    tri_A = as.integer(str_detect(TRIANGULAR,"A")), #is there a A in TRIANGULAR?
+    tri_X = as.integer(str_detect(TRIANGULAR,"X")), #is there a X in TRIANGULAR?
+    tri_C = as.integer(str_detect(TRIANGULAR,"C")), #is there a C in TRIANGULAR?
+    tri_O = as.integer(str_detect(TRIANGULAR,"O")), #is there a O in TRIANGULAR?
+    tri_I = as.integer(str_detect(TRIANGULAR,"I")), #is there a I in TRIANGULAR?
+    tri_J = as.integer(str_detect(TRIANGULAR,"J")), #is there a J in TRIANGULAR?
+    tri_H = as.integer(str_detect(TRIANGULAR,"H")), #is there a H in TRIANGULAR?
+    tri_F = as.integer(str_detect(TRIANGULAR,"F")), #is there a F in TRIANGULAR?
+    tri_K = as.integer(str_detect(TRIANGULAR,"K")), #is there a K in TRIANGULAR?
+    tri_D = as.integer(str_detect(TRIANGULAR,"D")), #is there a D in TRIANGULAR?
+    tri_U = as.integer(str_detect(TRIANGULAR,"U")), #is there a U in TRIANGULAR?
+    tri_E = as.integer(str_detect(TRIANGULAR,"E")), #is there a E in TRIANGULAR?
+    tri_G = as.integer(str_detect(TRIANGULAR,"G")), #is there a G in TRIANGULAR?
+    tri_B = as.integer(str_detect(TRIANGULAR,"B")), #is there a B in TRIANGULAR?
+    tri_Z = as.integer(str_detect(TRIANGULAR,"Z"))  #is there a Z in TRIANGULAR?
+   ) %>% 
+  #create "orthogonal correct" columns
+  mutate(
+    orth_A = as.integer(str_detect(ORTHOGONAL,"A")), #is there a A in ORTHOGONAL?
+    orth_X = as.integer(str_detect(ORTHOGONAL,"X")), #is there a X in ORTHOGONAL?
+    orth_C = as.integer(str_detect(ORTHOGONAL,"C")), #is there a C in ORTHOGONAL?
+    orth_O = as.integer(str_detect(ORTHOGONAL,"O")), #is there a O in ORTHOGONAL?
+    orth_I = as.integer(str_detect(ORTHOGONAL,"I")), #is there a I in ORTHOGONAL?
+    orth_J = as.integer(str_detect(ORTHOGONAL,"J")), #is there a J in ORTHOGONAL?
+    orth_H = as.integer(str_detect(ORTHOGONAL,"H")), #is there a H in ORTHOGONAL?
+    orth_F = as.integer(str_detect(ORTHOGONAL,"F")), #is there a F in ORTHOGONAL?
+    orth_K = as.integer(str_detect(ORTHOGONAL,"K")), #is there a K in ORTHOGONAL?
+    orth_D = as.integer(str_detect(ORTHOGONAL,"D")), #is there a D in ORTHOGONAL?
+    orth_U = as.integer(str_detect(ORTHOGONAL,"U")), #is there a U in ORTHOGONAL?
+    orth_E = as.integer(str_detect(ORTHOGONAL,"E")), #is there a E in ORTHOGONAL?
+    orth_G = as.integer(str_detect(ORTHOGONAL,"G")), #is there a G in ORTHOGONAL?
+    orth_B = as.integer(str_detect(ORTHOGONAL,"B")), #is there a B in ORTHOGONAL?
+    orth_Z = as.integer(str_detect(ORTHOGONAL,"Z"))  #is there a Z in ORTHOGONAL?
+   ) 
+
+#SCAFFOLD KEY CONDITION 121
+key_scaffolded_c121 <- key_121 %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(Q<6) %>% 
+  #create "triangle correct" columns
+  mutate(
+    tri_A = as.integer(str_detect(TRIANGULAR,"A")), #is there a A in TRIANGULAR?
+    tri_X = as.integer(str_detect(TRIANGULAR,"X")), #is there a X in TRIANGULAR?
+    tri_C = as.integer(str_detect(TRIANGULAR,"C")), #is there a C in TRIANGULAR?
+    tri_O = as.integer(str_detect(TRIANGULAR,"O")), #is there a O in TRIANGULAR?
+    tri_I = as.integer(str_detect(TRIANGULAR,"I")), #is there a I in TRIANGULAR?
+    tri_J = as.integer(str_detect(TRIANGULAR,"J")), #is there a J in TRIANGULAR?
+    tri_H = as.integer(str_detect(TRIANGULAR,"H")), #is there a H in TRIANGULAR?
+    tri_F = as.integer(str_detect(TRIANGULAR,"F")), #is there a F in TRIANGULAR?
+    tri_K = as.integer(str_detect(TRIANGULAR,"K")), #is there a K in TRIANGULAR?
+    tri_D = as.integer(str_detect(TRIANGULAR,"D")), #is there a D in TRIANGULAR?
+    tri_U = as.integer(str_detect(TRIANGULAR,"U")), #is there a U in TRIANGULAR?
+    tri_E = as.integer(str_detect(TRIANGULAR,"E")), #is there a E in TRIANGULAR?
+    tri_G = as.integer(str_detect(TRIANGULAR,"G")), #is there a G in TRIANGULAR?
+    tri_B = as.integer(str_detect(TRIANGULAR,"B")), #is there a B in TRIANGULAR?
+    tri_Z = as.integer(str_detect(TRIANGULAR,"Z"))  #is there a Z in TRIANGULAR?
+   ) %>% 
+  #create "orthogonal correct" columns
+  mutate(
+    orth_A = as.integer(str_detect(ORTHOGONAL,"A")), #is there a A in ORTHOGONAL?
+    orth_X = as.integer(str_detect(ORTHOGONAL,"X")), #is there a X in ORTHOGONAL?
+    orth_C = as.integer(str_detect(ORTHOGONAL,"C")), #is there a C in ORTHOGONAL?
+    orth_O = as.integer(str_detect(ORTHOGONAL,"O")), #is there a O in ORTHOGONAL?
+    orth_I = as.integer(str_detect(ORTHOGONAL,"I")), #is there a I in ORTHOGONAL?
+    orth_J = as.integer(str_detect(ORTHOGONAL,"J")), #is there a J in ORTHOGONAL?
+    orth_H = as.integer(str_detect(ORTHOGONAL,"H")), #is there a H in ORTHOGONAL?
+    orth_F = as.integer(str_detect(ORTHOGONAL,"F")), #is there a F in ORTHOGONAL?
+    orth_K = as.integer(str_detect(ORTHOGONAL,"K")), #is there a K in ORTHOGONAL?
+    orth_D = as.integer(str_detect(ORTHOGONAL,"D")), #is there a D in ORTHOGONAL?
+    orth_U = as.integer(str_detect(ORTHOGONAL,"U")), #is there a U in ORTHOGONAL?
+    orth_E = as.integer(str_detect(ORTHOGONAL,"E")), #is there a E in ORTHOGONAL?
+    orth_G = as.integer(str_detect(ORTHOGONAL,"G")), #is there a G in ORTHOGONAL?
+    orth_B = as.integer(str_detect(ORTHOGONAL,"B")), #is there a B in ORTHOGONAL?
+    orth_Z = as.integer(str_detect(ORTHOGONAL,"Z"))  #is there a Z in ORTHOGONAL?
+   ) 
+
+#TEST KEY
+#key_111 == key_121 across both conditions for q>5
+key_test <- key_111 %>% 
+  #filter only q < 6, the 'scaffold' items
+  filter(Q>5) %>% 
+  #create "triangle correct" columns
+  mutate(
+    tri_A = as.integer(str_detect(TRIANGULAR, "A")), #is there a A in TRIANGULAR?
+    tri_B = as.integer(str_detect(TRIANGULAR, "B")), #is there a B in TRIANGULAR?
+    tri_C = as.integer(str_detect(TRIANGULAR, "C")), #is there a C in TRIANGULAR?
+    tri_D = as.integer(str_detect(TRIANGULAR, "D")), #is there a D in TRIANGULAR?
+    tri_E = as.integer(str_detect(TRIANGULAR, "E")), #is there a E in TRIANGULAR?
+    tri_F = as.integer(str_detect(TRIANGULAR, "F")), #is there a F in TRIANGULAR?
+    tri_G = as.integer(str_detect(TRIANGULAR, "G")), #is there a G in TRIANGULAR?
+    tri_H = as.integer(str_detect(TRIANGULAR, "H")), #is there a H in TRIANGULAR?
+    tri_I = as.integer(str_detect(TRIANGULAR, "I")), #is there a I in TRIANGULAR?
+    tri_J = as.integer(str_detect(TRIANGULAR, "J")), #is there a J in TRIANGULAR?
+    tri_K = as.integer(str_detect(TRIANGULAR, "K")), #is there a K in TRIANGULAR?
+    tri_L = as.integer(str_detect(TRIANGULAR, "L")), #is there a L in TRIANGULAR?
+    tri_M = as.integer(str_detect(TRIANGULAR, "M")), #is there a M in TRIANGULAR?
+    tri_N = as.integer(str_detect(TRIANGULAR, "N")), #is there a N in TRIANGULAR?
+    tri_O = as.integer(str_detect(TRIANGULAR, "O")), #is there a O in TRIANGULAR?
+    tri_P = as.integer(str_detect(TRIANGULAR, "P")), #is there a P in TRIANGULAR?
+    tri_Z = as.integer(str_detect(TRIANGULAR, "Z")), #is there a Z in TRIANGULAR?
+    tri_X = as.integer(str_detect(TRIANGULAR, "X"))  #is there a X in TRIANGULAR?
+  ) %>% 
+  #create "orthogonal correct" columns
+  mutate(
+    orth_A = as.integer(str_detect(ORTHOGONAL, "A")), #is there a A in ORTHOGONAL?
+    orth_B = as.integer(str_detect(ORTHOGONAL, "B")), #is there a B in ORTHOGONAL?
+    orth_C = as.integer(str_detect(ORTHOGONAL, "C")), #is there a C in ORTHOGONAL?
+    orth_D = as.integer(str_detect(ORTHOGONAL, "D")), #is there a D in ORTHOGONAL?
+    orth_E = as.integer(str_detect(ORTHOGONAL, "E")), #is there a E in ORTHOGONAL?
+    orth_F = as.integer(str_detect(ORTHOGONAL, "F")), #is there a F in ORTHOGONAL?
+    orth_G = as.integer(str_detect(ORTHOGONAL, "G")), #is there a G in ORTHOGONAL?
+    orth_H = as.integer(str_detect(ORTHOGONAL, "H")), #is there a H in ORTHOGONAL?
+    orth_I = as.integer(str_detect(ORTHOGONAL, "I")), #is there a I in ORTHOGONAL?
+    orth_J = as.integer(str_detect(ORTHOGONAL, "J")), #is there a J in ORTHOGONAL?
+    orth_K = as.integer(str_detect(ORTHOGONAL, "K")), #is there a K in ORTHOGONAL?
+    orth_L = as.integer(str_detect(ORTHOGONAL, "L")), #is there a L in ORTHOGONAL?
+    orth_M = as.integer(str_detect(ORTHOGONAL, "M")), #is there a M in ORTHOGONAL?
+    orth_N = as.integer(str_detect(ORTHOGONAL, "N")), #is there a N in ORTHOGONAL?
+    orth_O = as.integer(str_detect(ORTHOGONAL, "O")), #is there a O in ORTHOGONAL?
+    orth_P = as.integer(str_detect(ORTHOGONAL, "P")), #is there a P in ORTHOGONAL?
+    orth_Z = as.integer(str_detect(ORTHOGONAL, "Z")), #is there a Z in ORTHOGONAL?
+    orth_X = as.integer(str_detect(ORTHOGONAL, "X"))  #is there a X in ORTHOGONAL?
+  )
+
+```
+
+For sanity check, we veryify that the answer key for test phase questions (q \> 5) is the *same* across the two condition specific answer keys. As long as this is TRUE, its OK to use `key_111`.
+
+```{r verify-key}
+#verify that key_111 == key 121 for q>5
+key_111 %>% filter(Q >5) %>% select(TRIANGULAR, ORTHOGONAL)== key_121 %>% filter(Q >5)%>% select(TRIANGULAR, ORTHOGONAL)
+```
+
+## Calculate i *number correctly selected options*
+
+Next, we calculate the $i$, number of correctly indicated options, based on the answer key for each question.
+
+```{r RESCORE-HELPERS}
+
+#------------------------------------------------------------------
+#calculate i: number of correctly indicated options
+#responses <- vector of T/F responses
+#key <- vector of T/F answers
+#RETURNS SUM correctly indicated items
+#NOTE: THIS IS SUPER BRITTLE 
+#relies on fact that columns were ordered the same across the dataframes!
+#should refactor in less imperative mode (more R like!)
+#------------------------------------------------------------------
+calc_i <- function(responses,key){
+  # print(responses)
+  # print(key)
+  assessment <- responses == key
+  return(sum(assessment))
+}
+
+#------------------------------------------------------------------
+#write_i: write i to response dataframe
+#items <- dataframe of items 
+#key <- MTF answerkey for this dataframe
+#RETURNS MUTATING items dataframe
+#------------------------------------------------------------------
+write_i <- function(items,keys){
+  #for each row(item) in the items input dataframe
+  for (x in 1:nrow(items)) {
+    #get the question number
+    q = items[x,"q"]
+    #get the subjects response vector
+    responses <- as_tibble(items[x,] %>% select(starts_with("r_")))
+    #get key vectors for this question
+    tri_key = as_tibble(keys %>% filter(Q==q) %>% select(starts_with("tri_")))
+    orth_key = as_tibble(keys %>% filter(Q==q) %>% select(starts_with("orth_")))
+    #write TRI and ORTH response keys to row 
+    items[x,"TRI"] <- keys %>% filter(Q==q) %>% select(TRIANGULAR)
+    items[x,"ORTH"] <- keys %>% filter(Q==q) %>% select(ORTHOGONAL)
+    #calculate number of triangular-correct-options
+    items[x,"tri_i"] <- calc_i(responses,tri_key)
+    #calculate number of orthogonal-correct-options
+    items[x,"orth_i"] <- calc_i(responses,orth_key)
+  }  
+  return(items) #return mutated items dataframe
+}
+
+#------------------------------------------------------------------
+#count_match: count the number of matching characters in the two strings
+#response <- response string
+#key <- key string
+#returns count of matches
+#------------------------------------------------------------------
+count_match <- function(response, key){
+  count = 0
+  response = unlist(str_split(response,""))
+  key = unlist(str_split(key,""))
+  count = sum(table(response[response %in% key]))
+  return(count)
+}
+```
+
+```{r CALC-I}
+#WARNING :: TAKES SEVERAL MINUTES TO RUN
+
+#WRITE I_s
+#~5 mins on MBP
+#~30 seconds on IMAC
+item_responses_scaffold_111 <- write_i(item_responses_scaffold_111,key_scaffolded_c111)
+item_responses_scaffold_121 <- write_i(item_responses_scaffold_121,key_scaffolded_c121)
+item_responses_test <- write_i(item_responses_test,key_test)
+
+```
+
+## Calculate Scores
+
+Finally, we calculate the interpretation scores, absolute score, and discriminant score.
+
+```{r SCORE-I}
+
+#set n = number of answer options
+n_scaffold <- 15
+n_test <- 18
+
+#calculate scores for scaffold phase CONTROL condition 
+item_responses_scaffold_111 <- item_responses_scaffold_111  %>% mutate(
+  s_ABS = f_dichom(tri_i, n_scaffold),
+  s_TRI = f_partialN(tri_i, n_scaffold),
+  s_ORTH = f_partialN(orth_i,n_scaffold),
+   #number of options in key
+  t = str_length(TRI),
+  r = str_length(ORTH),
+  d = n_scaffold - (t+r),
+  #number of selected options matching key
+  t_s = Vectorize(count_match)(response,TRI),
+  r_s = Vectorize(count_match)(response,ORTH),
+  # d_s = , #todo add selections for other strategies
+  # s = t_s + r_s + d_s 
+  s_DISC = Vectorize(f_discrim)(t_s,t,r_s,r)
+)
+
+#calculate scores for scaffold phase IMPASSE condition 
+item_responses_scaffold_121 <- item_responses_scaffold_121  %>% mutate(
+  s_ABS = f_dichom(tri_i, n_scaffold),
+  s_TRI = f_partialN(tri_i, n_scaffold),
+  s_ORTH = f_partialN(orth_i, n_scaffold),
+   #number of options in key
+  t = str_length(TRI),
+  r = str_length(ORTH),
+  d = n_scaffold - (t+r),
+  #number of selected options matching key
+  t_s = Vectorize(count_match)(response,TRI),
+  r_s = Vectorize(count_match)(response,ORTH),
+  # d_s = , #todo add selections for other strategies
+  # s = t_s + r_s + d_s 
+  s_DISC = Vectorize(f_discrim)(t_s,t,r_s,r)
+)
+
+#calculate scores for TEST phase (Q6 -> Q15)
+item_responses_test <- item_responses_test  %>% mutate(
+  s_ABS = f_dichom(tri_i, n_test),
+  s_TRI = f_partialN(tri_i, n_test),
+  s_ORTH = f_partialN(orth_i, n_test),
+   #number of options in key
+  t = str_length(TRI),
+  r = str_length(ORTH),
+  d = n_scaffold - (t+r),
+  #number of selected options matching key
+  t_s = Vectorize(count_match)(response,TRI),
+  r_s = Vectorize(count_match)(response,ORTH),
+  # d_s = , #todo add selections for other strategies
+  # s = t_s + r_s + d_s 
+  s_DISC = Vectorize(f_discrim)(t_s,t,r_s,r)
+)
+```
+
+As a sanity check, we validate the equivalence of the scores
+
+```{r}
+#validate that ABS score is always  == f_dichom(tri_i, 15)
+unique(validate <- item_responses_scaffold_111$s_ABS == f_dichom(item_responses_scaffold_111$tri_i,n_scaffold))
+unique(validate <- item_responses_scaffold_121$s_ABS == f_dichom(item_responses_scaffold_121$tri_i,n_scaffold))
+unique(validate <- item_responses_test$s_ABS == f_dichom(item_responses_test$tri_i,n_test))
+
+#validate that ABS score is == 'correct' (calculated in stimulus)
+unique(validate <- as.logical(item_responses_scaffold_111$s_ABS) == (item_responses_scaffold_111$correct))
+unique(validate <- as.logical(item_responses_scaffold_121$s_ABS) == (item_responses_scaffold_121$correct))
+unique(validate <- as.logical(item_responses_test$s_ABS) == (item_responses_test$correct))
+
+
+#validate that TRI score is always  == f_partialN(tri_i, 15)
+unique(validate <- item_responses_scaffold_111$s_TRI == f_partialN(item_responses_scaffold_111$tri_i,n_scaffold))
+unique(validate <- item_responses_scaffold_121$s_TRI == f_partialN(item_responses_scaffold_121$tri_i,n_scaffold))
+unique(validate <- item_responses_test$s_TRI == f_partialN(item_responses_test$tri_i,n_test))
+
+#validate that ORTH score is always  == f_partialN(orth_i, 15)
+unique(validate <- item_responses_scaffold_111$s_ORTH == f_partialN(item_responses_scaffold_111$orth_i,n_scaffold))
+unique(validate <- item_responses_scaffold_121$s_ORTH == f_partialN(item_responses_scaffold_121$orth_i,n_scaffold))
+unique(validate <- item_responses_test$s_ORTH == f_partialN(item_responses_test$orth_i,n_test))
+
+```
+
+## Reintegrate item dataframe
+
+The final step in the process is to re_combine\_ the item dataframes.
+
+```{r COMBINE-DFS}
+
+#reduce dataframes before combination
+item_responses_scaffold_111 <- item_responses_scaffold_111 %>% 
+  select(subject, condition, term, mode, question, rt_s,
+         q, correct, response, TRI, ORTH, 
+         num_o, tri_i, orth_i, 
+         s_ABS, s_TRI, s_ORTH, s_DISC) %>% 
+  mutate(phase = "LEARN")
+
+item_responses_scaffold_121 <- item_responses_scaffold_121 %>% 
+  select(subject, condition, term, mode, question, rt_s,
+         q, correct, response, TRI, ORTH, 
+         num_o, tri_i, orth_i, 
+         s_ABS, s_TRI, s_ORTH,s_DISC) %>% 
+  mutate(phase = "LEARN")
+
+item_responses_test <- item_responses_test %>% 
+  select(subject, condition, term, mode, question, rt_s,
+         q, correct, response, TRI, ORTH, 
+         num_o, tri_i, orth_i, 
+         s_ABS, s_TRI, s_ORTH,s_DISC) %>% 
+  mutate(phase = "TEST")
+
+#combine data frames
+temp <- rbind(item_responses_scaffold_111,item_responses_scaffold_121,item_responses_test)
+
+#dblck all items are accounted for 
+if ( nrow(df_items)==nrow(temp) ) {
+  df_items <- temp 
+} else {
+    print("ERROR! sub dfs don't contain all the df_items")
+  }
+
+
+#CLEANUP MTF ENCODED ITEMS
+rm(item_responses_scaffold_111, item_responses_scaffold_121, item_responses_test)
+rm(key_111, key_121, key_scaffolded_c111, key_scaffolded_c121, key_test)
+rm(temp)
+```
+
+# SUMMARIZING SCORES BY SUBJECT
+
+TODO:: summarize item_level data, then add those scores to the subject data
+
+# EXPORT
+
+**TODO EXPORTS**
+
+# PEEKING
+
+**todo remove**
+
+```{r}
+library(ggformula)
+
+#only count discriminating items
+df <- df_items %>% filter(!q %in% c(6,9) ) 
+
+gf_histogram(~s_TRI, data = df_items) + 
+  facet_wrap(condition ~.)
+
+gf_histogram(~s_ORTH, data = df_items) + 
+  facet_wrap(condition ~.)
+
+gf_histogram(~s_ABS, data = df_items) + 
+  facet_wrap(condition ~.)
+
+gf_bar(~correct, data = df_items) + 
+  facet_wrap(condition ~ phase)
+
+
+gf_histogram(~s_DISC, data = df) + 
+  facet_wrap(condition ~.)
+
+test <- df %>% group_by(subject,condition,phase) %>% summarise(score = sum(s_DISC))
+gf_dhistogram(~score, data = test) + 
+  facet_wrap(condition ~ phase)
+
+
+
+
+```
+
+```{r}
+# 
+# ggplot(df_subjects, aes(y = condition, x = absolute_score, fill = condition)) +
+#   stat_slab() +
+#   stat_dotsinterval(side = "bottom", scale = 0.5, slab_size = NA) +
+#   facet_grid(~mode) +
+#   theme_modern() +
+#   scale_fill_material_d(palette = "ice")
+
+```
+
+# DATA DICTIONARY
+
+TODO document final data dictionary
+
+# RESOURCES
+
+## References
+
+Schmidt, D., Raupach, T., Wiegand, A., Herrmann, M., & Kanzow, P. (2021). Relation between examinees' true knowledge and examination scores: Systematic review and exemplary calculations on Multiple-True-False items. Educational Research Review, 34, 100409. https://doi.org/10.1016/j.edurev.2021.100409
+
+Albanese, M. A., & Sabers, D. L. (1988). Multiple True-False Items: A Study of Inter-item Correlations, Scoring Alternatives, and Reliability Estimation. Journal of Educational Measurement, 25(2), 111--123. https://doi.org/10.1111/j.1745-3984.1988.tb00296.x
+
+## Resources
+
+-   *on kable tables*\
+    <https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html>
+-   on Rmd math symbols \
+    <https://rpruim.github.io/s341/S19/from-class/MathinRmd.html>
+-   on installing missing TEX packages\
+    <https://bookdown.org/yihui/rmarkdown-cookbook/install-latex-pkgs.html>
+
+## Session
+
+```{r}
+sessionInfo()
+```
+
+# APPENDIX
+
+The **Expected Chance Score** of Multiple True-False (MTF) questions is calculated by the sum of the product of the binomial ($p = 0.5$) probabilities of each statement marked *correctly* with the corresponding score for that number of correctly marked statements. ( Schmidt et. al. 2021, Albanese & Sabers (1988)). Importantly, $i$ is *not* the number of selected *options*, but rather the number of *correctly indicated* items, where \[T = correctly selected \|\| correctly not selected\] and \[F = incorrectly selected \|\| incorrectly not selected\]\_. The $f_i$ refers to the
+
+$$
+\begin{align}
+f_{chance} &= \sum_{i = 0}^{n} \binom{n}{i} * (0.5)^i * (1-0.5)^{n-i} * f_i \\  
+&= \sum_{i = 0}^{n} \binom{n}{i} * (0.5)^n * f_i \\
+\tag{5}
+\end{align}
+$$
+
+*where*
+
+-   $n =$ number of options in MTF question (data points that can be selected)
+-   $i =$ number of options marked correctly
+-   $f_i =$ score for $i$ options marked correctly
+
+*Note that we cannot calculate the the expected chance score for Partial Scoring* $[-1/q, +1/p]$ *because the score awarded to a question depends not only on the number of options marked correctly, but also the way in which they are marked (selected vs. unselected)*
+
+```{r}
+f_chance <- function(n, scheme) {
+ 
+  if (n < 0) {"ERROR: n must be greater than 0"} 
+  if (!scheme %in% c("d","p")) {"ERROR: unknown scoring scheme"}
+  else {
+    #sum from i=0 to i=n
+    s = 0; #starting value
+    for (x in 0:n) {
+      
+      #binomial coefficient n choose x
+      binom = choose(n,x)
+      
+      #binomial probability of n statements marked correctly
+      bprob = 0.5^n
+
+      #score for x correctly marked items
+      if (scheme == "d"){
+        f = f_dichom(x,n)
+      } else if (scheme == "p") {
+        f = f_partialN(x,n)
+      }
+      
+      chance_at_x = (binom * bprob*f)
+      s = s + chance_at_x
+    }
+  }
+  s
+}
+```
+
+```{r}
+title <- "Properties of each scoring scheme for question with $n=4$ response options"
+schemes <- c("Dichotomous", " Partial$_{[-1/n, +1/n]}$")
+f_0 <- c(f_dichom(0,4), f_partialN(0,4))
+f_1 <- c(f_dichom(1,4), f_partialN(1,4))
+f_2 <- c(f_dichom(2,4), f_partialN(2,4))
+f_3 <- c(f_dichom(3,4), f_partialN(3,4))
+f_4 <- c(f_dichom(4,4), f_partialN(4,4))
+ecs <- c(f_chance(4,"d"),f_chance(4,"p"))
+
+names = c("Scoring Scheme",
+              "$f_0$",
+              "$f_1$",
+              "$f_2$",
+              "$f_3$",
+              "$f_4$",
+              "Expected Score at Chance")
+
+dt <- cbind(schemes,f_0,f_1,f_2,f_3,f_4,ecs)
+
+kbl(dt, col.names = names, caption = title)%>%
+  kable_classic() %>%
+  add_header_above(c(" " = 1, "score for $i$ of 4 correctly marked options" = 5, " "=1)) %>% 
+  footnote(general = paste("$n=4$ response options yields $2^n = 2^4 =$",2^4,"possible responses"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+#cleanup
+rm(f_0, f_1, f_2, f_3, f_4, ecs, dt, names, schemes, title)           
+```
+
+```{r}
+title <- "Properties of each scoring scheme for question with $n=15$ response options (SGC3A Q1 - Q5)"
+schemes <- c("Dichotomous", " Partial$_{[-1/n, +1/n]}$")
+f_0 <- c(f_dichom(0,15), round(f_partialN(0,15),2))
+f_1 <- c(f_dichom(1,15), round(f_partialN(1,15),2))
+f_2 <- c(f_dichom(2,15), round(f_partialN(2,15),2))
+f_3 <- c(f_dichom(3,15), round(f_partialN(3,15),2))
+f_4 <- c(f_dichom(4,15), round(f_partialN(4,15),2))
+f_e <- c("...","...")
+f_15 <- c(f_dichom(15,15), round(f_partialN(15,15),2))
+ecs <- c(f_chance(15,"d"),f_chance(15,"p"))
+
+names = c("Scoring Scheme",
+              "$f_0$",
+              "$f_1$",
+              "$f_2$",
+              "$f_3$",
+              "$f_4$",
+              "$...$",
+              "$f_{15}$",
+              "Expected Score at Chance")
+
+dt <- cbind(schemes,f_0,f_1,f_2,f_3,f_4,f_e,f_15,ecs)
+
+kbl(dt, col.names = names, caption = title)%>%
+  kable_classic() %>%
+  add_header_above(c(" " = 1, "score for $i$ of 15 correctly marked options" = 7, " "=1)) %>% 
+  footnote(general = paste("$n=15$ response options yields $2^n = 2^{15} =$",2^(15),"possible responses"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+#cleanup
+rm(f_0, f_1, f_2, f_3, f_4, f_e, f_15, ecs, names, schemes, title)           
+```
+
+```{r}
+title <- "Properties of each scoring scheme for question with $n=18$ response options (SGC3A Q6 - Q15)"
+schemes <- c("Dichotomous", " Partial$_{[-1/n, +1/n]}$")
+f_0 <- c(f_dichom(0,18), round(f_partialN(0,18),2))
+f_1 <- c(f_dichom(1,18), round(f_partialN(1,18),2))
+f_2 <- c(f_dichom(2,18), round(f_partialN(2,18),2))
+f_3 <- c(f_dichom(3,18), round(f_partialN(3,18),2))
+f_4 <- c(f_dichom(4,18), round(f_partialN(4,18),2))
+f_e <- c("...","...")
+f_18 <- c(f_dichom(18,18), round(f_partialN(18,18),2))
+ecs <- c(f_chance(18,"d"),f_chance(18,"p"))
+
+names = c("Scoring Scheme",
+              "$f_0$",
+              "$f_1$",
+              "$f_2$",
+              "$f_3$",
+              "$f_4$",
+              "$...$",
+              "$f_{18}$",
+              "Expected Score at Chance")
+
+dt <- cbind(schemes,f_0,f_1,f_2,f_3,f_4,f_e,f_18,ecs)
+
+kbl(dt, col.names = names, caption = title)%>%
+  kable_classic() %>%
+  add_header_above(c(" " = 1, "score for $i$ of 18 correctly marked options" = 7, " "=1)) %>% 
+  footnote(general = paste("$n=18$ response options yields $2^n = 2^{18} =$",2^(18),"possible responses"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+#cleanup
+rm(f_0, f_1, f_2, f_3, f_4, f_e, f_18, ecs, names, schemes, title)           
+```

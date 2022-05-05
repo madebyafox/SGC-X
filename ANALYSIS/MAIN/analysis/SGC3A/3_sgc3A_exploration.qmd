@@ -62,6 +62,13 @@ options(scipen=1, digits=3)
 
 *The purpose of this notebook is explore the distribution of dependent variables for Study SGC3A.*
 
++--------------------------------------+-------------------------------+
+| Pre-Requisite                        | Followed By                   |
++======================================+===============================+
+| 1_sgc3A_harmonize.qmd\               |                               |
+| 2_sgc3A_rescoring.qmd                |                               |
++--------------------------------------+-------------------------------+
+
 ```{r}
 #| label: IMPORT-DATA
 #| echo : true
@@ -118,11 +125,11 @@ For **online replication** `r subject.stats["online",]$n` participants (`r round
 
 ### Cumulative Scores
 
-Cumulative scores indicate the response accuracy by participant across all items in the graph comprehension task. 
+Cumulative scores indicate the response accuracy by participant across all items in the graph comprehension task.
 
 #### Cumulative Absolute Score
 
-Recall from **TODO cross reference scoring** that the absolute score indicates if the subject's response for a particular item was *perfectly correct*: whether they selected all correct answer options and no others. Absolute score for an individual items ranges is either 0 or 1.
+Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others. The absolute score for an individual item is either 0 or 1. When cumulated across the entire set of items, the cumulative absolute score for an individual subject ranges from \[0,15\].
 
 ```{r}
 #| label: ABS-SUBJECT
@@ -136,10 +143,9 @@ abs.stats %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`). 
+For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
 
-For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`). 
-
+For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
 
 ```{r}
 #| label: VIS-ABS-SCORE
@@ -159,20 +165,23 @@ annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by Stu
 
 ```
 
-**TODO** double check that the subject-totals match the sum of the item level totals 
-#### Cumulative Interpretation Scores
+**TODO** double check that the subject-totals match the sum of the item level totals
 
+#### Cumulative Interpretation Scores
 
 ### Item Score
 
-Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task. 
+Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.
 
+#### Item Absolute Score
+
+#### Item Interpretation Scores
 
 ## Response Latency
 
 -   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
 
--   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/) ]{style="color: red;"}.
+-   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
 
 -   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
 
