@@ -4,6 +4,10 @@ subtitle: '1-Data File Harmonization'
 author: 'Amy Rae Fox'
 always_allow_html: true  
 output:
+  pdf_document: 
+    toc: true
+    toc_depth: 3
+    latex_engine: xelatex
   html_document:
     theme: yeti
     code_folding: hide
@@ -14,10 +18,6 @@ output:
     toc_float:
       collapsed: no
       smooth_scroll: yes
-  pdf_document: 
-    toc: true
-    toc_depth: 3
-    latex_engine: xelatex
 font-family: "DejaVu Sans"
 mainfont: "DejaVu Sans"
 ---
@@ -75,7 +75,7 @@ winter22 <- "data/session-level/winter22_sgc3a_participants.rds"
 #read datafiles, set mode and term
 df_subjects_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_subjects_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_subjects_fall21 <- read.csv(fall21) %>% mutate(mode = "online-asynch", term = "fall21")
+df_subjects_fall21 <- read.csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_subjects_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #SAVE METADATA FROM WINTER, but no rows 
@@ -183,7 +183,7 @@ winter22 <- "data/session-level/winter22_sgc3a_items.rds"
 #read datafiles, set mode and term
 df_items_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_items_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_items_fall21 <- read.csv(fall21) %>% mutate(mode = "online-asynch", term = "fall21")
+df_items_fall21 <- read.csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
