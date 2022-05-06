@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.328">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>MAIN - 4&nbsp; Response Exploration</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<link href="../../references.html" rel="next">
+<link href="../../analysis/SGC3A/3_sgc3A_exploration.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link id="quarto-text-highlighting-styles" href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="../../site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="../../site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Response Exploration</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">MAIN</a> 
+    </div>
+      </div>
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">Status</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a href="../../analysis/SGC3A/SGC3A.html" class="sidebar-item-text sidebar-link">SGC3A</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/1_sgc3A_harmonize.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Harmonization</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/2_sgc3A_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/3_sgc3A_exploration.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Exploration</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/x_sgc3A_exploreResponse.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Response Exploration</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#control-condition" id="toc-control-condition" class="nav-link active" data-scroll-target="#control-condition"> <span class="header-section-number">4.1</span> Control Condition</a>
+  <ul class="collapse">
+  <li><a href="#question-1" id="toc-question-1" class="nav-link" data-scroll-target="#question-1"> <span class="header-section-number">4.1.1</span> Question #1</a></li>
+  <li><a href="#question-2" id="toc-question-2" class="nav-link" data-scroll-target="#question-2"> <span class="header-section-number">4.1.2</span> Question #2</a></li>
+  <li><a href="#question-3" id="toc-question-3" class="nav-link" data-scroll-target="#question-3"> <span class="header-section-number">4.1.3</span> Question #3</a></li>
+  <li><a href="#question-4" id="toc-question-4" class="nav-link" data-scroll-target="#question-4"> <span class="header-section-number">4.1.4</span> Question #4</a></li>
+  <li><a href="#question-5" id="toc-question-5" class="nav-link" data-scroll-target="#question-5"> <span class="header-section-number">4.1.5</span> Question #5</a></li>
+  </ul></li>
+  <li><a href="#impasse-condition" id="toc-impasse-condition" class="nav-link" data-scroll-target="#impasse-condition"> <span class="header-section-number">4.2</span> Impasse Condition</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title d-none d-lg-block"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Response Exploration</span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">SGC3A-2-Response Exploration</p>
+</div>
+
+
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p><em>The purpose of this notebook is to explore item-level response data collected for study SGC-3: The Insight Hypothesis</em></p>
+<p>First we import item-level data from the cleaned and wrangled R data structure file.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/sgc3a_items.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="control-condition" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="control-condition"><span class="header-section-number">4.1</span> Control Condition</h2>
+<section id="question-1" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="question-1"><span class="header-section-number">4.1.1</span> Question #1</h3>
+<p>We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (<code>condition</code> = 111).</p>
+<p>In the ‘interpretation’ column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"lines-connect"</span>,<span class="st">"(both ortho &amp; tri)"</span>,<span class="st">"?"</span>,<span class="st">"?"</span>,<span class="st">"triangular"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #1 (Control Condition)"</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthongal"</span>, <span class="dv">3</span>, <span class="dv">3</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">4</span>, <span class="dv">4</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">5</span>, <span class="dv">7</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Frequency of Selected Response Options for Question #1 (Control Condition)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> response </th>
+   <th style="text-align:right;"> count </th>
+   <th style="text-align:left;"> interpretation </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr grouplength="2"><td colspan="3" style="border-bottom: 0;"><strong>Triangular</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> F </td>
+   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> Z </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> triangular </td>
+  </tr>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Orthongal</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> A </td>
+   <td style="text-align:right;"> 129 </td>
+   <td style="text-align:left;"> ORTHOGONAL </td>
+  </tr>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Lines-Connect</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> CF </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> lines-connect </td>
+  </tr>
+  <tr grouplength="3"><td colspan="3" style="border-bottom: 0;"><strong>other</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> AF </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> (both ortho &amp; tri) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> IJD </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> ? </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> X </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> ? </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>Nearly all of the subjects selected a response consistent with one of the identified interpretations.</p>
+<p><em>Note that options highlighted in light grey are considered within the range of ‘visual error’.</em></p>
+<table class="table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 47%">
+<col style="width: 27%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Correct — Triangular</th>
+<th>Incorrect — Lines Connect</th>
+<th>Incorrect — Orthogonal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><img src="keys/control/interpretations/Q1_111_TRI.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q1_111_TVERSKY.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q1_111_ORTH.png" class="img-fluid"></td>
+</tr>
+<tr class="even">
+<td>indicates the correct interpretation of the coordinate system</td>
+<td>a triangular-like interpretation, where the respondent selects any datapoints intersecting the lines that connect to the reference time</td>
+<td>indicates the incorrect, Cartesian interpretation of the coordinate system</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="question-2" class="level3" data-number="4.1.2">
+<h3 data-number="4.1.2" class="anchored" data-anchor-id="question-2"><span class="header-section-number">4.1.2</span> Question #2</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"LINES-CONNECT"</span>,<span class="st">"ORTHONGAL"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"LINES-CONNECT"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"(reference point)"</span>,<span class="st">"ortho + satisfice"</span>,<span class="st">"TRIANGULAR"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #2 (Control Condition)"</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">2</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">3</span>, <span class="dv">5</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">6</span>, <span class="dv">7</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">8</span>, <span class="dv">10</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Frequency of Selected Response Options for Question #2 (Control Condition)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> response </th>
+   <th style="text-align:right;"> count </th>
+   <th style="text-align:left;"> interpretation </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr grouplength="2"><td colspan="3" style="border-bottom: 0;"><strong>Triangular</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> K </td>
+   <td style="text-align:right;"> 24 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> KD </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr grouplength="3"><td colspan="3" style="border-bottom: 0;"><strong>Orthogonal</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> DE </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> ORTHONGAL </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> E </td>
+   <td style="text-align:right;"> 121 </td>
+   <td style="text-align:left;"> ORTHOGONAL </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> EG </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> ortho + satisfice </td>
+  </tr>
+  <tr grouplength="2"><td colspan="3" style="border-bottom: 0;"><strong>Lines-Connect</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> J </td>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:left;"> LINES-CONNECT </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> AK </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> LINES-CONNECT </td>
+  </tr>
+  <tr grouplength="3"><td colspan="3" style="border-bottom: 0;"><strong>other</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> D </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> (reference point) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> B </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> C </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point <em>in addition</em> to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )</p>
+<table class="table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 41%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Correct — Triangular</th>
+<th>Incorrect — Lines Connect</th>
+<th>Incorrect — Orthogonal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><img src="keys/control/interpretations/Q2_111_TRI.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q2_111_TVERSKY.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q2_111_ORTH.png" class="img-fluid"></td>
+</tr>
+<tr class="even">
+<td>A correct (triangular) interpretation of the coordinate system yields data point K.</td>
+<td>An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J.</td>
+<td>An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="question-3" class="level3" data-number="4.1.3">
+<h3 data-number="4.1.3" class="anchored" data-anchor-id="question-3"><span class="header-section-number">4.1.3</span> Question #3</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"LINES-CONNECT"</span>,<span class="st">"ORTHONGAL"</span>,<span class="st">"LINES-CONNECT"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"lines-connect"</span>,<span class="st">"LINES-CONNECT"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"(reference point)"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                     <span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #3 (Control Condition)"</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">3</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count)  <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">2</span>, <span class="dv">3</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">4</span>, <span class="dv">7</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">8</span>, <span class="dv">17</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Frequency of Selected Response Options for Question #3 (Control Condition)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> response </th>
+   <th style="text-align:right;"> count </th>
+   <th style="text-align:left;"> interpretation </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Triangular</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> F </td>
+   <td style="text-align:right;"> 24 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr grouplength="2"><td colspan="3" style="border-bottom: 0;"><strong>Orthogonal</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> AUB </td>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:left;"> ORTHONGAL </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> Z </td>
+   <td style="text-align:right;"> 94 </td>
+   <td style="text-align:left;"> ORTHOGONAL </td>
+  </tr>
+  <tr grouplength="4"><td colspan="3" style="border-bottom: 0;"><strong>Lines-Connect</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> A </td>
+   <td style="text-align:right;"> 18 </td>
+   <td style="text-align:left;"> LINES-CONNECT </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> K </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> LINES-CONNECT </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OJ </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> LINES-CONNECT </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> O </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> lines-connect </td>
+  </tr>
+  <tr grouplength="10"><td colspan="3" style="border-bottom: 0;"><strong>other</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> C </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> (reference point) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> AH </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> AIOZFHJXKUDEGB </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> DE </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> E </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> FKE </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OJD </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OK </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> U </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> UE </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 41%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Correct — Triangular</th>
+<th>Incorrect — Lines Connect</th>
+<th>Incorrect — Orthogonal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><img src="keys/control/interpretations/Q3_111_TRI.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q3_111_TVERSKY.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q3_111_ORTH.png" class="img-fluid"></td>
+</tr>
+<tr class="even">
+<td>A correct (triangular) interpretation of the coordinate system yields data point K.</td>
+<td>An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J.</td>
+<td>An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="question-4" class="level3" data-number="4.1.4">
+<h3 data-number="4.1.4" class="anchored" data-anchor-id="question-4"><span class="header-section-number">4.1.4</span> Question #4</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"orth-lines connect"</span>,<span class="st">"BLANK"</span>,<span class="st">"orth-lines connect"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"lines-connect"</span>,<span class="st">"orthogonal"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                     <span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span> )</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #4 (Control Condition)"</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">4</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>())  <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">2</span>, <span class="dv">5</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">6</span>, <span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">7</span>, <span class="dv">16</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Frequency of Selected Response Options for Question #4 (Control Condition)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> response </th>
+   <th style="text-align:right;"> count </th>
+   <th style="text-align:left;"> interpretation </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Triangular</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> H </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr grouplength="4"><td colspan="3" style="border-bottom: 0;"><strong>Orthogonal</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> U </td>
+   <td style="text-align:right;"> 87 </td>
+   <td style="text-align:left;"> ORTHOGONAL </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> FU </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> orthogonal </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> DE </td>
+   <td style="text-align:right;"> 14 </td>
+   <td style="text-align:left;"> orth-lines connect </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> E </td>
+   <td style="text-align:right;"> 6 </td>
+   <td style="text-align:left;"> orth-lines connect </td>
+  </tr>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Lines-Connect</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> B </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> lines-connect </td>
+  </tr>
+  <tr grouplength="10"><td colspan="3" style="border-bottom: 0;"><strong>other</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1">  </td>
+   <td style="text-align:right;"> 6 </td>
+   <td style="text-align:left;"> BLANK </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> K </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> O </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> AH </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> CAIOZFHJXKU </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> D </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> G </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> KU </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OUDE </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> UDE </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>In Question 4 we see more than one variant of an orthogonal interpretation emerge.</p>
+<table class="table">
+<colgroup>
+<col style="width: 36%">
+<col style="width: 63%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Orthogonal</th>
+<th>Orthogonal-LinesConnecting</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><img src="keys/control/interpretations/Q4_111_ORTH.png" class="img-fluid"></td>
+<td><img src="keys/control/interpretations/Q4_111_ORTH-LC.png" class="img-fluid"></td>
+</tr>
+<tr class="even">
+<td>If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U ‘end time’ intersects with the (incorrect) orthogonal projection of 4:00PM.</td>
+<td>Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an ’orthogonal-lines connect” strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that <em>start</em> at 4:00pm in order to find those that <em>end</em> at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="question-5" class="level3" data-number="4.1.5">
+<h3 data-number="4.1.5" class="anchored" data-anchor-id="question-5"><span class="header-section-number">4.1.5</span> Question #5</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"orth-satistice"</span>,<span class="st">"BLANK"</span>,<span class="st">"orth-satisfice"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"orth-satistice"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"(reference point)"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"lines-connect"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #4 (Control Condition)"</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">5</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>())  <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">2</span>, <span class="dv">9</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines Connect"</span>, <span class="dv">10</span>, <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">11</span>, <span class="dv">22</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Frequency of Selected Response Options for Question #4 (Control Condition)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> response </th>
+   <th style="text-align:right;"> count </th>
+   <th style="text-align:left;"> interpretation </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Triangular</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> O </td>
+   <td style="text-align:right;"> 50 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr grouplength="8"><td colspan="3" style="border-bottom: 0;"><strong>Orthogonal</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> U </td>
+   <td style="text-align:right;"> 64 </td>
+   <td style="text-align:left;"> ORTHOGONAL </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> F </td>
+   <td style="text-align:right;"> 10 </td>
+   <td style="text-align:left;"> orth-satistice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> J </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> orth-satistice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> H </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> orth-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> K </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> orth-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> FK </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> orth-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> HJ </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> orth-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> HU </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> orth-satisfice </td>
+  </tr>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 0;"><strong>Lines Connect</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> Z </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> lines-connect </td>
+  </tr>
+  <tr grouplength="12"><td colspan="3" style="border-bottom: 0;"><strong>other</strong></td></tr>
+<tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1">  </td>
+   <td style="text-align:right;"> 6 </td>
+   <td style="text-align:left;"> BLANK </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> I </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> (reference point) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OF </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> B </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> FG </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> JD </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> C </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> G </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> HJDE </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OH </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> OK </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left; padding-left:  2em;" indentlevel="1"> X </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>TODO note the compelling cases of internal inconsistency (HJDE)</p>
+</section>
+</section>
+<section id="impasse-condition" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="impasse-condition"><span class="header-section-number">4.2</span> Impasse Condition</h2>
+<p>We can compare these responses to those produced by participants in the experimental impasse condition (<code>condition</code> = 121).</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"BLANK"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"LINES-CONNECT"</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-lines-connect"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                   <span class="st">""</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">""</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #1 (Impasse Condition)"</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count)  <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+</div>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Frequency of Selected Response Options for Question #1 (Impasse Condition)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> response </th>
+   <th style="text-align:right;"> count </th>
+   <th style="text-align:left;"> interpretation </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 57 </td>
+   <td style="text-align:left;"> BLANK </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:right;"> 49 </td>
+   <td style="text-align:left;"> TRIANGULAR </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> O </td>
+   <td style="text-align:right;"> 28 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> CF </td>
+   <td style="text-align:right;"> 14 </td>
+   <td style="text-align:left;"> LINES-CONNECT </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AI </td>
+   <td style="text-align:right;"> 9 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> A </td>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> C </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> partial-lines-connect </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> E </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AO </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> CO </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> OA </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> partial-satisfice </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> X </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../analysis/SGC3A/3_sgc3A_exploration.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Exploration</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../references.html" class="pagination-link">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb9" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Response Exploration"</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> 'SGC3A-2-Response Exploration'</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is to explore item-level response data collected for study SGC-3: The Insight Hypothesis*</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="in">```{r SETUP, include=FALSE}</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT LIBRARIES </span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS </span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#adv table rendering</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>First we import item-level data from the cleaned and wrangled R data structure file.</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="in">```{r IMPORT DATA}</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/sgc3a_items.rds'</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">## Control Condition</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="fu">### Question #1</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (<span class="in">`condition`</span> = 111).</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>In the 'interpretation' column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Q1-control}</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"lines-connect"</span>,<span class="st">"(both ortho &amp; tri)"</span>,<span class="st">"?"</span>,<span class="st">"?"</span>,<span class="st">"triangular"</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #1 (Control Condition)"</span></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthongal"</span>, <span class="dv">3</span>, <span class="dv">3</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">4</span>, <span class="dv">4</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">5</span>, <span class="dv">7</span>) </span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>Nearly all of the subjects selected a response consistent with one of the identified interpretations.</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>*Note that options highlighted in light grey are considered within the range of 'visual error'.*</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>| Correct --- Triangular                                        | Incorrect --- Lines Connect                                                                                                             | Incorrect --- Orthogonal                                                   |</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>|------------------|-----------------------------------|--------------------|</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>| <span class="al">![](keys/control/interpretations/Q1_111_TRI.png)</span>              | <span class="al">![](keys/control/interpretations/Q1_111_TVERSKY.png)</span>                                                                                    | <span class="al">![](keys/control/interpretations/Q1_111_ORTH.png)</span>                          |</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>| indicates the correct interpretation of the coordinate system | a triangular-like interpretation, where the respondent selects any datapoints intersecting the lines that connect to the reference time | indicates the incorrect, Cartesian interpretation of the coordinate system |</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a><span class="fu">### Question #2</span></span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Q2-control}</span></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"LINES-CONNECT"</span>,<span class="st">"ORTHONGAL"</span>,</span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"LINES-CONNECT"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"(reference point)"</span>,<span class="st">"ortho + satisfice"</span>,<span class="st">"TRIANGULAR"</span>)</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #2 (Control Condition)"</span></span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">2</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">3</span>, <span class="dv">5</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">6</span>, <span class="dv">7</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">8</span>, <span class="dv">10</span>) </span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point *in addition* to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>| Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |</span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>|------------------|------------------------------|-------------------------|</span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>| <span class="al">![](keys/control/interpretations/Q2_111_TRI.png)</span>                                    | <span class="al">![](keys/control/interpretations/Q2_111_TVERSKY.png)</span>                                                                                                                  | <span class="al">![](keys/control/interpretations/Q2_111_ORTH.png)</span>                                                                                           |</span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>| A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |</span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a><span class="fu">### Question #3</span></span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Q3-control}</span></span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"LINES-CONNECT"</span>,<span class="st">"ORTHONGAL"</span>,<span class="st">"LINES-CONNECT"</span>,</span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"lines-connect"</span>,<span class="st">"LINES-CONNECT"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"(reference point)"</span>,</span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a>                     <span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>)</span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #3 (Control Condition)"</span></span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">3</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count)  <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">2</span>, <span class="dv">3</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">4</span>, <span class="dv">7</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">8</span>, <span class="dv">17</span>) </span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>| Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |</span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>|------------------|------------------------------|-------------------------|</span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>| <span class="al">![](keys/control/interpretations/Q3_111_TRI.png)</span>                                    | <span class="al">![](keys/control/interpretations/Q3_111_TVERSKY.png)</span>                                                                                                                  | <span class="al">![](keys/control/interpretations/Q3_111_ORTH.png)</span>                                                                                           |</span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>| A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |</span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a><span class="fu">### Question #4</span></span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Q4-control}</span></span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"orth-lines connect"</span>,<span class="st">"BLANK"</span>,<span class="st">"orth-lines connect"</span>,</span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"lines-connect"</span>,<span class="st">"orthogonal"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,</span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a>                     <span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span> )</span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #4 (Control Condition)"</span></span>
+<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">4</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>())  <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">2</span>, <span class="dv">5</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines-Connect"</span>, <span class="dv">6</span>, <span class="dv">6</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">7</span>, <span class="dv">16</span>) </span>
+<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a>In Question 4 we see more than one variant of an orthogonal interpretation emerge.</span>
+<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a>| Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |</span>
+<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a>|--------------------------|----------------------------------------------|</span>
+<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a>| <span class="al">![](keys/control/interpretations/Q4_111_ORTH.png)</span>                                                                                                                                                                      | <span class="al">![](keys/control/interpretations/Q4_111_ORTH-LC.png)</span>                                                                                                                                                                                                                                                                                                                                            |</span>
+<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a>| If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |</span>
+<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a><span class="fu">### Question #5</span></span>
+<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Q5-control}</span></span>
+<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a>  interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"ORTHOGONAL"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"orth-satistice"</span>,<span class="st">"BLANK"</span>,<span class="st">"orth-satisfice"</span>,</span>
+<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"orth-satistice"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,<span class="st">""</span>,<span class="st">"orth-satisfice"</span>,</span>
+<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"(reference point)"</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">""</span>,<span class="st">"lines-connect"</span>)</span>
+<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #4 (Control Condition)"</span></span>
+<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">5</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">111</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>())  <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(interpretation)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Triangular"</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Orthogonal"</span>, <span class="dv">2</span>, <span class="dv">9</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"Lines Connect"</span>, <span class="dv">10</span>, <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="st">"other"</span>, <span class="dv">11</span>, <span class="dv">22</span>) </span>
+<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a>TODO note the compelling cases of internal inconsistency (HJDE)</span>
+<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a><span class="fu">## Impasse Condition</span></span>
+<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a>We can compare these responses to those produced by participants in the experimental impasse condition (<span class="in">`condition`</span> = 121).</span>
+<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Q1-impasse}</span></span>
+<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a><span class="co">#define interpretation for each response</span></span>
+<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a><span class="co">#NOTE: this is manually defined, based on inspecting answer options</span></span>
+<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>interpretation <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"BLANK"</span>,<span class="st">"TRIANGULAR"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"LINES-CONNECT"</span>,</span>
+<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-lines-connect"</span>,</span>
+<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a>                   <span class="st">""</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">"partial-satisfice"</span>,<span class="st">""</span>)</span>
+<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #1 (Impasse Condition)"</span></span>
+<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(response) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>( <span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="sc">-</span>count)  <span class="sc">%&gt;%</span> <span class="fu">cbind</span>(interpretation) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>() </span>
+<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-189"><a href="#cb9-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>

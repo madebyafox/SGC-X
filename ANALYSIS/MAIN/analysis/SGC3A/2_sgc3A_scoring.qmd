@@ -1,6 +1,6 @@
 ---
-title: 'Response Scoring'
-subtitle: 'SGC3A-2-Response Scoring'
+# title: 'Response Scoring'
+subtitle: 'Study SGC3A | 2 Response Scoring'
 # author: 'Amy Rae Fox'
 # always_allow_html: true  
 # header-includes:
@@ -26,18 +26,25 @@ subtitle: 'SGC3A-2-Response Scoring'
 
 \newpage
 
-```{r SETUP, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE) 
+# Response Scoring {#sec-SGC3A-scoring}
+
+```{r}
+#| label: SETUP
+#| echo : true
+#| warning : false
+#| message : false
+
+
 # knitr::opts_chunk$set(eval = FALSE) #knit w/o execution
-# knitr::opts_chunk$set('digits' = 4) #rounding
 options(scipen=1, digits=3)
 
-
-#IMPORT LIBRARIES
 library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
+library(ggformula) #quick graphs
 
 ```
+
+**THIS NOTEBOOK IS INCOMPLETE**
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
 
@@ -45,7 +52,7 @@ library(kableExtra) #printing tables
 |-----------------------|--------------------------|
 | 1_sgc3a_harmonize.qmd | 3_sgc3A_descriptives.qmd |
 
-# INTRODUCTION
+## INTRODUCTION
 
 The *graph comprehension task* of study SGC 3A presents readers with a graph, a question, and a series of checkboxes. Participants are instructed to use the graph to answer the question, and respond by selecting all the checkboxes that apply, where each checkbox corresponds to a datapoint in the graph.
 
@@ -57,7 +64,7 @@ In tranditional SAMC format questions, one point is given for selecting the opti
 
 @schmidtRelationExamineesTrue2021 performed a systematic literature review of publications proposing MAMC (or equivalent) scoring schemes, ultimately synthesizing over 80 sources into 27 distinct scoring approaches. Upon reviewing the benefits of trade-offs of each approach, for this study we choose utilize two of the schemes: **dichotomous scoring** ( @schmidtRelationExamineesTrue2021 scheme #1), and **partial scoring** $[-1/q,0, +1/p]$ ( @schmidtRelationExamineesTrue2021 scheme #26), as well as a scaled **discriminant score** that leverages partial scoring to discriminate between strategy-specific patterns of response.
 
-## Response Encoding
+### Response Encoding
 
 First, we note that the question type evaluated by @schmidtRelationExamineesTrue2021 is referred to as *Multiple True-False* (MTF), a variant of MAMC where respondents are presented with a question (stem) and series of response options with True/False (e.g. radio buttons) for each. Depending on the implementation of the underlying instrument, it may or may not be possible for respondents to *not respond* to a particular option (i.e. leave the item 'blank'). Although MTF questions have a different underlying implementation (and potentially different psychometric properties) they are identical in their mathematical properties; that is, responses to a MAMC question of 'select all that apply' can be coded as a series of T/F responses to each response option
 
@@ -71,7 +78,7 @@ In this example (@fig-ItemTypes), we see an example of a question with four resp
 In our analysis, we will transform the MAMC response string recorded for the participant (given in column `response`), to an MTF encoding.
 :::
 
-## Scoring Schemes
+### Scoring Schemes
 
 In the sections that follow, we use the terminology:
 
@@ -95,7 +102,7 @@ f &= \text{resulting score}
 \end{align}
 $$
 
-### Dichotomous Scoring
+#### Dichotomous Scoring {#sec-absolute-scoring}
 
 **Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is *exactly* correct, meaning the respondent includes *only correct-select* options, and does select any additional (i.e. incorrect-select) options that should not be selected. This is also known as *all or nothing scoring*, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the correct-select options, and one or more but not all of the correct-unselect items, but receive the same score as a respondent selects none of the correct-select options, or all of the correct-unselect options. In this sense, dichotomous scoring tells us *only* about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating through their selection of response options.
 
@@ -136,7 +143,7 @@ f_dichom <- function(i, n) {
 }
 ```
 
-### Partial Scoring \[-1/n, +1/n\]
+#### Partial Scoring \[-1/n, +1/n\]
 
 **Partial Scoring** refers to a class or scoring schemes that award the respondent partial credit depending on pattern of options they select. @schmidtRelationExamineesTrue2021 identify twenty-six different partial credit scoring schemes in the literature, varying in the range of possible scores, and the relative weighting of incorrectly selected (vs) incorrectly unselected options.
 
@@ -179,7 +186,7 @@ return ((2*i - n) / n)
 }
 ```
 
-### Partial Scoring \[-1/p, +1/p\]
+#### Partial Scoring \[-1/p, +1/p\]
 
 One drawback of the Partial Scoring $[-1/n, +1/n]$ approach is that treats the choice to select, and choice to not select options as equally indicative of the respondent's understanding. That is to say, incorrectly selecting one particular option is no more or less informative than incorrectly not-selecting a different item. This represents an important difference between MAMC (i.e. "select all correct options") vs MTF (i.e. "Mark each option as true or false") questions.
 
@@ -232,7 +239,7 @@ f_partialP <- function(t,p,f,q) {
 }
 ```
 
-### Comparison of Schemes
+#### Comparison of Schemes
 
 Which scoring scheme is most appropriate for the goals of the graph comprehension task?
 
@@ -327,6 +334,8 @@ kbl(dt, col.names = names, caption = title, digits=3) %>%
     footnote(general = paste("i = number of options in correct state; _ indicates option not selected"),
            general_title = "Note: ",footnote_as_chunk = T)
 
+#cleanup
+rm(dt)
 ```
 
 -   We see that in the Dichotomous scheme, only the precisely correct response (row 1) yields a score other than zero. This scheme does now allow us to differentiate between different response patters.
@@ -421,6 +430,8 @@ kbl(dt, col.names = names, caption = title, digits=3) %>%
     footnote(general = paste("i = number of options in correct state; _ indicates option not selected"),
            general_title = "Note: ",footnote_as_chunk = T)
 
+#cleanup
+rm(dt, abs,correct,i,names,partial1,partial2,response,title)
 ```
 
 Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate between patterns of responses, in a way that is more sensible for the goals of the SGC3 graph comprehension task.
@@ -519,7 +530,7 @@ f_discrim <- function(t_s,t,r_s,r){
 
 ## 
 
-# SCORING THE DATA
+## SCORE THE DATA
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The graph comprehensiontask asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
@@ -535,11 +546,9 @@ In SGC_3A we are fundamentally interested in understanding how a participant int
 
 5\. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing stategy) answer key.
 
-## Prepare Answer Keys
+### Prepare Answer Keys
 
-We start by preparing the answer keys for each stimulus set and stimulus interpretation. For each stimulus set (experimental condition, which defines the underlying dataset visualized in the stimulus) there is an answer key.
-
-TODO ADD DATA DICTIONARY.
+We start by importing the answer keys for each stimulus set. For each stimulus set (defined by condition+task phase) an answer key file exist that defines the set of response options that indicate each graph interpretation.
 
 ```{r ANSWER-KEYS}
 #| warning: false
@@ -621,7 +630,7 @@ for (x in 1:nrow(keys_orth)) {
   verify[x] = setequal(tempunion,N)
 }
 
-#3. reorder for ease of use
+#3. reorder cols for ease of use
 keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
 
@@ -680,7 +689,7 @@ for (x in 1:nrow(keys_tri)) {
   verify[x] = setequal(tempunion,N)
 }
 
-#3. reorder for ease of use
+#3. reorder cols for ease of use
 keys_tri <- keys_tri %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
 #cleanup 
@@ -688,21 +697,27 @@ rm(N,A,P,Q,n_q,s,x,tempunion)
   
 ```
 
-To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once). 
+This leaves us with two dataframes `keys_orth` and `keys_tri` that define the sets of response options consistent with each graph interpretation
 
-`r verify`
+To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once).
 
+`r verify` \*\*TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
 
+### Score Items
 
-## Prepare Response Data 
+Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (keys_orth, keys_tri), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item, and can be used to determine which graph interpretation the subject held.\
+`score_TRI` (how triangular was the subject's response?) `score_ORTH`(how orthogonal was the subject's response)
 
+```{r IMPORT-DATA}
+df_items <- read_rds('data/sgc3a_items.rds')
+df_items <- df_items %>% filter(q < 6) %>% filter(condition == 111)
 
-```{r}
-df_items <- df_items %>% filter( condition == 111) %>% filter(q<6) 
 ```
 
+*note: this cell takes approximately 3 minutes to run*
 
 ```{r}
+#| label: SCORE
 
 ##———————————————————————————————————————————————————————————————
 ##CALCULATE P AND Q for ORTH AND TRI
@@ -732,7 +747,7 @@ for (x in 1:nrow(df_items)) {
     
   } else {
     
-      #get triangular keys
+    #get triangular keys
     tri_p = keys_tri %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
     tri_q = keys_tri %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
     tri_pn = keys_tri %>% filter(Q == qu)  %>% select(n_p)
@@ -762,49 +777,166 @@ for (x in 1:nrow(df_items)) {
   df_items[x,'score_ORTH'] = f_partialP(orth_ps,orth_pn,orth_qs,orth_qn)
 }
 
+#ALSO recast absolute score as integer based on boolean 'correct
+df_items$score_ABS <- as.integer(df_items$correct)
+
 #cleanup
 rm(orth_pn, orth_p, orth_qn, orth_q, orth_ps, orth_qs,  tri_pn, tri_p, tri_qn, tri_q, tri_ps, tri_qs, qu, cond, r,x)
 ```
 
 ```{r}
 
+test <- df_items %>% filter(q<6) %>% filter(condition == 111)
+
+gf_histogram(~score_TRI, data = test)
+gf_histogram(~score_ORTH, data = test)
+gf_histogram(~score_ABS, data = test)
+```
+
+
+
+## EXPLORE RESPONSES
+
+### Control Condition
+
+#### Question #1
+
+We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
+
+In the 'interpretation' column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.
+
+```{r Q1-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","lines-connect","(both ortho & tri)","?","?","?")
+
+title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
+df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), absolute = unique(score_ABS), triangular = unique(score_TRI), orthogonal =  unique(score_ORTH)) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  select(response, count, interpretation, absolute, triangular, orthogonal) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Scores" = 3)) %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthongal", 2, 2) %>% 
+  pack_rows("Lines-Connect", 3, 3) %>% 
+  pack_rows("other", 4, 7) 
+
+```
+
+Nearly all of the subjects selected a response consistent with one of the identified interpretations (indicated in all caps).
+
+*Note that options highlighted in light grey are considered within the range of 'visual error'.*
+
+| Which shifts start at 11am?                                    |                                                                             |
+|---------------------------------|---------------------------------------|
+| ![](keys/control/interpretations/Q1_111_TRI.png){width="297"}  | indicates the correct triangular interpretation of the coordinate system    |
+| ![](keys/control/interpretations/Q1_111_ORTH.png){width="254"} | indicates the incorrect, orthogonal interpretation of the coordinate system |
+
+A number of alternative responses were given:
+
+| Alternate Responses                                          |                                                               |                                                             |                                                             |
+|------------------|------------------|------------------|------------------|
+| ![](keys/control/interpretations/Q1_111_AF.png){width="200"} | ![](keys/control/interpretations/Q1_111_IJD.png){width="200"} | ![](keys/control/interpretations/Q1_111_Z.png){width="200"} | ![](keys/control/interpretations/Q1_111_X.png){width="200"} |
+|                                                              |                                                               |                                                             |                                                             |
+
+#### Question #2
+
+```{r Q2-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","LINES-CONNECT","ORTHONGAL",
+                     "LINES-CONNECT","","","(reference point)","ortho + satisfice","TRIANGULAR")
+
+title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
+df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), absolute = unique(score_ABS), triangular = unique(score_TRI), orthogonal = unique(score_ORTH)) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 2) %>% 
+  pack_rows("Orthogonal", 3, 5) %>% 
+  pack_rows("Lines-Connect", 6, 7) %>% 
+  pack_rows("other", 8, 10) 
+
+```
+
+Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point *in addition* to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )
+
+| Which shift(s) start at the same time as D?       |                                                                                     |
+|------------------|------------------------------------------------------|
+| ![](keys/control/interpretations/Q2_111_TRI.png)  | A correct (triangular) interpretation of the coordinate system yields data point K. |
+| ![](keys/control/interpretations/Q2_111_ORTH.png) | An incorrect orthogonal interpretation yields point K                               |
+
+| Alternative Responses                          |                                                 |                                                |                                                |
+|------------------------------------------------|-------------------------------------------------|------------------------------------------------|------------------------------------------------|
+| ![](keys/control/interpretations/Q2_111_J.png) | ![](keys/control/interpretations/Q2_111_AK.png) | ![](keys/control/interpretations/Q1_111_B.png) | ![](keys/control/interpretations/Q2_111_C.png) |
+|                                                |                                                 |                                                |                                                |
+
+#### Question #3
+
+```{r Q3-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","LINES-CONNECT","ORTHONGAL","LINES-CONNECT",
+                     "lines-connect","LINES-CONNECT","","","(reference point)",
+                     "","","","","","","")
+
+title <- "Frequency of Selected Response Options for Question #3 (Control Condition)"
+df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), absolute = unique(score_ABS), triangular = unique(score_TRI), orthogonal = unique(score_ORTH)) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthogonal", 2, 3) %>% 
+  pack_rows("Lines-Connect", 4, 7) %>% 
+  pack_rows("other", 8, 17) 
+
+```
+
+|                                                                                     |                                                                                                                                                                       |                                                                                                                                             |
+|------------------|------------------------------|-------------------------|
+|                                                                                     |                                                                                                                                                                       |                                                                                                                                             |
+| Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |
+| ![](keys/control/interpretations/Q3_111_TRI.png)                                    | ![](keys/control/interpretations/Q3_111_TVERSKY.png)                                                                                                                  | ![](keys/control/interpretations/Q3_111_ORTH.png)                                                                                           |
+| A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |
+
+### Summarize By subject
+
+```{r}
+
 df_items$DISC <- df_items$score_TRI - df_items$score_ORTH
 gf_jitter(score_TRI ~ score_ORTH, data = df_items, alpha = 0.2)
-
-
 gf_jitter(score_TRI ~ DISC, data = df_items , alpha=0.2,  color = ~q)
-
 gf_dhistogram(~df_items$DISC, data = df_items)
 
 
 ```
 
-
-## Summarize By subject
-
 ```{r}
-subjects <- df_items %>% group_by(subject) %>% summarize(
+subject_scores <- df_items %>% group_by(subject) %>% dplyr::summarize(
   TRI = sum(score_TRI),
   ORTH = sum(score_ORTH),
   DISCRIM = sum(score_TRI + score_ORTH),
   ABSOLUTE = sum(correct),
   condition = unique(condition)
 )
-
+head(subject_scores)
 ```
-
 
 ```{r}
-gf_dhistogram(~DISCRIM, data = subjects)  %>%  gf_facet_grid(~condition)
-
-gf_dhistogram(~ABSOLUTE, data = subjects)
-
-gf_jitter(ABSOLUTE ~ DISCRIM, data = subjects, alpha = 0.2)
+# gf_dhistogram(~DISCRIM, data = subject_scores)  %>%  gf_facet_grid(~condition)
+# 
+# gf_dhistogram(~ABSOLUTE, data = subject_scores)
+# 
+# gf_jitter(ABSOLUTE ~ DISCRIM, data = subject_scores, alpha = 0.2)
 
 ```
-
-
-
 
 TODO TRAPDOOR?
 
@@ -832,128 +964,4 @@ test <- data.frame(
 )
 ```
 
-## Encode MAMC Responses as MTF
-
-To calculate partial scores, first we need re-encode participant responses which are currently captured in the `answer` column of the `df_items` dataframe. In the present encoding, the letter corresponding to each response item (corresponding to a data point in the stimulus graph) the subject selected on the task interface, is concatenated and stored in `answer`.
-
-For example, if the respondent selected data points A and B, `answer = AB`. We need to transform this into a single column for each possible response option, encoding whether or not the option was selected `A = 1, B = 1, C = 0 ...`
-
-```{r ENCODE-MTF}
-
-#read datafiles, set mode and term
-df_items <- read_rds('data/sgc3a_items.rds')
-
-#SPLIT DF_ITEMS 
-#into sub dfs to allow a 1-1 mapping with appropriate answer key
-
-#scaffold phase control condition
-item_responses_scaffold_111 <- df_items %>% 
-  #filter only q < 6, the 'scaffold' items
-  filter(q < 6) %>% 
-  #filter only the control condition 
-  filter(condition == "111")
-
-#scaffold phase impasse condition
-item_responses_scaffold_121 <- df_items %>% 
-  #filter only q < 6, the 'scaffold' items
-  filter(q < 6) %>% 
-  #filter only the control condition 
-  filter(condition == "121")
-
-#test phase descriminant
-item_responses_test <- df_items %>% 
-  #filter only q < 6, the 'scaffold' items
-  filter(q > 5 ) 
-  #note we don't need to filter condition bc qs and data are same across conditions
-
-#SPREAD MCMA RESPONSE TO MTF COLUMNS
-#encode the response column [response] as a series of T/F statements per data point
-
-#scaffold phase CONTROL condition
-item_responses_scaffold_111 <- item_responses_scaffold_111 %>% 
-  #split response to TF columns
-  mutate(
-    r_A = as.integer(str_detect(response,"A")), #is there a A?
-    r_X = as.integer(str_detect(response,"X")), #is there a X?
-    r_C = as.integer(str_detect(response,"C")), #is there a C?
-    r_O = as.integer(str_detect(response,"O")), #is there a O?
-    r_I = as.integer(str_detect(response,"I")), #is there a I?
-    r_J = as.integer(str_detect(response,"J")), #is there a J?
-    r_H = as.integer(str_detect(response,"H")), #is there a H?
-    r_F = as.integer(str_detect(response,"F")), #is there a F?
-    r_K = as.integer(str_detect(response,"K")), #is there a K?
-    r_D = as.integer(str_detect(response,"D")), #is there a D?
-    r_U = as.integer(str_detect(response,"U")), #is there a U?
-    r_E = as.integer(str_detect(response,"E")), #is there a E?
-    r_G = as.integer(str_detect(response,"G")), #is there a G?
-    r_B = as.integer(str_detect(response,"B")), #is there a B?
-    r_Z = as.integer(str_detect(response,"Z"))  #is there a Z?
-  ) 
-
-#scaffold phase IMPASSE condition
-item_responses_scaffold_121 <- item_responses_scaffold_121 %>% 
-  #split response to TF columns
-  mutate(
-    r_A = as.integer(str_detect(response,"A")), #is there a A?
-    r_X = as.integer(str_detect(response,"X")), #is there a X?
-    r_C = as.integer(str_detect(response,"C")), #is there a C?
-    r_O = as.integer(str_detect(response,"O")), #is there a O?
-    r_I = as.integer(str_detect(response,"I")), #is there a I?
-    r_J = as.integer(str_detect(response,"J")), #is there a J?
-    r_H = as.integer(str_detect(response,"H")), #is there a H?
-    r_F = as.integer(str_detect(response,"F")), #is there a F?
-    r_K = as.integer(str_detect(response,"K")), #is there a K?
-    r_D = as.integer(str_detect(response,"D")), #is there a D?
-    r_U = as.integer(str_detect(response,"U")), #is there a U?
-    r_E = as.integer(str_detect(response,"E")), #is there a E?
-    r_G = as.integer(str_detect(response,"G")), #is there a G?
-    r_B = as.integer(str_detect(response,"B")), #is there a B?
-    r_Z = as.integer(str_detect(response,"Z"))  #is there a Z?
-  ) 
-
-#test phase 
-item_responses_test <- item_responses_test %>% 
-  #split response to TF columns
-  mutate(
-    r_A = as.integer(str_detect(response,"A")), #is there a A?
-    r_B = as.integer(str_detect(response,"B")), #is there a B?
-    r_C = as.integer(str_detect(response,"C")), #is there a C?
-    r_D = as.integer(str_detect(response,"D")), #is there a D?
-    r_E = as.integer(str_detect(response,"E")), #is there a E?
-    r_F = as.integer(str_detect(response,"F")), #is there a F?
-    r_G = as.integer(str_detect(response,"G")), #is there a G?
-    r_H = as.integer(str_detect(response,"H")), #is there a H?
-    r_I = as.integer(str_detect(response,"I")), #is there a I?
-    r_J = as.integer(str_detect(response,"J")), #is there a J?
-    r_K = as.integer(str_detect(response,"K")), #is there a K?
-    r_L = as.integer(str_detect(response,"L")), #is there a L?
-    r_M = as.integer(str_detect(response,"M")), #is there a M?
-    r_N = as.integer(str_detect(response,"N")), #is there a N?
-    r_O = as.integer(str_detect(response,"O")), #is there a O?
-    r_P = as.integer(str_detect(response,"P")), #is there a P?
-    r_Z = as.integer(str_detect(response,"Z")), #is there a Z?
-    r_X = as.integer(str_detect(response,"X"))  #is there a X?
-  ) 
-
-#VALIDATE SPLIT
-
-#n rows in df_items should match sum of nrows in the sub dfs 
-
-nrow(df_items) == sum(nrow(item_responses_scaffold_111), nrow(item_responses_scaffold_121),
-
-                      nrow(item_responses_test))
-
-
-```
-
-Now we have three data frames (one for each group of questions: scaffold phase control condition, scaffold phase experimental condition, and test phase) with subjects' response encoded as a series of T/F \[1,0\] states across all response options (represented as columns prefaced with `r_`)
-
-```{r}
-head(item_responses_scaffold_111)
-```
-
-## Encode MAMC Answer Keys as MTF
-
-Next, we read the answer keys for the question sets. Note that there is an answer key unique to each experimental condition, because the experimental manipulation (impasse vs. control) is established by changing the pattern of the underlying dataset, which in turn yields different 'correct' answers. The divergence in answers across conditions only holds for the first five questions (the scaffold manipulation), while the following 10 questions are displayed with the same dataset (and thus have the same answers, regardless of condition).
-
-TODO UPDATE THIS Next, we split the answer key encoding into MTF encoding, just as we did for the response data. Each column indicates whether that response option *should be selected* in order to count as a correct response. Columns prefixed with `tri_` represent triangularly-correct response key, and those prefixed with `orth_` represent orthogonally-correct response key.
+## 
