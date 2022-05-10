@@ -179,11 +179,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <a href="../../analysis/SGC3A/3_sgc3A_exploration.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Exploration</span></a>
   </div>
 </li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../analysis/SGC3A/x_sgc3A_exploreResponse.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Response Exploration</span></a>
-  </div>
-</li>
     </ul>
   </li>
         <li class="sidebar-item">
@@ -200,17 +195,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"> <span class="header-section-number">1.1</span> INTRODUCTION</a></li>
-  <li><a href="#harmonization" id="toc-harmonization" class="nav-link" data-scroll-target="#harmonization"> <span class="header-section-number">1.2</span> HARMONIZATION</a>
+  <li><a href="#harmonization" id="toc-harmonization" class="nav-link active" data-scroll-target="#harmonization"> <span class="header-section-number">1.1</span> HARMONIZATION</a>
   <ul class="collapse">
-  <li><a href="#participants" id="toc-participants" class="nav-link" data-scroll-target="#participants"> <span class="header-section-number">1.2.1</span> Participants</a></li>
-  <li><a href="#items" id="toc-items" class="nav-link" data-scroll-target="#items"> <span class="header-section-number">1.2.2</span> Items</a>
+  <li><a href="#participants" id="toc-participants" class="nav-link" data-scroll-target="#participants"> <span class="header-section-number">1.1.1</span> Participants</a></li>
+  <li><a href="#items" id="toc-items" class="nav-link" data-scroll-target="#items"> <span class="header-section-number">1.1.2</span> Items</a>
   <ul class="collapse">
-  <li><a href="#validation" id="toc-validation" class="nav-link" data-scroll-target="#validation"> <span class="header-section-number">1.2.2.1</span> Validation</a></li>
+  <li><a href="#validation" id="toc-validation" class="nav-link" data-scroll-target="#validation"> <span class="header-section-number">1.1.2.1</span> Validation</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export"> <span class="header-section-number">1.3</span> EXPORT</a></li>
-  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources"> <span class="header-section-number">1.4</span> RESOURCES</a></li>
+  <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export"> <span class="header-section-number">1.2</span> EXPORT</a></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources"> <span class="header-section-number">1.3</span> RESOURCES</a></li>
   </ul>
 </nav>
     </div>
@@ -243,8 +237,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><em>The purpose of this notebook is to harmonize data files for study SGC_3A.</em></p>
 <table class="table">
 <colgroup>
-<col style="width: 55%">
-<col style="width: 44%">
+<col style="width: 83%">
+<col style="width: 16%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -259,8 +253,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 </tbody>
 </table>
-<section id="introduction" class="level2" data-number="1.1">
-<h2 data-number="1.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1.1</span> INTRODUCTION</h2>
+<section id="harmonization" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="harmonization"><span class="header-section-number">1.1</span> HARMONIZATION</h2>
 <p>Data for study SGC_3A were collected across four time periods, interrupted by the Covid-19 pandemic.</p>
 <table class="table">
 <thead>
@@ -289,12 +283,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tbody>
 </table>
 <p>Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.</p>
-</section>
-<section id="harmonization" class="level2" data-number="1.2">
-<h2 data-number="1.2" class="anchored" data-anchor-id="harmonization"><span class="header-section-number">1.2</span> HARMONIZATION</h2>
 <p>The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e.&nbsp;columns are not named consistently). In this section, we combine the files from each data collection period into a single <em>harmonized</em> data file for analysis (one for participants, one for items).</p>
-<section id="participants" class="level3" data-number="1.2.1">
-<h3 data-number="1.2.1" class="anchored" data-anchor-id="participants"><span class="header-section-number">1.2.1</span> Participants</h3>
+<section id="participants" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="participants"><span class="header-section-number">1.1.1</span> Participants</h3>
 <p>First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame <code>df_subjects</code> containing one row for each subject (across all periods). Note that we <em>are not</em> discarding any <em>response</em> data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.</p>
 <p><em>Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook.</em></p>
 <div class="cell">
@@ -403,8 +394,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 </section>
-<section id="items" class="level3" data-number="1.2.2">
-<h3 data-number="1.2.2" class="anchored" data-anchor-id="items"><span class="header-section-number">1.2.2</span> Items</h3>
+<section id="items" class="level3" data-number="1.1.2">
+<h3 data-number="1.1.2" class="anchored" data-anchor-id="items"><span class="header-section-number">1.1.2</span> Items</h3>
 <p>Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame <code>df_items</code> containing one row for each <em>graph comprehension task question</em> (qs=15) (across all periods). A second data frame <code>df_freeresponse</code> contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we <em>do not</em> discard any <em>response</em> data. Rather, we <em>do</em> discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.</p>
 <div class="cell">
 <details>
@@ -495,8 +486,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(fall17,fall21,spring18,winter22, map_relations)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="validation" class="level4" data-number="1.2.2.1">
-<h4 data-number="1.2.2.1" class="anchored" data-anchor-id="validation"><span class="header-section-number">1.2.2.1</span> Validation</h4>
+<section id="validation" class="level4" data-number="1.1.2.1">
+<h4 data-number="1.1.2.1" class="anchored" data-anchor-id="validation"><span class="header-section-number">1.1.2.1</span> Validation</h4>
 <p>Next, we validate that we have the complete number of item-level records based on the number of subject-level records</p>
 <div class="cell">
 <details>
@@ -519,8 +510,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 </section>
 </section>
-<section id="export" class="level2" data-number="1.3">
-<h2 data-number="1.3" class="anchored" data-anchor-id="export"><span class="header-section-number">1.3</span> EXPORT</h2>
+<section id="export" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="export"><span class="header-section-number">1.2</span> EXPORT</h2>
 <p>Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)</p>
 <div class="cell">
 <details>
@@ -537,8 +528,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 </section>
-<section id="resources" class="level2" data-number="1.4">
-<h2 data-number="1.4" class="anchored" data-anchor-id="resources"><span class="header-section-number">1.4</span> RESOURCES</h2>
+<section id="resources" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="resources"><span class="header-section-number">1.3</span> RESOURCES</h2>
 <div class="cell">
 <details>
 <summary>CODE</summary>
@@ -779,10 +770,10 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is to harmonize data files for study SGC_3A.*</span>
 <span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>| Pre-Requisite                                                                                                   | Followed By           |</span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>|----------------------------------------|--------------------------------|</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>|-----------------------------------------------------------------------------------------------------------------|-----------------------|</span>
 <span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>| spring17_clean_data.Rmd <span class="kw">&lt;br&gt;</span> spring18_clean_data.Rmd <span class="kw">&lt;br&gt;</span> fall21_clean_data.Rmd <span class="kw">&lt;br&gt;</span> winter2022_clean_sgc3a.Rmd | 2_sgc3A_rescoring.qmd |</span>
 <span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a><span class="fu">## INTRODUCTION</span></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a><span class="fu">## HARMONIZATION</span></span>
 <span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>Data for study SGC_3A were collected across four time periods, interrupted by the Covid-19 pandemic.</span>
 <span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a></span>
@@ -795,249 +786,247 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.</span>
 <span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## HARMONIZATION</span></span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).</span>
 <span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a><span class="fu">### Participants</span></span>
 <span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a><span class="fu">### Participants</span></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame <span class="in">`df_subjects`</span> containing one row for each subject (across all periods). Note that we *are not* discarding any *response* data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.</span>
 <span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame <span class="in">`df_subjects`</span> containing one row for each subject (across all periods). Note that we *are not* discarding any *response* data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.</span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>*Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook.*</span>
 <span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>*Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook.*</span>
-<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a><span class="in">```{r IMPORT-SUBJECTS}</span></span>
-<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT PARTICIPANT DATA</span></span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a><span class="co">#set datafiles</span></span>
-<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>fall17 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall17_sgc3a_participants.csv"</span></span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>spring18 <span class="ot">&lt;-</span> <span class="st">"data/session-level/spring18_sgc3a_participants.csv"</span></span>
-<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>fall21 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall21_sgc3a_participants.csv"</span></span>
-<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>winter22 <span class="ot">&lt;-</span> <span class="st">"data/session-level/winter22_sgc3a_participants.rds"</span></span>
-<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="co">#read datafiles, set mode and term</span></span>
-<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>df_subjects_fall17 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall17) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"fall17"</span>)</span>
-<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>df_subjects_spring18 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(spring18) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"spring18"</span>)</span>
-<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>df_subjects_fall21 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall21) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"asynch"</span>, <span class="at">term =</span> <span class="st">"fall21"</span>)</span>
-<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a>df_subjects_winter22 <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(winter22) <span class="co">#use RDS file as it contains metadata</span></span>
-<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE METADATA FROM WINTER, but no rows </span></span>
-<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> df_subjects_winter22 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition<span class="sc">==</span><span class="st">'X'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(</span>
-<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>  subject,condition,term,mode,</span>
-<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>  gender,age,language, schoolyear, country,</span>
-<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>  effort,difficulty,confidence,enjoyment,other,</span>
-<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>  totaltime_m,absolute_score</span>
-<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using OLD webapp to useful columns</span></span>
-<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>df_subjects_before <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_subjects_fall17, df_subjects_spring18, df_subjects_fall21) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>  <span class="co">#rename and summarize some columns</span></span>
-<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>    <span class="at">totaltime_m =</span> totalTime <span class="sc">/</span> <span class="dv">1000</span> <span class="sc">/</span> <span class="dv">60</span>,  </span>
-<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>    <span class="at">absolute_score =</span> triangular_score,</span>
-<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>    <span class="at">language =</span> native_language,</span>
-<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> sex,</span>
-<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>    <span class="at">schoolyear =</span> year) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>  <span class="co">#create placeholders for cols not collected until NEW webapp [for later rbind]</span></span>
-<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>    <span class="at">effort =</span> <span class="st">"NULL"</span>,</span>
-<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>    <span class="at">difficulty =</span> <span class="st">"NULL"</span>,</span>
-<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>    <span class="at">confidence =</span> <span class="st">"NULL"</span>,</span>
-<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>    <span class="at">enjoyment =</span> <span class="st">"NULL"</span>,</span>
-<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>    <span class="at">other =</span> <span class="st">"NULL"</span>,</span>
-<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>    <span class="at">disability =</span> <span class="st">"NULL"</span></span>
-<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
-<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(subject, condition, term, mode, </span>
-<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>                <span class="co">#demographics</span></span>
-<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>                gender, age, language, schoolyear, country,</span>
-<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>                <span class="co">#placeholder effort survey</span></span>
-<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>                effort, difficulty, confidence, enjoyment, </span>
-<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>                <span class="co">#placeholder misc </span></span>
-<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>                other, disability,</span>
-<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>                <span class="co">#response characteristics</span></span>
-<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>                totaltime_m, absolute_score)</span>
-<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a><span class="co">#save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp</span></span>
-<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>df_winter22_q16 <span class="ot">&lt;-</span> df_subjects_winter22 <span class="sc">%&gt;%</span> </span>
-<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term , mode, explanation) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="dv">16</span>,</span>
-<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> explanation</span>
-<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>explanation)</span>
-<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using NEW webapp to useful columns</span></span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>df_subjects_winter22 <span class="ot">&lt;-</span> df_subjects_winter22 <span class="sc">%&gt;%</span> </span>
-<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">score =</span> absolute_score) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
-<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>( subject, condition, term, mode, </span>
-<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#demographics</span></span>
-<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>                 gender, age, language, schoolyear, country,</span>
-<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#effort survey</span></span>
-<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>                 effort, difficulty, confidence, enjoyment, </span>
-<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#explanations</span></span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>                 other,disability,</span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#response characteristics</span></span>
-<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>                 totaltime_m, absolute_score)</span>
-<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a><span class="in">```{r IMPORT-SUBJECTS}</span></span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT PARTICIPANT DATA</span></span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a><span class="co">#set datafiles</span></span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>fall17 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall17_sgc3a_participants.csv"</span></span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>spring18 <span class="ot">&lt;-</span> <span class="st">"data/session-level/spring18_sgc3a_participants.csv"</span></span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>fall21 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall21_sgc3a_participants.csv"</span></span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>winter22 <span class="ot">&lt;-</span> <span class="st">"data/session-level/winter22_sgc3a_participants.rds"</span></span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a><span class="co">#read datafiles, set mode and term</span></span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>df_subjects_fall17 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall17) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"fall17"</span>)</span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>df_subjects_spring18 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(spring18) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"spring18"</span>)</span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>df_subjects_fall21 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall21) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"asynch"</span>, <span class="at">term =</span> <span class="st">"fall21"</span>)</span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>df_subjects_winter22 <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(winter22) <span class="co">#use RDS file as it contains metadata</span></span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE METADATA FROM WINTER, but no rows </span></span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> df_subjects_winter22 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition<span class="sc">==</span><span class="st">'X'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(</span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a>  subject,condition,term,mode,</span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>  gender,age,language, schoolyear, country,</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>  effort,difficulty,confidence,enjoyment,other,</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>  totaltime_m,absolute_score</span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using OLD webapp to useful columns</span></span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>df_subjects_before <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_subjects_fall17, df_subjects_spring18, df_subjects_fall21) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>  <span class="co">#rename and summarize some columns</span></span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>    <span class="at">totaltime_m =</span> totalTime <span class="sc">/</span> <span class="dv">1000</span> <span class="sc">/</span> <span class="dv">60</span>,  </span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>    <span class="at">absolute_score =</span> triangular_score,</span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>    <span class="at">language =</span> native_language,</span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> sex,</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>    <span class="at">schoolyear =</span> year) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>  <span class="co">#create placeholders for cols not collected until NEW webapp [for later rbind]</span></span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>    <span class="at">effort =</span> <span class="st">"NULL"</span>,</span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>    <span class="at">difficulty =</span> <span class="st">"NULL"</span>,</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>    <span class="at">confidence =</span> <span class="st">"NULL"</span>,</span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>    <span class="at">enjoyment =</span> <span class="st">"NULL"</span>,</span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>    <span class="at">other =</span> <span class="st">"NULL"</span>,</span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>    <span class="at">disability =</span> <span class="st">"NULL"</span></span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(subject, condition, term, mode, </span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>                <span class="co">#demographics</span></span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>                gender, age, language, schoolyear, country,</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>                <span class="co">#placeholder effort survey</span></span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>                effort, difficulty, confidence, enjoyment, </span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>                <span class="co">#placeholder misc </span></span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>                other, disability,</span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>                <span class="co">#response characteristics</span></span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>                totaltime_m, absolute_score)</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a><span class="co">#save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp</span></span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>df_winter22_q16 <span class="ot">&lt;-</span> df_subjects_winter22 <span class="sc">%&gt;%</span> </span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term , mode, explanation) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="dv">16</span>,</span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> explanation</span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>explanation)</span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using NEW webapp to useful columns</span></span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>df_subjects_winter22 <span class="ot">&lt;-</span> df_subjects_winter22 <span class="sc">%&gt;%</span> </span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">score =</span> absolute_score) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>( subject, condition, term, mode, </span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#demographics</span></span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>                 gender, age, language, schoolyear, country,</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#effort survey</span></span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>                 effort, difficulty, confidence, enjoyment, </span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#explanations</span></span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>                 other,disability,</span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#response characteristics</span></span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>                 totaltime_m, absolute_score)</span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>effort_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"I tried my best on each question"</span>, <span class="st">"I tried my best on most questions"</span>)</span>
 <span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>effort_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"I tried my best on each question"</span>, <span class="st">"I tried my best on most questions"</span>)</span>
-<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a><span class="co">#combine dataframes from old and new webapps</span></span>
-<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_subjects, df_subjects_winter22, df_subjects_before) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>  <span class="co">#refactor factors</span></span>
-<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span> (</span>
-<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
-<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
-<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term),</span>
-<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
-<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">factor</span>(gender),</span>
-<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>    <span class="at">schoolyear =</span> <span class="fu">as.factor</span>(schoolyear)</span>
-<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a><span class="co">#FIX METADATA</span></span>
-<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a><span class="co">#Add metadata for columns that lost it [factors, for some reason!]</span></span>
-<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>subject) <span class="ot">&lt;-</span> <span class="st">"ID of subject (randomly assigned in stimulus app)."</span></span>
-<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>condition) <span class="ot">&lt;-</span> <span class="st">"ID indicates randomly assigned condition (111 -&gt; control, 121 -&gt; impasse)."</span></span>
-<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>term) <span class="ot">&lt;-</span> <span class="st">"indicates if session was run with experimenter present or asynchronously"</span></span>
-<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>mode) <span class="ot">&lt;-</span> <span class="st">"indicates mode in which the participant completed the study"</span></span>
-<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>gender) <span class="ot">&lt;-</span> <span class="st">"What is your gender identity?"</span></span>
-<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>schoolyear) <span class="ot">&lt;-</span> <span class="st">"What is your year in school?"</span></span>
-<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a><span class="co">#CLEANUP</span></span>
-<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_winter22,df_subjects_before)</span>
-<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(fall17,fall21,spring18,winter22)</span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a><span class="co">#combine dataframes from old and new webapps</span></span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_subjects, df_subjects_winter22, df_subjects_before) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>  <span class="co">#refactor factors</span></span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span> (</span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
+<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term),</span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">factor</span>(gender),</span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>    <span class="at">schoolyear =</span> <span class="fu">as.factor</span>(schoolyear)</span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a><span class="co">#FIX METADATA</span></span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a><span class="co">#Add metadata for columns that lost it [factors, for some reason!]</span></span>
+<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>subject) <span class="ot">&lt;-</span> <span class="st">"ID of subject (randomly assigned in stimulus app)."</span></span>
+<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>condition) <span class="ot">&lt;-</span> <span class="st">"ID indicates randomly assigned condition (111 -&gt; control, 121 -&gt; impasse)."</span></span>
+<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>term) <span class="ot">&lt;-</span> <span class="st">"indicates if session was run with experimenter present or asynchronously"</span></span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>mode) <span class="ot">&lt;-</span> <span class="st">"indicates mode in which the participant completed the study"</span></span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>gender) <span class="ot">&lt;-</span> <span class="st">"What is your gender identity?"</span></span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_subjects<span class="sc">$</span>schoolyear) <span class="ot">&lt;-</span> <span class="st">"What is your year in school?"</span></span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a><span class="co">#CLEANUP</span></span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_winter22,df_subjects_before)</span>
+<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(fall17,fall21,spring18,winter22)</span>
+<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a><span class="fu">### Items</span></span>
 <span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a><span class="fu">### Items</span></span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a>Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame <span class="in">`df_items`</span> containing one row for each *graph comprehension task question* (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we *do not* discard any *response* data. Rather, we *do* discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.</span>
 <span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a>Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame <span class="in">`df_items`</span> containing one row for each *graph comprehension task question* (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we *do not* discard any *response* data. Rather, we *do* discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.</span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="in">```{r IMPORT-ITEMS}</span></span>
 <span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a><span class="in">```{r IMPORT-ITEMS}</span></span>
-<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a><span class="co">#set datafiles</span></span>
-<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a>fall17 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall17_sgc3a_blocks.csv"</span></span>
-<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a>spring18 <span class="ot">&lt;-</span> <span class="st">"data/session-level/spring18_sgc3a_blocks.csv"</span></span>
-<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a>fall21 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall21_sgc3a_blocks.csv"</span></span>
-<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a>winter22 <span class="ot">&lt;-</span> <span class="st">"data/session-level/winter22_sgc3a_items.rds"</span></span>
-<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a><span class="co">#read datafiles, set mode and term</span></span>
-<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a>df_items_fall17 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall17) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"fall17"</span>)</span>
-<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a>df_items_spring18 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(spring18) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"spring18"</span>)</span>
-<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a>df_items_fall21 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall21) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"asynch"</span>, <span class="at">term =</span> <span class="st">"fall21"</span>)</span>
-<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a>df_items_winter22 <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(winter22) <span class="co">#use RDS file as it contains metadata</span></span>
-<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a><span class="co">#get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files</span></span>
-<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a>map_relations <span class="ot">&lt;-</span> df_items_winter22 <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(q) <span class="sc">%&gt;%</span> <span class="fu">select</span>(q,relation) <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
-<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE METADATA FROM WINTER, but no rows </span></span>
-<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> df_items_winter22 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition<span class="sc">==</span><span class="st">'X'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(</span>
-<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a>  subject,condition,term,mode,</span>
-<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a>  question, q, answer, correct, rt_s</span>
-<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a>) </span>
-<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using old webapp</span></span>
-<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a>df_items_before <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_items_fall17, df_items_spring18, df_items_fall21) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rt_s =</span> rt <span class="sc">/</span> <span class="dv">1000</span>, <span class="at">correct =</span> <span class="fu">as.logical</span>(correct)) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term, mode, question, q, answer, correct, rt_s) </span>
-<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using new webapp</span></span>
-<span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a>df_items_winter22 <span class="ot">&lt;-</span> df_items_winter22 <span class="sc">%&gt;%</span> </span>
-<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term, mode, question, q, answer, correct, rt_s) <span class="sc">%&gt;%</span> <span class="co">#unfactor before combine</span></span>
-<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">as.character</span>(subject),</span>
-<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">as.character</span>(condition),</span>
-<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">as.character</span>(term),</span>
-<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">as.character</span>(mode),</span>
-<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="fu">as.integer</span>(q),</span>
-<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a>    <span class="at">correct =</span> <span class="fu">as.logical</span>(correct)</span>
-<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a><span class="co">#combine dataframes from old and new webapps</span></span>
-<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_items, df_items_winter22,df_items_before) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a>  <span class="co">#refactorize columns</span></span>
-<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb10-230"><a href="#cb10-230" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
-<span id="cb10-231"><a href="#cb10-231" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
-<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term),</span>
-<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
-<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="fu">as.integer</span>(q)) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a>  <span class="co">#rename answer column to RESPONSE </span></span>
-<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">response =</span> answer) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a>  <span class="co">#remove all commas and make as character string</span></span>
-<span id="cb10-238"><a href="#cb10-238" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb10-239"><a href="#cb10-239" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> <span class="fu">str_remove_all</span>(<span class="fu">as.character</span>(response), <span class="st">","</span>),</span>
-<span id="cb10-240"><a href="#cb10-240" aria-hidden="true" tabindex="-1"></a>    <span class="at">num_o =</span> <span class="fu">str_length</span>(response)</span>
-<span id="cb10-241"><a href="#cb10-241" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-242"><a href="#cb10-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-243"><a href="#cb10-243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-244"><a href="#cb10-244" aria-hidden="true" tabindex="-1"></a><span class="co">#FIX METADATA</span></span>
-<span id="cb10-245"><a href="#cb10-245" aria-hidden="true" tabindex="-1"></a><span class="co">#Add metadata for columns that lost it [factors, for some reason!]</span></span>
-<span id="cb10-246"><a href="#cb10-246" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>subject) <span class="ot">&lt;-</span> <span class="st">"ID of subject (randomly assigned in stimulus app)."</span></span>
-<span id="cb10-247"><a href="#cb10-247" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>condition) <span class="ot">&lt;-</span> <span class="st">"ID indicates randomly assigned condition (111 -&gt; control, 121 -&gt; impasse)."</span></span>
-<span id="cb10-248"><a href="#cb10-248" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>term) <span class="ot">&lt;-</span> <span class="st">"indicates if session was run with experimenter present or asynchronously"</span></span>
-<span id="cb10-249"><a href="#cb10-249" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>mode) <span class="ot">&lt;-</span> <span class="st">"indicates mode in which the participant completed the study"</span></span>
-<span id="cb10-250"><a href="#cb10-250" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>q) <span class="ot">&lt;-</span> <span class="st">"Question Number (in order)"</span></span>
-<span id="cb10-251"><a href="#cb10-251" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>correct) <span class="ot">&lt;-</span> <span class="st">"Is the response (strictly) correct? [dichotomous scoring]"</span></span>
-<span id="cb10-252"><a href="#cb10-252" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>response) <span class="ot">&lt;-</span> <span class="st">"options (datapoints) selected by the subject"</span></span>
-<span id="cb10-253"><a href="#cb10-253" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>num_o) <span class="ot">&lt;-</span> <span class="st">"number of options selected by the subject"</span></span>
-<span id="cb10-254"><a href="#cb10-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-255"><a href="#cb10-255" aria-hidden="true" tabindex="-1"></a><span class="co">#HANDLE FREE RESPONSE QUESTION #16 </span></span>
-<span id="cb10-256"><a href="#cb10-256" aria-hidden="true" tabindex="-1"></a><span class="co">#save `free response` Q#16 in its own dataframe</span></span>
-<span id="cb10-257"><a href="#cb10-257" aria-hidden="true" tabindex="-1"></a>df_freeresponse <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">16</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>question,<span class="sc">-</span>correct,<span class="sc">-</span>rt_s,<span class="sc">-</span>num_o)</span>
-<span id="cb10-258"><a href="#cb10-258" aria-hidden="true" tabindex="-1"></a><span class="co">#add data from wi22 [stored on subject data]</span></span>
-<span id="cb10-259"><a href="#cb10-259" aria-hidden="true" tabindex="-1"></a>df_freeresponse <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_freeresponse, df_winter22_q16)</span>
-<span id="cb10-260"><a href="#cb10-260" aria-hidden="true" tabindex="-1"></a><span class="co">#add question description</span></span>
-<span id="cb10-261"><a href="#cb10-261" aria-hidden="true" tabindex="-1"></a>df_freeresponse <span class="ot">&lt;-</span> df_freeresponse <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb10-262"><a href="#cb10-262" aria-hidden="true" tabindex="-1"></a>    <span class="at">question =</span> <span class="st">"Please describe how to determine what event(s) start at 12pm?"</span>,</span>
-<span id="cb10-263"><a href="#cb10-263" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> <span class="fu">as.character</span>(response) <span class="co">#doesn't need to be factor</span></span>
-<span id="cb10-264"><a href="#cb10-264" aria-hidden="true" tabindex="-1"></a>  ) </span>
-<span id="cb10-265"><a href="#cb10-265" aria-hidden="true" tabindex="-1"></a><span class="co">#remove 'free response' Q#16 from df_items</span></span>
-<span id="cb10-266"><a href="#cb10-266" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">!=</span> <span class="dv">16</span>)</span>
-<span id="cb10-267"><a href="#cb10-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-268"><a href="#cb10-268" aria-hidden="true" tabindex="-1"></a><span class="co">#CLEANUP</span></span>
-<span id="cb10-269"><a href="#cb10-269" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22, df_items_before, df_winter22_q16)</span>
-<span id="cb10-270"><a href="#cb10-270" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(fall17,fall21,spring18,winter22, map_relations)</span>
-<span id="cb10-271"><a href="#cb10-271" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a><span class="co">#set datafiles</span></span>
+<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a>fall17 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall17_sgc3a_blocks.csv"</span></span>
+<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a>spring18 <span class="ot">&lt;-</span> <span class="st">"data/session-level/spring18_sgc3a_blocks.csv"</span></span>
+<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a>fall21 <span class="ot">&lt;-</span> <span class="st">"data/session-level/fall21_sgc3a_blocks.csv"</span></span>
+<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a>winter22 <span class="ot">&lt;-</span> <span class="st">"data/session-level/winter22_sgc3a_items.rds"</span></span>
+<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a><span class="co">#read datafiles, set mode and term</span></span>
+<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a>df_items_fall17 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall17) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"fall17"</span>)</span>
+<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a>df_items_spring18 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(spring18) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"lab-synch"</span>, <span class="at">term =</span> <span class="st">"spring18"</span>)</span>
+<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a>df_items_fall21 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(fall21) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">mode =</span> <span class="st">"asynch"</span>, <span class="at">term =</span> <span class="st">"fall21"</span>)</span>
+<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a>df_items_winter22 <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(winter22) <span class="co">#use RDS file as it contains metadata</span></span>
+<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a><span class="co">#get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files</span></span>
+<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a>map_relations <span class="ot">&lt;-</span> df_items_winter22 <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(q) <span class="sc">%&gt;%</span> <span class="fu">select</span>(q,relation) <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
+<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE METADATA FROM WINTER, but no rows </span></span>
+<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> df_items_winter22 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition<span class="sc">==</span><span class="st">'X'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(</span>
+<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a>  subject,condition,term,mode,</span>
+<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a>  question, q, answer, correct, rt_s</span>
+<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using old webapp</span></span>
+<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a>df_items_before <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_items_fall17, df_items_spring18, df_items_fall21) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rt_s =</span> rt <span class="sc">/</span> <span class="dv">1000</span>, <span class="at">correct =</span> <span class="fu">as.logical</span>(correct)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term, mode, question, q, answer, correct, rt_s) </span>
+<span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using new webapp</span></span>
+<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a>df_items_winter22 <span class="ot">&lt;-</span> df_items_winter22 <span class="sc">%&gt;%</span> </span>
+<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term, mode, question, q, answer, correct, rt_s) <span class="sc">%&gt;%</span> <span class="co">#unfactor before combine</span></span>
+<span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">as.character</span>(subject),</span>
+<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">as.character</span>(condition),</span>
+<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">as.character</span>(term),</span>
+<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">as.character</span>(mode),</span>
+<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="fu">as.integer</span>(q),</span>
+<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a>    <span class="at">correct =</span> <span class="fu">as.logical</span>(correct)</span>
+<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a><span class="co">#combine dataframes from old and new webapps</span></span>
+<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_items, df_items_winter22,df_items_before) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a>  <span class="co">#refactorize columns</span></span>
+<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
+<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
+<span id="cb10-230"><a href="#cb10-230" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term),</span>
+<span id="cb10-231"><a href="#cb10-231" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
+<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="fu">as.integer</span>(q)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a>  <span class="co">#rename answer column to RESPONSE </span></span>
+<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">response =</span> answer) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a>  <span class="co">#remove all commas and make as character string</span></span>
+<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> <span class="fu">str_remove_all</span>(<span class="fu">as.character</span>(response), <span class="st">","</span>),</span>
+<span id="cb10-238"><a href="#cb10-238" aria-hidden="true" tabindex="-1"></a>    <span class="at">num_o =</span> <span class="fu">str_length</span>(response)</span>
+<span id="cb10-239"><a href="#cb10-239" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-240"><a href="#cb10-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-241"><a href="#cb10-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-242"><a href="#cb10-242" aria-hidden="true" tabindex="-1"></a><span class="co">#FIX METADATA</span></span>
+<span id="cb10-243"><a href="#cb10-243" aria-hidden="true" tabindex="-1"></a><span class="co">#Add metadata for columns that lost it [factors, for some reason!]</span></span>
+<span id="cb10-244"><a href="#cb10-244" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>subject) <span class="ot">&lt;-</span> <span class="st">"ID of subject (randomly assigned in stimulus app)."</span></span>
+<span id="cb10-245"><a href="#cb10-245" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>condition) <span class="ot">&lt;-</span> <span class="st">"ID indicates randomly assigned condition (111 -&gt; control, 121 -&gt; impasse)."</span></span>
+<span id="cb10-246"><a href="#cb10-246" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>term) <span class="ot">&lt;-</span> <span class="st">"indicates if session was run with experimenter present or asynchronously"</span></span>
+<span id="cb10-247"><a href="#cb10-247" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>mode) <span class="ot">&lt;-</span> <span class="st">"indicates mode in which the participant completed the study"</span></span>
+<span id="cb10-248"><a href="#cb10-248" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>q) <span class="ot">&lt;-</span> <span class="st">"Question Number (in order)"</span></span>
+<span id="cb10-249"><a href="#cb10-249" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>correct) <span class="ot">&lt;-</span> <span class="st">"Is the response (strictly) correct? [dichotomous scoring]"</span></span>
+<span id="cb10-250"><a href="#cb10-250" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>response) <span class="ot">&lt;-</span> <span class="st">"options (datapoints) selected by the subject"</span></span>
+<span id="cb10-251"><a href="#cb10-251" aria-hidden="true" tabindex="-1"></a><span class="fu">var_label</span>(df_items<span class="sc">$</span>num_o) <span class="ot">&lt;-</span> <span class="st">"number of options selected by the subject"</span></span>
+<span id="cb10-252"><a href="#cb10-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-253"><a href="#cb10-253" aria-hidden="true" tabindex="-1"></a><span class="co">#HANDLE FREE RESPONSE QUESTION #16 </span></span>
+<span id="cb10-254"><a href="#cb10-254" aria-hidden="true" tabindex="-1"></a><span class="co">#save `free response` Q#16 in its own dataframe</span></span>
+<span id="cb10-255"><a href="#cb10-255" aria-hidden="true" tabindex="-1"></a>df_freeresponse <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">16</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>question,<span class="sc">-</span>correct,<span class="sc">-</span>rt_s,<span class="sc">-</span>num_o)</span>
+<span id="cb10-256"><a href="#cb10-256" aria-hidden="true" tabindex="-1"></a><span class="co">#add data from wi22 [stored on subject data]</span></span>
+<span id="cb10-257"><a href="#cb10-257" aria-hidden="true" tabindex="-1"></a>df_freeresponse <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_freeresponse, df_winter22_q16)</span>
+<span id="cb10-258"><a href="#cb10-258" aria-hidden="true" tabindex="-1"></a><span class="co">#add question description</span></span>
+<span id="cb10-259"><a href="#cb10-259" aria-hidden="true" tabindex="-1"></a>df_freeresponse <span class="ot">&lt;-</span> df_freeresponse <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb10-260"><a href="#cb10-260" aria-hidden="true" tabindex="-1"></a>    <span class="at">question =</span> <span class="st">"Please describe how to determine what event(s) start at 12pm?"</span>,</span>
+<span id="cb10-261"><a href="#cb10-261" aria-hidden="true" tabindex="-1"></a>    <span class="at">response =</span> <span class="fu">as.character</span>(response) <span class="co">#doesn't need to be factor</span></span>
+<span id="cb10-262"><a href="#cb10-262" aria-hidden="true" tabindex="-1"></a>  ) </span>
+<span id="cb10-263"><a href="#cb10-263" aria-hidden="true" tabindex="-1"></a><span class="co">#remove 'free response' Q#16 from df_items</span></span>
+<span id="cb10-264"><a href="#cb10-264" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">!=</span> <span class="dv">16</span>)</span>
+<span id="cb10-265"><a href="#cb10-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-266"><a href="#cb10-266" aria-hidden="true" tabindex="-1"></a><span class="co">#CLEANUP</span></span>
+<span id="cb10-267"><a href="#cb10-267" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22, df_items_before, df_winter22_q16)</span>
+<span id="cb10-268"><a href="#cb10-268" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(fall17,fall21,spring18,winter22, map_relations)</span>
+<span id="cb10-269"><a href="#cb10-269" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-270"><a href="#cb10-270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-271"><a href="#cb10-271" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Validation</span></span>
 <span id="cb10-272"><a href="#cb10-272" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-273"><a href="#cb10-273" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Validation</span></span>
+<span id="cb10-273"><a href="#cb10-273" aria-hidden="true" tabindex="-1"></a>Next, we validate that we have the complete number of item-level records based on the number of subject-level records</span>
 <span id="cb10-274"><a href="#cb10-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-275"><a href="#cb10-275" aria-hidden="true" tabindex="-1"></a>Next, we validate that we have the complete number of item-level records based on the number of subject-level records</span>
+<span id="cb10-275"><a href="#cb10-275" aria-hidden="true" tabindex="-1"></a><span class="in">```{r RECONCILE}</span></span>
 <span id="cb10-276"><a href="#cb10-276" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-277"><a href="#cb10-277" aria-hidden="true" tabindex="-1"></a><span class="in">```{r RECONCILE}</span></span>
-<span id="cb10-278"><a href="#cb10-278" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-279"><a href="#cb10-279" aria-hidden="true" tabindex="-1"></a><span class="co">#the number of items should be equal to 15 x the number of subjects</span></span>
-<span id="cb10-280"><a href="#cb10-280" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(df_items) <span class="sc">==</span> <span class="dv">15</span><span class="sc">*</span> <span class="fu">nrow</span>(df_subjects) <span class="co">#TRUE</span></span>
-<span id="cb10-281"><a href="#cb10-281" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-282"><a href="#cb10-282" aria-hidden="true" tabindex="-1"></a><span class="co">#each subject should have 15 items</span></span>
-<span id="cb10-283"><a href="#cb10-283" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(subject) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(n <span class="sc">!=</span> <span class="dv">15</span>) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>() <span class="sc">==</span> <span class="dv">0</span></span>
+<span id="cb10-277"><a href="#cb10-277" aria-hidden="true" tabindex="-1"></a><span class="co">#the number of items should be equal to 15 x the number of subjects</span></span>
+<span id="cb10-278"><a href="#cb10-278" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(df_items) <span class="sc">==</span> <span class="dv">15</span><span class="sc">*</span> <span class="fu">nrow</span>(df_subjects) <span class="co">#TRUE</span></span>
+<span id="cb10-279"><a href="#cb10-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-280"><a href="#cb10-280" aria-hidden="true" tabindex="-1"></a><span class="co">#each subject should have 15 items</span></span>
+<span id="cb10-281"><a href="#cb10-281" aria-hidden="true" tabindex="-1"></a>df_items <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(subject) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(n <span class="sc">!=</span> <span class="dv">15</span>) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>() <span class="sc">==</span> <span class="dv">0</span></span>
+<span id="cb10-282"><a href="#cb10-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-283"><a href="#cb10-283" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-284"><a href="#cb10-284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-285"><a href="#cb10-285" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-285"><a href="#cb10-285" aria-hidden="true" tabindex="-1"></a><span class="fu">## EXPORT</span></span>
 <span id="cb10-286"><a href="#cb10-286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-287"><a href="#cb10-287" aria-hidden="true" tabindex="-1"></a><span class="fu">## EXPORT</span></span>
+<span id="cb10-287"><a href="#cb10-287" aria-hidden="true" tabindex="-1"></a>Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)</span>
 <span id="cb10-288"><a href="#cb10-288" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-289"><a href="#cb10-289" aria-hidden="true" tabindex="-1"></a>Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)</span>
+<span id="cb10-289"><a href="#cb10-289" aria-hidden="true" tabindex="-1"></a><span class="in">```{r GENERATE-FILES}</span></span>
 <span id="cb10-290"><a href="#cb10-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-291"><a href="#cb10-291" aria-hidden="true" tabindex="-1"></a><span class="in">```{r GENERATE-FILES}</span></span>
-<span id="cb10-292"><a href="#cb10-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-293"><a href="#cb10-293" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
-<span id="cb10-294"><a href="#cb10-294" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"data/sgc3a_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-295"><a href="#cb10-295" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_items,<span class="st">"data/sgc3a_items.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-296"><a href="#cb10-296" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_freeresponse,<span class="st">"data/sgc3a_items.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-297"><a href="#cb10-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-298"><a href="#cb10-298" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE R Data Structures </span></span>
-<span id="cb10-299"><a href="#cb10-299" aria-hidden="true" tabindex="-1"></a><span class="co">#export R DATA STRUCTURES (include codebook metadata)</span></span>
-<span id="cb10-300"><a href="#cb10-300" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_subjects, <span class="st">"data/sgc3a_participants.rds"</span>) <span class="co"># to R data structure file</span></span>
-<span id="cb10-301"><a href="#cb10-301" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_items, <span class="st">"data/sgc3a_items.rds"</span>) <span class="co"># to R data structure file</span></span>
+<span id="cb10-291"><a href="#cb10-291" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
+<span id="cb10-292"><a href="#cb10-292" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"data/sgc3a_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-293"><a href="#cb10-293" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_items,<span class="st">"data/sgc3a_items.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-294"><a href="#cb10-294" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_freeresponse,<span class="st">"data/sgc3a_items.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-295"><a href="#cb10-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-296"><a href="#cb10-296" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE R Data Structures </span></span>
+<span id="cb10-297"><a href="#cb10-297" aria-hidden="true" tabindex="-1"></a><span class="co">#export R DATA STRUCTURES (include codebook metadata)</span></span>
+<span id="cb10-298"><a href="#cb10-298" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_subjects, <span class="st">"data/sgc3a_participants.rds"</span>) <span class="co"># to R data structure file</span></span>
+<span id="cb10-299"><a href="#cb10-299" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_items, <span class="st">"data/sgc3a_items.rds"</span>) <span class="co"># to R data structure file</span></span>
+<span id="cb10-300"><a href="#cb10-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-301"><a href="#cb10-301" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-302"><a href="#cb10-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-303"><a href="#cb10-303" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-303"><a href="#cb10-303" aria-hidden="true" tabindex="-1"></a><span class="fu">## RESOURCES</span></span>
 <span id="cb10-304"><a href="#cb10-304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-305"><a href="#cb10-305" aria-hidden="true" tabindex="-1"></a><span class="fu">## RESOURCES</span></span>
-<span id="cb10-306"><a href="#cb10-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-309"><a href="#cb10-309" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-310"><a href="#cb10-310" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
-<span id="cb10-311"><a href="#cb10-311" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-307"><a href="#cb10-307" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-308"><a href="#cb10-308" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb10-309"><a href="#cb10-309" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
