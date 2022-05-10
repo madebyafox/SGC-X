@@ -1142,17 +1142,14 @@ calc_both_score <- function(question, condition, response){
   
 }
 
-
-
-
-
-
 ```
 
 
 ```{r}
 #| label: scoring-neuvaux
 
+
+#CALCULATE SUBSCORES (in loop)
 for (x in 1:nrow(df_items)) {
   
   #get properties of the RESPONSE ITEM
@@ -1161,249 +1158,29 @@ for (x in 1:nrow(df_items)) {
   r = df_items[x,'response'] %>% str_split("") %>% unlist()
 
   #calculate the main subscores
-  df_items[x,'s_TRI'] = calc_sub_score(keys_tri, qu, cond, r)
-  df_items[x,'s_ORTH'] = calc_sub_score(keys_orth, qu, cond, r)
-  df_items[x,'s_TV_max'] = calc_sub_score(keys_tversky_max, qu, cond, r)
-  df_items[x,'s_TV_start'] = calc_sub_score(keys_tversky_start, qu, cond, r)
-  df_items[x,'s_TV_end'] = calc_sub_score(keys_tversky_end, qu, cond, r)
-  df_items[x,'s_TV_duration'] = calc_sub_score(keys_tversky_duration, qu, cond, r)
-  
-  #calculate special subscores
-  df_items[x,'s_REF'] = calc_ref_score(qu, cond, r)
-  df_items[x,'s_BOTH'] = calc_both_score(qu, cond, r)
-   
+  df_items[x,'score_TRI'] = calc_sub_score(keys_tri, qu, cond, r)
+  df_items[x,'score_ORTH'] = calc_sub_score(keys_orth, qu, cond, r)
+  df_items[x,'score_TV_max'] = calc_sub_score(keys_tversky_max, qu, cond, r)
+  df_items[x,'score_TV_start'] = calc_sub_score(keys_tversky_start, qu, cond, r)
+  df_items[x,'score_TV_end'] = calc_sub_score(keys_tversky_end, qu, cond, r)
+  df_items[x,'score_TV_duration'] = calc_sub_score(keys_tversky_duration, qu, cond, r)
+
+  # #calculate special subscores
+  df_items[x,'score_REF'] = calc_ref_score(qu, cond, r)
+  df_items[x,'score_BOTH'] = calc_both_score(qu, cond, r)
+
+}
+
+  #CALCULATE ABSOLUTE SCORES
   #calculate absolute scores dichotomous
-  df_items[x,'score_ABS'] = as.integer(df_items[x,'correct']) 
+  df_items$score_ABS = as.integer(df_items$correct) 
   
   #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
-  df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
-  df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS'])
-   
-}
-
-```
-
-
-
-```{r}
-#| label: SCORING
-
-##———————————————————————————————————————————————————————————————
-##CALCULATE SCORES
-##———————————————————————————————————————————————————————————————
-#for each response (row), calculate p_s and q_s for that question
-for (x in 1:nrow(df_items)) {
-
-  #get properties of the RESPONSE ITEM
-  qu = df_items[x,'q']
-  cond = df_items[x,'condition']
-  r = df_items[x,'response'] %>% str_split("") %>% unlist()
-  
-  #get KEYS for this question for this condition
-  if (qu < 6) { #filter by condition
-    
-    #get triangular keys
-    tri_p = keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    tri_q = keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    tri_pn = keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
-    tri_qn = keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
-    
-    #get orthogonal keys
-     orth_p = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     orth_q = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     orth_pn = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
-     orth_qn = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
-     
-    #get TVERSKY MAX keys
-     tv_max_p = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_max_q = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_max_pn = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
-     tv_max_qn = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
-     
-    #get TVERSKY START keys
-     tv_start_p = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_start_q = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_start_pn = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
-     tv_start_qn = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
-     
-    #get TVERSKY END keys
-     tv_end_p = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_end_q = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_end_pn = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
-     tv_end_qn = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
-     
-    #get TVERSKY DURATION keys
-     tv_duration_p = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_duration_q = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_duration_pn = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
-     tv_duration_qn = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)   
-     
-    #get REFERENCE POINT keys
-     #1. GET reference point from ALSO column in raw keys
-     ref_p = keys_raw %>% filter(Q == qu) %>% filter(condition == cond) %>% select(ALSO) %>% pull(ALSO) %>% str_split("") %>% unlist()
-     #2. get all possible options [doesn't matter which key, they're all the same]
-     ref_n =keys_raw %>% filter(Q == qu) %>% filter(condition == cond) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
-     #3. calc answers that aren't the reference point
-     ref_q = setdiff(ref_n,ref_p)
-     #4. cal number of ps and qs 
-     ref_pn = length(ref_p)
-     ref_qn = length(ref_q)
-    
-     #Manually derive key for BOTH interpretation
-     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
-     both_p = union(tri_p, orth_p) #the selection of tri and p
-     #2. get all possible options [doesn't matter which key, they're all the same]
-     both_n =keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
-     #3. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
-     both_q = setdiff(both_n,both_p)
-     both_pn = length(both_p)
-     both_qn = length(both_q)
-        
-     
-    
-  } else { #don't filter on condition; all Q>6 are the same
-    
-    #get triangular keys
-    tri_p = keys_tri %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    tri_q = keys_tri %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    tri_pn = keys_tri %>% filter(Q == qu)  %>% select(n_p)
-    tri_qn = keys_tri %>% filter(Q == qu)  %>% select(n_q)
-    
-    #get orthogonal keys
-    orth_p = keys_orth %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    orth_q = keys_orth %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    orth_pn = keys_orth %>% filter(Q == qu) %>% select(n_p)
-    orth_qn = keys_orth %>% filter(Q == qu) %>% select(n_q)
-    
-     #get TVERSKY MAX keys
-     tv_max_p = keys_tversky_max %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_max_q = keys_tversky_max %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_max_pn = keys_tversky_max %>% filter(Q == qu) %>% select(n_p)
-     tv_max_qn = keys_tversky_max %>% filter(Q == qu) %>% select(n_q)
-     
-      #get TVERSKY START keys
-     tv_start_p = keys_tversky_start %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_start_q = keys_tversky_start %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_start_pn = keys_tversky_start %>% filter(Q == qu) %>% select(n_p)
-     tv_start_qn = keys_tversky_start %>% filter(Q == qu) %>% select(n_q)
-     
-     #get TVERSKY END keys
-     tv_end_p = keys_tversky_end %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_end_q = keys_tversky_end %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_end_pn = keys_tversky_end %>% filter(Q == qu) %>% select(n_p)
-     tv_end_qn = keys_tversky_end %>% filter(Q == qu) %>% select(n_q) 
-     
-     #get TVERSKY DURATION keys
-     tv_duration_p = keys_tversky_duration %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-     tv_duration_q = keys_tversky_duration %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-     tv_duration_pn = keys_tversky_duration %>% filter(Q == qu) %>% select(n_p)
-     tv_duration_qn = keys_tversky_duration %>% filter(Q == qu) %>% select(n_q)  
-     
-     #get REFERENCE POINT keys
-     #1. GET reference point from ALSO column in raw keys
-     ref_p = keys_raw %>% filter(Q == qu) %>% select(ALSO) %>% pull(ALSO) %>% str_split("") %>% unlist()
-     #2. get all possible options [doesn't matter which key, they're all the same]
-     ref_n =keys_raw %>% filter(Q == qu) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
-     #3. calc answers that aren't the reference point
-     ref_q = setdiff(ref_n,ref_p)
-     #4. cal number of ps and qs 
-     ref_pn = length(ref_p)
-     ref_qn = length(ref_q)
-     
-     #Manually derive key for BOTH interpretation
-     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
-     both_p = union(tri_p, orth_p) #the selection of tri and p
-     #2. get all possible options [doesn't matter which key, they're all the same]
-     both_n =keys_tri %>% filter(Q == qu) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
-     #3. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
-     both_q = both_n - both_p
-     both_pn = length(both_p)
-     both_qn = length(both_q)
-  }
-  
-  #calculate and save qs and ps
-  tri_ps = length(intersect(r,tri_p))
-  tri_qs = length(intersect(r,tri_q))
-  df_items[x,'tri_ps'] = tri_ps
-  df_items[x,'tri_qs'] = tri_qs
-  
-  orth_ps = length(intersect(r,orth_p))
-  orth_qs = length(intersect(r,orth_q))
-  df_items[x,'orth_ps'] = orth_ps
-  df_items[x,'orth_qs'] = orth_qs
-  
-  tv_max_ps = length(intersect(r,tv_max_p))
-  tv_max_qs = length(intersect(r,tv_max_q))
-  df_items[x,'tv_max_ps'] = tv_max_ps
-  df_items[x,'tv_max_qs'] = tv_max_qs
-  
-  tv_start_ps = length(intersect(r,tv_start_p))
-  tv_start_qs = length(intersect(r,tv_start_q))
-  df_items[x,'tv_start_ps'] = tv_start_ps
-  df_items[x,'tv_start_qs'] = tv_start_qs
-  
-  tv_end_ps = length(intersect(r,tv_end_p))
-  tv_end_qs = length(intersect(r,tv_end_q))
-  df_items[x,'tv_end_ps'] = tv_end_ps
-  df_items[x,'tv_end_qs'] = tv_end_qs
-
-  tv_duration_ps = length(intersect(r,tv_duration_p))
-  tv_duration_qs = length(intersect(r,tv_duration_q))
-  df_items[x,'tv_duration_ps'] = tv_duration_ps
-  df_items[x,'tv_duration_qs'] = tv_duration_qs
-  
-  ref_ps = length(intersect(r,ref_p))
-  ref_qs = length(intersect(r,ref_q))
-  df_items[x,'both_ps'] = ref_ps
-  df_items[x,'both_qs'] = ref_qs
-  
-  both_ps = length(intersect(r,both_p))
-  both_qs = length(intersect(r,both_q))
-  df_items[x,'both_ps'] = both_ps
-  df_items[x,'both_qs'] = both_qs
-  
-  #calculate subscores
-  # f_partialP <- function(t,p,f,q) 
-  df_items[x,'score_TRI'] = f_partialP(tri_ps,tri_pn,tri_qs,tri_qn)
-  df_items[x,'score_ORTH'] = f_partialP(orth_ps,orth_pn,orth_qs,orth_qn)
-  df_items[x,'score_BOTH'] = f_partialP(both_ps,both_pn,both_qs,both_qn)
-  df_items[x,'score_REF'] = f_partialP(ref_ps,ref_pn,ref_qs,ref_qn)
-  df_items[x,'score_TV_max'] = f_partialP(tv_max_ps,tv_max_pn,tv_max_qs,tv_max_qn)
-  df_items[x,'score_TV_start'] = f_partialP(tv_start_ps,tv_start_pn,tv_start_qs,tv_start_qn)
-  df_items[x,'score_TV_end'] = f_partialP(tv_end_ps,tv_end_pn,tv_end_qs,tv_end_qn)
-  df_items[x,'score_TV_duration'] = f_partialP(tv_duration_ps,tv_duration_pn,tv_duration_qs,tv_duration_qn)
-  
-  
-  #calculate permissive dichotomous
-  #for each item there is a single correct response 
-  #BUT there are also sometimes one or more technically-incorrect options that might have been selected
-  #for which we don't want to penalize the subject. For example, selecting the reference point of the 
-  #question IN ADDITION to the correct option.  (ie which start at the same time as X? if they select 
-  #the correct answer Y and also select the reference point X)
-  #These 'allowable' items are already accounted for in the triangular score logic, because the options
-  #that are 'allowed' are already excluded from the set_q in the keys_tri dataframe
-  df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
-  df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS'])
-  
-  #ALSO recast absolute score (strict ABS, not being nice and allowing the reference and visual error points)
-  df_items[x,'score_ABS'] = as.integer(df_items[x,'correct'])
-}
-
-#replace NaNs with 0
-#this occurs when the set of P answers is empty (ie. some of the tversky sets)
-# df_items$score_TV_duration[is.nan(df_items$score_TV_duration)] <- 0
-
-#cleanup
-rm(qu, cond, r,x)
-rm(orth_pn, orth_p, orth_qn, orth_q, orth_ps, orth_qs,  
-   tri_pn, tri_p, tri_qn, tri_q, tri_ps, tri_qs, 
-   tv_duration_pn, tv_duration_p, tv_duration_qn, tv_duration_q, tv_duration_ps, tv_duration_qs,
-   tv_end_pn, tv_end_p, tv_end_qn, tv_end_q, tv_end_ps, tv_end_qs,
-   tv_start_pn, tv_start_p, tv_start_qn, tv_start_q, tv_start_ps, tv_start_qs,
-   tv_max_pn, tv_max_p, tv_max_qn, tv_max_q, tv_max_ps, tv_max_qs,
-   both_pn, both_p, both_qn, both_q, both_ps, both_qs,
-   ref_pn, ref_p, ref_qn, ref_q, ref_ps, ref_qs)
-#TODO rm all ps and qs from df_items
+  df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
+ 
+  #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
+  # df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
+  # df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS']) 
 ```
 
 
@@ -1422,8 +1199,12 @@ TODO HANDLE CONFUSION
 #| label: DERIVE-INTERPRETATION
 
 df_items$best <- "?" #set to null
-threshold_variance = 0.2 #set required variance in subscores to be discriminant
+threshold_range = 0.5 #set required variance in subscores to be discriminant
 threshold_frenzy = 7
+
+
+
+# df_items <- backup
 for (x in 1:nrow(df_items)) {
   
   #CALCULATE MAX TVERSKY SUBSCORE
@@ -1431,16 +1212,23 @@ for (x in 1:nrow(df_items)) {
   t = df_items[x,] %>% select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration)
   t.long = gather(t,score, value, 1:4)
   
-  df_items[x,'score_TVERSKY'] = max(t.long$value)
+  #replace empty scores with NA so we can ignore them
+  #sometimes TVERSKY subscores are blank if they don't apply for that question 
+  t.long[t.long == ""] = NA
+
+  df_items[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
   df_items[x,'tv_type'] = t.long[which.max(t.long$value),'score']
+  
   
   #NOW CALCULATE VARIANCE IN SUBSCORES
   s = df_items[x,] %>% select(score_TRI, score_ORTH, score_TVERSKY)
-  s.long = gather(t,score, value, 1:3)
+  s.long = gather(s,score, value, 1:3)
   
-  #calculate and store variance in subscores
-  v = var(s.long$value)  
-  df_items[x,'var'] = v
+  #calculate the range between highest and lowest scores 
+  r = as.numeric(range(s.long$value,na.rm = TRUE))
+  r = diff(r)
+  df_items[x,'range'] = r
+  # print(s.long)
   
   #DISCRIMINANT BETWEEN SUBSCORES TO PREDICT BEST FIT INTERPRETATION
   
@@ -1452,13 +1240,16 @@ for (x in 1:nrow(df_items)) {
   
   #otherwise does the response perfectly match both TRI AND ORTH?
   else if( df_items[x,'score_BOTH'] == 1) {df_items[x,'best'] = "TRI + ORTH"}
+  
+  #otherwise does the response perfectly match the reference point
+  else if( df_items[x,'score_REF'] == 1) {df_items[x,'best'] = "reference"}
 
   #otherwise try to derive from subscores
   else {
    
    #is there enough variance between scores to be able to differentiate?
    
-    if (v < threshold_variance) {
+    if (r < threshold_range) {
       #then we can't predict the interpretation
     }
     else {
@@ -1476,13 +1267,15 @@ for (x in 1:nrow(df_items)) {
 
 #cleanup 
 rm(t, t.long, s, s.long)
+
+df_items %>% filter(q==2) %>% filter(response =="D") %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_REF, range, best)
 ```
 
 
 
 ```{r}
 
-test <- df_items %>% filter(q<6) %>% filter(condition == 111)
+test <- df_items %>% filter(q<6) %>% filter(condition == 111) %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_BOTH, score_REF, range, best)
 
 # gf_histogram(~score_TRI, data = test)
 # gf_histogram(~score_ORTH, data = test)
@@ -1624,18 +1417,24 @@ A number of alternative responses were given:
 
 title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
 df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
-   dplyr::summarise( count = n(), 
+ dplyr::summarise( count = n(), 
                     strict = unique(score_ABS), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
-                    DISC =  triangular - orthogonal
+                    tversky_max = unique(score_TV_max),
+                    tversky_start = unique(score_TV_start),
+                    tversky_end = unique(score_TV_end),
+                    tversky_duration = unique(score_TV_duration),
+                    best = unique(best)
+                    # DISC =  triangular - orthogonal
                     # DISC = (score_TRI - score_ORTH) 
-                    ) %>% arrange(-count) %>% cbind(interpretation) %>% 
-  arrange(desc(interpretation)) %>% 
-  select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
-  kbl(caption = title) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) %>% 
+                    ) %>% arrange(-count) %>% 
+    cbind(interpretation) %>% arrange(desc(interpretation)) %>%
+  select(response, count, interpretation, best, strict, nice, triangular, orthogonal, 
+         tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 4, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
   pack_rows("Triangular", 1, 2) %>% 
   pack_rows("Orthogonal", 3, 5) %>% 
   pack_rows("Lines-Connect", 6, 7) %>% 
@@ -1663,6 +1462,7 @@ Again, we see that most subjects selected a response consistent with one of the 
 
 #### Question #3
 
+PICK UP TROUBLESHOOTING INTERPRETATION ALGORITHM ABOVE, BASED ON MATCHES TO THESE SCORES HERE
 ```{r Q3-control}
 #| warning: false
 
@@ -1679,13 +1479,19 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
-                    DISC =  triangular - orthogonal
+                    tversky_max = unique(score_TV_max),
+                    tversky_start = unique(score_TV_start),
+                    tversky_end = unique(score_TV_end),
+                    tversky_duration = unique(score_TV_duration),
+                    best = unique(best)
+                    # DISC =  triangular - orthogonal
                     # DISC = (score_TRI - score_ORTH) 
-                    ) %>% arrange(-count) %>% cbind(interpretation) %>% 
-  arrange(desc(interpretation)) %>% 
-  select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
-  kbl(caption = title) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) %>% 
+                    ) %>% arrange(-count) %>% 
+    cbind(interpretation) %>% arrange(desc(interpretation)) %>%
+  select(response, count, interpretation, best, strict, nice, triangular, orthogonal, 
+         tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 4, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
   pack_rows("Triangular", 1, 1) %>% 
   pack_rows("Orthogonal", 2, 3) %>% 
   pack_rows("Lines-Connect", 4, 7) %>% 
