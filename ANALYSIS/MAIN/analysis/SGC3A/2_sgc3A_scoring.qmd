@@ -48,19 +48,19 @@ library(ggformula) #quick graphs
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
 
-| Pre-Requisite         | Followed By              |
-|-----------------------|--------------------------|
-| 1_sgc3a_harmonize.qmd | 3_sgc3A_descriptives.qmd |
+| Pre-Requisite         | Followed By             |
+|-----------------------|-------------------------|
+| 1_sgc3a_harmonize.qmd | 3_sgc3A_exploration.qmd |
 
-## INTRODUCTION
+## MULTIPLE RESPONSE SCORING
 
 The *graph comprehension task* of study SGC 3A presents readers with a graph, a question, and a series of checkboxes. Participants are instructed to use the graph to answer the question, and respond by selecting all the checkboxes that apply, where each checkbox corresponds to a datapoint in the graph.
 
 ![**Figure 1. Sample Graph Comprehension (Question \# 6)**](static/img/sample_graphComprehensionTask.png)
 
-In the psychological and education literatures on Tests & Measures, the format of this type of question is referred to as Multiple Response (MR), (also: Multiple Choice Multiple Answer (MCMA) and Multiple Answer Multiple Choice (MAMC)). It has a number of properties that make it different from traditional Single Answer Multiple Choice (SAMC) questions, where the respondent marks a single response from a number of options. In particular, there are a number of very different ways that MAMC questions can be *scored*.
+In the psychology and education literatures on Tests & Measures, the format of this type of question is referred to as Multiple Response (MR), (also: Multiple Choice Multiple Answer (MCMA) and Multiple Answer Multiple Choice (MAMC)). It has a number of properties that make it different from traditional Single Answer Multiple Choice (SAMC) questions, where the respondent marks a single response from a number of options. In particular, there are a number of very different ways that MAMC questions can be *scored*.
 
-In tranditional SAMC format questions, one point is given for selecting the option designated as correct, and zero points given for marking any of the alternative (i.e. distractor) options. Individual response options on MAMC questions, however might be partially correct ($i$), while responses on other answer options within the same item might be incorrect ($n – i$). In MAMC, it is not obvious how to allocate points when the respondent marks a true-correct option (i.e. options that *should* be selected), as well as one or more false-correct options (i.e. options that *should not* be selected). Should partial credit be awarded? If so, are options that respondents false-selected and false-unselected items equally penalized?
+In tranditional SAMC format questions, one point is given for selecting the option designated as correct, and zero points given for marking any of the alternative (i.e. distractor) options. Individual response options on MAMC questions, however might be partially correct ($i$), while responses on other answer options within the same item might be incorrect ($n – i$). In MR, it is not obvious how to allocate points when the respondent marks a true-correct option (i.e. options that *should* be selected, denoted $p$), as well as one or more false-correct options (i.e. options that *should not* be selected, denoted $q$). Should partial credit be awarded? If so, are options that respondents false-selected and false-unselected items equally penalized?
 
 @schmidtRelationExamineesTrue2021 performed a systematic literature review of publications proposing MAMC (or equivalent) scoring schemes, ultimately synthesizing over 80 sources into 27 distinct scoring approaches. Upon reviewing the benefits of trade-offs of each approach, for this study we choose utilize two of the schemes: **dichotomous scoring** ( @schmidtRelationExamineesTrue2021 scheme #1), and **partial scoring** $[-1/q,0, +1/p]$ ( @schmidtRelationExamineesTrue2021 scheme #26), as well as a scaled **discriminant score** that leverages partial scoring to discriminate between strategy-specific patterns of response.
 
@@ -70,13 +70,7 @@ First, we note that the question type evaluated by @schmidtRelationExamineesTrue
 
 ![**Figure 2. SAMC (vs) MAMC (vs) MTF**](static/img/MAMC-MTF.png){#fig-ItemTypes}
 
-In this example (@fig-ItemTypes), we see an example of a question with four response options ($n=4$) in each question type. In the **SAMC** approach (at left), there are four possible responses, given explicitly by the response options (respondent can select only one) $(\text{number of possible responses} = n)$. With only four possible responses, we cannot entirely discriminate between all combinations of the underlying response variants we might be interested in, and must always choose an 'ideal subset' of possible distractors to present as response options. In the MAMC (middle) and MTF (at right), the *same number of response options* ($n=4$) yield a much greater number $(\text{number of possible responses} = 2^{n})$. We can also see the equivalence between a MAMC and MTF format questions with the same response options. Options the respondent *selects* in MAMC are can be coded as T, and options they leave *unselected* can be coded as F. Thus, for response options (ABCD), a response of \[AB\] can be encoded as \[TTFF\].
-
-::: {.callout-caption appearance="simple"}
-## Decision
-
-In our analysis, we will transform the MAMC response string recorded for the participant (given in column `response`), to an MTF encoding.
-:::
+In this example (@fig-ItemTypes), we see an example of a question with four response options ($n=4$) in each question type. In the **SAMC** approach (at left), there are four possible responses, given explicitly by the response options (respondent can select only one) $(\text{number of possible responses} = n)$. With only four possible responses, we cannot entirely discriminate between all combinations of the underlying response variants we might be interested in, and must always choose an 'ideal subset' of possible distractors to present as response options. In the MAMC (middle) and MTF (at right), the *same number of response options* ($n=4$) yield a much greater number $(\text{number of possible responses} = 2^{n})$. We can also see the equivalence between a MAMC and MTF format questions with the same response options. Options the respondent *selects* in MAMC are can be coded as T, and options they leave *unselected* can be coded as F. Thus, for response options (ABCD), a response of \[AB\] can also be encoded as \[TTFF\].
 
 ### Scoring Schemes
 
@@ -235,11 +229,14 @@ f_partialP <- function(t,p,f,q) {
   #f = number of incorrect-selected options
   #q = number of false options
   #n = number of options + p + q
-  return( (t / p) - (f/q))
+  ifelse( (p == 0), return(""), "") #handle empty response set gracefully by returning nothing
+  ifelse( (p != 0), return( (t / p) - (f/q)), "")
+  
+  # return( (t / p) - (f/q))
 }
 ```
 
-#### Comparison of Schemes
+### Comparison of Schemes
 
 Which scoring scheme is most appropriate for the goals of the graph comprehension task?
 
@@ -442,7 +439,7 @@ Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate
 The Partial $[-1/q, +1/p]$ scheme is more appropriate for scoring the graph comprehension task than the Partial $[-1/n, +1/n]$ scheme because it allows us to differentially penalize incorrectly *selected* and incorrectly *not selected* answer options.
 :::
 
-## TODO A Discriminant Score
+### TODO A Discriminant Score
 
 Though it appears the Partial $[-1/q, +1/p]$ scheme is a more appropriate scoring method for differentiating between meaningful patterns of responses, it does have one significant limitation: it treats all incorrectly selected answer options in the same way.
 
@@ -530,7 +527,7 @@ f_discrim <- function(t_s,t,r_s,r){
 
 ## 
 
-## SCORE THE DATA
+## SCORE SGC DATA
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The graph comprehensiontask asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
@@ -550,7 +547,8 @@ In SGC_3A we are fundamentally interested in understanding how a participant int
 
 We start by importing the answer keys for each stimulus set. For each stimulus set (defined by condition+task phase) an answer key file exist that defines the set of response options that indicate each graph interpretation.
 
-```{r ANSWER-KEYS}
+```{r}
+#| label: IMPORT-KEYS
 #| warning: false
 #| message: false
 
@@ -558,7 +556,9 @@ key_111_raw <- read_csv('keys/SGC3A_scaffold_111_key.csv') %>% mutate(condition 
 key_121_raw <- read_csv('keys/SGC3A_scaffold_121_key.csv')%>% mutate(condition = 121, phase = "scaffold")
 key_test_raw <- read_csv('keys/SGC3A_test_key.csv')%>% mutate(condition = "", phase = "test")
 
-keys_raw <- rbind(key_111_raw, key_121_raw, key_test_raw)
+#TODO decompose tversky responses for key_121_raw and key_test_raw
+
+keys_raw <- rbind(key_111_raw) #, key_121_raw, key_test_raw)
 rm(key_111_raw, key_121_raw, key_test_raw)
 ```
 
@@ -568,78 +568,24 @@ In order to calculate scores using the $[-1/q, +1/p]$ algorithm, we need to defi
 
 -   SET P = all options that should be selected (rewarded as +1/p) $P \subset N$
 
--   SET A = items that should not be selected, but if they are, don't penalize (ignored) $A \subset N$
+-   SET A = items that should not be selected, but if they are, don't penalize (ignored). These include any options referenced in the question (i.e. select shifts that start at the same time as X; don't penalize if they also select 'X'), as well as options within 0.5hr offset from the data point to accommodate reasonable visual errors.$A \subset N$
 
--   SET Q = all options that should NOT be selected (penalized as -1/q) $Q = N - (P \cup A)$
+-   SET Q = all options that should NOT be selected (penalized as -1/q). These are options that weren't referenced in the question and aren't within 0.5hr of the correct option.  $Q = N - (P \cup A)$
 
-```{r KEY-SETS}
+
+#### Triangular Key
+First we construct the key set based on the 'Triangular' interpretation (ie. the actually correct answers).
+TODO EXAMPLE IMAGE
+
+```{r}
+#| label: KEY-SET-TRI
 verify = c() #sanity check
-
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT ORTHOGONAL KEY SET
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_orth <- keys_raw %>% 
-  select(Q, condition, OPTIONS, ORTHOGONAL, ORTHve, ALSO, TRIANGULAR) %>% 
-  mutate(
-    
-    #replace NAs 
-    ORTHve = str_replace_na(ORTHve,""),
-    ALSO = str_replace_na(ALSO,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = ORTHOGONAL,
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(ORTHve,ALSO, sep=""),
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DEFINE SETS N, P, A
-for (x in 1:nrow(keys_orth)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_orth[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_orth[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_orth[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_orth[x,'set_q'] = Q
-  keys_orth[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-
 ##——————————————————————————————————————————————————————————————————————
 ##CONSTRUCT TRIANGULAR KEY SET
 ##——————————————————————————————————————————————————————————————————————
 #1. DEFINE SETS N, P, A
 keys_tri <- keys_raw %>% 
-  select(Q, condition, OPTIONS, TRIANGULAR, TRIve, ALSO, ORTHOGONAL) %>% 
+  select(Q, condition, OPTIONS, TRIANGULAR, TRIve, ALSO) %>% 
   mutate(
     
     #replace NAs 
@@ -697,30 +643,553 @@ rm(N,A,P,Q,n_q,s,x,tempunion)
   
 ```
 
-This leaves us with two dataframes `keys_orth` and `keys_tri` that define the sets of response options consistent with each graph interpretation
+This leaves us a dataframe `keys_tri` that define the sets of response options consistent with the triangular graph interpretation.
 
 To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once).
 
-`r verify` \*\*TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
+`r verify` TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
+
+#### Orthogonal Key
+
+TODO EXAMPLE IMAGE
+Next we construct the key set based on the 'Orthogonal' interpretation. 
+```{r}
+#| label: KEY-SET-ORTH
+verify = c() #sanity check
+
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT ORTHOGONAL KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_orth <- keys_raw %>% 
+  select(Q, condition, OPTIONS, ORTHOGONAL, ORTHve, ALSO) %>% 
+  mutate(
+    
+    #replace NAs 
+    ORTHve = str_replace_na(ORTHve,""),
+    ALSO = str_replace_na(ALSO,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = ORTHOGONAL,
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(ORTHve,ALSO, sep=""),
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_orth)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_orth[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_orth[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_orth[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_orth[x,'set_q'] = Q
+  keys_orth[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+```
+
+This leaves us a dataframe `keys_orth` that define the sets of response options consistent with the orthogonal graph interpretation.
+
+To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once).
+
+`r verify` TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
+
+
+#### Tversky Keys
+
+TODO EXAMPLE IMAGE
+Next we construct the key set based on the 'Tversky' interpretation. The term Tversky is shorthand for a partial interpretation of the coordinate system where subjects select a set of responses that lay along a connecting line from the referenced data point or referenced time for that item.  The term is named for Barbara Tversky based on her work on graphical primitives (e.g. "lines connect").
+
+```{r}
+#| label: KEY-SETS-TVERSKY
+
+verify_max = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-MAX
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_max <- keys_raw %>% 
+  select(Q, condition, OPTIONS, ALSO, TV_max, TV_max_ve) %>% 
+  mutate(
+  
+    #replace NAs 
+    ALSO = str_replace_na(ALSO,""),
+    TV_max = str_replace_na(TV_max,""),
+    TV_max_ve = str_replace_na(TV_max_ve,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_max,
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_max_ve,ALSO, sep=""),
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_max)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_max[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_max[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_max[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_max[x,'set_q'] = Q
+  keys_tversky_max[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_max[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_max <- keys_tversky_max %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+verify_tversky_start = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-START
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_start <- keys_raw %>% 
+  select(Q, condition, OPTIONS, ALSO, TV_start, TV_start_ve) %>% 
+  mutate(
+  
+    #replace NAs 
+    ALSO = str_replace_na(ALSO,""),
+    TV_start = str_replace_na(TV_start,""),
+    TV_start_ve = str_replace_na(TV_start_ve,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_start,
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_start_ve,ALSO, sep=""),
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_start)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_start[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_start[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_start[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_start[x,'set_q'] = Q
+  keys_tversky_start[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tversky_start[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_start <- keys_tversky_start %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+
+verify_tversky_end = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-END
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_end <- keys_raw %>% 
+  select(Q, condition, OPTIONS, ALSO, TV_end, TV_end_ve) %>% 
+  mutate(
+  
+    #replace NAs 
+    ALSO = str_replace_na(ALSO,""),
+    TV_end = str_replace_na(TV_end,""),
+    TV_end_ve = str_replace_na(TV_end_ve,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_end,
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_end_ve,ALSO, sep=""),
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_end)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_end[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_end[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_end[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_end[x,'set_q'] = Q
+  keys_tversky_end[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tversky_end[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_end <- keys_tversky_end %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+verify_tversky_duration = c()
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-DURATION
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_duration <- keys_raw %>% 
+  select(Q, condition, OPTIONS, ALSO, TV_dur, TV_dur_ve) %>% 
+  mutate(
+  
+    #replace NAs 
+    ALSO = str_replace_na(ALSO,""),
+    TV_dur = str_replace_na(TV_dur,""),
+    TV_dur_ve = str_replace_na(TV_dur_ve,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_dur,
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_dur_ve,ALSO, sep=""),
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_duration)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_duration[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_duration[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_duration[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_duration[x,'set_q'] = Q
+  keys_tversky_duration[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tversky_duration[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_duration <- keys_tversky_duration %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+
+```
+
+This leaves us four dataframes, each corresponding to a different variant of a 'lines connecting to reference point' strategy.  
+- `keys_tversky_max` : the superset of lines connecting options 
+- `keys_tversky_start` : lines connecting to the rightward diagonal (start time) of the reference point
+- `keys_tversky_end`: lines connecting to the leftward diagonal (end time) of the reference point
+- `keys_tversky_duration`: lines connecting to the horizontal y-intercept (duration) of the reference point
+
+
+To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once).
+
+`r verify_max` TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
+`r verify_tversky_start`
+`r verify_tversky_end`
+`r verify_tversky_duration`
+
 
 ### Score Items
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (keys_orth, keys_tri), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item, and can be used to determine which graph interpretation the subject held.\
 `score_TRI` (how triangular was the subject's response?) `score_ORTH`(how orthogonal was the subject's response)
 
-```{r IMPORT-DATA}
+```{r}
+#| label: IMPORT-ITEMS
+
+df_test <- read_rds('data/sgc3a_items.rds')
 df_items <- read_rds('data/sgc3a_items.rds')
 df_items <- df_items %>% filter(q < 6) %>% filter(condition == 111)
 
 ```
 
-*note: this cell takes approximately 3 minutes to run*
+*note: this cell takes several minutes to run and is not optimized*
 
 ```{r}
-#| label: SCORE
+#| label: SCORING-FUNCTIONS
+
+
+#CALCULATE THE TRIANGULAR, ORTHOGONAL OR TVERSKIAN SUBSCORES FROM KEYFRAME
+calc_sub_score <- function(keyframe, question, condition, response){
+  
+  #TODO verify type is in df_keymap$score
+  #type must be one of "tri", "orth", "tv_max", "tv_start", "tv_end", "tv_duration", "both", "ref"
+  #keyframe must be one of keys_raw, keys_tri, "keys_orth", "keys_tversky_max", "keys_tversky_start", "keys_tversky_end", "keys_tversky_duration", 
+  
+  #STEP 1 GET KEY 
+  if (question < 6) #for q1 - q5 find key for question by condition
+  {
+    # print(keyframe)
+    #GET KEY FOR THIS SCORE TYPE, QUESTION AND CONDITION
+    p =  keyframe %>% filter(Q == question) %>% filter(condition == condition) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% filter(condition == condition) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% filter(condition == condition) %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == condition) %>% select(n_q) 
+
+  } else {
+    #GET KEY FOR THIS SCORE TYPE, QUESTION 
+    p =  keyframe %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% select(n_q) 
+  }
+  
+  #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  ps = length(intersect(r,p))
+  qs = length(intersect(r,q))
+  # df_items[x,'tri_ps'] = tri_ps
+  # df_items[x,'tri_qs'] = tri_qs
+  
+  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
+  x = f_partialP(ps,pn,qs,qn)
+  
+  #cleanup
+  rm(p,q,pn,qn,ps,qs)
+  
+  return(x) #true correct, trues, false correct, falses
+  
+}
+
+#CALCULATE THE REFERENCE SCORES
+calc_ref_score <- function(question, condition, response){
+  
+  #STEP 1 GET KEY for this question and condition
+  if (question < 6) #for q1 - q5 find key for question by condition
+  {
+     #1. GET reference point from ALSO column in raw keys
+     ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == condition) %>% select(ALSO) %>% pull(ALSO) %>% str_split("") %>% unlist()
+     #2. get all possible options [doesn't matter which key, they're all the same]
+     ref_n =keys_raw %>% filter(Q == question) %>% filter(condition == condition) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
+     #3. calc answers that aren't the reference point
+     ref_q = setdiff(ref_n,ref_p)
+     #4. cal number of ps and qs 
+     ref_pn = length(ref_p)
+     ref_qn = length(ref_q)
+  } else {
+    #get REFERENCE POINT keys for this question
+     #1. GET reference point from ALSO column in raw keys
+     ref_p = keys_raw %>% filter(Q == question) %>% select(ALSO) %>% pull(ALSO) %>% str_split("") %>% unlist()
+     #2. get all possible options [doesn't matter which key, they're all the same]
+     ref_n =keys_raw %>% filter(Q == question) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
+     #3. calc answers that aren't the reference point
+     ref_q = setdiff(ref_n,ref_p)
+     #4. cal number of ps and qs 
+     ref_pn = length(ref_p)
+     ref_qn = length(ref_q)
+  }
+    
+  #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  ref_ps = length(intersect(response,ref_p))
+  ref_qs = length(intersect(response,ref_q))
+  # df_items[x,'both_ps'] = ref_ps
+  # df_items[x,'both_qs'] = ref_qs     
+ 
+  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
+  x = f_partialP(ref_ps,ref_pn,ref_qs,ref_qn)
+  
+  #cleanup
+  rm(ref_p,ref_q,ref_pn,ref_qn,ref_ps,ref_qs)   
+  
+  return(x) #true correct, trues, false correct, falses
+
+}
+
+
+#CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
+calc_both_score <- function(question, condition, response){
+  
+  #STEP 1 GET KEY for this question and condition
+  if (question < 6) #for q1 - q5 find key for question by condition
+  {
+     #grab the tri and orth keys for this question as well as N option set
+     tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == condition) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     orth_p = keys_orth %>% filter(Q == question) %>% filter(condition == condition) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     set_n =  keys_tri %>%  filter(Q == question) %>% filter(condition == condition) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+     both_p = union(tri_p, orth_p) #the selection of tri and p
+     #2. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
+     both_q = setdiff(set_n,both_p)
+     both_pn = length(both_p)
+     both_qn = length(both_q)
+  } else{
+    
+     #grab the tri and orth keys for this question as well as N option set
+     tri_p =  keys_tri %>%  filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     orth_p = keys_orth %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     set_n =  keys_tri %>%  filter(Q == question) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+     both_p = union(tri_p, orth_p) #the selection of tri and p
+     #2. calc answers that shouldn't be selected as difference between N [same for all keys] and both_p
+     both_q = setdiff(set_n,both_p)
+     both_pn = length(both_p)
+     both_qn = length(both_q)
+  }
+    
+  #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  both_ps = length(intersect(response,both_p))
+  both_qs = length(intersect(response,both_q))
+  # df_items[x,'both_ps'] = both_ps
+  # df_items[x,'both_qs'] = both_qs
+ 
+  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
+  x = f_partialP(both_ps,both_pn,both_qs,both_qn)
+  
+  #cleanup
+  rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs)   
+  
+  return(x) #true correct, trues, false correct, falses
+  
+}
+
+
+
+
+
+
+```
+
+
+```{r}
+#| label: scoring-neuvaux
+
+for (x in 1:nrow(df_items)) {
+  
+  #get properties of the RESPONSE ITEM
+  qu = df_items[x,'q']
+  cond = df_items[x,'condition']
+  r = df_items[x,'response'] %>% str_split("") %>% unlist()
+
+  #calculate the main subscores
+  df_items[x,'s_TRI'] = calc_sub_score(keys_tri, qu, cond, r)
+  df_items[x,'s_ORTH'] = calc_sub_score(keys_orth, qu, cond, r)
+  df_items[x,'s_TV_max'] = calc_sub_score(keys_tversky_max, qu, cond, r)
+  df_items[x,'s_TV_start'] = calc_sub_score(keys_tversky_start, qu, cond, r)
+  df_items[x,'s_TV_end'] = calc_sub_score(keys_tversky_end, qu, cond, r)
+  df_items[x,'s_TV_duration'] = calc_sub_score(keys_tversky_duration, qu, cond, r)
+  
+  #calculate special subscores
+  df_items[x,'s_REF'] = calc_ref_score(qu, cond, r)
+  df_items[x,'s_BOTH'] = calc_both_score(qu, cond, r)
+   
+  #calculate absolute scores dichotomous
+  df_items[x,'score_ABS'] = as.integer(df_items[x,'correct']) 
+  
+  #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
+  df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
+  df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS'])
+   
+}
+
+```
+
+
+
+```{r}
+#| label: SCORING
 
 ##———————————————————————————————————————————————————————————————
-##CALCULATE P AND Q for ORTH AND TRI
+##CALCULATE SCORES
 ##———————————————————————————————————————————————————————————————
 #for each response (row), calculate p_s and q_s for that question
 for (x in 1:nrow(df_items)) {
@@ -731,7 +1200,7 @@ for (x in 1:nrow(df_items)) {
   r = df_items[x,'response'] %>% str_split("") %>% unlist()
   
   #get KEYS for this question for this condition
-  if (qu < 6) { 
+  if (qu < 6) { #filter by condition
     
     #get triangular keys
     tri_p = keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
@@ -744,8 +1213,55 @@ for (x in 1:nrow(df_items)) {
      orth_q = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
      orth_pn = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
      orth_qn = keys_orth %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
+     
+    #get TVERSKY MAX keys
+     tv_max_p = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_max_q = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_max_pn = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
+     tv_max_qn = keys_tversky_max %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
+     
+    #get TVERSKY START keys
+     tv_start_p = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_start_q = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_start_pn = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
+     tv_start_qn = keys_tversky_start %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
+     
+    #get TVERSKY END keys
+     tv_end_p = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_end_q = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_end_pn = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
+     tv_end_qn = keys_tversky_end %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)
+     
+    #get TVERSKY DURATION keys
+     tv_duration_p = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_duration_q = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_duration_pn = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_p)
+     tv_duration_qn = keys_tversky_duration %>% filter(Q == qu) %>% filter(condition == cond) %>% select(n_q)   
+     
+    #get REFERENCE POINT keys
+     #1. GET reference point from ALSO column in raw keys
+     ref_p = keys_raw %>% filter(Q == qu) %>% filter(condition == cond) %>% select(ALSO) %>% pull(ALSO) %>% str_split("") %>% unlist()
+     #2. get all possible options [doesn't matter which key, they're all the same]
+     ref_n =keys_raw %>% filter(Q == qu) %>% filter(condition == cond) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
+     #3. calc answers that aren't the reference point
+     ref_q = setdiff(ref_n,ref_p)
+     #4. cal number of ps and qs 
+     ref_pn = length(ref_p)
+     ref_qn = length(ref_q)
     
-  } else {
+     #Manually derive key for BOTH interpretation
+     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+     both_p = union(tri_p, orth_p) #the selection of tri and p
+     #2. get all possible options [doesn't matter which key, they're all the same]
+     both_n =keys_tri %>% filter(Q == qu) %>% filter(condition == cond) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+     #3. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
+     both_q = setdiff(both_n,both_p)
+     both_pn = length(both_p)
+     both_qn = length(both_q)
+        
+     
+    
+  } else { #don't filter on condition; all Q>6 are the same
     
     #get triangular keys
     tri_p = keys_tri %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
@@ -758,46 +1274,271 @@ for (x in 1:nrow(df_items)) {
     orth_q = keys_orth %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
     orth_pn = keys_orth %>% filter(Q == qu) %>% select(n_p)
     orth_qn = keys_orth %>% filter(Q == qu) %>% select(n_q)
+    
+     #get TVERSKY MAX keys
+     tv_max_p = keys_tversky_max %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_max_q = keys_tversky_max %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_max_pn = keys_tversky_max %>% filter(Q == qu) %>% select(n_p)
+     tv_max_qn = keys_tversky_max %>% filter(Q == qu) %>% select(n_q)
+     
+      #get TVERSKY START keys
+     tv_start_p = keys_tversky_start %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_start_q = keys_tversky_start %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_start_pn = keys_tversky_start %>% filter(Q == qu) %>% select(n_p)
+     tv_start_qn = keys_tversky_start %>% filter(Q == qu) %>% select(n_q)
+     
+     #get TVERSKY END keys
+     tv_end_p = keys_tversky_end %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_end_q = keys_tversky_end %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_end_pn = keys_tversky_end %>% filter(Q == qu) %>% select(n_p)
+     tv_end_qn = keys_tversky_end %>% filter(Q == qu) %>% select(n_q) 
+     
+     #get TVERSKY DURATION keys
+     tv_duration_p = keys_tversky_duration %>% filter(Q == qu) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     tv_duration_q = keys_tversky_duration %>% filter(Q == qu) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+     tv_duration_pn = keys_tversky_duration %>% filter(Q == qu) %>% select(n_p)
+     tv_duration_qn = keys_tversky_duration %>% filter(Q == qu) %>% select(n_q)  
+     
+     #get REFERENCE POINT keys
+     #1. GET reference point from ALSO column in raw keys
+     ref_p = keys_raw %>% filter(Q == qu) %>% select(ALSO) %>% pull(ALSO) %>% str_split("") %>% unlist()
+     #2. get all possible options [doesn't matter which key, they're all the same]
+     ref_n =keys_raw %>% filter(Q == qu) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
+     #3. calc answers that aren't the reference point
+     ref_q = setdiff(ref_n,ref_p)
+     #4. cal number of ps and qs 
+     ref_pn = length(ref_p)
+     ref_qn = length(ref_q)
+     
+     #Manually derive key for BOTH interpretation
+     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+     both_p = union(tri_p, orth_p) #the selection of tri and p
+     #2. get all possible options [doesn't matter which key, they're all the same]
+     both_n =keys_tri %>% filter(Q == qu) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+     #3. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
+     both_q = both_n - both_p
+     both_pn = length(both_p)
+     both_qn = length(both_q)
   }
   
   #calculate and save qs and ps
   tri_ps = length(intersect(r,tri_p))
   tri_qs = length(intersect(r,tri_q))
-  orth_ps = length(intersect(r,orth_p))
-  orth_qs = length(intersect(r,orth_q))
-  
   df_items[x,'tri_ps'] = tri_ps
   df_items[x,'tri_qs'] = tri_qs
+  
+  orth_ps = length(intersect(r,orth_p))
+  orth_qs = length(intersect(r,orth_q))
   df_items[x,'orth_ps'] = orth_ps
   df_items[x,'orth_qs'] = orth_qs
- 
+  
+  tv_max_ps = length(intersect(r,tv_max_p))
+  tv_max_qs = length(intersect(r,tv_max_q))
+  df_items[x,'tv_max_ps'] = tv_max_ps
+  df_items[x,'tv_max_qs'] = tv_max_qs
+  
+  tv_start_ps = length(intersect(r,tv_start_p))
+  tv_start_qs = length(intersect(r,tv_start_q))
+  df_items[x,'tv_start_ps'] = tv_start_ps
+  df_items[x,'tv_start_qs'] = tv_start_qs
+  
+  tv_end_ps = length(intersect(r,tv_end_p))
+  tv_end_qs = length(intersect(r,tv_end_q))
+  df_items[x,'tv_end_ps'] = tv_end_ps
+  df_items[x,'tv_end_qs'] = tv_end_qs
+
+  tv_duration_ps = length(intersect(r,tv_duration_p))
+  tv_duration_qs = length(intersect(r,tv_duration_q))
+  df_items[x,'tv_duration_ps'] = tv_duration_ps
+  df_items[x,'tv_duration_qs'] = tv_duration_qs
+  
+  ref_ps = length(intersect(r,ref_p))
+  ref_qs = length(intersect(r,ref_q))
+  df_items[x,'both_ps'] = ref_ps
+  df_items[x,'both_qs'] = ref_qs
+  
+  both_ps = length(intersect(r,both_p))
+  both_qs = length(intersect(r,both_q))
+  df_items[x,'both_ps'] = both_ps
+  df_items[x,'both_qs'] = both_qs
+  
   #calculate subscores
   # f_partialP <- function(t,p,f,q) 
   df_items[x,'score_TRI'] = f_partialP(tri_ps,tri_pn,tri_qs,tri_qn)
   df_items[x,'score_ORTH'] = f_partialP(orth_ps,orth_pn,orth_qs,orth_qn)
+  df_items[x,'score_BOTH'] = f_partialP(both_ps,both_pn,both_qs,both_qn)
+  df_items[x,'score_REF'] = f_partialP(ref_ps,ref_pn,ref_qs,ref_qn)
+  df_items[x,'score_TV_max'] = f_partialP(tv_max_ps,tv_max_pn,tv_max_qs,tv_max_qn)
+  df_items[x,'score_TV_start'] = f_partialP(tv_start_ps,tv_start_pn,tv_start_qs,tv_start_qn)
+  df_items[x,'score_TV_end'] = f_partialP(tv_end_ps,tv_end_pn,tv_end_qs,tv_end_qn)
+  df_items[x,'score_TV_duration'] = f_partialP(tv_duration_ps,tv_duration_pn,tv_duration_qs,tv_duration_qn)
+  
+  
+  #calculate permissive dichotomous
+  #for each item there is a single correct response 
+  #BUT there are also sometimes one or more technically-incorrect options that might have been selected
+  #for which we don't want to penalize the subject. For example, selecting the reference point of the 
+  #question IN ADDITION to the correct option.  (ie which start at the same time as X? if they select 
+  #the correct answer Y and also select the reference point X)
+  #These 'allowable' items are already accounted for in the triangular score logic, because the options
+  #that are 'allowed' are already excluded from the set_q in the keys_tri dataframe
+  df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
+  df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS'])
+  
+  #ALSO recast absolute score (strict ABS, not being nice and allowing the reference and visual error points)
+  df_items[x,'score_ABS'] = as.integer(df_items[x,'correct'])
 }
 
-#ALSO recast absolute score as integer based on boolean 'correct
-df_items$score_ABS <- as.integer(df_items$correct)
+#replace NaNs with 0
+#this occurs when the set of P answers is empty (ie. some of the tversky sets)
+# df_items$score_TV_duration[is.nan(df_items$score_TV_duration)] <- 0
 
 #cleanup
-rm(orth_pn, orth_p, orth_qn, orth_q, orth_ps, orth_qs,  tri_pn, tri_p, tri_qn, tri_q, tri_ps, tri_qs, qu, cond, r,x)
+rm(qu, cond, r,x)
+rm(orth_pn, orth_p, orth_qn, orth_q, orth_ps, orth_qs,  
+   tri_pn, tri_p, tri_qn, tri_q, tri_ps, tri_qs, 
+   tv_duration_pn, tv_duration_p, tv_duration_qn, tv_duration_q, tv_duration_ps, tv_duration_qs,
+   tv_end_pn, tv_end_p, tv_end_qn, tv_end_q, tv_end_ps, tv_end_qs,
+   tv_start_pn, tv_start_p, tv_start_qn, tv_start_q, tv_start_ps, tv_start_qs,
+   tv_max_pn, tv_max_p, tv_max_qn, tv_max_q, tv_max_ps, tv_max_qs,
+   both_pn, both_p, both_qn, both_q, both_ps, both_qs,
+   ref_pn, ref_p, ref_qn, ref_q, ref_ps, ref_qs)
+#TODO rm all ps and qs from df_items
 ```
+
+
+### Derive Interpretation
+Finally, we compare the interpretation subscores and decide which is highest. This indicates the interpretation that the individual's response most closely approximates. 
+TODO HANDLE EQUAL COLUMNS
+TODO HANDLE BLANKS
+TODO HANDLE CONFUSION
+
+1. is it blank --> blank
+3. is it triangular?
+4. is it orthogonal?
+5. is it tversky? 
+6. is it satisfice? 
+```{r}
+#| label: DERIVE-INTERPRETATION
+
+df_items$best <- "?" #set to null
+threshold_variance = 0.2 #set required variance in subscores to be discriminant
+threshold_frenzy = 7
+for (x in 1:nrow(df_items)) {
+  
+  #CALCULATE MAX TVERSKY SUBSCORE
+  #first reshape subscores 
+  t = df_items[x,] %>% select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration)
+  t.long = gather(t,score, value, 1:4)
+  
+  df_items[x,'score_TVERSKY'] = max(t.long$value)
+  df_items[x,'tv_type'] = t.long[which.max(t.long$value),'score']
+  
+  #NOW CALCULATE VARIANCE IN SUBSCORES
+  s = df_items[x,] %>% select(score_TRI, score_ORTH, score_TVERSKY)
+  s.long = gather(t,score, value, 1:3)
+  
+  #calculate and store variance in subscores
+  v = var(s.long$value)  
+  df_items[x,'var'] = v
+  
+  #DISCRIMINANT BETWEEN SUBSCORES TO PREDICT BEST FIT INTERPRETATION
+  
+  #is the response BLANK?
+  if( df_items[x,'num_o'] == 0) {df_items[x,'best'] = "blank"}
+  
+  #is the response a 'frenzy'? ie. they selected more than half of the datapoints?
+  else if( df_items[x,'num_o'] > threshold_frenzy) {df_items[x,'best'] = "frenzy"}
+  
+  #otherwise does the response perfectly match both TRI AND ORTH?
+  else if( df_items[x,'score_BOTH'] == 1) {df_items[x,'best'] = "TRI + ORTH"}
+
+  #otherwise try to derive from subscores
+  else {
+   
+   #is there enough variance between scores to be able to differentiate?
+   
+    if (v < threshold_variance) {
+      #then we can't predict the interpretation
+    }
+    else {
+      #if there IS enough variance to be predictive, take the highest subscore
+      df_items[x,'best'] = s.long[which.max(s.long$value),'score']
+    }
+  }
+  
+  
+  #REFERENCE CODE FOR FINDING MAX COLUMNS [to avoid reshaping dataframe to long]
+  # max = max.col(df_items[x,] %>% select(score_TRI,score_ORTH, score_TV_max, score_TV_start, score_TV_end), ties.method = "first")
+  # df_items[x,'best'] = names[max]
+  
+}
+
+#cleanup 
+rm(t, t.long, s, s.long)
+```
+
+
 
 ```{r}
 
 test <- df_items %>% filter(q<6) %>% filter(condition == 111)
 
-gf_histogram(~score_TRI, data = test)
-gf_histogram(~score_ORTH, data = test)
+# gf_histogram(~score_TRI, data = test)
+# gf_histogram(~score_ORTH, data = test)
 gf_histogram(~score_ABS, data = test)
+gf_histogram(~score_niceABS, data = test)
+```
+
+## EXPLORE RESPONSES
+
+In this section we explore responses given by participants to each particular item in the graph comprehension task, and indicate how each response was scored, and what *interpretation of the graph* is indicated.
+
+### Control Condition
+
+```{r}
+#| label: print control key
+
+# title = "Answer Key for Control Condition Scaffold Phase (Q1 - Q5)"
+# cols = c("Q","Relation","selected","allow","selected","allow","tversky","satisfice","IGNORE")
+# keys_raw %>% filter(condition == 111) %>% mutate(
+#   IGNORE = replace_na(ALSO, ""),
+#   t_ignore = replace_na(TRIve, ""),
+#   o_ignore = replace_na(ORTHve, "")
+#   ) %>% select(Q, RELATION,TRIANGULAR, t_ignore, ORTHOGONAL, o_ignore, TVERSKY, SATISFICE, IGNORE) %>% 
+#   kbl(caption = title, col.names = cols) %>% kable_classic() %>%
+#   add_header_above(c(" " = 2, "Triangular" = 2, "Orthogonal" = 2, " "=3))
+  
 ```
 
 
 
-## EXPLORE RESPONSES
 
-### Control Condition
+
+
+```{r}
+f_partialC <- function(ps,p,qs,q) {
+                       # gs,g) {
+
+  #penalty_q = penalty for selecting an incorrect option
+  #penalty_g = penalty for selecting an irrelevant option
+  
+  #ps = number of correct-selected options
+  #p = number of true options
+  
+  #qs = number of incorrect-selected options
+  #q = number of false options
+  
+  
+  #gs = number of irrelevantly selected options
+  #g = number of irrelevant options
+  
+  
+  #n = number of options + p + q
+  # return( (ps/p) - (qs/q) )
+}
+```
+
 
 #### Question #1
 
@@ -805,20 +1546,35 @@ We start by exploring the range of response options checked by participants on Q
 
 In the 'interpretation' column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.
 
-```{r Q1-control}
+```{r}
+#| label: Q1-control
 #| warning: false
 
 #define interpretation for each response
 #NOTE: this is manually defined, based on inspecting answer options
-  interpretation = c("ORTHOGONAL","TRIANGULAR","lines-connect","(both ortho & tri)","?","?","?")
+interpretation = c("ORTHOGONAL","TRIANGULAR","lines-connect","(both ortho & tri)","?","?","?")
+names = c("response","n","interpretation","best guess","strict","nice","tri","orth","tv_max","tv_start","tv_end","tv_dur")
 
 title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
 df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), absolute = unique(score_ABS), triangular = unique(score_TRI), orthogonal =  unique(score_ORTH)) %>% arrange(-count) %>% cbind(interpretation) %>% 
-  arrange(desc(interpretation)) %>% 
-  select(response, count, interpretation, absolute, triangular, orthogonal) %>% 
-  kbl(caption = title) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Scores" = 3)) %>% 
+  dplyr::summarise( count = n(), 
+                    strict = unique(score_ABS), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    tversky_max = unique(score_TV_max),
+                    tversky_start = unique(score_TV_start),
+                    tversky_end = unique(score_TV_end),
+                    tversky_duration = unique(score_TV_duration),
+                    best = unique(best)
+                    # DISC =  triangular - orthogonal
+                    # DISC = (score_TRI - score_ORTH) 
+                    ) %>% arrange(-count) %>% 
+    cbind(interpretation) %>% arrange(desc(interpretation)) %>%
+  select(response, count, interpretation, best, strict, nice, triangular, orthogonal, 
+         tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 4, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
   pack_rows("Triangular", 1, 1) %>% 
   pack_rows("Orthongal", 2, 2) %>% 
   pack_rows("Lines-Connect", 3, 3) %>% 
@@ -830,17 +1586,31 @@ Nearly all of the subjects selected a response consistent with one of the identi
 
 *Note that options highlighted in light grey are considered within the range of 'visual error'.*
 
-| Which shifts start at 11am?                                    |                                                                             |
-|---------------------------------|---------------------------------------|
-| ![](keys/control/interpretations/Q1_111_TRI.png){width="297"}  | indicates the correct triangular interpretation of the coordinate system    |
-| ![](keys/control/interpretations/Q1_111_ORTH.png){width="254"} | indicates the incorrect, orthogonal interpretation of the coordinate system |
++----------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| Which shifts start at 11am?                                    |                                                                                     |
++================================================================+=====================================================================================+
+| ![](keys/control/interpretations/Q1_111_TRI.png){width="297"}  | **Response: F**                                                                     |
+|                                                                |                                                                                     |
+|                                                                | -   TRI_score = 1                                                                   |
+|                                                                |                                                                                     |
+|                                                                | -   ORTH_score = -0.083                                                             |
+|                                                                |                                                                                     |
+|                                                                | -   indicates the **triangular** (correct) interpretation of the coordinate system  |
++----------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q1_111_ORTH.png){width="254"} | **Response: A**                                                                     |
+|                                                                |                                                                                     |
+|                                                                | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system |
++----------------------------------------------------------------+-------------------------------------------------------------------------------------+
 
 A number of alternative responses were given:
 
++--------------------------------------------------------------+---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
 | Alternate Responses                                          |                                                               |                                                             |                                                             |
-|------------------|------------------|------------------|------------------|
++==============================================================+===============================================================+=============================================================+=============================================================+
 | ![](keys/control/interpretations/Q1_111_AF.png){width="200"} | ![](keys/control/interpretations/Q1_111_IJD.png){width="200"} | ![](keys/control/interpretations/Q1_111_Z.png){width="200"} | ![](keys/control/interpretations/Q1_111_X.png){width="200"} |
++--------------------------------------------------------------+---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
 |                                                              |                                                               |                                                             |                                                             |
++--------------------------------------------------------------+---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
 
 #### Question #2
 
@@ -854,9 +1624,18 @@ A number of alternative responses were given:
 
 title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
 df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), absolute = unique(score_ABS), triangular = unique(score_TRI), orthogonal = unique(score_ORTH)) %>% arrange(-count) %>% cbind(interpretation) %>% 
+   dplyr::summarise( count = n(), 
+                    strict = unique(score_ABS), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    DISC =  triangular - orthogonal
+                    # DISC = (score_TRI - score_ORTH) 
+                    ) %>% arrange(-count) %>% cbind(interpretation) %>% 
   arrange(desc(interpretation)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
   kbl(caption = title) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) %>% 
   pack_rows("Triangular", 1, 2) %>% 
   pack_rows("Orthogonal", 3, 5) %>% 
   pack_rows("Lines-Connect", 6, 7) %>% 
@@ -866,15 +1645,21 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
 
 Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point *in addition* to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )
 
++---------------------------------------------------+-------------------------------------------------------------------------------------+
 | Which shift(s) start at the same time as D?       |                                                                                     |
-|------------------|------------------------------------------------------|
++===================================================+=====================================================================================+
 | ![](keys/control/interpretations/Q2_111_TRI.png)  | A correct (triangular) interpretation of the coordinate system yields data point K. |
++---------------------------------------------------+-------------------------------------------------------------------------------------+
 | ![](keys/control/interpretations/Q2_111_ORTH.png) | An incorrect orthogonal interpretation yields point K                               |
++---------------------------------------------------+-------------------------------------------------------------------------------------+
 
++------------------------------------------------+-------------------------------------------------+------------------------------------------------+------------------------------------------------+
 | Alternative Responses                          |                                                 |                                                |                                                |
-|------------------------------------------------|-------------------------------------------------|------------------------------------------------|------------------------------------------------|
++================================================+=================================================+================================================+================================================+
 | ![](keys/control/interpretations/Q2_111_J.png) | ![](keys/control/interpretations/Q2_111_AK.png) | ![](keys/control/interpretations/Q1_111_B.png) | ![](keys/control/interpretations/Q2_111_C.png) |
++------------------------------------------------+-------------------------------------------------+------------------------------------------------+------------------------------------------------+
 |                                                |                                                 |                                                |                                                |
++------------------------------------------------+-------------------------------------------------+------------------------------------------------+------------------------------------------------+
 
 #### Question #3
 
@@ -889,9 +1674,18 @@ Again, we see that most subjects selected a response consistent with one of the 
 
 title <- "Frequency of Selected Response Options for Question #3 (Control Condition)"
 df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), absolute = unique(score_ABS), triangular = unique(score_TRI), orthogonal = unique(score_ORTH)) %>% arrange(-count) %>% cbind(interpretation) %>% 
+   dplyr::summarise( count = n(), 
+                    strict = unique(score_ABS), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    DISC =  triangular - orthogonal
+                    # DISC = (score_TRI - score_ORTH) 
+                    ) %>% arrange(-count) %>% cbind(interpretation) %>% 
   arrange(desc(interpretation)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
   kbl(caption = title) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) %>% 
   pack_rows("Triangular", 1, 1) %>% 
   pack_rows("Orthogonal", 2, 3) %>% 
   pack_rows("Lines-Connect", 4, 7) %>% 
@@ -899,12 +1693,138 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
 
 ```
 
++-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                                                     |                                                                                                                                                                       |                                                                                                                                             |
-|------------------|------------------------------|-------------------------|
-|                                                                                     |                                                                                                                                                                       |                                                                                                                                             |
++-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |
++-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | ![](keys/control/interpretations/Q3_111_TRI.png)                                    | ![](keys/control/interpretations/Q3_111_TVERSKY.png)                                                                                                                  | ![](keys/control/interpretations/Q3_111_ORTH.png)                                                                                           |
++-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |
++-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
+
+
+
+#### Question #4
+
+```{r Q4-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","orth-lines connect","BLANK","orth-lines connect",
+                     "lines-connect","orthogonal","","","",
+                     "","","","","","" )
+
+title <- "Frequency of Selected Response Options for Question #4 (Control Condition)"
+df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%  dplyr::summarise( count = n(), 
+                    strict = unique(score_ABS), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    DISC =  triangular - orthogonal
+                    # DISC = (score_TRI - score_ORTH) 
+                    ) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthogonal", 2, 5) %>% 
+  pack_rows("Lines-Connect", 6, 6) %>% 
+  pack_rows("other", 7, 16) 
+
+
+```
+
+In Question 4 we see more than one variant of an orthogonal interpretation emerge.
+
+| Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
+|--------------------------|----------------------------------------------|
+| ![](keys/control/interpretations/Q4_111_ORTH.png)                                                                                                                                                                      | ![](keys/control/interpretations/Q4_111_ORTH-LC.png)                                                                                                                                                                                                                                                                                                                                            |
+| If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |
+
+#### Question #5
+
+```{r Q5-control}
+#| warning: false
+
+#define interpretation for each response
+#NOTE: this is manually defined, based on inspecting answer options
+  interpretation = c("ORTHOGONAL","TRIANGULAR","orth-satistice","BLANK","orth-satisfice",
+                     "orth-satistice","","","","","orth-satisfice","","orth-satisfice","","orth-satisfice","","orth-satisfice",
+                     "(reference point)","","","","lines-connect")
+
+title <- "Frequency of Selected Response Options for Question #4 (Control Condition)"
+df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), 
+                    strict = unique(score_ABS), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    DISC =  triangular - orthogonal
+                    # DISC = (score_TRI - score_ORTH) 
+                    ) %>% arrange(-count) %>% cbind(interpretation) %>% 
+  arrange(desc(interpretation)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
+  kbl(caption = title) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) %>% 
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Orthogonal", 2, 9) %>% 
+  pack_rows("Lines Connect", 10, 10) %>% 
+  pack_rows("other", 11, 22) 
+
+
+```
+
+TODO note the compelling cases of internal inconsistency (HJDE)
+
+### Impasse Condition
+
+We can compare these responses to those produced by participants in the experimental impasse condition (`condition` = 121).
+
+```{r Q1-impasse}
+# 
+# #define interpretation for each response
+# #NOTE: this is manually defined, based on inspecting answer options
+# interpretation = c("BLANK","TRIANGULAR","partial-satisfice","LINES-CONNECT",
+#                    "partial-satisfice","partial-satisfice","partial-lines-connect",
+#                    "","partial-satisfice","partial-satisfice","partial-satisfice","partial-satisfice","")
+# 
+# title <- "Frequency of Selected Response Options for Question #1 (Impasse Condition)"
+# df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>% 
+#    dplyr::summarise( count = n(), 
+#                     strict = unique(score_ABS), 
+#                     nice = unique(score_niceABS),
+#                     triangular = unique(score_TRI), 
+#                     orthogonal =  unique(score_ORTH),
+#                     DISC =  triangular - orthogonal
+#                     # DISC = (score_TRI - score_ORTH) 
+#                     ) %>% arrange(-count) %>% cbind(interpretation) %>% 
+#   arrange(desc(interpretation)) %>% 
+#   select(response, count, interpretation, strict, nice, triangular, orthogonal, DISC) %>% 
+#   kbl(caption = title) %>%  kable_classic() %>% 
+#   add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=2, " "=1)) 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Summarize By subject
 
@@ -964,4 +1884,7 @@ test <- data.frame(
 )
 ```
 
-## 
+# RESOURCES
+
+_set operations_
+https://stat.ethz.ch/R-manual/R-devel/library/base/html/sets.html
