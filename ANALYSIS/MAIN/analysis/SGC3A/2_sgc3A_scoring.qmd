@@ -1275,12 +1275,12 @@ df_items %>% filter(q==2) %>% filter(response =="D") %>% select(q, response, sco
 
 ```{r}
 
-test <- df_items %>% filter(q<6) %>% filter(condition == 111) %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_BOTH, score_REF, range, best)
+# test <- df_items %>% filter(q<6) %>% filter(condition == 111) %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_BOTH, score_REF, range, best)
 
 # gf_histogram(~score_TRI, data = test)
 # gf_histogram(~score_ORTH, data = test)
-gf_histogram(~score_ABS, data = test)
-gf_histogram(~score_niceABS, data = test)
+# gf_histogram(~score_ABS, data = test)
+# gf_histogram(~score_niceABS, data = test)
 ```
 
 ## EXPLORE RESPONSES
@@ -1636,19 +1636,19 @@ We can compare these responses to those produced by participants in the experime
 
 ```{r}
 
-df_items$DISC <- df_items$score_TRI - df_items$score_ORTH
+# df_items$DISC <- df_items$score_TRI - df_items$score_ORTH
 gf_jitter(score_TRI ~ score_ORTH, data = df_items, alpha = 0.2)
-gf_jitter(score_TRI ~ DISC, data = df_items , alpha=0.2,  color = ~q)
-gf_dhistogram(~df_items$DISC, data = df_items)
+# gf_jitter(score_TRI ~ DISC, data = df_items , alpha=0.2,  color = ~q)
+# gf_dhistogram(~df_items$DISC, data = df_items)
 
-
+gf_bar(~best, data = df_items) %>% gf_facet_grid(q~condition)
 ```
 
 ```{r}
 subject_scores <- df_items %>% group_by(subject) %>% dplyr::summarize(
   TRI = sum(score_TRI),
   ORTH = sum(score_ORTH),
-  DISCRIM = sum(score_TRI + score_ORTH),
+  # DISCRIM = sum(score_TRI + score_ORTH),
   ABSOLUTE = sum(correct),
   condition = unique(condition)
 )
@@ -1684,11 +1684,7 @@ Our approach to calculating an ORTHOGONAL PARTIAL score is as follows:
 
 -   trapdoor : default to -1 if select triangular
 
-```{r}
-test <- data.frame(
-  response = c("A","ABC")
-)
-```
+
 
 # RESOURCES
 
