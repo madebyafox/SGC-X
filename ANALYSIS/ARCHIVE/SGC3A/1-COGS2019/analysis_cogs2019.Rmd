@@ -1,0 +1,174 @@
+---
+title: "shiboleth"
+output: 
+  html_document:
+    toc: true
+    code_folding: hide
+    fig_caption: yes
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#IMPORT LIBRARIES
+library(dplyr)
+library(jsonlite)
+library(tables) # pretty tables
+library(pastecs) #stat.desc
+library(ggplot2) #graphs
+#library(car) #ANOVA
+
+library(mosaic) #simple descriptives
+
+#Create data frame for participant file
+participant_file <- "data/final_participants_cogs2019.json"
+df_subjects <- fromJSON(participant_file)
+#names(df_subjects) #print names of each column in the data frame
+
+#Create factor vectors
+# EXPLICIT <- factor(df_subjects$explicit, levels = c(1,2,3), labels = c("none", "text/image", "interactive"))
+# IMPASSE  <- factor(df_subjects$impasse, levels = c(1,2), labels = c("none", "impasse"))
+# AXIS  <- factor(df_subjects$axis)
+
+
+#Convert ms to min
+df_subjects$tt_min <- df_subjects$triangular_time / 1000 / 60
+
+
+```
+
+*The purpose of this notebook is to re-create the data analyses published in the 2019 CogSci conference paper "When Graph Comprehension Is An Insight Problem".* (analyses originally completed in SPSS)
+
+#Introduction
+
+The purpose of this study is to compare the relative efficacy of *explicit* (ie. visually-salient text or images that serve instructional purpose) and *implicit* (ie. task and question structure) scaffolding for an unconventional statistical graph.  We hypothesize that implicit techniques---specifically presenting a task that forms a **mental impasse** for the reader---will be more supportive of correct graph interpretation than explicit graph-reading instructions.  We base this hypothesis on prior observation and experimental work (Fox & Hollan, *in preparation*) which revealed that when presented with an unconventional graph with structural elements (ie. axes and grid) that resembled conventional graphs, learners did not always realize they did not understand how the graph was meant to be read. We propose that prior knoweldge of conventional graph systems acts as a form of "graphical fixedness", that learners must overcome to form correct mental models for new representational systems. 
+<br>
+
+#Methods
+##Design
+We utilized a 3 (explicit scaffold: none, text/image, interactive) X 2 (implicit scaffold: none, impasse) between-subjects factorial design, with response time and score (max = 15) as dependent variables.   
+<br>
+
+```{r PARSE CONDITION}
+
+#The data collection framework was designed such that  that stimuli the participant experienced were triggered based on the input of a particular 'condition code' by the participant. This allowed us to collect data for a number of studies simultaneously in the same data collection session (i.e. multiple students in the computer lab at the same time).  Thus, the **final_participants.json** file contains data for a number of studies, identified by parsing the **condition** variable. 
+
+#First Digit    | explicit scaffolding
+# ------------- |------------- 
+# 1      | control (no-scaffold)
+# 2      | text/image (static) 
+# 3      | interactive 
+# 
+#Second Digit    | implicit scaffolding
+# ------------- |------------- 
+#1      | control (no-scaffold)
+#2      | impasse (no orthogonal answer) 
+#
+#Third Digit    | grid format
+#------------- |------------- 
+#1 | full orthogonal
+#2 | partial orthogonal
+#3 | diagonal
+#
+#
+
+#For the COGSCI 2019 paper, we are only interested in evaluating efficacy of the 'impasse' scaffold (vs) control, and are thus comparing conditions 111 (control) vs. 121 (impasse). In both cases, there is no external scaffold (first digit == 1) and the axes are orthogonal (third digit == 1). 
+
+#Count number of participants
+nSubjects <- nrow(df_subjects)
+nFemale <-sum(df_subjects$sex == "Female")
+
+```
+
+
+## Participants
+**FROM PAPER:** Sixty (55% female) undergraduate STEM majors at a public American University participated in exchange for course credit (age: 18 - 33 years).  We utilized a between-subjects design with two groups and one independent variable (scaffold: none [control] vs. impasse). Participants were randomly assigned to an experimental group, yielding 30 students per condition. *Prior to analysis, data from six participants were excluded based on their failure to correctly answer an attention check question.*
+
+**FROM ANALYSIS** (After exclusion)
+`r nSubjects` (`r round((nFemale/ nSubjects * 100) ,0)` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r min(df_subjects$age)` - `r max(df_subjects$age)` years).  Participants were randomly assigned to an experimental group, yielding `r nrow(df_subjects %>% filter(condition == 111))` students per condition.
+
+<br><br>
+
+
+## Descriptives
+
+```{r echo = FALSE}
+#EXPLORE SAMPLE STATISTICS
+
+#describe the sample
+describe_score<-stat.desc(df_subjects$triangular_score) 
+describe_time<-stat.desc(df_subjects$tt_min) 
+
+time_min = round(describe_time[4], 0)
+time_max = round(describe_time[5], 0)
+time_m = round(describe_time[9], 0)
+time_sd = round(describe_time[10], 2)
+ 
+score_min = round(describe_score[4], 0)
+score_max = round(describe_score[5], 0)
+score_m = round(describe_score[9], 0)
+score_sd = round(describe_score[10], 2)
+
+#tests for normalcy
+score_normal <- shapiro.test(df_subjects$triangular_score)
+time_normal <- shapiro.test(df_subjects$tt_min)
+
+```
+
+### Response Accuracy (Sample) 
+The mean score across the entire sample was approximately `r score_m` points (out of 15), with a standard deviation of `r score_sd` , and values ranging from `r score_min` to `r score_max`  points.    
+<br> <br> <br>
+
+```{r echo = FALSE}
+#SCORE HISTOGRAM
+HIST_score <-ggplot(df_subjects, aes(triangular_score)) 
+HIST_score + geom_histogram(binwidth=1) + 
+  coord_cartesian(xlim=c(0,15)) +
+  ggtitle("Total Score") + 
+  labs(x="Score (points)", y="Number of Participants") + 
+  theme_bw()+
+  theme(strip.background = element_blank())+
+  theme(plot.title = element_text(family = "Helvetica", color="#666666", face="bold", size=14, hjust=0.5)) + 
+  theme(axis.title = element_text(family = "Helvetica", color="#666666", face="bold", size=10)) +
+  theme(panel.border = element_blank())
+```
+
+<br><br> 
+<span style="color:red"> 
+A Shapiro-Wilk test for normality yielded a value of ```r score_normal[1]```, p = ```r score_normal[2]``` suggesting that the distribution is significantly non-normal.    
+</span>    
+<br><br> 
+
+### Response Accuracy (by Condition)
+
+```{r echo = FALSE}
+#summary stats
+score.by.condition <- favstats(triangular_score ~ condition, data = df_subjects)
+score.by.condition
+
+#faceted histogram 
+gf_dhistogram(~triangular_score, data = df_subjects, fill=~condition) %>%
+gf_labs(title="Triangular Score by Group") %>%
+gf_facet_grid(condition~.) %>%
+gf_vline(xintercept = ~mean, data = score.by.condition)
+ 
+# #boxplot option
+gf_boxplot(triangular_score ~ condition, data = df_subjects, fill = ~condition) %>%
+gf_labs(title="Triangular Score by Condition")
+```
+
+**FROM PAPER: The mean comprehension score across the sample (n = 54) was approximately 6 points with a standard deviation of 0.68, and values ranging from 1 to 15 (max) points. On average, participants in the impasse group had higher scores (M = 7.6, SD = 5.2) than those in the non-impasse control group (M = 3.9, SD = 4.2)**
+
+
+The mean comprehension score across the sample (n = `r nrow(df_subjects)`) was approximately `r score_m` out of 15 points (`r score_m /15 * 100` %), with a standard deviation of `r score_sd` , and values ranging from `r score_min` to `r score_max`  points.    On average, participants in the impasse group had higher scores ( M = `r round(score.by.condition$mean[2],1)`, SD = `r round(score.by.condition$sd[2],1)`) than those in the non-impasse control group (M = `r round(score.by.condition$mean[1],1)`, SD = `r round(score.by.condition$sd[1],1)`).
+
+### T-Test Response Accuracy between Conditions
+
+
+
+**FROM PAPER: yielding a statistically significant difference t(49.7) = -2.8, p = 0.006; a moderate-sized effect r = 0.37.**
+
+```{r echo = FALSE}
+t_test(triangular_score ~ condition, data = df_subjects)
+```
