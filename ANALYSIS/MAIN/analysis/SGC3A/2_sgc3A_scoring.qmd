@@ -40,6 +40,7 @@ options(scipen=1, digits=3)
 
 library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
+library(huxtable) #tables
 library(ggformula) #quick graphs
 
 ```
@@ -78,24 +79,22 @@ In the sections that follow, we use the terminology:
 
 **Properties of the Stimulus-Question**
 
-$$
+```{=tex}
 \begin{align}
 n &= \text{number of response options} \\  
   &= p + q \\ 
   p &= \text{number of true-select options (i.e. should be selected)} \\
   q &= \text{number of true-unselect options (i.e. should not be selected)} 
 \end{align}
-$$
-
+```
 **Properties of the Subject's Response**
 
-$$
-  \begin{align} 
+```{=tex}
+\begin{align} 
 i &= \text{number of options in correct state}, (0 ≤ i ≤ n) \\ 
 f &= \text{resulting score} 
 \end{align}
-$$
-
+```
 #### Dichotomous Scoring {#sec-absolute-scoring}
 
 **Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is *exactly* correct, meaning the respondent includes *only correct-select* options, and does select any additional (i.e. incorrect-select) options that should not be selected. This is also known as *all or nothing scoring*, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the correct-select options, and one or more but not all of the correct-unselect items, but receive the same score as a respondent selects none of the correct-select options, or all of the correct-unselect options. In this sense, dichotomous scoring tells us *only* about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating through their selection of response options.
@@ -108,17 +107,13 @@ $$
 
 The algorithm for **dichotomous scoring** is given by:
 
-$$ 
 \begin{gather*}
 f = 
 \begin{cases}
   1, \text{if } i = n \\    
   0, \text{otherwise}    
 \end{cases}
-\end{gather*}
-\tag{1}
-\text{where } 0 \le i \le n
-$$
+\end{gather*} \text{where } 0 \le i \le n
 
 ```{r}
 f_dichom <- function(i, n) {
@@ -157,14 +152,12 @@ This scoring is more consistent with the motivating theory that Triangular Graph
 
 The algorithm for **partial scoring**$[-1/n, +1/n]$ is given by:
 
-$$
-  \begin{align}
+```{=tex}
+\begin{align}
 f &= (1/n * i) - (1/n * (n-i)) \\
 &= (2i - n)/{n} 
-\tag{2}
 \end{align}
-$$
-
+```
 ```{r}
 f_partialN <- function(i, n) {
 
@@ -195,32 +188,28 @@ For this reason, we consider another alternative Partial Scoring scheme that tak
 
 **Properties of Item**
 
-$$
+```{=tex}
 \begin{align}
 p &= \text{number of true-select options (i.e. should be selected)} \\
 q &= \text{number of true-unselect options (i.e. should not be selected)} \\
 n &= \text{number of options} \: ( n = p + q)
 \end{align}
-$$
-
+```
 **Properties of Response**
 
-$$
+```{=tex}
 \begin{align}
 p_s &= \text{number of true-select options selected (i.e. number of correctly checked options)}\\
 q_s &= \text{number of true-unselect options selected (i.e. number of incorrectly checked options }
 \end{align}
-$$
-
+```
 The algorithm for **partial scoring** $[-1/q, +1/p]$ is given by:
 
-$$
+```{=tex}
 \begin{align}
 f &= (p_m / p) - ({q_m}/{q}) \\
-\tag{3}
 \end{align}
-$$
-
+```
 ```{r}
 f_partialP <- function(t,p,f,q) {
 
@@ -332,7 +321,7 @@ kbl(dt, col.names = names, caption = title, digits=3) %>%
            general_title = "Note: ",footnote_as_chunk = T)
 
 #cleanup
-rm(dt)
+rm(dt, abs, correct,i,names,partial1,partial2,response,title)
 ```
 
 -   We see that in the Dichotomous scheme, only the precisely correct response (row 1) yields a score other than zero. This scheme does now allow us to differentiate between different response patters.
@@ -428,7 +417,7 @@ kbl(dt, col.names = names, caption = title, digits=3) %>%
            general_title = "Note: ",footnote_as_chunk = T)
 
 #cleanup
-rm(dt, abs,correct,i,names,partial1,partial2,response,title)
+rm(dt, abs, correct,i,names,partial1,partial2,response,title)
 ```
 
 Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate between patterns of responses, in a way that is more sensible for the goals of the SGC3 graph comprehension task.
@@ -456,7 +445,7 @@ TODO FIX THIS SECTION ONWARDS ... RESPONSE SETS NEED NOT BE MUTUTALLY EXCLUSIVE
 
 Thus for *each* item, in the graph comprehension task, we will define five sets, whose members constitute a partition of the set of answer options.
 
-$$
+```{=tex}
 \begin{align}
 Q &= \text{the (universal) set of all answer options } \\
 \\
@@ -469,11 +458,10 @@ S &=  \{o:o \:is\:satisficing \} \\
 D &= Q - \{T \cup R \cup L \cup S \} , \text{(distractors; the remaining options not consistent with any interpretation})
 \\
 \end{align}
-$$
-
+```
 For example, for the following sample stimuli, TODO IMAGE
 
-$$
+```{=tex}
 \begin{align}
 Q &= \{a, b, c, d, e, f, g \} \\
   &= \{ \{a \}\}, \{b\}, \{c,d\}, \{e\},  \{f,g\}\} \\
@@ -484,8 +472,7 @@ L &= \{ c,d \} \\
 S &= \{ e \} \\
 D &= \{ f, g\} \\
 \end{align}
-$$
-
+```
 To capture this important source of variation, we can apply the idea behind the partial scoring $[-1/q, +1/p]$ scheme in combination with the response option subgroups given by the graph interpretations to produce a single score (scaled from $-1$ to $+1$) that captures the *nature* of the respondent's partial knowledge.
 
 A **Discriminant Score** will offer:
@@ -496,25 +483,23 @@ A **Discriminant Score** will offer:
 -   0 for non-strategy responses
 -   0 for blank (empty) responses
 
-$$
-  \begin{align}
+```{=tex}
+\begin{align}
 \text{Score}_{discriminant} &= 0 + 1*(t_s / t) - 1 * (r_s / r) + 0*(d_s / d) \\
 &= (t_s / t) - (r_s / r) 
-\tag{4}
 \end{align}
-$$
-
+```
 Where:
 
--   $t = |T| =$ number of triangular-correct options (consistent with triangular interpretation), $t \gt 0$
--   $r = |R| =$ number of orthogonal-correct options (consistent with orthogonal interpretation), $t \gt 0$
--   $d$ = number of non-strategy options (not consistent with either interpretation), $t \gt 0$
+-   $t = |T|$ number of triangular-correct options (consistent with triangular interpretation)
+-   $r = |R| =$ number of orthogonal-correct options (consistent with orthogonal interpretation)
+-   $d$ = number of non-strategy options (not consistent with either interpretation)
 -   $n$ = total number of response options (equals the number of checkboxes in the question; equals the number of data points in the stimulus graph)
 -   $n = t + r + d$ (15 for scaffold phase, 18 for test phase)
--   $t_s$ = number of triangular-correct options selected, $t_s \ge 0$
--   $r_s$ = number of orthogonal-correct options selected, $r_s \ge 0$
--   $d_s$ = number of non-strategy options options selected, $d_s \ge 0$
--   $s$ = number of options selected, $s \ge 0$
+-   $t_s \ge 0$ number of triangular-correct options selected
+-   $r_s \ge 0$ = number of orthogonal-correct options selected
+-   $d_s \ge 0$ = number of non-strategy options options selected
+-   $s  \ge 0$ = number of options selected
 -   $s = t_s + r_s + d_s$
 
 TODO:: add 0.5*(tversky) - 0.5*(satisficing)
@@ -560,6 +545,7 @@ key_test_raw <- read_csv('keys/SGC3A_test_key.csv')%>% mutate(condition = "", ph
 
 keys_raw <- rbind(key_111_raw) #, key_121_raw, key_test_raw)
 rm(key_111_raw, key_121_raw, key_test_raw)
+
 ```
 
 In order to calculate scores using the $[-1/q, +1/p]$ algorithm, we need to define the subset of all response options (set N) that should be selected (set P) and should not be selected (set Q). In order to calculate subscores for each graph interpretation (triangular, orthogonal) we must define these sets independently for each interpretation. The answer key files the 'correct' answer (i.e. set P) for each interpretation, for each question. We must derive the contents of set Q based on set
@@ -570,12 +556,11 @@ In order to calculate scores using the $[-1/q, +1/p]$ algorithm, we need to defi
 
 -   SET A = items that should not be selected, but if they are, don't penalize (ignored). These include any options referenced in the question (i.e. select shifts that start at the same time as X; don't penalize if they also select 'X'), as well as options within 0.5hr offset from the data point to accommodate reasonable visual errors.$A \subset N$
 
--   SET Q = all options that should NOT be selected (penalized as -1/q). These are options that weren't referenced in the question and aren't within 0.5hr of the correct option.  $Q = N - (P \cup A)$
-
+-   SET Q = all options that should NOT be selected (penalized as -1/q). These are options that weren't referenced in the question and aren't within 0.5hr of the correct option. $Q = N - (P \cup A)$
 
 #### Triangular Key
-First we construct the key set based on the 'Triangular' interpretation (ie. the actually correct answers).
-TODO EXAMPLE IMAGE
+
+First we construct the key set based on the 'Triangular' interpretation (ie. the actually correct answers). TODO EXAMPLE IMAGE
 
 ```{r}
 #| label: KEY-SET-TRI
@@ -651,8 +636,8 @@ To verify we have generated the correct sets, we verify that for each row (quest
 
 #### Orthogonal Key
 
-TODO EXAMPLE IMAGE
-Next we construct the key set based on the 'Orthogonal' interpretation. 
+TODO EXAMPLE IMAGE Next we construct the key set based on the 'Orthogonal' interpretation.
+
 ```{r}
 #| label: KEY-SET-ORTH
 verify = c() #sanity check
@@ -714,6 +699,9 @@ for (x in 1:nrow(keys_orth)) {
 
 #3. reorder cols for ease of use
 keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x)
 ```
 
 This leaves us a dataframe `keys_orth` that define the sets of response options consistent with the orthogonal graph interpretation.
@@ -722,11 +710,9 @@ To verify we have generated the correct sets, we verify that for each row (quest
 
 `r verify` TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
 
-
 #### Tversky Keys
 
-TODO EXAMPLE IMAGE
-Next we construct the key set based on the 'Tversky' interpretation. The term Tversky is shorthand for a partial interpretation of the coordinate system where subjects select a set of responses that lay along a connecting line from the referenced data point or referenced time for that item.  The term is named for Barbara Tversky based on her work on graphical primitives (e.g. "lines connect").
+TODO EXAMPLE IMAGE Next we construct the key set based on the 'Tversky' interpretation. The term Tversky is shorthand for a partial interpretation of the coordinate system where subjects select a set of responses that lay along a connecting line from the referenced data point or referenced time for that item. The term is named for Barbara Tversky based on her work on graphical primitives (e.g. "lines connect").
 
 ```{r}
 #| label: KEY-SETS-TVERSKY
@@ -973,22 +959,22 @@ for (x in 1:nrow(keys_tversky_duration)) {
 keys_tversky_duration <- keys_tversky_duration %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
 
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x)
 ```
 
-This leaves us four dataframes, each corresponding to a different variant of a 'lines connecting to reference point' strategy.  
-- `keys_tversky_max` : the superset of lines connecting options 
-- `keys_tversky_start` : lines connecting to the rightward diagonal (start time) of the reference point
-- `keys_tversky_end`: lines connecting to the leftward diagonal (end time) of the reference point
-- `keys_tversky_duration`: lines connecting to the horizontal y-intercept (duration) of the reference point
-
+This leaves us four dataframes, each corresponding to a different variant of a 'lines connecting to reference point' strategy.\
+- `keys_tversky_max` : the superset of lines connecting options - `keys_tversky_start` : lines connecting to the rightward diagonal (start time) of the reference point - `keys_tversky_end`: lines connecting to the leftward diagonal (end time) of the reference point - `keys_tversky_duration`: lines connecting to the horizontal y-intercept (duration) of the reference point
 
 To verify we have generated the correct sets, we verify that for each row (question), each response in N is included in either set P, A or Q (once and only once).
 
-`r verify_max` TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111
-`r verify_tversky_start`
-`r verify_tversky_end`
-`r verify_tversky_duration`
+`r verify_max` TODO TROUBLESHOOT FALSE; THINK THIS IS BECAUSE KEY FILE IS INCOMPLETE FOR ALL BUT RAW 111 `r verify_tversky_start` `r verify_tversky_end` `r verify_tversky_duration`
 
+```{r}
+#| label: CLEANUP-VERIFICATIONS
+#cleanup
+rm(verify, verify_max, verify_tversky_duration, verify_tversky_end, verify_tversky_start)
+```
 
 ### Score Items
 
@@ -998,7 +984,7 @@ Next, we import the item-level response data. For each row in the item level dat
 ```{r}
 #| label: IMPORT-ITEMS
 
-df_test <- read_rds('data/sgc3a_items.rds')
+backup <- read_rds('data/sgc3a_items.rds')
 df_items <- read_rds('data/sgc3a_items.rds')
 df_items <- df_items %>% filter(q < 6) %>% filter(condition == 111)
 
@@ -1144,10 +1130,8 @@ calc_both_score <- function(question, condition, response){
 
 ```
 
-
 ```{r}
-#| label: scoring-neuvaux
-
+#| label: scoring-neuveau
 
 #CALCULATE SUBSCORES (in loop)
 for (x in 1:nrow(df_items)) {
@@ -1168,41 +1152,39 @@ for (x in 1:nrow(df_items)) {
   # #calculate special subscores
   df_items[x,'score_REF'] = calc_ref_score(qu, cond, r)
   df_items[x,'score_BOTH'] = calc_both_score(qu, cond, r)
-
 }
 
-  #CALCULATE ABSOLUTE SCORES
-  #calculate absolute scores dichotomous
-  df_items$score_ABS = as.integer(df_items$correct) 
+#CALCULATE ABSOLUTE SCORES
+#calculate absolute scores dichotomous
+df_items$score_ABS = as.integer(df_items$correct) 
   
-  #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
-  df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
+#niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
+df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
  
-  #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
-  # df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
-  # df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS']) 
+#niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
+# df_items[x,'score_niceABS'] = (df_items[x,'score_TRI'] == 1)
+# df_items[x,'score_niceABS'] = as.integer(df_items[x,'score_niceABS']) 
+
+#cleanup
+rm(qu,cond,r, x)
 ```
 
-
 ### Derive Interpretation
-Finally, we compare the interpretation subscores and decide which is highest. This indicates the interpretation that the individual's response most closely approximates. 
-TODO HANDLE EQUAL COLUMNS
-TODO HANDLE BLANKS
-TODO HANDLE CONFUSION
 
-1. is it blank --> blank
-3. is it triangular?
-4. is it orthogonal?
-5. is it tversky? 
-6. is it satisfice? 
+Finally, we compare the interpretation sub-scores and decide which is highest. This indicates the interpretation that the individual's response most closely approximates. TODO HANDLE EQUAL COLUMNS TODO HANDLE BLANKS TODO HANDLE CONFUSION
+
+1.  is it blank --\> blank
+2.  is it triangular?
+3.  is it orthogonal?
+4.  is it tversky?
+5.  is it satisfice?
+
 ```{r}
 #| label: DERIVE-INTERPRETATION
 
 df_items$best <- "?" #set to null
 threshold_range = 0.5 #set required variance in subscores to be discriminant
 threshold_frenzy = 7
-
-
 
 # df_items <- backup
 for (x in 1:nrow(df_items)) {
@@ -1239,7 +1221,7 @@ for (x in 1:nrow(df_items)) {
   else if( df_items[x,'num_o'] > threshold_frenzy) {df_items[x,'best'] = "frenzy"}
   
   #otherwise does the response perfectly match both TRI AND ORTH?
-  else if( df_items[x,'score_BOTH'] == 1) {df_items[x,'best'] = "TRI + ORTH"}
+  else if( df_items[x,'score_BOTH'] == 1) {df_items[x,'best'] = "both tri + orth"}
   
   #otherwise does the response perfectly match the reference point
   else if( df_items[x,'score_REF'] == 1) {df_items[x,'best'] = "reference"}
@@ -1254,60 +1236,36 @@ for (x in 1:nrow(df_items)) {
     }
     else {
       #if there IS enough variance to be predictive, take the highest subscore
-      df_items[x,'best'] = s.long[which.max(s.long$value),'score']
+      p = s.long[which.max(s.long$value),'score']
+      if (p == "score_TRI") {df_items[x,'best'] = "Triangular"}
+      else if (p == "score_ORTH") {df_items[x,'best'] = "Orthogonal"}
+      else if (p == "score_TVERSKY") {df_items[x,'best'] = "Tversky"}
+      
     }
   }
   
   
-  #REFERENCE CODE FOR FINDING MAX COLUMNS [to avoid reshaping dataframe to long]
-  # max = max.col(df_items[x,] %>% select(score_TRI,score_ORTH, score_TV_max, score_TV_start, score_TV_end), ties.method = "first")
-  # df_items[x,'best'] = names[max]
+#REFERENCE CODE FOR FINDING MAX COLUMNS [to avoid reshaping dataframe to long]
+# max = max.col(df_items[x,] %>% select(score_TRI,score_ORTH, score_TV_max, score_TV_start, score_TV_end), ties.method = "first")
+# df_items[x,'best'] = names[max]
   
 }
 
 #cleanup 
-rm(t, t.long, s, s.long)
+rm(t, t.long, s, s.long, x, r,p)
+rm(threshold_frenzy, threshold_range)
 
-df_items %>% filter(q==2) %>% filter(response =="D") %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_REF, range, best)
+#set order of levels
+df_items$interpretation <- factor(df_items$best, 
+                                  levels = c("Orthogonal", "Triangular", "Tversky",
+                                             "reference", "both tri + orth", "blank","frenzy","?"))
+
+#recode as numeric
+df_items$score_TV_duration <- df_items$score_TV_duration %>% as.numeric()
+
 ```
 
-
-
-```{r}
-
-# test <- df_items %>% filter(q<6) %>% filter(condition == 111) %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_BOTH, score_REF, range, best)
-
-# gf_histogram(~score_TRI, data = test)
-# gf_histogram(~score_ORTH, data = test)
-# gf_histogram(~score_ABS, data = test)
-# gf_histogram(~score_niceABS, data = test)
-```
-
-## EXPLORE RESPONSES
-
-In this section we explore responses given by participants to each particular item in the graph comprehension task, and indicate how each response was scored, and what *interpretation of the graph* is indicated.
-
-### Control Condition
-
-```{r}
-#| label: print control key
-
-# title = "Answer Key for Control Condition Scaffold Phase (Q1 - Q5)"
-# cols = c("Q","Relation","selected","allow","selected","allow","tversky","satisfice","IGNORE")
-# keys_raw %>% filter(condition == 111) %>% mutate(
-#   IGNORE = replace_na(ALSO, ""),
-#   t_ignore = replace_na(TRIve, ""),
-#   o_ignore = replace_na(ORTHve, "")
-#   ) %>% select(Q, RELATION,TRIANGULAR, t_ignore, ORTHOGONAL, o_ignore, TVERSKY, SATISFICE, IGNORE) %>% 
-#   kbl(caption = title, col.names = cols) %>% kable_classic() %>%
-#   add_header_above(c(" " = 2, "Triangular" = 2, "Orthogonal" = 2, " "=3))
-  
-```
-
-
-
-
-
+TODO is there still a need for a trapdoor or discriminating score?
 
 ```{r}
 f_partialC <- function(ps,p,qs,q) {
@@ -1332,23 +1290,61 @@ f_partialC <- function(ps,p,qs,q) {
 }
 ```
 
+```{r}
+
+# test <- df_items %>% filter(q<6) %>% filter(condition == 111) %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_BOTH, score_REF, range, best)
+
+# gf_histogram(~score_TRI, data = test)
+# gf_histogram(~score_ORTH, data = test)
+# gf_histogram(~score_ABS, data = test)
+# gf_histogram(~score_niceABS, data = test)
+```
+
+## EXPLORE RESPONSES
+
+In this section we explore responses given by participants to each particular item in the graph comprehension task, and indicate how each response was scored, and what *interpretation of the graph* is indicated by different responses.
+
+### Control Condition
 
 #### Question #1
 
 We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
 
-In the 'interpretation' column we indicate which interpretation of the graph stimulus is indicated by each combination of response options. Note that ALL CAPS indicates the precise interpretation, while lowercase indicates a partially-consistent selection of options.
+![Question 1 --- Control Condition](keys/control/questions/Q1_111.png){#fig-Q1-111}
 
 ```{r}
-#| label: Q1-control
+#| label: Q1-CONTROL-KEY
+
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==1)
+ignore <- q %>% select("ALSO")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% select("TRIve", "ORTHve","TV_max_ve","TV_start_ve","TV_end_ve", "TV_dur_ve")%>% unlist()
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q1 Control Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+Notice that for this Question, the *Triangular* answer is the same as the *Tversky \[start diagonal\]* answer. In fact, for most questions, one of the Tversky sub-types will match the correct response.
+
+Here we summarize the distinct response options given by participants on this item. Each letter in `response` indicates a checkbox selected by the participant (See @fig-Q1-111 ). `n` indicates the number of participants who gave this response, while `interpretation` indicates the *graph intepretation* most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response.
+
+```{r}
+#| label: Q1-CONTROL-RESPONSES
 #| warning: false
 
-#define interpretation for each response
-#NOTE: this is manually defined, based on inspecting answer options
-interpretation = c("ORTHOGONAL","TRIANGULAR","lines-connect","(both ortho & tri)","?","?","?")
-names = c("response","n","interpretation","best guess","strict","nice","tri","orth","tv_max","tv_start","tv_end","tv_dur")
-
 title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
+names = c("response","n","interpretation","strict","nice","tri","orth","tv_max","tv_start","tv_end","tv_dur")
+
 df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     strict = unique(score_ABS), 
@@ -1359,64 +1355,91 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
                     tversky_start = unique(score_TV_start),
                     tversky_end = unique(score_TV_end),
                     tversky_duration = unique(score_TV_duration),
-                    best = unique(best)
-                    # DISC =  triangular - orthogonal
-                    # DISC = (score_TRI - score_ORTH) 
-                    ) %>% arrange(-count) %>% 
-    cbind(interpretation) %>% arrange(desc(interpretation)) %>%
-  select(response, count, interpretation, best, strict, nice, triangular, orthogonal, 
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, 
          tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 4, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Orthongal", 2, 2) %>% 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
+  pack_rows("Orthogonal", 1, 1) %>% 
+  pack_rows("Triangular", 2, 2) %>% 
   pack_rows("Lines-Connect", 3, 3) %>% 
   pack_rows("other", 4, 7) 
 
 ```
 
-Nearly all of the subjects selected a response consistent with one of the identified interpretations (indicated in all caps).
+We see that nearly all of the subjects selected a response consistent with one of the identified interpretations. Responses that do not accord with any interpretation are indicated as `?` .
 
-*Note that options highlighted in light grey are considered within the range of 'visual error'.*
+*Note that options highlighted in light grey are considered within the range of 'visual error', defined by 0.5hr offset from the interpretation-specific projection.*
 
-+----------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| Which shifts start at 11am?                                    |                                                                                     |
-+================================================================+=====================================================================================+
-| ![](keys/control/interpretations/Q1_111_TRI.png){width="297"}  | **Response: F**                                                                     |
-|                                                                |                                                                                     |
-|                                                                | -   TRI_score = 1                                                                   |
-|                                                                |                                                                                     |
-|                                                                | -   ORTH_score = -0.083                                                             |
-|                                                                |                                                                                     |
-|                                                                | -   indicates the **triangular** (correct) interpretation of the coordinate system  |
-+----------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| ![](keys/control/interpretations/Q1_111_ORTH.png){width="254"} | **Response: A**                                                                     |
-|                                                                |                                                                                     |
-|                                                                | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system |
-+----------------------------------------------------------------+-------------------------------------------------------------------------------------+
++--------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Which shifts start at 11am?                                  |                                                                                                                                                                                                         |
++==============================================================+=========================================================================================================================================================================================================+
+| ![](keys/control/interpretations/Q1_111_A.png)               | **Response: A**                                                                                                                                                                                         |
+|                                                              |                                                                                                                                                                                                         |
+|                                                              | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system                                                                                                                     |
+|                                                              | -   Consistent with the reader identifying the reference point (11am) on the x-axis, *projecting an invisible orthogonal line upward*, and locating data point **A**.                                   |
++--------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q1_111_F.png)               | **Response: F**                                                                                                                                                                                         |
+|                                                              |                                                                                                                                                                                                         |
+|                                                              | -   indicates the **triangular** (correct) interpretation of the coordinate system                                                                                                                      |
+|                                                              |                                                                                                                                                                                                         |
+|                                                              | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following the right-diagonal gridline, identifying data point **F**.                                           |
++--------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q1_111_CF.png)              | **Response: C, F**                                                                                                                                                                                      |
+|                                                              |                                                                                                                                                                                                         |
+|                                                              | -   indicates a **maximal-Tversky** strategy following connecting lines                                                                                                                                 |
+|                                                              |                                                                                                                                                                                                         |
+|                                                              | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following *both* the right-diagonal and left-diagonal gridlines, identifying both datapoints F and C gridline. |
++--------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q1_111_AF.png){width="300"} | **Response: A , F**                                                                                                                                                                                     |
+|                                                              |                                                                                                                                                                                                         |
+|                                                              | -   The reader selects both triangular and orthogonal-consistent data points                                                                                                                            |
+|                                                              | -   Possibly indicates uncertainty or confusion                                                                                                                                                         |
++--------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 A number of alternative responses were given:
 
-+--------------------------------------------------------------+---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
-| Alternate Responses                                          |                                                               |                                                             |                                                             |
-+==============================================================+===============================================================+=============================================================+=============================================================+
-| ![](keys/control/interpretations/Q1_111_AF.png){width="200"} | ![](keys/control/interpretations/Q1_111_IJD.png){width="200"} | ![](keys/control/interpretations/Q1_111_Z.png){width="200"} | ![](keys/control/interpretations/Q1_111_X.png){width="200"} |
-+--------------------------------------------------------------+---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
-|                                                              |                                                               |                                                             |                                                             |
-+--------------------------------------------------------------+---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
++---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
+| **I J D**                                                     | **X**                                                       | **Z**                                                       |
++===============================================================+=============================================================+=============================================================+
+| ![](keys/control/interpretations/Q1_111_IJD.png){width="200"} | ![](keys/control/interpretations/Q1_111_X.png){width="200"} | ![](keys/control/interpretations/Q1_111_Z.png){width="200"} |
++---------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
 
 #### Question #2
 
-```{r Q2-control}
+![Q2---Control Condition](keys/control/questions/Q2_111.png){#fig-Q2-111}
+
+```{r}
+#| label: Q2-CONTROL-KEY
+
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==2)
+ignore <- q %>% select("ALSO")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% select("TRIve", "ORTHve","TV_max_ve","TV_start_ve","TV_end_ve", "TV_dur_ve")%>% unlist()
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q2 Control Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) %>% kable_styling(position = 'left',  full_width = TRUE)
+```
+
+```{r}
+#| label: Q2-CONTROL-RESPONSES
 #| warning: false
 
-#define interpretation for each response
-#NOTE: this is manually defined, based on inspecting answer options
-  interpretation = c("ORTHOGONAL","TRIANGULAR","LINES-CONNECT","ORTHONGAL",
-                     "LINES-CONNECT","","","(reference point)","ortho + satisfice","TRIANGULAR")
-
+names = c("response","n", "interpretation","strict","nice","tri","orth","tv_max","tv_start","tv_end","tv_dur")
 title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
-df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
+
+df_items %>%  mutate_if(is.numeric, format, digits=2,nsmall = 0) %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
  dplyr::summarise( count = n(), 
                     strict = unique(score_ABS), 
                     nice = unique(score_niceABS),
@@ -1426,17 +1449,14 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
                     tversky_start = unique(score_TV_start),
                     tversky_end = unique(score_TV_end),
                     tversky_duration = unique(score_TV_duration),
-                    best = unique(best)
-                    # DISC =  triangular - orthogonal
-                    # DISC = (score_TRI - score_ORTH) 
-                    ) %>% arrange(-count) %>% 
-    cbind(interpretation) %>% arrange(desc(interpretation)) %>%
-  select(response, count, interpretation, best, strict, nice, triangular, orthogonal, 
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, 
          tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 4, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Orthogonal", 3, 5) %>% 
+  kable(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
+  pack_rows("Orthogonal", 1, 3) %>% 
+  pack_rows("Triangular", 4, 5) %>% 
   pack_rows("Lines-Connect", 6, 7) %>% 
   pack_rows("other", 8, 10) 
 
@@ -1444,35 +1464,78 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
 
 Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point *in addition* to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )
 
-+---------------------------------------------------+-------------------------------------------------------------------------------------+
-| Which shift(s) start at the same time as D?       |                                                                                     |
-+===================================================+=====================================================================================+
-| ![](keys/control/interpretations/Q2_111_TRI.png)  | A correct (triangular) interpretation of the coordinate system yields data point K. |
-+---------------------------------------------------+-------------------------------------------------------------------------------------+
-| ![](keys/control/interpretations/Q2_111_ORTH.png) | An incorrect orthogonal interpretation yields point K                               |
-+---------------------------------------------------+-------------------------------------------------------------------------------------+
++---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Which shift(s) start at the same time as D?**   |                                                                                                                                                                                                                                                                         |
++===================================================+=========================================================================================================================================================================================================================================================================+
+| ![](keys/control/interpretations/Q2_111_ORTH.png) | **Response: E** (also EG, DE)                                                                                                                                                                                                                                           |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system                                                                                                                                                                                     |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   Consistent with the reader identifying the reference point (D) on the graph, *projecting an invisible orthogonal line through it*, and locating data point **E**.                                                                                                   |
++---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q2_111_TRI.png)  | **Response: K** (also KD)                                                                                                                                                                                                                                               |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   indicates an **triangular** (correct) interpretation of the coordinate system                                                                                                                                                                                       |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   Consistent with the reader identifying the reference point (D) on the graph, and following its *descending-leftward* *diagonal gridline*, and locating data point **K**.                                                                                            |
++---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q2_111_AK.png)   | **Response: AK**                                                                                                                                                                                                                                                        |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   indicates an **Tversky** strategy following connecting lines                                                                                                                                                                                                        |
+|                                                   | -   Consistent with the reader identifying the reference point (D) on the graph, and following its *descending-leftward* *diagonal gridline*, and locating data point **K** then *continuing* *along the connecting ascending leftward diagonal* locating data point A. |
++---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q2_111_J.png)    | **Response: J**                                                                                                                                                                                                                                                         |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   indicates an **Tversky** strategy following connecting lines                                                                                                                                                                                                        |
+|                                                   | -   Consistent with the reader identifying the reference point (D) on the graph, and following its horizontal gridline to the y-axis, locating data point J.                                                                                                            |
++---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q2_111_D.png)    | **Response: D**                                                                                                                                                                                                                                                         |
+|                                                   |                                                                                                                                                                                                                                                                         |
+|                                                   | -   the reader selected only the **reference point**                                                                                                                                                                                                                    |
+|                                                   | -   Consistent with the reader identifying the reference point (D) on the graph                                                                                                                                                                                         |
+|                                                   | -   Possibly indicates uncertainty or confusion                                                                                                                                                                                                                         |
++---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-+------------------------------------------------+-------------------------------------------------+------------------------------------------------+------------------------------------------------+
-| Alternative Responses                          |                                                 |                                                |                                                |
-+================================================+=================================================+================================================+================================================+
-| ![](keys/control/interpretations/Q2_111_J.png) | ![](keys/control/interpretations/Q2_111_AK.png) | ![](keys/control/interpretations/Q1_111_B.png) | ![](keys/control/interpretations/Q2_111_C.png) |
-+------------------------------------------------+-------------------------------------------------+------------------------------------------------+------------------------------------------------+
-|                                                |                                                 |                                                |                                                |
-+------------------------------------------------+-------------------------------------------------+------------------------------------------------+------------------------------------------------+
++------------------------------------------------+------------------------------------------------+
+| B                                              | C                                              |
++================================================+================================================+
+| ![](keys/control/interpretations/Q2_111_B.png) | ![](keys/control/interpretations/Q2_111_C.png) |
++------------------------------------------------+------------------------------------------------+
 
 #### Question #3
 
-PICK UP TROUBLESHOOTING INTERPRETATION ALGORITHM ABOVE, BASED ON MATCHES TO THESE SCORES HERE
-```{r Q3-control}
+![Q3---Control Condition](keys/control/questions/Q3_111.png){#fig-Q4-111}
+
+```{r}
+#| label: Q3-CONTROL-KEY
+
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==3)
+ignore <- q %>% select("ALSO")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% select("TRIve", "ORTHve","TV_max_ve","TV_start_ve","TV_end_ve", "TV_dur_ve")%>% unlist()
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q2 Control Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) %>% kable_styling(position = 'left',  full_width = TRUE)
+```
+
+```{r}
+#| label: Q3-CONTROL-RESPONSES
 #| warning: false
 
-#define interpretation for each response
-#NOTE: this is manually defined, based on inspecting answer options
-  interpretation = c("ORTHOGONAL","TRIANGULAR","LINES-CONNECT","ORTHONGAL","LINES-CONNECT",
-                     "lines-connect","LINES-CONNECT","","","(reference point)",
-                     "","","","","","","")
-
+names = c("response","n","interpretation",
+          "strict","nice","tri","orth","tv_max","tv_start","tv_end","tv_dur")
 title <- "Frequency of Selected Response Options for Question #3 (Control Condition)"
+
 df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>% 
    dplyr::summarise( count = n(), 
                     strict = unique(score_ABS), 
@@ -1483,33 +1546,44 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
                     tversky_start = unique(score_TV_start),
                     tversky_end = unique(score_TV_end),
                     tversky_duration = unique(score_TV_duration),
-                    best = unique(best)
-                    # DISC =  triangular - orthogonal
-                    # DISC = (score_TRI - score_ORTH) 
-                    ) %>% arrange(-count) %>% 
-    cbind(interpretation) %>% arrange(desc(interpretation)) %>%
-  select(response, count, interpretation, best, strict, nice, triangular, orthogonal, 
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, strict, nice, triangular, orthogonal, 
          tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 4, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Orthogonal", 2, 3) %>% 
-  pack_rows("Lines-Connect", 4, 7) %>% 
-  pack_rows("other", 8, 17) 
+  add_header_above(c(" " = 3, "Strict Scores" = 2, "Interpretation Scores"=6)) %>%
+  pack_rows("Orthogonal", 1, 1) %>% 
+  pack_rows("Triangular", 2, 3) %>% 
+  pack_rows("Lines-Connect", 4, 8) %>% 
+  pack_rows("other", 9, 17) 
 
 ```
+
+TODO address RESPONSE FKE which is classified as Triangular but doesn't seem to fit this interpretation
+
++---------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| What shift(s) begin when C ends?                  |                                                                                                                                                                                                                                                                                                |
++===================================================+================================================================================================================================================================================================================================================================================================+
+| ![](keys/control/interpretations/Q3_111_ORTH.png) | **Response: A**                                                                                                                                                                                                                                                                                |
+|                                                   |                                                                                                                                                                                                                                                                                                |
+|                                                   | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system                                                                                                                                                                                                            |
+|                                                   | -   Consistent with the reader identifying the reference point (11am) on the graph, and using the duration encoded on the y-axis (2) , project along the horizontal gridline by two hours, and then *project an invisible orthogonal line through that time (12PM)* locating data point **Z**. |
++---------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](keys/control/interpretations/Q3_111_F.png)    | **Response: F**                                                                                                                                                                                                                                                                                |
+|                                                   |                                                                                                                                                                                                                                                                                                |
+|                                                   | -   indicates a (correct) **triangular** interpretation of the coordinate system                                                                                                                                                                                                               |
+|                                                   | -   Consistent with the reader identifying the reference point (11am) on the graph, and following the *descending gridline* to the x-axis to identify the end-time (11AM) and then following the *ascending gridline* to identify datapoints starting at 11AM and locating data point **F**.   |
++---------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                                                     |                                                                                                                                                                       |                                                                                                                                             |
 +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | Correct --- Triangular                                                              | Incorrect --- Lines Connect                                                                                                                                           | Incorrect --- Orthogonal                                                                                                                    |
 +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](keys/control/interpretations/Q3_111_TRI.png)                                    | ![](keys/control/interpretations/Q3_111_TVERSKY.png)                                                                                                                  | ![](keys/control/interpretations/Q3_111_ORTH.png)                                                                                           |
+|                                                                                     | ![](keys/control/interpretations/Q3_111_TVERSKY.png)                                                                                                                  |                                                                                                                                             |
 +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | A correct (triangular) interpretation of the coordinate system yields data point K. | An incorrect interpretation that is not orthogonal yields selection of datapoints that are connected by a line to data point D, such as K and A, or alternatively, J. | An incorrect orthogonal interpretation involves selecting data point E, the orthogonal projection from the reference point D to the x-axis. |
 +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
-
-
 
 #### Question #4
 
@@ -1545,10 +1619,13 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%  dplyr
 
 In Question 4 we see more than one variant of an orthogonal interpretation emerge.
 
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
-|--------------------------|----------------------------------------------|
-| ![](keys/control/interpretations/Q4_111_ORTH.png)                                                                                                                                                                      | ![](keys/control/interpretations/Q4_111_ORTH-LC.png)                                                                                                                                                                                                                                                                                                                                            |
++========================================================================================================================================================================================================================+=================================================================================================================================================================================================================================================================================================================================================================================================+
+| ![](keys/control/interpretations/Q4_111_ORTH.png)                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                 |
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 #### Question #5
 
@@ -1614,24 +1691,6 @@ We can compare these responses to those produced by participants in the experime
 
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### Summarize By subject
 
 ```{r}
@@ -1684,9 +1743,6 @@ Our approach to calculating an ORTHOGONAL PARTIAL score is as follows:
 
 -   trapdoor : default to -1 if select triangular
 
-
-
 # RESOURCES
 
-_set operations_
-https://stat.ethz.ch/R-manual/R-devel/library/base/html/sets.html
+*set operations* https://stat.ethz.ch/R-manual/R-devel/library/base/html/sets.html
