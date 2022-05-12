@@ -46,7 +46,7 @@ options(scipen=1, digits=3)
 *The purpose of this notebook is to harmonize data files for study SGC_3A.*
 
 | Pre-Requisite                                                                                                   | Followed By           |
-|-----------------------------------------------------------------------------------------------------------------|-----------------------|
+|------------------------------------------------------|------------------|
 | spring17_clean_data.Rmd <br> spring18_clean_data.Rmd <br> fall21_clean_data.Rmd <br> winter2022_clean_sgc3a.Rmd | 2_sgc3A_rescoring.qmd |
 
 ## HARMONIZATION
@@ -74,10 +74,10 @@ First we import participant-level data from each data collection period, selecti
 #IMPORT PARTICIPANT DATA
 
 #set datafiles
-fall17 <- "data/session-level/fall17_sgc3a_participants.csv"
-spring18 <- "data/session-level/spring18_sgc3a_participants.csv"
-fall21 <- "data/session-level/fall21_sgc3a_participants.csv"
-winter22 <- "data/session-level/winter22_sgc3a_participants.rds"
+fall17 <- "data/0-session-level/fall17_sgc3a_participants.csv"
+spring18 <- "data/0-session-level/spring18_sgc3a_participants.csv"
+fall21 <- "data/0-session-level/fall21_sgc3a_participants.csv"
+winter22 <- "data/0-session-level/winter22_sgc3a_participants.rds"
 
 #read datafiles, set mode and term
 df_subjects_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
@@ -181,10 +181,10 @@ Next we import item-level data from each data collection period, selecting only 
 ```{r IMPORT-ITEMS}
 
 #set datafiles
-fall17 <- "data/session-level/fall17_sgc3a_blocks.csv"
-spring18 <- "data/session-level/spring18_sgc3a_blocks.csv"
-fall21 <- "data/session-level/fall21_sgc3a_blocks.csv"
-winter22 <- "data/session-level/winter22_sgc3a_items.rds"
+fall17 <- "data/0-session-level/fall17_sgc3a_blocks.csv"
+spring18 <- "data/0-session-level/spring18_sgc3a_blocks.csv"
+fall21 <- "data/0-session-level/fall21_sgc3a_blocks.csv"
+winter22 <- "data/0-session-level/winter22_sgc3a_items.rds"
 
 #read datafiles, set mode and term
 df_items_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
@@ -287,14 +287,14 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 ```{r GENERATE-FILES}
 
 #SAVE FILES
-write.csv(df_subjects,"data/sgc3a_participants.csv", row.names = FALSE)
-write.csv(df_items,"data/sgc3a_items.csv", row.names = FALSE)
-write.csv(df_freeresponse,"data/sgc3a_items.csv", row.names = FALSE)
+write.csv(df_subjects,"data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
+write.csv(df_items,"data/1-study-level/sgc3a_items.csv", row.names = FALSE)
+write.csv(df_freeresponse,"data/1-study-level/sgc3a_items.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
-rio::export(df_subjects, "data/sgc3a_participants.rds") # to R data structure file
-rio::export(df_items, "data/sgc3a_items.rds") # to R data structure file
+rio::export(df_subjects, "data/1-study-level/sgc3a_participants.rds") # to R data structure file
+rio::export(df_items, "data/1-study-level/sgc3a_items.rds") # to R data structure file
 
 ```
 
