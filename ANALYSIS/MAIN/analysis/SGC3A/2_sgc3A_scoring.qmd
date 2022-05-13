@@ -26,6 +26,11 @@ subtitle: 'Study SGC3A | 2 Response Scoring'
 
 \newpage
 
+**TODO**
+
+-   mine for inline TODOs
+-   finish item level response exploration
+
 # Response Scoring {#sec-SGC3A-scoring}
 
 ```{r}
@@ -41,6 +46,7 @@ options(scipen=1, digits=3)
 library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
 library(ggformula) #quick graphs
+library(ggpubr) #better graphs
 
 ```
 
@@ -1701,33 +1707,75 @@ We can compare these responses to those produced by participants in the experime
 
 ### Peeking
 
+#### Score Distributions
 ```{r}
 
-# df_items$DISC <- df_items$score_TRI - df_items$score_ORTH
-gf_jitter(score_TRI ~ score_ORTH, data = df_items, alpha = 0.2)
-# gf_jitter(score_TRI ~ DISC, data = df_items , alpha=0.2,  color = ~q)
-# gf_dhistogram(~df_items$DISC, data = df_items)
+gf_density(~ score_niceABS, fill = ~condition, data = df_items) %>% 
+  gf_facet_wrap( ~ condition, labeller = label_both) + 
+  labs( x = "Item Absolute Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
 
-gf_bar(~best, data = df_items) %>% gf_facet_grid(q~condition)
+
+gf_density(~ score_TRI, fill = ~condition, data = df_items) %>% 
+  gf_facet_wrap( ~ condition, labeller = label_both) + 
+  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
+
+
+gf_bar(~ interpretation, fill = ~condition, data = df_items) %>% 
+  gf_facet_grid( ~condition, labeller = label_both) + 
+  labs( title = "Distribution of Interpretations") + theme_minimal() + theme(legend.position = "blank")
+
 ```
+#### Scores through Time
+```{r}
+
+gf_histogram(~ score_niceABS, fill = ~condition, data = df_items) %>% 
+  gf_facet_grid(q ~ condition, labeller = label_both) + 
+  labs( x = "Item Absolute Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
+
+
+gf_density(~ score_TRI, fill = ~condition, data = df_items) %>% 
+  gf_facet_grid(q ~ condition, labeller = label_both) + 
+  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
+
+
+gf_bar(~ interpretation, fill = ~condition, data = df_items) %>% 
+  gf_facet_grid( q ~condition, labeller = label_both) + 
+  labs( title = "Distribution of Interpretations") + theme_minimal() + theme(legend.position = "blank")
+
+```
+
+#### Score Relationships
+```{r}
+
+gf_jitter( score_TRI ~ score_ORTH, fill = ~condition, alpha = 0.5, data = df_items) %>% 
+  gf_facet_wrap( ~ condition, labeller = label_both) + 
+  labs( x = "ORTH score", y = "TRI score", 
+        title = "Relationship between ORTH and TRI scores") + theme_minimal() + theme(legend.position = "blank")
+
+```
+
+#### Scores by Subject
+
 
 ```{r}
 subject_scores <- df_items %>% group_by(subject) %>% dplyr::summarize(
   TRI = sum(score_TRI),
   ORTH = sum(score_ORTH),
   # DISCRIM = sum(score_TRI + score_ORTH),
-  ABSOLUTE = sum(correct),
+  ABSOLUTE = sum(score_niceABS),
   condition = unique(condition)
 )
-head(subject_scores)
 ```
 
 ```{r}
-# gf_dhistogram(~DISCRIM, data = subject_scores)  %>%  gf_facet_grid(~condition)
-# 
-# gf_dhistogram(~ABSOLUTE, data = subject_scores)
-# 
-# gf_jitter(ABSOLUTE ~ DISCRIM, data = subject_scores, alpha = 0.2)
+gf_histogram(~ ABSOLUTE, fill = ~condition, data = subject_scores) %>% 
+  gf_facet_wrap( ~ condition, labeller = label_both) + 
+  labs( x = "Item Absolute Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
+
+
+gf_density(~ TRI, fill = ~condition, data = subject_scores) %>% 
+  gf_facet_wrap( ~ condition, labeller = label_both) + 
+  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
 
 ```
 
@@ -1756,6 +1804,32 @@ Our approach to calculating an ORTHOGONAL PARTIAL score is as follows:
 Summarize by subject Export subjects Export items
 
 -   does response time predict interpretation vs. non interpretation?
+
+
+Finally, we export the scored items and summarized subjects. 
+
+```{r}
+#| label: EXPORT-SCORES
+
+#prep items
+df_items <- df_items %>% select(-best) %>% mutate(
+  tv_type = as.factor(tv_type)
+)
+
+#SAVE FILES
+# write.csv(df_subjects,"data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
+write.csv(df_items,"data/2-scored-data/sgc3a_scored_items.csv", row.names = FALSE)
+
+
+#SAVE R Data Structures 
+#export R DATA STRUCTURES (include codebook metadata)
+# rio::export(df_subjects, "data/1-study-level/sgc3a_participants.rds") # to R data structure file
+rio::export(df_items, "data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
+
+```
+
+
+
 
 ## RESOURCES
 

@@ -44,8 +44,6 @@ library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
 library(mosaic) #simple descriptives [favstats]
 library(Hmisc) # %nin% operator
-
-
 library(ggpubr) #arrange plots
 
 # library(pastecs) #stat.desc
@@ -77,7 +75,7 @@ options(scipen=1, digits=3)
 
 #IMPORT DATA 
 #TODO REPLACE WITH 2-scored-data when its done
-df_items <- read_rds('data/1-study-level/sgc3a_items.rds')
+df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds')
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
@@ -130,7 +128,7 @@ Cumulative scores indicate the response accuracy by participant across all items
 
 #### Cumulative Absolute Score
 
-Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others. The absolute score for an individual item is either 0 or 1. When cumulated across the entire set of items, the cumulative absolute score for an individual subject ranges from \[0,15\].
+Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from \[0,15\].
 
 ```{r}
 #| label: ABS-SUBJECT
@@ -149,20 +147,48 @@ For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]
 For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
 
 ```{r}
-#| label: VIS-ABS-SCORE
-#| 
-#VISUALIZE distribution of response accuracy
-plab <- gf_dhistogram(~absolute_score, data = df_subjects) %>%
-  gf_vline(xintercept = ~abs.stats["lab",]$mean, color = "blue") +
-  labs(title="Lab", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal()
+#| label: VIS-SUBJECT-ABS-SCORE
+ 
+#VISUALIZE distribution of response accuracy across SUBJECTS
 
-ponline <- gf_dhistogram(~absolute_score, data = df_subjects) %>%
-  gf_vline(xintercept = ~abs.stats["online",]$mean, color = "blue") +
-  labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal()
+# plab <- ggplot(data = df_subjects %>% filter(mode == 'lab-synch'), aes(x = absolute_score)) + 
+#   geom_bar() +  # = 16, color = "black", data =  %>%
+#   facet_wrap(condition) + 
+#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +
+#   labs(title="Lab", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal()
+# 
+# ponline <- ggplot(data = df_subjects %>% filter(mode == 'asynch'), aes(x = absolute_score)) + 
+#   geom_bar() +  # = 16, color = "black", data =  %>%
+#   facet_wrap(~condition) + 
+#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +
+#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() 
+# 
+# plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
+# annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by MODALITY",
+#    color = "black", face = "bold", size = 14))
+# 
+# 
+# ggplot(data = df_subjects, aes(x = absolute_score)) + 
+#   geom_bar() +  # = 16, color = "black", data =  %>%
+#   facet_grid(condition~mode) + 
+#   # geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +
+#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() 
 
-plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
-annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by Study",
-   color = "black", face = "bold", size = 14))
+
+stats = df_subjects %>% group_by(condition, mode) %>% summarise(mean = mean(absolute_score))
+gf_bar(~absolute_score, data = df_subjects) %>% 
+  gf_facet_grid(condition~mode) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Cumulative Absolute Score for Subject")+
+  theme_minimal()
+  
+
+#RIDGEPLOT
+# ggplot(data = df_subjects, aes(x = absolute_score, y = mode)) +
+#   geom_density_ridges() + xlim(0,15)+ 
+#   facet_wrap(~condition, labeller = label_both) + 
+#   labs( x = "Cumulative Absolute Score for Subject") +
+#   theme_minimal()
 
 ```
 
@@ -170,11 +196,64 @@ annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by Stu
 
 #### Cumulative Interpretation Scores
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Item Score
 
 Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.
 
 #### Item Absolute Score
+
+
+
+```{r}
+#| label: ABS-ITEM
+
+title = "Descriptive Statistics of Response Accuracy (Absolute Score)"
+abs.stats.items <- rbind(
+  "lab"= df_items %>% filter(mode == 'lab-synch') %>% select(score_niceABS) %>% unlist() %>% favstats(),
+  "online" = df_items %>% filter(mode == "asynch") %>% select(score_niceABS) %>% unlist() %>% favstats()
+) 
+abs.stats.items %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+
+For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
+
+For *online replication*, (online) item accuracy scores (n = `r abs.stats.items["online",]$n`) range from `r round(abs.stats.items["online",]$min,2)` to `r round(abs.stats.items["online",]$max,2)` with a mean score of (M = `r round(abs.stats.items["online",]$mean,2)`, SD = `r round(abs.stats.items["online",]$sd,2)`).
+
+```{r}
+#| label: VIS-ITEMS-ABS-SCORE
+
+#VISUALIZE distribution of response accuracy across ITEMS
+
+ggplot(data = df_items, aes(x = score_niceABS, y = mode)) +
+  geom_density_ridges()+ 
+  facet_wrap(~condition, labeller = label_both) + 
+  labs( x = "Absolute Score for Item") +
+  theme_minimal()
+
+
+```
+
+
+
+
+
+
 
 #### Item Interpretation Scores
 
