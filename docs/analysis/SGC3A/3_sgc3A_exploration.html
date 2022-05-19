@@ -182,14 +182,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a href="#cumulative-scores" id="toc-cumulative-scores" class="nav-link" data-scroll-target="#cumulative-scores"> <span class="header-section-number">3.2.1</span> Cumulative Scores</a>
   <ul class="collapse">
 <li><a href="#cumulative-absolute-score" id="toc-cumulative-absolute-score" class="nav-link" data-scroll-target="#cumulative-absolute-score"> <span class="header-section-number">3.2.1.1</span> Cumulative Absolute Score</a></li>
-  <li><a href="#cumulative-interpretation-scores" id="toc-cumulative-interpretation-scores" class="nav-link" data-scroll-target="#cumulative-interpretation-scores"> <span class="header-section-number">3.2.1.2</span> Cumulative Interpretation Scores</a></li>
+  <li><a href="#cumulative-scaled-scores" id="toc-cumulative-scaled-scores" class="nav-link" data-scroll-target="#cumulative-scaled-scores"> <span class="header-section-number">3.2.1.2</span> Cumulative Scaled Scores</a></li>
+  <li><a href="#cumulative-interpretation-scores" id="toc-cumulative-interpretation-scores" class="nav-link" data-scroll-target="#cumulative-interpretation-scores"> <span class="header-section-number">3.2.1.3</span> Cumulative Interpretation Scores</a></li>
   </ul>
 </li>
   <li>
 <a href="#item-score" id="toc-item-score" class="nav-link" data-scroll-target="#item-score"> <span class="header-section-number">3.2.2</span> Item Score</a>
   <ul class="collapse">
 <li><a href="#item-absolute-score" id="toc-item-absolute-score" class="nav-link" data-scroll-target="#item-absolute-score"> <span class="header-section-number">3.2.2.1</span> Item Absolute Score</a></li>
-  <li><a href="#item-interpretation-scores" id="toc-item-interpretation-scores" class="nav-link" data-scroll-target="#item-interpretation-scores"> <span class="header-section-number">3.2.2.2</span> Item Interpretation Scores</a></li>
+  <li><a href="#item-scaled-score" id="toc-item-scaled-score" class="nav-link" data-scroll-target="#item-scaled-score"> <span class="header-section-number">3.2.2.2</span> Item Scaled Score</a></li>
+  <li><a href="#item-interpretation-scores" id="toc-item-interpretation-scores" class="nav-link" data-scroll-target="#item-interpretation-scores"> <span class="header-section-number">3.2.2.3</span> Item Interpretation Scores</a></li>
   </ul>
 </li>
   </ul>
@@ -249,7 +251,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <table class="table">
 <colgroup>
 <col style="width: 34%">
-<col style="width: 20%">
+<col style="width: 22%">
 </colgroup>
 <thead><tr class="header">
 <th>Pre-Requisite</th>
@@ -263,13 +265,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </table>
 <div class="cell">
 <details><summary>CODE</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#IMPORT DATA </span>
-<span class="co">#TODO REPLACE WITH 2-scored-data when its done</span>
 <span class="va">df_items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_rds.html">read_rds</a></span><span class="op">(</span><span class="st">'data/2-scored-data/sgc3a_scored_items.rds'</span><span class="op">)</span>
-<span class="va">df_subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_rds.html">read_rds</a></span><span class="op">(</span><span class="st">'data/1-study-level/sgc3a_participants.rds'</span><span class="op">)</span>
+<span class="va">df_subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_rds.html">read_rds</a></span><span class="op">(</span><span class="st">'data/2-scored-data/sgc3a_scored_participants.rds'</span><span class="op">)</span>
 
 <span class="co">#SEPARATE ITEM DATA BY QUESTION TYPE</span>
 <span class="va">df_scaffold</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span> <span class="op">&lt;</span> <span class="fl">6</span><span class="op">)</span>
-<span class="va">df_test</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span> <span class="op">&gt;</span> <span class="fl">6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span> <span class="op">(</span><span class="va">q</span> <span class="op"><a href="https://rdrr.io/pkg/Hmisc/man/nin.html">%nin%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">9</span><span class="op">)</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span class="co">#TODO run when have rest of data scored </span>
+<span class="co"># df_test &lt;- df_items %&gt;% filter(q &gt; 6) %&gt;% filter (q %nin% c(6,9))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="sample" class="level2" data-number="3.1"><h2 data-number="3.1" class="anchored" data-anchor-id="sample">
@@ -398,8 +400,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="cumulative-absolute-score" class="level4" data-number="3.2.1.1"><h4 data-number="3.2.1.1" class="anchored" data-anchor-id="cumulative-absolute-score">
 <span class="header-section-number">3.2.1.1</span> Cumulative Absolute Score</h4>
 <p>Recall from <a href="2_sgc3A_scoring.html#sec-absolute-scoring">Section&nbsp;<span>2.1.2.1</span></a> that the absolute score (following the dichotomous scoring approach) indicates if the subject’s response for a particular item was <em>perfectly</em> correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from [0,15].</p>
-<div class="cell">
-<details><summary>CODE</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">title</span> <span class="op">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Absolute Score)"</span>
+<p>TODO sanity check this against s_ABS and s_NABS ::: {.cell}</p>
+<details><summary>CODE</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">title</span> <span class="op">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)"</span>
 <span class="va">abs.stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span>
   <span class="st">"lab"</span><span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">'lab-synch'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">absolute_score</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>,
   <span class="st">"online"</span> <span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"asynch"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">absolute_score</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>
@@ -407,7 +409,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span class="va">abs.stats</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html">kbl</a></span> <span class="op">(</span>caption <span class="op">=</span> <span class="va">title</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_classic.html">kable_classic</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
-<caption>Descriptive Statistics of Response Accuracy (Absolute Score)</caption>
+<caption>Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)</caption>
  <thead><tr>
 <th style="text-align:left;">   </th>
    <th style="text-align:right;"> min </th>
@@ -448,63 +450,139 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tbody>
 </table>
 </div>
-</div>
+<p>:::</p>
 <p>For <em>in person</em> collection, cumulative absolute scores (n = 126) range from 1 to 15 with a mean score of (M = 5.81, SD = 4.89).</p>
 <p>For <em>online replication</em>, (online) cumulative accuracy scores (n = 204) range from 0 to 15 with a mean score of (M = 4.64, SD = 4.73).</p>
 <div class="cell">
 <details><summary>CODE</summary><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response accuracy across SUBJECTS</span>
 
-<span class="co"># plab &lt;- ggplot(data = df_subjects %&gt;% filter(mode == 'lab-synch'), aes(x = absolute_score)) + </span>
-<span class="co">#   geom_bar() +  # = 16, color = "black", data =  %&gt;%</span>
-<span class="co">#   facet_wrap(condition) + </span>
-<span class="co">#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +</span>
-<span class="co">#   labs(title="Lab", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal()</span>
-<span class="co"># </span>
-<span class="co"># ponline &lt;- ggplot(data = df_subjects %&gt;% filter(mode == 'asynch'), aes(x = absolute_score)) + </span>
-<span class="co">#   geom_bar() +  # = 16, color = "black", data =  %&gt;%</span>
-<span class="co">#   facet_wrap(~condition) + </span>
-<span class="co">#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +</span>
-<span class="co">#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() </span>
-<span class="co"># </span>
-<span class="co"># plot &lt;-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)</span>
-<span class="co"># annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by MODALITY",</span>
-<span class="co">#    color = "black", face = "bold", size = 14))</span>
-<span class="co"># </span>
-<span class="co"># </span>
-<span class="co"># ggplot(data = df_subjects, aes(x = absolute_score)) + </span>
-<span class="co">#   geom_bar() +  # = 16, color = "black", data =  %&gt;%</span>
-<span class="co">#   facet_grid(condition~mode) + </span>
-<span class="co">#   # geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +</span>
-<span class="co">#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() </span>
-
-
+<span class="co">#HISTOGRAM</span>
 <span class="va">stats</span> <span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">condition</span>, <span class="va">mode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">mean</a></span><span class="op">(</span><span class="va">absolute_score</span><span class="op">)</span><span class="op">)</span>
 <span class="fu">gf_bar</span><span class="op">(</span><span class="op">~</span><span class="va">absolute_score</span>, data <span class="op">=</span> <span class="va">df_subjects</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
-  <span class="fu">gf_facet_grid</span><span class="op">(</span><span class="va">condition</span><span class="op">~</span><span class="va">mode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_facet_grid</span><span class="op">(</span><span class="va">condition</span><span class="op">~</span><span class="va">mode</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_lims</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu">gf_vline</span><span class="op">(</span>data <span class="op">=</span> <span class="va">stats</span>, xintercept <span class="op">=</span> <span class="op">~</span><span class="va">mean</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Cumulative Absolute Score for Subject"</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details><div class="cell-output-display">
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 6 rows containing missing values (geom_bar).</code></pre>
+</div>
+<div class="cell-output-display">
 <p><img src="3_sgc3A_exploration_files/figure-html/VIS-SUBJECT-ABS-SCORE-1.png" class="img-fluid" width="672"></p>
 </div>
-<details><summary>CODE</summary><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#RIDGEPLOT</span>
-<span class="co"># ggplot(data = df_subjects, aes(x = absolute_score, y = mode)) +</span>
-<span class="co">#   geom_density_ridges() + xlim(0,15)+ </span>
-<span class="co">#   facet_wrap(~condition, labeller = label_both) + </span>
-<span class="co">#   labs( x = "Cumulative Absolute Score for Subject") +</span>
-<span class="co">#   theme_minimal()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<details><summary>CODE</summary><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#RIDGEPLOT</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_subjects</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">absolute_score</span>, y <span class="op">=</span> <span class="va">mode</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">geom_density_ridges</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">15</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">condition</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span> x <span class="op">=</span> <span class="st">"Cumulative Absolute Score for Subject"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.426</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 1.83</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-SUBJECT-ABS-SCORE-2.png" class="img-fluid" width="672"></p>
+</div>
 </div>
 <p><strong>TODO</strong> double check that the subject-totals match the sum of the item level totals</p>
-</section><section id="cumulative-interpretation-scores" class="level4" data-number="3.2.1.2"><h4 data-number="3.2.1.2" class="anchored" data-anchor-id="cumulative-interpretation-scores">
-<span class="header-section-number">3.2.1.2</span> Cumulative Interpretation Scores</h4>
+</section><section id="cumulative-scaled-scores" class="level4" data-number="3.2.1.2"><h4 data-number="3.2.1.2" class="anchored" data-anchor-id="cumulative-scaled-scores">
+<span class="header-section-number">3.2.1.2</span> Cumulative Scaled Scores</h4>
+<p>TODO describe scaled score ::: {.cell}</p>
+<details><summary>CODE</summary><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">title</span> <span class="op">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Cumulative Scaled Score)"</span>
+<span class="va">scaled.stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span>
+  <span class="st">"lab"</span><span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">'lab-synch'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">s_SCALED</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>,
+  <span class="st">"online"</span> <span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"asynch"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">s_SCALED</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>
+<span class="op">)</span> 
+<span class="va">scaled.stats</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html">kbl</a></span> <span class="op">(</span>caption <span class="op">=</span> <span class="va">title</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_classic.html">kable_classic</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Descriptive Statistics of Response Accuracy (Cumulative Scaled Score)</caption>
+ <thead><tr>
+<th style="text-align:left;">   </th>
+   <th style="text-align:right;"> min </th>
+   <th style="text-align:right;"> Q1 </th>
+   <th style="text-align:right;"> median </th>
+   <th style="text-align:right;"> Q3 </th>
+   <th style="text-align:right;"> max </th>
+   <th style="text-align:right;"> mean </th>
+   <th style="text-align:right;"> sd </th>
+   <th style="text-align:right;"> n </th>
+   <th style="text-align:right;"> missing </th>
+  </tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;"> lab </td>
+   <td style="text-align:right;"> -5 </td>
+   <td style="text-align:right;"> -4.0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 2.50 </td>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:right;"> -0.429 </td>
+   <td style="text-align:right;"> 3.41 </td>
+   <td style="text-align:right;"> 126 </td>
+   <td style="text-align:right;"> 0 </td>
+  </tr>
+<tr>
+<td style="text-align:left;"> online </td>
+   <td style="text-align:right;"> -5 </td>
+   <td style="text-align:right;"> -2.5 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 2.12 </td>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:right;"> -0.277 </td>
+   <td style="text-align:right;"> 2.96 </td>
+   <td style="text-align:right;"> 204 </td>
+   <td style="text-align:right;"> 0 </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<p>:::</p>
+<div class="cell">
+<details><summary>CODE</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response accuracy across SUBJECTS</span>
+
+<span class="co">#HISTOGRAM</span>
+<span class="va">stats</span> <span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">condition</span>, <span class="va">mode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">mean</a></span><span class="op">(</span><span class="va">s_SCALED</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">gf_histogram</span><span class="op">(</span><span class="op">~</span><span class="va">s_SCALED</span>, data <span class="op">=</span> <span class="va">df_subjects</span>, binwidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_facet_grid</span><span class="op">(</span><span class="va">condition</span><span class="op">~</span><span class="va">mode</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_lims</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">15</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu">gf_vline</span><span class="op">(</span>data <span class="op">=</span> <span class="va">stats</span>, xintercept <span class="op">=</span> <span class="op">~</span><span class="va">mean</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Cumulative Scaled Score for Subject"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 8 rows containing missing values (geom_bar).</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-SUBJECT-SCALED-SCORE-1.png" class="img-fluid" width="672"></p>
+</div>
+<details><summary>CODE</summary><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#RIDGEPLOT</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_subjects</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">s_SCALED</span>, y <span class="op">=</span> <span class="va">condition</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">geom_density_ridges</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">15</span>,<span class="fl">15</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">mode</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span> x <span class="op">=</span> <span class="st">"Cumulative Scaled Score for Subject"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.832</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 1.02</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-SUBJECT-SCALED-SCORE-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section><section id="cumulative-interpretation-scores" class="level4" data-number="3.2.1.3"><h4 data-number="3.2.1.3" class="anchored" data-anchor-id="cumulative-interpretation-scores">
+<span class="header-section-number">3.2.1.3</span> Cumulative Interpretation Scores</h4>
+<p>TODO describe interpretation score? can this be summarized</p>
 </section></section><section id="item-score" class="level3" data-number="3.2.2"><h3 data-number="3.2.2" class="anchored" data-anchor-id="item-score">
 <span class="header-section-number">3.2.2</span> Item Score</h3>
 <p>Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.</p>
 <section id="item-absolute-score" class="level4" data-number="3.2.2.1"><h4 data-number="3.2.2.1" class="anchored" data-anchor-id="item-absolute-score">
 <span class="header-section-number">3.2.2.1</span> Item Absolute Score</h4>
 <div class="cell">
-<details><summary>CODE</summary><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">title</span> <span class="op">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Absolute Score)"</span>
+<details><summary>CODE</summary><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">title</span> <span class="op">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Absolute Score)"</span>
 <span class="va">abs.stats.items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span>
   <span class="st">"lab"</span><span class="op">=</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">'lab-synch'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">score_niceABS</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>,
   <span class="st">"online"</span> <span class="op">=</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"asynch"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">score_niceABS</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>
@@ -557,9 +635,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>For <em>in person</em> collection, item absolute scores (n = 630) range from 0 to 1 with a mean score of (M = 0.28, SD = 0.45).</p>
 <p>For <em>online replication</em>, (online) item accuracy scores (n = 1020) range from 0 to 1 with a mean score of (M = 0.24, SD = 0.43).</p>
 <div class="cell">
-<details><summary>CODE</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response accuracy across ITEMS</span>
+<details><summary>CODE</summary><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response accuracy across ITEMS</span>
 
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_items</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score_niceABS</span>, y <span class="op">=</span> <span class="va">mode</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+<span class="co">#HISTOGRAM</span>
+<span class="va">stats</span> <span class="op">=</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">condition</span>, <span class="va">mode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">mean</a></span><span class="op">(</span><span class="va">score_niceABS</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">gf_bar</span><span class="op">(</span><span class="op">~</span><span class="va">score_niceABS</span>, data <span class="op">=</span> <span class="va">df_items</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_facet_grid</span><span class="op">(</span><span class="va">condition</span><span class="op">~</span><span class="va">mode</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_vline</span><span class="op">(</span>data <span class="op">=</span> <span class="va">stats</span>, xintercept <span class="op">=</span> <span class="op">~</span><span class="va">mean</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Absolute Score for Item"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-ABS-SCORE-1.png" class="img-fluid" width="672"></p>
+</div>
+<details><summary>CODE</summary><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_items</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score_niceABS</span>, y <span class="op">=</span> <span class="va">mode</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu">geom_density_ridges</span><span class="op">(</span><span class="op">)</span><span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">condition</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span> x <span class="op">=</span> <span class="st">"Absolute Score for Item"</span><span class="op">)</span> <span class="op">+</span>
@@ -571,11 +659,133 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <pre><code>Picking joint bandwidth of 0.126</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-ABS-SCORE-1.png" class="img-fluid" width="672"></p>
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-ABS-SCORE-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-</section><section id="item-interpretation-scores" class="level4" data-number="3.2.2.2"><h4 data-number="3.2.2.2" class="anchored" data-anchor-id="item-interpretation-scores">
-<span class="header-section-number">3.2.2.2</span> Item Interpretation Scores</h4>
+</section><section id="item-scaled-score" class="level4" data-number="3.2.2.2"><h4 data-number="3.2.2.2" class="anchored" data-anchor-id="item-scaled-score">
+<span class="header-section-number">3.2.2.2</span> Item Scaled Score</h4>
+<div class="cell">
+<details><summary>CODE</summary><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">title</span> <span class="op">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Scaled Score)"</span>
+<span class="va">scaled.stats.items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span>
+  <span class="st">"lab"</span><span class="op">=</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">'lab-synch'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">score_SCALED</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>,
+  <span class="st">"online"</span> <span class="op">=</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"asynch"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">score_SCALED</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>
+<span class="op">)</span> 
+<span class="va">scaled.stats.items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kbl.html">kbl</a></span> <span class="op">(</span>caption <span class="op">=</span> <span class="va">title</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/pkg/kableExtra/man/kable_classic.html">kable_classic</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Descriptive Statistics of Response Accuracy (Scaled Score)</caption>
+ <thead><tr>
+<th style="text-align:left;">   </th>
+   <th style="text-align:right;"> min </th>
+   <th style="text-align:right;"> Q1 </th>
+   <th style="text-align:right;"> median </th>
+   <th style="text-align:right;"> Q3 </th>
+   <th style="text-align:right;"> max </th>
+   <th style="text-align:right;"> mean </th>
+   <th style="text-align:right;"> sd </th>
+   <th style="text-align:right;"> n </th>
+   <th style="text-align:right;"> missing </th>
+  </tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;"> lab </td>
+   <td style="text-align:right;"> -1 </td>
+   <td style="text-align:right;"> -1 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> -0.086 </td>
+   <td style="text-align:right;"> 0.814 </td>
+   <td style="text-align:right;"> 630 </td>
+   <td style="text-align:right;"> 0 </td>
+  </tr>
+<tr>
+<td style="text-align:left;"> online </td>
+   <td style="text-align:right;"> -1 </td>
+   <td style="text-align:right;"> -1 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> -0.055 </td>
+   <td style="text-align:right;"> 0.765 </td>
+   <td style="text-align:right;"> 1020 </td>
+   <td style="text-align:right;"> 0 </td>
+  </tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>TODO update this For <em>in person</em> collection, item absolute scores (n = 630) range from 0 to 1 with a mean score of (M = 0.28, SD = 0.45).</p>
+<p>For <em>online replication</em>, (online) item accuracy scores (n = 1020) range from 0 to 1 with a mean score of (M = 0.24, SD = 0.43).</p>
+<div class="cell">
+<details><summary>CODE</summary><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response accuracy across ITEMS</span>
+
+<span class="co">#HISTOGRAM</span>
+<span class="va">stats</span> <span class="op">=</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">condition</span>, <span class="va">mode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">mean</a></span><span class="op">(</span><span class="va">score_SCALED</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">gf_histogram</span><span class="op">(</span><span class="op">~</span><span class="va">score_SCALED</span>, data <span class="op">=</span> <span class="va">df_items</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_facet_grid</span><span class="op">(</span><span class="va">condition</span><span class="op">~</span><span class="va">mode</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_vline</span><span class="op">(</span>data <span class="op">=</span> <span class="va">stats</span>, xintercept <span class="op">=</span> <span class="op">~</span><span class="va">mean</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Scaled Score for Item"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-SCALED-SCORE-1.png" class="img-fluid" width="672"></p>
+</div>
+<details><summary>CODE</summary><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_items</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score_SCALED</span>, y <span class="op">=</span> <span class="va">condition</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">geom_density_ridges</span><span class="op">(</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">mode</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span> x <span class="op">=</span> <span class="st">"Scaled Score for Item"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.17</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.193</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-SCALED-SCORE-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section><section id="item-interpretation-scores" class="level4" data-number="3.2.2.3"><h4 data-number="3.2.2.3" class="anchored" data-anchor-id="item-interpretation-scores">
+<span class="header-section-number">3.2.2.3</span> Item Interpretation Scores</h4>
+<div class="cell">
+<details><summary>CODE</summary><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of interpretations across all ITEMS</span>
+
+<span class="co">#HISTOGRAM</span>
+
+<span class="fu">gf_barh</span><span class="op">(</span><span class="op">~</span><span class="va">interpretation</span>, data <span class="op">=</span> <span class="va">df_items</span>, fill <span class="op">=</span> <span class="op">~</span><span class="va">mode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">gf_facet_grid</span><span class="op">(</span><span class="va">mode</span><span class="op">~</span><span class="va">condition</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Interpretation for Item"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-INTERPRETATIONS-1.png" class="img-fluid" width="672"></p>
+</div>
+<details><summary>CODE</summary><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#restructue data </span>
+<span class="va">temp</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">mode</span>, <span class="va">condition</span>, 
+                            <span class="va">score_TRI</span>, <span class="va">score_TVERSKY</span>, <span class="va">score_SATISFICE</span>, <span class="va">score_ORTH</span><span class="op">)</span>
+ 
+  <span class="va">t.long</span> <span class="op">=</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html">gather</a></span><span class="op">(</span><span class="va">temp</span>,<span class="va">score</span>, <span class="va">value</span>, <span class="fl">3</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>
+  <span class="co"># t.long[t.long == ""] = NA</span>
+  
+
+<span class="co">#TODO CONTINGENCY TABLE FOR THIS </span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">t.long</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">score</span>, fill<span class="op">=</span><span class="va">condition</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">geom_density_ridges</span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">condition</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span> x <span class="op">=</span> <span class="st">"Interpretation Scores for Item"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.0703</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.107</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 1799 rows containing non-finite values (stat_density_ridges).</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="3_sgc3A_exploration_files/figure-html/VIS-ITEMS-INTERPRETATIONS-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
 </section></section></section><section id="response-latency" class="level2" data-number="3.3"><h2 data-number="3.3" class="anchored" data-anchor-id="response-latency">
 <span class="header-section-number">3.3</span> Response Latency</h2>
 <ul>
@@ -586,7 +796,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="time-on-study" class="level3" data-number="3.3.1"><h3 data-number="3.3.1" class="anchored" data-anchor-id="time-on-study">
 <span class="header-section-number">3.3.1</span> Time on Study</h3>
 <div class="cell">
-<details><summary>CODE</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#DESCRIBE distribution of response time</span>
+<details><summary>CODE</summary><div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#DESCRIBE distribution of response time</span>
 <span class="va">time.stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span>
   <span class="st">"lab"</span><span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">'lab-synch'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">totaltime_m</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>,
   <span class="st">"online"</span><span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">'asynch'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">totaltime_m</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://www.mosaic-web.org/mosaic/reference/aggregating.html">favstats</a></span><span class="op">(</span><span class="op">)</span>
@@ -641,7 +851,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Total time on study for <em>in person</em> subjects (n = 126) ranged from 6.01 to 23.86 minutes with a mean duration of (M = 12.8, SD = 3.37).</p>
 <p>Total time on study for <em>online replication</em> subjects (n = 204) ranged from 2.91 to 111.02 minutes with a mean duration of (M = 13.37, SD = 9.21).</p>
 <div class="cell">
-<details><summary>CODE</summary><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response time</span>
+<details><summary>CODE</summary><div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#VISUALIZE distribution of response time</span>
 <span class="va">plab</span> <span class="op">&lt;-</span> <span class="fu">gf_dhistogram</span><span class="op">(</span><span class="op">~</span><span class="va">totaltime_m</span>, data <span class="op">=</span> <span class="va">df_subjects</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
   <span class="fu">gf_vline</span><span class="op">(</span>xintercept <span class="op">=</span> <span class="op">~</span><span class="va">time.stats</span><span class="op">[</span><span class="st">"lab"</span>,<span class="op">]</span><span class="op">$</span><span class="va">mean</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu">gf_fitdistr</span><span class="op">(</span>dist<span class="op">=</span><span class="st">"gamma"</span>, color<span class="op">=</span><span class="st">"red"</span><span class="op">)</span><span class="op">+</span>
@@ -814,323 +1024,404 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># title: 'Exploration'</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> 'Study SGC3A | 3 Exploration'</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># author: 'Amy Rae Fox'</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># always_allow_html: true  </span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># header-includes:</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#    - \usepackage{amsmath}</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># output:</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   html_document:</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     theme: yeti</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     code_folding: hide</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#     fig_caption: yes</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     number_sections: yes</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc: yes</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc_depth: 4</span></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc_float:</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co">#       collapsed: no</span></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="co">#       smooth_scroll: yes</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co">#   pdf_document: </span></span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc: true</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc_depth: 3</span></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co">#     latex_engine: xelatex</span></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co"># font-family: "DejaVu Sans"</span></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="co"># mainfont: "DejaVu Sans"</span></span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>\newpage</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="fu"># Exploration {#sec-SGC3A-exploration}</span></span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>**THIS NOTEBOOK IS INCOMPLETE**</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>TODO</span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>double check which Qs in task are non-discriminating (6 and 9?)</span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SETUP</span></span>
-<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo : true</span></span>
-<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
-<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
-<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS</span></span>
-<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#printing tables </span></span>
-<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mosaic) <span class="co">#simple descriptives [favstats]</span></span>
-<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc) <span class="co"># %nin% operator</span></span>
-<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr) <span class="co">#arrange plots</span></span>
-<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="co"># library(pastecs) #stat.desc</span></span>
-<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a><span class="co"># library(car) #ANOVA, qqplot</span></span>
-<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a><span class="co"># library(effectsize) #effect size</span></span>
-<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a><span class="co">#set some output options</span></span>
-<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">dplyr.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">ggplot2.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
-<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is explore the distribution of dependent variables for Study SGC3A.*</span>
-<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>+------------------------+--------------+</span>
-<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>| Pre-Requisite          | Followed By  |</span>
-<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a>+========================+==============+</span>
-<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a>| 1_sgc3A_harmonize.qmd\ |              |</span>
-<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a>| 2_sgc3A_rescoring.qmd  |              |</span>
-<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>+------------------------+--------------+</span>
-<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-DATA</span></span>
-<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo : true</span></span>
-<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
-<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
-<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT DATA </span></span>
-<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO REPLACE WITH 2-scored-data when its done</span></span>
-<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_items.rds'</span>)</span>
-<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/1-study-level/sgc3a_participants.rds'</span>)</span>
-<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a><span class="co">#SEPARATE ITEM DATA BY QUESTION TYPE</span></span>
-<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a>df_scaffold <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&lt;</span> <span class="dv">6</span>)</span>
-<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>df_test <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&gt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%nin%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>))</span>
-<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample</span></span>
-<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Collection</span></span>
-<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a>Data was initially collected (in person, SONA groups in computer lab) in Fall 2017. In Spring 2018, additional data were collected after small modifications were made to the experimental platform to increase the size of multiple-choice input buttons, and to add an additional free-response question following the main task block. In Fall 2021, the study was replicated using asynchronous, online SONA pool, with additional participants collected in Winter 2022.</span>
-<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a><span class="co">#| label : INSPECT-DATA-COLLECTION</span></span>
-<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Participants by Condition and Data Collection Period"</span></span>
-<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a>cols <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Control Condition"</span>,<span class="st">"Impasse Condition"</span>,<span class="st">"Total for Period"</span>)</span>
-<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a>cont <span class="ot">&lt;-</span> <span class="fu">table</span>(df_subjects<span class="sc">$</span>term, df_subjects<span class="sc">$</span>condition)</span>
-<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a>cont <span class="sc">%&gt;%</span> <span class="fu">addmargins</span>() <span class="sc">%&gt;%</span> <span class="fu">kbl</span>(<span class="at">caption =</span> title, <span class="at">col.names =</span> cols) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>()</span>
-<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a><span class="fu">### Participants</span></span>
-<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a><span class="in">```{r PARTICIPANTS}</span></span>
-<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a><span class="co">#Describe participants</span></span>
-<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a>subject.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(age) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
-<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(age) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
-<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a>) </span>
-<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a>subject.stats<span class="sc">$</span>female <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a>  (df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span>  <span class="fu">filter</span>(gender<span class="sc">==</span><span class="st">"Female"</span>) <span class="sc">%&gt;%</span> <span class="fu">count</span>())<span class="sc">$</span>n,</span>
-<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a>  (df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(gender<span class="sc">==</span><span class="st">"Female"</span>) <span class="sc">%&gt;%</span> <span class="fu">count</span>())<span class="sc">$</span>n</span>
-<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Participant Age and Gender"</span></span>
-<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a>subject.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
-<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a>For **in-person** collection, <span class="in">`r subject.stats["lab",]$n`</span> participants (<span class="in">`r round(subject.stats["lab",]$female/subject.stats["lab",]$n,1) * 100`</span> % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: <span class="in">`r (subject.stats['lab','min'])`</span> - <span class="in">`r (subject.stats['lab','max'])`</span> years). Participants were randomly assigned to one of two experimental groups.</span>
-<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a>For **online replication** <span class="in">`r subject.stats["online",]$n`</span> participants (<span class="in">`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100`</span> % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: <span class="in">`r (subject.stats['online','min'])`</span> - <span class="in">`r (subject.stats['online','max'])`</span> years). Participants were randomly assigned to one of two experimental groups.</span>
-<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a><span class="fu">## Response Accuracy</span></span>
-<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cumulative Scores</span></span>
-<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a>Cumulative scores indicate the response accuracy by participant across all items in the graph comprehension task.</span>
-<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Cumulative Absolute Score</span></span>
-<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a>Recall from <span class="co">[</span><span class="ot">Section -@sec-absolute-scoring</span><span class="co">]</span> that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from <span class="sc">\[</span>0,15<span class="sc">\]</span>.</span>
-<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ABS-SUBJECT</span></span>
-<span id="cb14-143"><a href="#cb14-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-144"><a href="#cb14-144" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Absolute Score)"</span></span>
-<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a>abs.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(absolute_score) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
-<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(absolute_score) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
-<span id="cb14-148"><a href="#cb14-148" aria-hidden="true" tabindex="-1"></a>) </span>
-<span id="cb14-149"><a href="#cb14-149" aria-hidden="true" tabindex="-1"></a>abs.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
-<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-153"><a href="#cb14-153" aria-hidden="true" tabindex="-1"></a>For *in person* collection, cumulative absolute scores (n = <span class="in">`r abs.stats["lab",]$n`</span>) range from <span class="in">`r round(abs.stats["lab",]$min,2)`</span> to <span class="in">`r round(abs.stats["lab",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats["lab",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats["lab",]$sd,2)`</span>).</span>
-<span id="cb14-154"><a href="#cb14-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-155"><a href="#cb14-155" aria-hidden="true" tabindex="-1"></a>For *online replication*, (online) cumulative accuracy scores (n = <span class="in">`r abs.stats["online",]$n`</span>) range from <span class="in">`r round(abs.stats["online",]$min,2)`</span> to <span class="in">`r round(abs.stats["online",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats["online",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats["online",]$sd,2)`</span>).</span>
-<span id="cb14-156"><a href="#cb14-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-159"><a href="#cb14-159" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-160"><a href="#cb14-160" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-SUBJECT-ABS-SCORE</span></span>
-<span id="cb14-161"><a href="#cb14-161" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb14-162"><a href="#cb14-162" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response accuracy across SUBJECTS</span></span>
-<span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a><span class="co"># plab &lt;- ggplot(data = df_subjects %&gt;% filter(mode == 'lab-synch'), aes(x = absolute_score)) + </span></span>
-<span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_bar() +  # = 16, color = "black", data =  %&gt;%</span></span>
-<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a><span class="co">#   facet_wrap(condition) + </span></span>
-<span id="cb14-167"><a href="#cb14-167" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +</span></span>
-<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(title="Lab", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal()</span></span>
-<span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a><span class="co"># ponline &lt;- ggplot(data = df_subjects %&gt;% filter(mode == 'asynch'), aes(x = absolute_score)) + </span></span>
-<span id="cb14-171"><a href="#cb14-171" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_bar() +  # = 16, color = "black", data =  %&gt;%</span></span>
-<span id="cb14-172"><a href="#cb14-172" aria-hidden="true" tabindex="-1"></a><span class="co">#   facet_wrap(~condition) + </span></span>
-<span id="cb14-173"><a href="#cb14-173" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +</span></span>
-<span id="cb14-174"><a href="#cb14-174" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() </span></span>
-<span id="cb14-175"><a href="#cb14-175" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb14-176"><a href="#cb14-176" aria-hidden="true" tabindex="-1"></a><span class="co"># plot &lt;-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)</span></span>
-<span id="cb14-177"><a href="#cb14-177" aria-hidden="true" tabindex="-1"></a><span class="co"># annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by MODALITY",</span></span>
-<span id="cb14-178"><a href="#cb14-178" aria-hidden="true" tabindex="-1"></a><span class="co">#    color = "black", face = "bold", size = 14))</span></span>
-<span id="cb14-179"><a href="#cb14-179" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb14-180"><a href="#cb14-180" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(data = df_subjects, aes(x = absolute_score)) + </span></span>
-<span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_bar() +  # = 16, color = "black", data =  %&gt;%</span></span>
-<span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a><span class="co">#   facet_grid(condition~mode) + </span></span>
-<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a><span class="co">#   # geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +</span></span>
-<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() </span></span>
-<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(condition, mode) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(absolute_score))</span>
-<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_bar</span>(<span class="sc">~</span>absolute_score, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(condition<span class="sc">~</span>mode) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">data =</span> stats, <span class="at">xintercept =</span> <span class="sc">~</span>mean, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Cumulative Absolute Score for Subject"</span>)<span class="sc">+</span></span>
-<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a><span class="co">#RIDGEPLOT</span></span>
-<span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(data = df_subjects, aes(x = absolute_score, y = mode)) +</span></span>
-<span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a><span class="co">#   geom_density_ridges() + xlim(0,15)+ </span></span>
-<span id="cb14-199"><a href="#cb14-199" aria-hidden="true" tabindex="-1"></a><span class="co">#   facet_wrap(~condition, labeller = label_both) + </span></span>
-<span id="cb14-200"><a href="#cb14-200" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs( x = "Cumulative Absolute Score for Subject") +</span></span>
-<span id="cb14-201"><a href="#cb14-201" aria-hidden="true" tabindex="-1"></a><span class="co">#   theme_minimal()</span></span>
-<span id="cb14-202"><a href="#cb14-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-203"><a href="#cb14-203" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-204"><a href="#cb14-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-205"><a href="#cb14-205" aria-hidden="true" tabindex="-1"></a>**TODO** double check that the subject-totals match the sum of the item level totals</span>
-<span id="cb14-206"><a href="#cb14-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-207"><a href="#cb14-207" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Cumulative Interpretation Scores</span></span>
-<span id="cb14-208"><a href="#cb14-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-209"><a href="#cb14-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-210"><a href="#cb14-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-211"><a href="#cb14-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-212"><a href="#cb14-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-213"><a href="#cb14-213" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-214"><a href="#cb14-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-215"><a href="#cb14-215" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-216"><a href="#cb14-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-217"><a href="#cb14-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-218"><a href="#cb14-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-219"><a href="#cb14-219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-220"><a href="#cb14-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-221"><a href="#cb14-221" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-222"><a href="#cb14-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-223"><a href="#cb14-223" aria-hidden="true" tabindex="-1"></a><span class="fu">### Item Score</span></span>
-<span id="cb14-224"><a href="#cb14-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-225"><a href="#cb14-225" aria-hidden="true" tabindex="-1"></a>Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.</span>
-<span id="cb14-226"><a href="#cb14-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Item Absolute Score</span></span>
-<span id="cb14-228"><a href="#cb14-228" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-229"><a href="#cb14-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-230"><a href="#cb14-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-233"><a href="#cb14-233" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ABS-ITEM</span></span>
-<span id="cb14-235"><a href="#cb14-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-236"><a href="#cb14-236" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Absolute Score)"</span></span>
-<span id="cb14-237"><a href="#cb14-237" aria-hidden="true" tabindex="-1"></a>abs.stats.items <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb14-238"><a href="#cb14-238" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(score_niceABS) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
-<span id="cb14-239"><a href="#cb14-239" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(score_niceABS) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
-<span id="cb14-240"><a href="#cb14-240" aria-hidden="true" tabindex="-1"></a>) </span>
-<span id="cb14-241"><a href="#cb14-241" aria-hidden="true" tabindex="-1"></a>abs.stats.items <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
-<span id="cb14-242"><a href="#cb14-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-243"><a href="#cb14-243" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-244"><a href="#cb14-244" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-245"><a href="#cb14-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-246"><a href="#cb14-246" aria-hidden="true" tabindex="-1"></a>For *in person* collection, item absolute scores (n = <span class="in">`r abs.stats.items["lab",]$n`</span>) range from <span class="in">`r round(abs.stats.items["lab",]$min,2)`</span> to <span class="in">`r round(abs.stats.items["lab",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats.items["lab",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats.items["lab",]$sd,2)`</span>).</span>
-<span id="cb14-247"><a href="#cb14-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-248"><a href="#cb14-248" aria-hidden="true" tabindex="-1"></a>For *online replication*, (online) item accuracy scores (n = <span class="in">`r abs.stats.items["online",]$n`</span>) range from <span class="in">`r round(abs.stats.items["online",]$min,2)`</span> to <span class="in">`r round(abs.stats.items["online",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats.items["online",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats.items["online",]$sd,2)`</span>).</span>
-<span id="cb14-249"><a href="#cb14-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-252"><a href="#cb14-252" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-253"><a href="#cb14-253" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-ITEMS-ABS-SCORE</span></span>
-<span id="cb14-254"><a href="#cb14-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-255"><a href="#cb14-255" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response accuracy across ITEMS</span></span>
-<span id="cb14-256"><a href="#cb14-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-257"><a href="#cb14-257" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_items, <span class="fu">aes</span>(<span class="at">x =</span> score_niceABS, <span class="at">y =</span> mode)) <span class="sc">+</span></span>
-<span id="cb14-258"><a href="#cb14-258" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>()<span class="sc">+</span> </span>
-<span id="cb14-259"><a href="#cb14-259" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span> </span>
-<span id="cb14-260"><a href="#cb14-260" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score for Item"</span>) <span class="sc">+</span></span>
-<span id="cb14-261"><a href="#cb14-261" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb14-262"><a href="#cb14-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-263"><a href="#cb14-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-264"><a href="#cb14-264" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-265"><a href="#cb14-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-266"><a href="#cb14-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-267"><a href="#cb14-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-268"><a href="#cb14-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-269"><a href="#cb14-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-270"><a href="#cb14-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-271"><a href="#cb14-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-272"><a href="#cb14-272" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Item Interpretation Scores</span></span>
-<span id="cb14-273"><a href="#cb14-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-274"><a href="#cb14-274" aria-hidden="true" tabindex="-1"></a><span class="fu">## Response Latency</span></span>
-<span id="cb14-275"><a href="#cb14-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-276"><a href="#cb14-276" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">TODO: Investigate super high and super low response times.</span><span class="co">]</span>{style="color: red;"}.</span>
-<span id="cb14-277"><a href="#cb14-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-278"><a href="#cb14-278" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)</span><span class="co">]</span>{style="color: red;"}.</span>
-<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-280"><a href="#cb14-280" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data</span>
-<span id="cb14-281"><a href="#cb14-281" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-282"><a href="#cb14-282" aria-hidden="true" tabindex="-1"></a><span class="fu">### Time on Study</span></span>
-<span id="cb14-283"><a href="#cb14-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-284"><a href="#cb14-284" aria-hidden="true" tabindex="-1"></a><span class="in">```{r DESCRIBE-TOTALTIME}</span></span>
-<span id="cb14-285"><a href="#cb14-285" aria-hidden="true" tabindex="-1"></a><span class="co">#DESCRIBE distribution of response time</span></span>
-<span id="cb14-286"><a href="#cb14-286" aria-hidden="true" tabindex="-1"></a>time.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
-<span id="cb14-287"><a href="#cb14-287" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(totaltime_m) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
-<span id="cb14-288"><a href="#cb14-288" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'asynch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(totaltime_m) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
-<span id="cb14-289"><a href="#cb14-289" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-290"><a href="#cb14-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-291"><a href="#cb14-291" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Latency (Time on Study)"</span></span>
-<span id="cb14-292"><a href="#cb14-292" aria-hidden="true" tabindex="-1"></a>time.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
-<span id="cb14-293"><a href="#cb14-293" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-294"><a href="#cb14-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-295"><a href="#cb14-295" aria-hidden="true" tabindex="-1"></a>Total time on study for *in person* subjects (n = <span class="in">`r time.stats["lab",]$n`</span>) ranged from <span class="in">`r round(time.stats["lab",]$min,2)`</span> to <span class="in">`r round(time.stats["lab",]$max,2)`</span> minutes with a mean duration of (M = <span class="in">`r round(time.stats["lab",]$mean,2)`</span>, SD = <span class="in">`r round(time.stats["lab",]$sd,2)`</span>).</span>
-<span id="cb14-296"><a href="#cb14-296" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-297"><a href="#cb14-297" aria-hidden="true" tabindex="-1"></a>Total time on study for *online replication* subjects (n = <span class="in">`r time.stats["online",]$n`</span>) ranged from <span class="in">`r round(time.stats["online",]$min,2)`</span> to <span class="in">`r round(time.stats["online",]$max,2)`</span> minutes with a mean duration of (M = <span class="in">`r round(time.stats["online",]$mean,2)`</span>, SD = <span class="in">`r round(time.stats["online",]$sd,2)`</span>).</span>
-<span id="cb14-298"><a href="#cb14-298" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-301"><a href="#cb14-301" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-302"><a href="#cb14-302" aria-hidden="true" tabindex="-1"></a><span class="co">#| label : VIS-TOTALTIME</span></span>
-<span id="cb14-303"><a href="#cb14-303" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
-<span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
-<span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response time</span></span>
-<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a>plab <span class="ot">&lt;-</span> <span class="fu">gf_dhistogram</span>(<span class="sc">~</span>totaltime_m, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span></span>
-<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">xintercept =</span> <span class="sc">~</span>time.stats[<span class="st">"lab"</span>,]<span class="sc">$</span>mean, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_fitdistr</span>(<span class="at">dist=</span><span class="st">"gamma"</span>, <span class="at">color=</span><span class="st">"red"</span>)<span class="sc">+</span></span>
-<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Lab"</span>, <span class="at">x =</span> <span class="st">"Total Time (mins)"</span>, <span class="at">y =</span> <span class="st">"% subjects"</span>) <span class="sc">+</span>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a>ponline <span class="ot">&lt;-</span> <span class="fu">gf_dhistogram</span>(<span class="sc">~</span>totaltime_m, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span></span>
-<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">xintercept =</span> <span class="sc">~</span>time.stats[<span class="st">"online"</span>,]<span class="sc">$</span>mean, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_fitdistr</span>(<span class="at">dist =</span> <span class="st">"gamma"</span>, <span class="at">color=</span><span class="st">"red"</span>)<span class="sc">+</span></span>
-<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Online"</span>, <span class="at">x =</span> <span class="st">"Total Time (mins)"</span>, <span class="at">y =</span> <span class="st">"% subjects"</span>) <span class="sc">+</span>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span><span class="fu">ggarrange</span>(plab, ponline, <span class="at">common.legend =</span> <span class="cn">TRUE</span>, <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">ncol =</span><span class="dv">2</span>)</span>
-<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-319"><a href="#cb14-319" aria-hidden="true" tabindex="-1"></a><span class="fu">annotate_figure</span>(plot, </span>
-<span id="cb14-320"><a href="#cb14-320" aria-hidden="true" tabindex="-1"></a>                <span class="at">top =</span> <span class="fu">text_grob</span>(<span class="st">"Total Time by Study Mode"</span>,<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>),</span>
-<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a>                <span class="at">bottom =</span> <span class="fu">text_grob</span>(<span class="st">"fit by Gamma distribution"</span>, <span class="at">face =</span> <span class="st">"italic"</span>, <span class="at">size =</span> <span class="dv">10</span>))</span>
-<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a>**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd</span>
-<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a><span class="fu">### Time on Question</span></span>
-<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a>**TODO time on question**</span>
-<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a><span class="fu">## Resources</span></span>
-<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>https://rpkgs.datanovia.com/ggpubr/reference/index.html</span>
+<div class="sourceCode" id="cb34" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># title: 'Exploration'</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> 'Study SGC3A | 3 Exploration'</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># author: 'Amy Rae Fox'</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co"># always_allow_html: true  </span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co"># header-includes:</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co">#    - \usepackage{amsmath}</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co"># output:</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   html_document:</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     theme: yeti</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     code_folding: hide</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="co">#     fig_caption: yes</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     number_sections: yes</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc: yes</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc_depth: 4</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc_float:</span></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a><span class="co">#       collapsed: no</span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a><span class="co">#       smooth_scroll: yes</span></span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a><span class="co">#   pdf_document: </span></span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc: true</span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a><span class="co">#     toc_depth: 3</span></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a><span class="co">#     latex_engine: xelatex</span></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a><span class="co"># font-family: "DejaVu Sans"</span></span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a><span class="co"># mainfont: "DejaVu Sans"</span></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>\newpage</span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a><span class="fu"># Exploration {#sec-SGC3A-exploration}</span></span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>**THIS NOTEBOOK IS INCOMPLETE**</span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>TODO</span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>double check which Qs in task are non-discriminating (6 and 9?)</span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SETUP</span></span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo : true</span></span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS</span></span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#printing tables </span></span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mosaic) <span class="co">#simple descriptives [favstats]</span></span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc) <span class="co"># %nin% operator</span></span>
+<span id="cb34-49"><a href="#cb34-49" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr) <span class="co">#arrange plots</span></span>
+<span id="cb34-50"><a href="#cb34-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-51"><a href="#cb34-51" aria-hidden="true" tabindex="-1"></a><span class="co"># library(pastecs) #stat.desc</span></span>
+<span id="cb34-52"><a href="#cb34-52" aria-hidden="true" tabindex="-1"></a><span class="co"># library(car) #ANOVA, qqplot</span></span>
+<span id="cb34-53"><a href="#cb34-53" aria-hidden="true" tabindex="-1"></a><span class="co"># library(effectsize) #effect size</span></span>
+<span id="cb34-54"><a href="#cb34-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-55"><a href="#cb34-55" aria-hidden="true" tabindex="-1"></a><span class="co">#set some output options</span></span>
+<span id="cb34-56"><a href="#cb34-56" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-57"><a href="#cb34-57" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">dplyr.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">ggplot2.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
+<span id="cb34-60"><a href="#cb34-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-61"><a href="#cb34-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-62"><a href="#cb34-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-63"><a href="#cb34-63" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is explore the distribution of dependent variables for Study SGC3A.*</span>
+<span id="cb34-64"><a href="#cb34-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-65"><a href="#cb34-65" aria-hidden="true" tabindex="-1"></a>+------------------------+---------------+</span>
+<span id="cb34-66"><a href="#cb34-66" aria-hidden="true" tabindex="-1"></a>| Pre-Requisite          | Followed By   |</span>
+<span id="cb34-67"><a href="#cb34-67" aria-hidden="true" tabindex="-1"></a>+========================+===============+</span>
+<span id="cb34-68"><a href="#cb34-68" aria-hidden="true" tabindex="-1"></a>| 1_sgc3A_harmonize.qmd\ |               |</span>
+<span id="cb34-69"><a href="#cb34-69" aria-hidden="true" tabindex="-1"></a>| 2_sgc3A_rescoring.qmd  |               |</span>
+<span id="cb34-70"><a href="#cb34-70" aria-hidden="true" tabindex="-1"></a>+------------------------+---------------+</span>
+<span id="cb34-71"><a href="#cb34-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-74"><a href="#cb34-74" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-75"><a href="#cb34-75" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-DATA</span></span>
+<span id="cb34-76"><a href="#cb34-76" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo : true</span></span>
+<span id="cb34-77"><a href="#cb34-77" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
+<span id="cb34-78"><a href="#cb34-78" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
+<span id="cb34-79"><a href="#cb34-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-80"><a href="#cb34-80" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT DATA </span></span>
+<span id="cb34-81"><a href="#cb34-81" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_items.rds'</span>)</span>
+<span id="cb34-82"><a href="#cb34-82" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_participants.rds'</span>)</span>
+<span id="cb34-83"><a href="#cb34-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-84"><a href="#cb34-84" aria-hidden="true" tabindex="-1"></a><span class="co">#SEPARATE ITEM DATA BY QUESTION TYPE</span></span>
+<span id="cb34-85"><a href="#cb34-85" aria-hidden="true" tabindex="-1"></a>df_scaffold <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&lt;</span> <span class="dv">6</span>)</span>
+<span id="cb34-86"><a href="#cb34-86" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO run when have rest of data scored </span></span>
+<span id="cb34-87"><a href="#cb34-87" aria-hidden="true" tabindex="-1"></a><span class="co"># df_test &lt;- df_items %&gt;% filter(q &gt; 6) %&gt;% filter (q %nin% c(6,9))</span></span>
+<span id="cb34-88"><a href="#cb34-88" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-89"><a href="#cb34-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-90"><a href="#cb34-90" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample</span></span>
+<span id="cb34-91"><a href="#cb34-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-92"><a href="#cb34-92" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Collection</span></span>
+<span id="cb34-93"><a href="#cb34-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-94"><a href="#cb34-94" aria-hidden="true" tabindex="-1"></a>Data was initially collected (in person, SONA groups in computer lab) in Fall 2017. In Spring 2018, additional data were collected after small modifications were made to the experimental platform to increase the size of multiple-choice input buttons, and to add an additional free-response question following the main task block. In Fall 2021, the study was replicated using asynchronous, online SONA pool, with additional participants collected in Winter 2022.</span>
+<span id="cb34-95"><a href="#cb34-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-98"><a href="#cb34-98" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-99"><a href="#cb34-99" aria-hidden="true" tabindex="-1"></a><span class="co">#| label : INSPECT-DATA-COLLECTION</span></span>
+<span id="cb34-100"><a href="#cb34-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-101"><a href="#cb34-101" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Participants by Condition and Data Collection Period"</span></span>
+<span id="cb34-102"><a href="#cb34-102" aria-hidden="true" tabindex="-1"></a>cols <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Control Condition"</span>,<span class="st">"Impasse Condition"</span>,<span class="st">"Total for Period"</span>)</span>
+<span id="cb34-103"><a href="#cb34-103" aria-hidden="true" tabindex="-1"></a>cont <span class="ot">&lt;-</span> <span class="fu">table</span>(df_subjects<span class="sc">$</span>term, df_subjects<span class="sc">$</span>condition)</span>
+<span id="cb34-104"><a href="#cb34-104" aria-hidden="true" tabindex="-1"></a>cont <span class="sc">%&gt;%</span> <span class="fu">addmargins</span>() <span class="sc">%&gt;%</span> <span class="fu">kbl</span>(<span class="at">caption =</span> title, <span class="at">col.names =</span> cols) <span class="sc">%&gt;%</span>  <span class="fu">kable_classic</span>()</span>
+<span id="cb34-105"><a href="#cb34-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-106"><a href="#cb34-106" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-107"><a href="#cb34-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-108"><a href="#cb34-108" aria-hidden="true" tabindex="-1"></a><span class="fu">### Participants</span></span>
+<span id="cb34-109"><a href="#cb34-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-110"><a href="#cb34-110" aria-hidden="true" tabindex="-1"></a><span class="in">```{r PARTICIPANTS}</span></span>
+<span id="cb34-111"><a href="#cb34-111" aria-hidden="true" tabindex="-1"></a><span class="co">#Describe participants</span></span>
+<span id="cb34-112"><a href="#cb34-112" aria-hidden="true" tabindex="-1"></a>subject.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb34-113"><a href="#cb34-113" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(age) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
+<span id="cb34-114"><a href="#cb34-114" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(age) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
+<span id="cb34-115"><a href="#cb34-115" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb34-116"><a href="#cb34-116" aria-hidden="true" tabindex="-1"></a>subject.stats<span class="sc">$</span>female <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb34-117"><a href="#cb34-117" aria-hidden="true" tabindex="-1"></a>  (df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span>  <span class="fu">filter</span>(gender<span class="sc">==</span><span class="st">"Female"</span>) <span class="sc">%&gt;%</span> <span class="fu">count</span>())<span class="sc">$</span>n,</span>
+<span id="cb34-118"><a href="#cb34-118" aria-hidden="true" tabindex="-1"></a>  (df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(gender<span class="sc">==</span><span class="st">"Female"</span>) <span class="sc">%&gt;%</span> <span class="fu">count</span>())<span class="sc">$</span>n</span>
+<span id="cb34-119"><a href="#cb34-119" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-120"><a href="#cb34-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-121"><a href="#cb34-121" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Participant Age and Gender"</span></span>
+<span id="cb34-122"><a href="#cb34-122" aria-hidden="true" tabindex="-1"></a>subject.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb34-123"><a href="#cb34-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-124"><a href="#cb34-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-125"><a href="#cb34-125" aria-hidden="true" tabindex="-1"></a>For **in-person** collection, <span class="in">`r subject.stats["lab",]$n`</span> participants (<span class="in">`r round(subject.stats["lab",]$female/subject.stats["lab",]$n,1) * 100`</span> % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: <span class="in">`r (subject.stats['lab','min'])`</span> - <span class="in">`r (subject.stats['lab','max'])`</span> years). Participants were randomly assigned to one of two experimental groups.</span>
+<span id="cb34-126"><a href="#cb34-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-127"><a href="#cb34-127" aria-hidden="true" tabindex="-1"></a>For **online replication** <span class="in">`r subject.stats["online",]$n`</span> participants (<span class="in">`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100`</span> % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: <span class="in">`r (subject.stats['online','min'])`</span> - <span class="in">`r (subject.stats['online','max'])`</span> years). Participants were randomly assigned to one of two experimental groups.</span>
+<span id="cb34-128"><a href="#cb34-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-129"><a href="#cb34-129" aria-hidden="true" tabindex="-1"></a><span class="fu">## Response Accuracy</span></span>
+<span id="cb34-130"><a href="#cb34-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-131"><a href="#cb34-131" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cumulative Scores</span></span>
+<span id="cb34-132"><a href="#cb34-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-133"><a href="#cb34-133" aria-hidden="true" tabindex="-1"></a>Cumulative scores indicate the response accuracy by participant across all items in the graph comprehension task.</span>
+<span id="cb34-134"><a href="#cb34-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-135"><a href="#cb34-135" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Cumulative Absolute Score</span></span>
+<span id="cb34-136"><a href="#cb34-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-137"><a href="#cb34-137" aria-hidden="true" tabindex="-1"></a>Recall from <span class="co">[</span><span class="ot">Section -@sec-absolute-scoring</span><span class="co">]</span> that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from <span class="sc">\[</span>0,15<span class="sc">\]</span>.</span>
+<span id="cb34-138"><a href="#cb34-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-139"><a href="#cb34-139" aria-hidden="true" tabindex="-1"></a>TODO sanity check this against s_ABS and s_NABS</span>
+<span id="cb34-142"><a href="#cb34-142" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-143"><a href="#cb34-143" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ABS-SUBJECT</span></span>
+<span id="cb34-144"><a href="#cb34-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-145"><a href="#cb34-145" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)"</span></span>
+<span id="cb34-146"><a href="#cb34-146" aria-hidden="true" tabindex="-1"></a>abs.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb34-147"><a href="#cb34-147" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(absolute_score) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
+<span id="cb34-148"><a href="#cb34-148" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(absolute_score) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
+<span id="cb34-149"><a href="#cb34-149" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb34-150"><a href="#cb34-150" aria-hidden="true" tabindex="-1"></a>abs.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb34-151"><a href="#cb34-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-152"><a href="#cb34-152" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-153"><a href="#cb34-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-154"><a href="#cb34-154" aria-hidden="true" tabindex="-1"></a>For *in person* collection, cumulative absolute scores (n = <span class="in">`r abs.stats["lab",]$n`</span>) range from <span class="in">`r round(abs.stats["lab",]$min,2)`</span> to <span class="in">`r round(abs.stats["lab",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats["lab",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats["lab",]$sd,2)`</span>).</span>
+<span id="cb34-155"><a href="#cb34-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-156"><a href="#cb34-156" aria-hidden="true" tabindex="-1"></a>For *online replication*, (online) cumulative accuracy scores (n = <span class="in">`r abs.stats["online",]$n`</span>) range from <span class="in">`r round(abs.stats["online",]$min,2)`</span> to <span class="in">`r round(abs.stats["online",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats["online",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats["online",]$sd,2)`</span>).</span>
+<span id="cb34-157"><a href="#cb34-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-160"><a href="#cb34-160" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-161"><a href="#cb34-161" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-SUBJECT-ABS-SCORE</span></span>
+<span id="cb34-162"><a href="#cb34-162" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb34-163"><a href="#cb34-163" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response accuracy across SUBJECTS</span></span>
+<span id="cb34-164"><a href="#cb34-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-165"><a href="#cb34-165" aria-hidden="true" tabindex="-1"></a><span class="co">#HISTOGRAM</span></span>
+<span id="cb34-166"><a href="#cb34-166" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(condition, mode) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(absolute_score))</span>
+<span id="cb34-167"><a href="#cb34-167" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_bar</span>(<span class="sc">~</span>absolute_score, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-168"><a href="#cb34-168" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(condition<span class="sc">~</span>mode, <span class="at">labeller =</span> label_both) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-169"><a href="#cb34-169" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_lims</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">15</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-170"><a href="#cb34-170" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">data =</span> stats, <span class="at">xintercept =</span> <span class="sc">~</span>mean, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb34-171"><a href="#cb34-171" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Cumulative Absolute Score for Subject"</span>)<span class="sc">+</span></span>
+<span id="cb34-172"><a href="#cb34-172" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-173"><a href="#cb34-173" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-174"><a href="#cb34-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-175"><a href="#cb34-175" aria-hidden="true" tabindex="-1"></a><span class="co">#RIDGEPLOT</span></span>
+<span id="cb34-176"><a href="#cb34-176" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_subjects, <span class="fu">aes</span>(<span class="at">x =</span> absolute_score, <span class="at">y =</span> mode)) <span class="sc">+</span></span>
+<span id="cb34-177"><a href="#cb34-177" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>() <span class="sc">+</span> <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">15</span>)<span class="sc">+</span></span>
+<span id="cb34-178"><a href="#cb34-178" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb34-179"><a href="#cb34-179" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Cumulative Absolute Score for Subject"</span>) <span class="sc">+</span></span>
+<span id="cb34-180"><a href="#cb34-180" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-181"><a href="#cb34-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-182"><a href="#cb34-182" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-183"><a href="#cb34-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-184"><a href="#cb34-184" aria-hidden="true" tabindex="-1"></a>**TODO** double check that the subject-totals match the sum of the item level totals</span>
+<span id="cb34-185"><a href="#cb34-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-186"><a href="#cb34-186" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Cumulative Scaled Scores</span></span>
+<span id="cb34-187"><a href="#cb34-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-188"><a href="#cb34-188" aria-hidden="true" tabindex="-1"></a>TODO describe scaled score</span>
+<span id="cb34-191"><a href="#cb34-191" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-192"><a href="#cb34-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SCALED-SUBJECT</span></span>
+<span id="cb34-193"><a href="#cb34-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-194"><a href="#cb34-194" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Cumulative Scaled Score)"</span></span>
+<span id="cb34-195"><a href="#cb34-195" aria-hidden="true" tabindex="-1"></a>scaled.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb34-196"><a href="#cb34-196" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(s_SCALED) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
+<span id="cb34-197"><a href="#cb34-197" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(s_SCALED) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
+<span id="cb34-198"><a href="#cb34-198" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb34-199"><a href="#cb34-199" aria-hidden="true" tabindex="-1"></a>scaled.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb34-200"><a href="#cb34-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-201"><a href="#cb34-201" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-202"><a href="#cb34-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-205"><a href="#cb34-205" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-206"><a href="#cb34-206" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-SUBJECT-SCALED-SCORE</span></span>
+<span id="cb34-207"><a href="#cb34-207" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb34-208"><a href="#cb34-208" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response accuracy across SUBJECTS</span></span>
+<span id="cb34-209"><a href="#cb34-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-210"><a href="#cb34-210" aria-hidden="true" tabindex="-1"></a><span class="co">#HISTOGRAM</span></span>
+<span id="cb34-211"><a href="#cb34-211" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(condition, mode) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(s_SCALED))</span>
+<span id="cb34-212"><a href="#cb34-212" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>s_SCALED, <span class="at">data =</span> df_subjects, <span class="at">binwidth =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-213"><a href="#cb34-213" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(condition<span class="sc">~</span>mode, <span class="at">labeller =</span> label_both) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-214"><a href="#cb34-214" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_lims</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">15</span>, <span class="dv">15</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb34-215"><a href="#cb34-215" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">data =</span> stats, <span class="at">xintercept =</span> <span class="sc">~</span>mean, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb34-216"><a href="#cb34-216" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Cumulative Scaled Score for Subject"</span>)<span class="sc">+</span></span>
+<span id="cb34-217"><a href="#cb34-217" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-218"><a href="#cb34-218" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-219"><a href="#cb34-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-220"><a href="#cb34-220" aria-hidden="true" tabindex="-1"></a><span class="co">#RIDGEPLOT</span></span>
+<span id="cb34-221"><a href="#cb34-221" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_subjects, <span class="fu">aes</span>(<span class="at">x =</span> s_SCALED, <span class="at">y =</span> condition)) <span class="sc">+</span></span>
+<span id="cb34-222"><a href="#cb34-222" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>() <span class="sc">+</span> <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">15</span>,<span class="dv">15</span>)<span class="sc">+</span></span>
+<span id="cb34-223"><a href="#cb34-223" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>mode, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb34-224"><a href="#cb34-224" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Cumulative Scaled Score for Subject"</span>) <span class="sc">+</span></span>
+<span id="cb34-225"><a href="#cb34-225" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-226"><a href="#cb34-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-227"><a href="#cb34-227" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-228"><a href="#cb34-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-229"><a href="#cb34-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-230"><a href="#cb34-230" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Cumulative Interpretation Scores</span></span>
+<span id="cb34-231"><a href="#cb34-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-232"><a href="#cb34-232" aria-hidden="true" tabindex="-1"></a>TODO describe interpretation score? can this be summarized </span>
+<span id="cb34-233"><a href="#cb34-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-234"><a href="#cb34-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-235"><a href="#cb34-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-236"><a href="#cb34-236" aria-hidden="true" tabindex="-1"></a><span class="fu">### Item Score</span></span>
+<span id="cb34-237"><a href="#cb34-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-238"><a href="#cb34-238" aria-hidden="true" tabindex="-1"></a>Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.</span>
+<span id="cb34-239"><a href="#cb34-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-240"><a href="#cb34-240" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Item Absolute Score</span></span>
+<span id="cb34-241"><a href="#cb34-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-244"><a href="#cb34-244" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-245"><a href="#cb34-245" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ABS-ITEM</span></span>
+<span id="cb34-246"><a href="#cb34-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-247"><a href="#cb34-247" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Absolute Score)"</span></span>
+<span id="cb34-248"><a href="#cb34-248" aria-hidden="true" tabindex="-1"></a>abs.stats.items <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb34-249"><a href="#cb34-249" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(score_niceABS) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
+<span id="cb34-250"><a href="#cb34-250" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(score_niceABS) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
+<span id="cb34-251"><a href="#cb34-251" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb34-252"><a href="#cb34-252" aria-hidden="true" tabindex="-1"></a>abs.stats.items <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb34-253"><a href="#cb34-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-254"><a href="#cb34-254" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-255"><a href="#cb34-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-256"><a href="#cb34-256" aria-hidden="true" tabindex="-1"></a>For *in person* collection, item absolute scores (n = <span class="in">`r abs.stats.items["lab",]$n`</span>) range from <span class="in">`r round(abs.stats.items["lab",]$min,2)`</span> to <span class="in">`r round(abs.stats.items["lab",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats.items["lab",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats.items["lab",]$sd,2)`</span>).</span>
+<span id="cb34-257"><a href="#cb34-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-258"><a href="#cb34-258" aria-hidden="true" tabindex="-1"></a>For *online replication*, (online) item accuracy scores (n = <span class="in">`r abs.stats.items["online",]$n`</span>) range from <span class="in">`r round(abs.stats.items["online",]$min,2)`</span> to <span class="in">`r round(abs.stats.items["online",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats.items["online",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats.items["online",]$sd,2)`</span>).</span>
+<span id="cb34-259"><a href="#cb34-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-262"><a href="#cb34-262" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-263"><a href="#cb34-263" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-ITEMS-ABS-SCORE</span></span>
+<span id="cb34-264"><a href="#cb34-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-265"><a href="#cb34-265" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response accuracy across ITEMS</span></span>
+<span id="cb34-266"><a href="#cb34-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-267"><a href="#cb34-267" aria-hidden="true" tabindex="-1"></a><span class="co">#HISTOGRAM</span></span>
+<span id="cb34-268"><a href="#cb34-268" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(condition, mode) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(score_niceABS))</span>
+<span id="cb34-269"><a href="#cb34-269" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_bar</span>(<span class="sc">~</span>score_niceABS, <span class="at">data =</span> df_items) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-270"><a href="#cb34-270" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(condition<span class="sc">~</span>mode, <span class="at">labeller =</span> label_both) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-271"><a href="#cb34-271" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">data =</span> stats, <span class="at">xintercept =</span> <span class="sc">~</span>mean, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb34-272"><a href="#cb34-272" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Absolute Score for Item"</span>)<span class="sc">+</span></span>
+<span id="cb34-273"><a href="#cb34-273" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-274"><a href="#cb34-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-275"><a href="#cb34-275" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_items, <span class="fu">aes</span>(<span class="at">x =</span> score_niceABS, <span class="at">y =</span> mode)) <span class="sc">+</span></span>
+<span id="cb34-276"><a href="#cb34-276" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>()<span class="sc">+</span> </span>
+<span id="cb34-277"><a href="#cb34-277" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span> </span>
+<span id="cb34-278"><a href="#cb34-278" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score for Item"</span>) <span class="sc">+</span></span>
+<span id="cb34-279"><a href="#cb34-279" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-280"><a href="#cb34-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-281"><a href="#cb34-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-282"><a href="#cb34-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-283"><a href="#cb34-283" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Item Scaled Score</span></span>
+<span id="cb34-284"><a href="#cb34-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-287"><a href="#cb34-287" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-288"><a href="#cb34-288" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: Scaled-ITEM</span></span>
+<span id="cb34-289"><a href="#cb34-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-290"><a href="#cb34-290" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Accuracy (Scaled Score)"</span></span>
+<span id="cb34-291"><a href="#cb34-291" aria-hidden="true" tabindex="-1"></a>scaled.stats.items <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb34-292"><a href="#cb34-292" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(score_SCALED) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
+<span id="cb34-293"><a href="#cb34-293" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span> <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(score_SCALED) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
+<span id="cb34-294"><a href="#cb34-294" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb34-295"><a href="#cb34-295" aria-hidden="true" tabindex="-1"></a>scaled.stats.items <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb34-296"><a href="#cb34-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-297"><a href="#cb34-297" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-298"><a href="#cb34-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-299"><a href="#cb34-299" aria-hidden="true" tabindex="-1"></a>TODO update this </span>
+<span id="cb34-300"><a href="#cb34-300" aria-hidden="true" tabindex="-1"></a>For *in person* collection, item absolute scores (n = <span class="in">`r abs.stats.items["lab",]$n`</span>) range from <span class="in">`r round(abs.stats.items["lab",]$min,2)`</span> to <span class="in">`r round(abs.stats.items["lab",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats.items["lab",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats.items["lab",]$sd,2)`</span>).</span>
+<span id="cb34-301"><a href="#cb34-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-302"><a href="#cb34-302" aria-hidden="true" tabindex="-1"></a>For *online replication*, (online) item accuracy scores (n = <span class="in">`r abs.stats.items["online",]$n`</span>) range from <span class="in">`r round(abs.stats.items["online",]$min,2)`</span> to <span class="in">`r round(abs.stats.items["online",]$max,2)`</span> with a mean score of (M = <span class="in">`r round(abs.stats.items["online",]$mean,2)`</span>, SD = <span class="in">`r round(abs.stats.items["online",]$sd,2)`</span>).</span>
+<span id="cb34-303"><a href="#cb34-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-306"><a href="#cb34-306" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-307"><a href="#cb34-307" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-ITEMS-SCALED-SCORE</span></span>
+<span id="cb34-308"><a href="#cb34-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-309"><a href="#cb34-309" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response accuracy across ITEMS</span></span>
+<span id="cb34-310"><a href="#cb34-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-311"><a href="#cb34-311" aria-hidden="true" tabindex="-1"></a><span class="co">#HISTOGRAM</span></span>
+<span id="cb34-312"><a href="#cb34-312" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(condition, mode) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(score_SCALED))</span>
+<span id="cb34-313"><a href="#cb34-313" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>score_SCALED, <span class="at">data =</span> df_items) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-314"><a href="#cb34-314" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(condition<span class="sc">~</span>mode, <span class="at">labeller =</span> label_both) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-315"><a href="#cb34-315" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">data =</span> stats, <span class="at">xintercept =</span> <span class="sc">~</span>mean, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb34-316"><a href="#cb34-316" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Scaled Score for Item"</span>)<span class="sc">+</span></span>
+<span id="cb34-317"><a href="#cb34-317" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-318"><a href="#cb34-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-319"><a href="#cb34-319" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_items, <span class="fu">aes</span>(<span class="at">x =</span> score_SCALED, <span class="at">y =</span> condition)) <span class="sc">+</span></span>
+<span id="cb34-320"><a href="#cb34-320" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>()<span class="sc">+</span> <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb34-321"><a href="#cb34-321" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>mode, <span class="at">labeller =</span> label_both) <span class="sc">+</span> </span>
+<span id="cb34-322"><a href="#cb34-322" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score for Item"</span>) <span class="sc">+</span></span>
+<span id="cb34-323"><a href="#cb34-323" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-324"><a href="#cb34-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-325"><a href="#cb34-325" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-326"><a href="#cb34-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-327"><a href="#cb34-327" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Item Interpretation Scores</span></span>
+<span id="cb34-328"><a href="#cb34-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-329"><a href="#cb34-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-332"><a href="#cb34-332" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-333"><a href="#cb34-333" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-ITEMS-INTERPRETATIONS</span></span>
+<span id="cb34-334"><a href="#cb34-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-335"><a href="#cb34-335" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of interpretations across all ITEMS</span></span>
+<span id="cb34-336"><a href="#cb34-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-337"><a href="#cb34-337" aria-hidden="true" tabindex="-1"></a><span class="co">#HISTOGRAM</span></span>
+<span id="cb34-338"><a href="#cb34-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-339"><a href="#cb34-339" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_barh</span>(<span class="sc">~</span>interpretation, <span class="at">data =</span> df_items, <span class="at">fill =</span> <span class="sc">~</span>mode) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-340"><a href="#cb34-340" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(mode<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb34-341"><a href="#cb34-341" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Interpretation for Item"</span>)<span class="sc">+</span></span>
+<span id="cb34-342"><a href="#cb34-342" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb34-343"><a href="#cb34-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-344"><a href="#cb34-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-345"><a href="#cb34-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-346"><a href="#cb34-346" aria-hidden="true" tabindex="-1"></a><span class="co">#restructue data </span></span>
+<span id="cb34-347"><a href="#cb34-347" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">select</span>(mode, condition, </span>
+<span id="cb34-348"><a href="#cb34-348" aria-hidden="true" tabindex="-1"></a>                            score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)</span>
+<span id="cb34-349"><a href="#cb34-349" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb34-350"><a href="#cb34-350" aria-hidden="true" tabindex="-1"></a>  t.long <span class="ot">=</span> <span class="fu">gather</span>(temp,score, value, <span class="dv">3</span><span class="sc">:</span><span class="dv">6</span>)</span>
+<span id="cb34-351"><a href="#cb34-351" aria-hidden="true" tabindex="-1"></a>  <span class="co"># t.long[t.long == ""] = NA</span></span>
+<span id="cb34-352"><a href="#cb34-352" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-353"><a href="#cb34-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-354"><a href="#cb34-354" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO CONTINGENCY TABLE FOR THIS </span></span>
+<span id="cb34-355"><a href="#cb34-355" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> t.long, <span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> score, <span class="at">fill=</span>condition)) <span class="sc">+</span></span>
+<span id="cb34-356"><a href="#cb34-356" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>()<span class="sc">+</span></span>
+<span id="cb34-357"><a href="#cb34-357" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb34-358"><a href="#cb34-358" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Interpretation Scores for Item"</span>) <span class="sc">+</span></span>
+<span id="cb34-359"><a href="#cb34-359" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-360"><a href="#cb34-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-361"><a href="#cb34-361" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-362"><a href="#cb34-362" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-363"><a href="#cb34-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-364"><a href="#cb34-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-365"><a href="#cb34-365" aria-hidden="true" tabindex="-1"></a><span class="fu">## Response Latency</span></span>
+<span id="cb34-366"><a href="#cb34-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-367"><a href="#cb34-367" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">TODO: Investigate super high and super low response times.</span><span class="co">]</span>{style="color: red;"}.</span>
+<span id="cb34-368"><a href="#cb34-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-369"><a href="#cb34-369" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)</span><span class="co">]</span>{style="color: red;"}.</span>
+<span id="cb34-370"><a href="#cb34-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-371"><a href="#cb34-371" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data</span>
+<span id="cb34-372"><a href="#cb34-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-373"><a href="#cb34-373" aria-hidden="true" tabindex="-1"></a><span class="fu">### Time on Study</span></span>
+<span id="cb34-374"><a href="#cb34-374" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-375"><a href="#cb34-375" aria-hidden="true" tabindex="-1"></a><span class="in">```{r DESCRIBE-TOTALTIME}</span></span>
+<span id="cb34-376"><a href="#cb34-376" aria-hidden="true" tabindex="-1"></a><span class="co">#DESCRIBE distribution of response time</span></span>
+<span id="cb34-377"><a href="#cb34-377" aria-hidden="true" tabindex="-1"></a>time.stats <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb34-378"><a href="#cb34-378" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lab"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'lab-synch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(totaltime_m) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>(),</span>
+<span id="cb34-379"><a href="#cb34-379" aria-hidden="true" tabindex="-1"></a>  <span class="st">"online"</span><span class="ot">=</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">'asynch'</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(totaltime_m) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> <span class="fu">favstats</span>()</span>
+<span id="cb34-380"><a href="#cb34-380" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-381"><a href="#cb34-381" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-382"><a href="#cb34-382" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Descriptive Statistics of Response Latency (Time on Study)"</span></span>
+<span id="cb34-383"><a href="#cb34-383" aria-hidden="true" tabindex="-1"></a>time.stats <span class="sc">%&gt;%</span> <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb34-384"><a href="#cb34-384" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-385"><a href="#cb34-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-386"><a href="#cb34-386" aria-hidden="true" tabindex="-1"></a>Total time on study for *in person* subjects (n = <span class="in">`r time.stats["lab",]$n`</span>) ranged from <span class="in">`r round(time.stats["lab",]$min,2)`</span> to <span class="in">`r round(time.stats["lab",]$max,2)`</span> minutes with a mean duration of (M = <span class="in">`r round(time.stats["lab",]$mean,2)`</span>, SD = <span class="in">`r round(time.stats["lab",]$sd,2)`</span>).</span>
+<span id="cb34-387"><a href="#cb34-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-388"><a href="#cb34-388" aria-hidden="true" tabindex="-1"></a>Total time on study for *online replication* subjects (n = <span class="in">`r time.stats["online",]$n`</span>) ranged from <span class="in">`r round(time.stats["online",]$min,2)`</span> to <span class="in">`r round(time.stats["online",]$max,2)`</span> minutes with a mean duration of (M = <span class="in">`r round(time.stats["online",]$mean,2)`</span>, SD = <span class="in">`r round(time.stats["online",]$sd,2)`</span>).</span>
+<span id="cb34-389"><a href="#cb34-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-392"><a href="#cb34-392" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-393"><a href="#cb34-393" aria-hidden="true" tabindex="-1"></a><span class="co">#| label : VIS-TOTALTIME</span></span>
+<span id="cb34-394"><a href="#cb34-394" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
+<span id="cb34-395"><a href="#cb34-395" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
+<span id="cb34-396"><a href="#cb34-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-397"><a href="#cb34-397" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE distribution of response time</span></span>
+<span id="cb34-398"><a href="#cb34-398" aria-hidden="true" tabindex="-1"></a>plab <span class="ot">&lt;-</span> <span class="fu">gf_dhistogram</span>(<span class="sc">~</span>totaltime_m, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span></span>
+<span id="cb34-399"><a href="#cb34-399" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">xintercept =</span> <span class="sc">~</span>time.stats[<span class="st">"lab"</span>,]<span class="sc">$</span>mean, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-400"><a href="#cb34-400" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_fitdistr</span>(<span class="at">dist=</span><span class="st">"gamma"</span>, <span class="at">color=</span><span class="st">"red"</span>)<span class="sc">+</span></span>
+<span id="cb34-401"><a href="#cb34-401" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Lab"</span>, <span class="at">x =</span> <span class="st">"Total Time (mins)"</span>, <span class="at">y =</span> <span class="st">"% subjects"</span>) <span class="sc">+</span>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-402"><a href="#cb34-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-403"><a href="#cb34-403" aria-hidden="true" tabindex="-1"></a>ponline <span class="ot">&lt;-</span> <span class="fu">gf_dhistogram</span>(<span class="sc">~</span>totaltime_m, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span></span>
+<span id="cb34-404"><a href="#cb34-404" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_vline</span>(<span class="at">xintercept =</span> <span class="sc">~</span>time.stats[<span class="st">"online"</span>,]<span class="sc">$</span>mean, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-405"><a href="#cb34-405" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_fitdistr</span>(<span class="at">dist =</span> <span class="st">"gamma"</span>, <span class="at">color=</span><span class="st">"red"</span>)<span class="sc">+</span></span>
+<span id="cb34-406"><a href="#cb34-406" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Online"</span>, <span class="at">x =</span> <span class="st">"Total Time (mins)"</span>, <span class="at">y =</span> <span class="st">"% subjects"</span>) <span class="sc">+</span>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-407"><a href="#cb34-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-408"><a href="#cb34-408" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span><span class="fu">ggarrange</span>(plab, ponline, <span class="at">common.legend =</span> <span class="cn">TRUE</span>, <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">ncol =</span><span class="dv">2</span>)</span>
+<span id="cb34-409"><a href="#cb34-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-410"><a href="#cb34-410" aria-hidden="true" tabindex="-1"></a><span class="fu">annotate_figure</span>(plot, </span>
+<span id="cb34-411"><a href="#cb34-411" aria-hidden="true" tabindex="-1"></a>                <span class="at">top =</span> <span class="fu">text_grob</span>(<span class="st">"Total Time by Study Mode"</span>,<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb34-412"><a href="#cb34-412" aria-hidden="true" tabindex="-1"></a>                <span class="at">bottom =</span> <span class="fu">text_grob</span>(<span class="st">"fit by Gamma distribution"</span>, <span class="at">face =</span> <span class="st">"italic"</span>, <span class="at">size =</span> <span class="dv">10</span>))</span>
+<span id="cb34-413"><a href="#cb34-413" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb34-414"><a href="#cb34-414" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-415"><a href="#cb34-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-416"><a href="#cb34-416" aria-hidden="true" tabindex="-1"></a>**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd</span>
+<span id="cb34-417"><a href="#cb34-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-418"><a href="#cb34-418" aria-hidden="true" tabindex="-1"></a><span class="fu">### Time on Question</span></span>
+<span id="cb34-419"><a href="#cb34-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-420"><a href="#cb34-420" aria-hidden="true" tabindex="-1"></a>**TODO time on question**</span>
+<span id="cb34-421"><a href="#cb34-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-422"><a href="#cb34-422" aria-hidden="true" tabindex="-1"></a><span class="fu">## Resources</span></span>
+<span id="cb34-423"><a href="#cb34-423" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-424"><a href="#cb34-424" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>https://rpkgs.datanovia.com/ggpubr/reference/index.html</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
