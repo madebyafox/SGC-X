@@ -47,7 +47,6 @@ library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
 library(ggformula) #quick graphs
 library(ggpubr) #better graphs
-library(progressr) #progress bar in for loop
 library(pbapply) #progress bar and time estimate for *apply fns
 
 ```
@@ -648,34 +647,32 @@ To verify we have generated the correct sets, we verify that for each question, 
 
 #### Satisficing Key
 
-Next we construct a key set based on the 'Satisficing' strategy. Satisficing involves selecting any data points within 0.5hr visual offset of the orthogonal interpretation of the graph (because no orthogonal response option is available)
+Next we construct two keys based on the 'Satisficing' strategy. Satisficing involves selecting any data points within 0.5hr visual offset of the orthogonal interpretation of the graph (because no orthogonal response option is available). One key represents selecting a point slightly to the left of the orthogonal, and the other key represents selecting a point slightly to the right of the orthogonal.
 
 ```{r}
 #| label: KEY-SET-SATISFICE
-verify_satisfice = c() #sanity check
 
+verify_satisfice_right = c() #sanity check
 ##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT SATISFICE KEY SET
+##CONSTRUCT SATISFICE RIGHT KEY SET
 ##——————————————————————————————————————————————————————————————————————
 #1. DEFINE SETS N, P, A
-keys_satisfice <- keys_raw %>% 
-  select(Q, condition, OPTIONS, SATISFICE, SATISFICE_allow, REF_POINT) %>% 
+keys_satisfice_right <- keys_raw %>% 
+  select(Q, condition, OPTIONS, SATISFICE_right, REF_POINT) %>% 
   mutate(
-    
-    #replace NAs 
-    SATISFICE_allow = str_replace_na(SATISFICE_allow,""),
+    #replace NAs
     REF_POINT = str_replace_na(REF_POINT,""),
-    
+
     #P options that SHOULD be selected (rewarded)
-    set_p = SATISFICE,
+    set_p = SATISFICE_right,
     set_p = str_replace_na(set_p,""), #replace na if empty
     n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(SATISFICE_allow,REF_POINT, sep=""),
+
+    #A options that are ignored if selected
+    set_a = str_c(REF_POINT, sep=""),
     set_a = str_replace_na(set_a,""), #replace na if empty
     n_a = nchar(set_a),
-    
+
     #N store all answr options (superset)
     set_n = OPTIONS,  
     n_n = nchar(set_n)
@@ -683,15 +680,15 @@ keys_satisfice <- keys_raw %>%
 ) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
 
 #2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_satisfice)) {
+for (x in 1:nrow(keys_satisfice_right)) {
   
   #UNWIND STRINGS FOR SETDIFF
   #n all answer options
-  N = keys_satisfice[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  N = keys_satisfice_right[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
   #p correct-select answer options
-  P = keys_satisfice[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  P = keys_satisfice_right[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
   #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_satisfice[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
+  A = keys_satisfice_right[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
   
   #Q = N - (P+A)
   #answers that are penalized (at -1/q) if selected 
@@ -703,28 +700,96 @@ for (x in 1:nrow(keys_satisfice)) {
   #save set to data frame
   Q = str_c(Q, collapse="")
   n_q = nchar(Q)
-  keys_satisfice[x,'set_q'] = Q
-  keys_satisfice[x,'n_q'] = n_q
+  keys_satisfice_right[x,'set_q'] = Q
+  keys_satisfice_right[x,'n_q'] = n_q
   
   #verify each element in N is included in one and only one of P,A,Q
   tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
   N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_satisfice[x] = setequal(tempunion,N)
+  verify_satisfice_right[x] = setequal(tempunion,N)
 }
 
 #3. reorder cols for ease of use
-keys_satisfice <- keys_satisfice %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
+keys_satisfice_right <- keys_satisfice_right %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
 
 
 #cleanup
 rm(A, N, n_q, P, Q, s, tempunion, x)
+
+
+
+verify_satisfice_left = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT SATISFICE left KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_satisfice_left <- keys_raw %>% 
+  select(Q, condition, OPTIONS, SATISFICE_left, REF_POINT) %>% 
+  mutate(
+    
+    #replace NAs 
+    REF_POINT = str_replace_na(REF_POINT,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = SATISFICE_left,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_satisfice_left)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_satisfice_left[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_satisfice_left[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_satisfice_left[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # print(s)
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  #save set to data frame
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_satisfice_left[x,'set_q'] = Q
+  keys_satisfice_left[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_satisfice_left[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_satisfice_left <- keys_satisfice_left %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
+
+
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x)
+
 ```
 
 This leaves us a dataframe `keys_satisfice` that define the sets of response options consistent with the orthogonal graph interpretation.
 
 To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
 
-`r verify_satisfice`
+`r verify_satisfice_left` `r verify_satisfice_right`
 
 #### Tversky Keys
 
@@ -1019,6 +1084,8 @@ Specifically, the following scores are calculated for each item:
 -   `score_TRI` How consistent is the response with the **triangular**interpretation?
 -   `score_ORTH` How consistent is the response with the **orthogonal**interpretation?
 -   `score_TV_max` How consistent is the response with the **(maximal) Tversky**interpretation?
+-   `score_SAT_left` How consistent is the response with the **(left) Satisficing**interpretation?
+-   `score_SAT_right` How consistent is the response with the **(right) Satisficing**interpretation?
 -   `score_TV_start` How consistent is the response with the **(start-time) Tversky**interpretation?
 -   `score_TV_end` How consistent is the response with the **(end-time) Tversky**interpretation?
 -   `score_TV_duration` How consistent is the response with the **(duration) Tversky**interpretation?
@@ -1116,8 +1183,15 @@ calc_ref_score2 <- function(question, cond, response){
 #CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
 calc_both_score2 <- function(question, cond, response){
   
-  #STEP 1 GET KEY for this question and condition
-  if (question < 6) #for q1 - q5 find key for question by condition
+  
+  #TRAPDOOR 
+  #since no orth responses exist for impasse condition q1 - q5, set to 0
+  if (question < 6 & cond == 121) {x = NA}
+  
+  #ELSE 
+  #calculate union of ORTH and TRI
+  else {
+    if (question < 6 & cond == 111) #for q1 - q5 find key for question by condition
   {
      #grab the tri and orth keys for this question as well as N option set
      tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
@@ -1149,16 +1223,16 @@ calc_both_score2 <- function(question, cond, response){
     if(response != "")
     { response = response %>% str_split("") %>% unlist()}
   
-  both_ps = length(intersect(response,both_p))
-  both_qs = length(intersect(response,both_q))
-  # df_items[x,'both_ps'] = both_ps
-  # df_items[x,'both_qs'] = both_qs
+    both_ps = length(intersect(response,both_p))
+    both_qs = length(intersect(response,both_q))
+  
  
   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
   x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
   
   #cleanup
-  rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs)   
+  rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs, question, cond, response )   
+  }
   
   return(x) #true correct, trues, false correct, falses
 }
@@ -1180,6 +1254,7 @@ reorder_inplace <- function(x)
 
 #RUN THIS OR THE CALCULATE-SCORES-FORLOOP
 # df_items = alt 
+df_items = backup %>% filter(q<6) 
 
 #ALPHEBETIZE RESPONSE
 df_items$response = pbmapply(reorder_inplace, df_items$response)
@@ -1188,7 +1263,9 @@ df_items$response = pbmapply(reorder_inplace, df_items$response)
 df_items$score_TRI = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
 df_items$score_ORTH = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
 
-df_items$score_SATISFICE = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice))
+df_items$score_SAT_left = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
+df_items$score_SAT_right = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
+
 df_items$score_TV_max = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
 df_items$score_TV_start = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
 df_items$score_TV_end = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
@@ -1226,100 +1303,108 @@ Finally, we compare the interpretation subscores and decide which is highest. Th
 -   frenzy
 
 -   ?
-
--   TODO HANDLE EQUAL COLUMNS
-
--   TODO HANDLE ADDING SATISFICE TO ALGORITHM
+TODO ADJUST 'both' to select for both tri/satisfice or both tri/orth? See Q1 121 'CO'
 
 ```{r}
 #| label: DERIVE-INTERPRETATION
 #| cache: true
 
-df_items$best <- "?" #set to null
 threshold_range = 0.5 #set required variance in subscores to be discriminant
-threshold_frenzy = 7
-
-pb <- timerProgressBar() 
-on.exit(close(pb)) 
+threshold_frenzy = 4
 
 # df_items <- backup
 for (x in 1:nrow(df_items)) {
   
-  setTimerProgressBar(pb, x) 
-  
   #CALCULATE MAX TVERSKY SUBSCORE
-  #first reshape subscores 
-  t = df_items[x,] %>% select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration)
+  t = df_items[x,] %>% select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration) #reshape
   t.long = gather(t,score, value, 1:4)
+  t.long[t.long == ""] = NA #replace empty scores with NA so we can ignore them
+  if(length(unique(t.long$value)) == 1 ){
+    if(is.na(unique(t.long$value))){
+      df_items[x,'score_TVERSKY'] = NA
+      df_items[x,'tv_type'] = NA   
+    }
+  } else {
+    df_items[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
+    df_items[x,'tv_type'] = t.long[which.max(t.long$value),'score']
+  }
   
-  #replace empty scores with NA so we can ignore them
-  #sometimes TVERSKY subscores are blank if they don't apply for that question 
+  #CALCULATE MAX SATISFICING SUBSCORE
+  t = df_items[x,] %>% select(score_SAT_left, score_SAT_right)
+  t.long = gather(t,score, value, 1:2)
+  t.long[t.long == ""] = NA #replace empty scores
+  if(length(unique(t.long$value)) == 1 ){
+    if(is.na(unique(t.long$value))){
+      df_items[x,'score_SATISFICE'] = NA
+      df_items[x,'sat_type'] = NA   
+    }
+  } else {
+    df_items[x,'score_SATISFICE'] = as.numeric(max(t.long$value,na.rm = TRUE))
+    df_items[x,'sat_type'] = t.long[which.max(t.long$value),'score']  
+  }
+  
+  #NOW CALCULATE RANGE AMONG SUBSCORES
+  #order of this selection matters in breaking ties! 
+  t = df_items[x,] %>% select(score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
+  t.long = gather(t,score, value, 1:4)
   t.long[t.long == ""] = NA
-
-  df_items[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
-  df_items[x,'tv_type'] = t.long[which.max(t.long$value),'score']
   
-  
-  #NOW CALCULATE RANGE IN SUBSCORES
-  s = df_items[x,] %>% select(score_TRI, score_TVERSKY, score_ORTH, score_SATISFICE)
-  s.long = gather(s,score, value, 1:4)
-  s.long[s.long == ""] = NA
-  
-  df_items[x,'top_score'] = as.numeric(max(s.long$value,na.rm = TRUE))
-  df_items[x,'top_type'] = s.long[which.max(s.long$value),'score']
+  df_items[x,'top_score'] = as.numeric(max(t.long$value,na.rm = TRUE))
+  df_items[x,'top_type'] = t.long[which.max(t.long$value),'score']
   
   #calculate the range between highest and lowest scores 
-  r = as.numeric(range(s.long$value,na.rm = TRUE))
+  r = as.numeric(range(t.long$value,na.rm = TRUE))
   r = diff(r)
   df_items[x,'range'] = r
   
   #DISCRIMINANT BETWEEN SUBSCORES TO PREDICT BEST FIT INTERPRETATION
   
-  #is the response BLANK?
-  if( df_items[x,'num_o'] == 0) {df_items[x,'best'] = "blank"}
-  
-  #is the response a 'FRENZY'? ie. they selected more than half of the datapoints?
-  else if( df_items[x,'num_o'] > threshold_frenzy) {df_items[x,'best'] = "frenzy"}
-  
-  #otherwise does the response perfectly match both TRI AND ORTH?
-  else if( df_items[x,'score_BOTH'] == 1) {df_items[x,'best'] = "both tri + orth"}
-  
-  #otherwise does the response perfectly match the reference point?
-  else if (!is.na(df_items[x,'score_REF'])) #only check if the score is NOT null
-    {if( df_items[x,'score_REF'] == 1) {df_items[x,'best'] = "reference"}}
-  
-  #otherwise if both TVERSKY and TRI == 1, it is a triangular response
-  else if( df_items[x,'score_TRI'] == df_items[x,'score_TVERSKY'] &
-           df_items[x,'score_TRI'] == 1) {df_items[x,'best'] = "Triangular"}
-  
-  #otherwise try to derive from subscores
-  else {
-   
-   #is there enough variance between scores to be able to differentiate?
-  
-    if (r < threshold_range) {
+  if (r < threshold_range) {
       #then we can't predict the interpretation, leave it as "?"
-    }
-    else {
-      #if there IS enough variance to be predictive, take the highest subscore
-      p = s.long[which.max(s.long$value),'score']
-      if (p == "score_TRI") {df_items[x,'best'] = "Triangular"}
-      else if (p == "score_ORTH") {df_items[x,'best'] = "Orthogonal"}
-      else if (p == "score_TVERSKY") {df_items[x,'best'] = "Tversky"}
-      else if (p == "score_SATISFICE") {df_items[x,'best'] = "Satisfice"}
-      
-    }
+    df_items[x,'best'] = "?"
+  } else {
+      p =  df_items[x,'top_type']
+      if (p == "score_TRI") {df_items[x,'best'] = "Triangular"
+      } else if(p == "score_ORTH") {df_items[x,'best'] = "Orthogonal"
+      } else if(p == "score_TVERSKY") {df_items[x,'best'] = "Tversky"
+      } else if(p == "score_SATISFICE") {df_items[x,'best'] = "Satisfice"}
   }
-}
+  
+  #CHECK SPECIAL SITUATIONS
+
+  #BOTH TRI AND ORTH?  
+  if (!is.na(df_items[x,'score_BOTH'])) { #only check if both is not null
+      if( df_items[x,'score_BOTH'] == 1) {
+        df_items[x,'best'] = "both tri + orth"}
+  }
+  
+  #IS BLANK?
+  if( df_items[x,'num_o'] == 0) {  
+    df_items[x,'best'] = "blank"
+  }
+  
+  #IS FRENZY?
+  if( df_items[x,'num_o'] > threshold_frenzy) { 
+      df_items[x,'best'] = "frenzy"
+  }
+
+  #IS REF POINT?
+  if (!is.na(df_items[x,'score_REF'])) { #only check if the score is NOT null
+      if( df_items[x,'score_REF'] == 1) {
+          df_items[x,'best'] = "reference"
+      }
+  }
+
+}#end loop
 
 #cleanup 
-rm(t, t.long, s, s.long, x, r,p)
+rm(t, t.long, x, r,p)
 rm(threshold_frenzy, threshold_range)
 
 #set order of levels
-df_items$interpretation <- factor(df_items$best, 
-                                  levels = c("Orthogonal", "Triangular", "Tversky",
-                                             "Satisfice", "reference", "both tri + orth", "blank","frenzy","?"))
+df_items$interpretation <- factor(df_items$best,
+                                  levels = c("Triangular", "Tversky",
+                                             "Satisfice", "Orthogonal", "reference", "both tri + orth", "blank","frenzy","?"))
 
 #recode as numeric inase they are char 
 # df_items$score_TV_duration <- df_items$score_TV_duration %>% as.numeric()
@@ -1352,9 +1437,9 @@ df_items$score_SCALED <- recode(df_items$interpretation,
 
 In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
 
-### Scaffold Phase 
+### Scaffold Phase
 
-The first five questions constitute the 'scaffold' (or learning) phase, where participants see a different version of the stimulus (specifically a different dataset is visualized) invoking a different experimental condition. 
+The first five questions constitute the 'scaffold' (or learning) phase, where participants see a different version of the stimulus (specifically a different dataset is visualized) invoking a different experimental condition.
 
 #### Question #1
 
@@ -1369,11 +1454,14 @@ We start by exploring the range of response options checked by participants on Q
 
 q <- keys_raw %>% filter(condition == 111) %>% filter(Q==1)
 ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
 options <- q %>% select("OPTIONS")
 question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
 d$answer <- replace_na(d$answer, "")
@@ -1395,7 +1483,7 @@ Here we summarize the distinct response options given by participants on this it
 #| warning: false
 
 title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","satisfice","tv_max","tv_start","tv_end","tv_dur")
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
 
 df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
@@ -1403,19 +1491,16 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
+                    tversky = unique(score_TVERSKY),
                     interpretation = unique(interpretation)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         satisficing, tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=7)) %>%
-  pack_rows("Orthogonal", 1, 1) %>% 
-  pack_rows("Triangular", 2, 2) %>% 
-  pack_rows("Lines-Connect", 3, 3) %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Lines-Connect", 2, 2) %>% 
+  pack_rows("Orthogonal", 3, 3) %>% 
   pack_rows("other", 4, 7)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
@@ -1424,33 +1509,34 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
 
 We see that nearly all of the subjects selected a response consistent with one of the identified interpretations. Responses that do not accord with any interpretation are indicated as `?` .
 
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Which shifts start at 11am?                            |                                                                                                                                                                                                         |
-+========================================================+=========================================================================================================================================================================================================+
-| ![](static/interpretations/Q1_111_A.png){width="500"}  | **Response: A**                                                                                                                                                                                         |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system                                                                                                                     |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, *projecting an invisible orthogonal line upward*, and locating data point **A**.                                   |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](static/interpretations/Q1_111_F.png){width="500"}  | **Response: F**                                                                                                                                                                                         |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   indicates the **triangular** (correct) interpretation of the coordinate system                                                                                                                      |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following the right-diagonal gridline, identifying data point **F**.                                           |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](static/interpretations/Q1_111_CF.png){width="500"} | **Response: C, F**                                                                                                                                                                                      |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   indicates a **maximal-Tversky** strategy following connecting lines                                                                                                                                 |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following *both* the right-diagonal and left-diagonal gridlines, identifying both datapoints F and C gridline. |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](static/interpretations/Q1_111_AF.png){width="500"} | **Response: A , F**                                                                                                                                                                                     |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   The reader selects both triangular and orthogonal-consistent data points                                                                                                                            |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Possibly indicates uncertainty or confusion                                                                                                                                                         |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Which shifts start at 11am?                            |                                                                                                                                                                                                |
++========================================================+================================================================================================================================================================================================+
+| ![](static/interpretations/Q1_111_A.png){width="500"}  | **Response: A**                                                                                                                                                                                |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   indicates an **orthogonal** (incorrect) interpretation of the coordinate system                                                                                                            |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, *projecting an invisible orthogonal line upward*, and locating data point **A**.                          |
++--------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](static/interpretations/Q1_111_F.png){width="500"}  | **Response: F**                                                                                                                                                                                |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   indicates the **triangular** (correct) interpretation of the coordinate system                                                                                                             |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following the right-diagonal gridline, identifying data point **F**.                                  |
++--------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](static/interpretations/Q1_111_CF.png){width="500"} | **Response: C, F**                                                                                                                                                                             |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   indicates a **maximal-Tversky** strategy following connecting lines                                                                                                                        |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following *both* the right-diagonal and left-diagonal gridlines, identifying both datapoints F and C. |
++--------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](static/interpretations/Q1_111_AF.png){width="500"} | **Response: A , F**                                                                                                                                                                            |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   The reader selects both triangular and orthogonal-consistent data points                                                                                                                   |
+|                                                        |                                                                                                                                                                                                |
+|                                                        | -   Possibly indicates uncertainty or confusion                                                                                                                                                |
++--------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
 : {tbl-colwidths="\[25,75\]"}
 
 Three responses were given that were not consistent with any of the identified interpretations. *Note that options highlighted in light grey are considered within the range of 'visual error', defined by 0.5hr offset from the interpretation-specific projection.*
@@ -1462,14 +1548,12 @@ Three responses were given that were not consistent with any of the identified i
 +=========================================================+==========================================+================================================================+
 | ![](static/interpretations/Q1_111_IJD.png){width="500"} | ![](static/interpretations/Q1_111_X.png) | ![](static/interpretations/Q1_111_Z.png)                       |
 +---------------------------------------------------------+------------------------------------------+----------------------------------------------------------------+
+
 : {tbl-colwidths="\[30,30,30\]"}
-
-
 
 ##### Q1. Impasse Condition
 
 Next we explore the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
-
 
 ![Question 1 --- Impasse Condition](static/questions/Q1_121.png){#fig-Q1-121}
 
@@ -1478,11 +1562,14 @@ Next we explore the range of response options checked by participants on Questio
 
 q <- keys_raw %>% filter(condition == 121) %>% filter(Q==1)
 ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
 options <- q %>% select("OPTIONS")
 question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
 d$answer <- replace_na(d$answer, "")
@@ -1495,53 +1582,95 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
-Notice that there **is not orthogonal answer** for this question. This is the purpose of the impasse condition, to remove the possibility of selecting the orthogonal answer, we expect learners will be more likely to restructure their understanding of the coordinate system, and arrive at a correct (triangular) interpretation.
+Notice that there **is no orthogonal answer** for this question. This is the purpose of the impasse condition, to remove the possibility of selecting the orthogonal answer, we expect learners will be more likely to restructure their understanding of the coordinate system, and arrive at a correct (triangular) interpretation.
 
 ```{r}
 #| label: Q1-IMPASSE-RESPONSES
 #| warning: false
 
 title <- "Frequency of Selected Response Options for Question #1 (Impasse Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","tv_max","tv_start","tv_end","tv_dur")
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
 
 df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
                     interpretation = unique(interpretation)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=6)) %>%
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
   pack_rows("Triangular", 1, 1) %>% 
   pack_rows("Lines-Connect", 2, 4) %>% 
-  pack_rows("Other", 4, 12) %>% 
+  pack_rows("Satisfice", 5, 9) %>% 
+  pack_rows("Other", 10, 12) %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
 ```
+
+We see that nearly all of the subjects selected a response consistent with one of the identified interpretations. Responses that do not accord with any interpretation are indicated as `?` .
+
+TODO ADJUST 'both' to select for both tri/satisfice or both tri/orth
+
++--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Which shifts start at 11am?                            |                                                                                                                                                                                                         |
++========================================================+=========================================================================================================================================================================================================+
+| ![](static/interpretations/Q1_121_F.png)               | **Response: F**                                                                                                                                                                                         |
+|                                                        |                                                                                                                                                                                                         |
+|                                                        | -   indicates the **triangular** (correct) interpretation of the coordinate system                                                                                                                      |
+|                                                        |                                                                                                                                                                                                         |
+|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following the right-diagonal gridline, identifying data point **F**.                                           |
++--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](static/interpretations/Q1_111_CF.png){width="500"} | **Response: \[C, F\]**                                                                                                                                                                                  |
+|                                                        |                                                                                                                                                                                                         |
+|                                                        | -   indicates a **maximal-Tversky** strategy following connecting lines                                                                                                                                 |
+|                                                        |                                                                                                                                                                                                         |
+|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following *both* the right-diagonal and left-diagonal gridlines, identifying both datapoints F and C gridline. |
++--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ![](static/interpretations/Q1_121_SATISFICE.png)       | **Responses: \[AOI\]**                                                                                                                                                                                  |
+|                                                        |                                                                                                                                                                                                         |
+|                                                        | -   indicates a **satisficing** strategy                                                                                                                                                                |
+|                                                        |                                                                                                                                                                                                         |
+|                                                        | -   Consistent with the reader identifying the datapoints nearest to the orthogonal projection from the reference point point                                                                           |
++--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+: {tbl-colwidths="\[25,75\]"}
+
+Two responses were given that were not consistent with any of the identified interpretations.
+
++-------------------------------------------+
+| **\[E\],\[X\]**                           |
++===========================================+
+| ![](static/interpretations/Q1_121_EX.png) |
++-------------------------------------------+
+
+: {tbl-colwidths="\[30\]"}
 
 
 #### Question #2
 
 ![Q2---Control Condition](static/questions/Q2_111.png){#fig-Q2-111}
 
+##### Q2. Control Condition
+
 ```{r}
 #| label: Q2-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == 111) %>% filter(Q==2)
 ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
 options <- q %>% select("OPTIONS")
 question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
 d$answer <- replace_na(d$answer, "")
@@ -1559,7 +1688,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 #| warning: false
 
 title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","satisfice","tv_max","tv_start","tv_end","tv_dur")
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
 
 df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
@@ -1567,20 +1696,17 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
+                    tversky = unique(score_TVERSKY),
                     interpretation = unique(interpretation)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         satisficing, tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=7)) %>%
-  pack_rows("Orthogonal", 1, 3) %>% 
-  pack_rows("Triangular", 4, 5) %>% 
-  pack_rows("Lines-Connect", 6, 7) %>% 
-  pack_rows("other", 8, 10)  %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 2) %>%
+  pack_rows("Lines-Connect", 3, 4) %>% 
+  pack_rows("Orthogonal", 5, 7) %>%
+  pack_rows("Other", 8, 10)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
@@ -1619,30 +1745,92 @@ Again, we see that most subjects selected a response consistent with one of the 
 |                                                          | -   Consistent with the reader identifying the reference point (D) on the graph                                                                                                                                                                                         |
 |                                                          | -   Possibly indicates uncertainty or confusion                                                                                                                                                                                                                         |
 +----------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-: {tbl-colwidths="\[25,75\]"}
 
+: {tbl-colwidths="\[25,75\]"}
 
 +-------------------------------------------------------+------------------------------------------+
 | B                                                     | C                                        |
 +=======================================================+==========================================+
 | ![](static/interpretations/Q2_111_B.png){width="500"} | ![](static/interpretations/Q2_111_C.png) |
 +-------------------------------------------------------+------------------------------------------+
+
 : {tbl-colwidths="\[30,30\]"}
+
+
+##### Q2. Impasse Condition 
+
+```{r}
+#| label: Q2-IMPASSE-KEY
+
+q <- keys_raw %>% filter(condition == 121) %>% filter(Q==2)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q1 Control Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
+```
+```{r}
+#| label: Q2-IMPASSE-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #2 (Impasse Condition)"
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
+
+df_items %>% filter(q == 2 & condition == 121) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 2) %>%
+  pack_rows("Lines-Connect", 3, 10) %>% 
+  pack_rows("Satisfice", 11, 12) %>%
+  pack_rows("Other", 13, 18)  %>% 
+  footnote(general = "n = number of responses in sample", 
+           general_title = "Note: ",footnote_as_chunk = T) 
+
+```
 
 #### Question #3
 
 ![Q3---Control Condition](static/questions/Q3_111.png){#fig-Q3-111}
+
+##### Q3. Control Condition
 
 ```{r}
 #| label: Q3-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == 111) %>% filter(Q==3)
 ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
 options <- q %>% select("OPTIONS")
 question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
 d$answer <- replace_na(d$answer, "")
@@ -1660,7 +1848,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 #| warning: false
 
 title <- "Frequency of Selected Response Options for Question #3 (Control Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","satisfice","tv_max","tv_start","tv_end","tv_dur")
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
 
 df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
@@ -1668,20 +1856,17 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
+                    tversky = unique(score_TVERSKY),
                     interpretation = unique(interpretation)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         satisficing, tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=7)) %>%
-  pack_rows("Orthogonal", 1, 1) %>% 
-  pack_rows("Triangular", 2, 3) %>% 
-  pack_rows("Lines-Connect", 4, 8) %>% 
-  pack_rows("other", 9, 17) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 5) %>% 
+  pack_rows("Lines-Connect", 3, 4) %>% 
+  pack_rows("Orthogonal", 5, 5) %>% 
+  pack_rows("other", 6, 15) 
 
 ```
 
@@ -1725,8 +1910,8 @@ TODO
 |                                                | -   the participant selects *all* (or nearly all) the data points                                                                                                                                                                                                                         |
 |                                                | -   possibly indicates confusion or uncertainty                                                                                                                                                                                                                                           |
 +------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-: {tbl-colwidths="\[25,75\]"}
 
+: {tbl-colwidths="\[25,75\]"}
 
 Six responses (from 9 participants) appear inconsistent with any interpretation.
 
@@ -1739,25 +1924,86 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 +-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | ![](static/interpretations/Q3_111_UE.png)     | ![](static/interpretations/Q3_111_U.png)  | ![](static/interpretations/Q3_111_E.png)  |
 +-----------------------------------------------+-------------------------------------------+-------------------------------------------+
+
 : {tbl-colwidths="\[30,30,30\]"}
 
 
+
+
+##### Q3. Impasse Condition
+
+```{r}
+#| label: Q3-IMPASSE-KEY
+
+q <- keys_raw %>% filter(condition == 121) %>% filter(Q==3)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q3 Impasse Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+```{r}
+#| label: Q3-IMPASSE-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #3 (Impasse Condition)"
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
+
+df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 5) %>% 
+  pack_rows("Lines-Connect", 3, 5) %>% 
+  pack_rows("Satisfice", 6, 15) %>% 
+  pack_rows("other", 16, 29) 
+
+```
 #### Question #4
 
 \[PLACEHOLDER --- NOT YET CONSIDERED THIS QUESTION\]
 
 ![Q4---Control Condition](static/questions/Q4_111.png){#fig-Q4-111}
 
+###### Q4. Control Condition
+
 ```{r}
 #| label: Q4-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == 111) %>% filter(Q==4)
 ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
 options <- q %>% select("OPTIONS")
 question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
 d$answer <- replace_na(d$answer, "")
@@ -1771,11 +2017,11 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 ```
 
 ```{r}
-#| label: Q4-control
+#| label: Q4-CONTROL-RESPONSES
 #| warning: false
 
 title <- "Frequency of Selected Response Options for Question #4 (Control Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","satisfice","tv_max","tv_start","tv_end","tv_dur")
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
 
 df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
@@ -1783,24 +2029,18 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
+                    tversky = unique(score_TVERSKY),
                     interpretation = unique(interpretation)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         satisficing, tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=7)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Orthogonal", 2, 5) %>% 
-  pack_rows("Lines-Connect", 6, 6) %>% 
-  pack_rows("other", 7, 16) 
-
-
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 2) %>% 
+  pack_rows("Lines-Connect", 3, 3) %>% 
+  pack_rows("Orthogonal", 4, 8) %>% 
+  pack_rows("other", 9, 16) 
 ```
-
 
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
@@ -1812,20 +2052,79 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 
 : TBL4 test {tbl-colwidths="\[50,50\]"}
 
+##### Q4. Impasse Condition
+
+```{r}
+#| label: Q4-IMPASSE-KEY
+
+q <- keys_raw %>% filter(condition == 121) %>% filter(Q==4)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q4 Impasse Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+```{r}
+#| label: Q4-IMPASSE-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #4 (Impasse Condition)"
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
+
+df_items %>% filter(q == 4 & condition == 121) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 5) %>% 
+  pack_rows("Lines-Connect", 3, 6) %>% 
+  pack_rows("Satisfice", 7, 10) %>% 
+  pack_rows("other", 11, 19) 
+
+```
+
+
 #### Question #5
 
 \[PLACEHOLDER --- NOT YET CONSIDERED THIS QUESTION\]
 
+###### Q5. Control Condition
 ```{r}
 #| label: Q5-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == 111) %>% filter(Q==5)
 ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
 options <- q %>% select("OPTIONS")
 question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
 d$answer <- replace_na(d$answer, "")
@@ -1838,11 +2137,12 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
-```{r Q5-control}
+```{r}
+#| label: Q5-CONTROL-RESPONSES
 #| warning: false
 
 title <- "Frequency of Selected Response Options for Question #5 (Control Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","satisfice","tv_max","tv_start","tv_end","tv_dur")
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
 
 df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
@@ -1850,29 +2150,81 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
                     triangular = unique(score_TRI), 
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
+                    tversky = unique(score_TVERSKY),
                     interpretation = unique(interpretation)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         satisficing, tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=7)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Orthogonal", 2, 9) %>% 
-  pack_rows("Lines Connect", 10, 10) %>% 
-  pack_rows("other", 11, 22) 
-
-
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 4) %>% 
+  pack_rows("Lines-Connect", 5, 7) %>% 
+  pack_rows("Orthogonal", 8, 9) %>% 
+  pack_rows("other", 10, 22) 
 ```
 
 TODO note the compelling cases of internal inconsistency (HJDE)
 
-### Testing Phase 
+##### Q5. Impasse Condition
 
-The following 10 questions were the same for both conditions. 
+```{r}
+#| label: Q5-IMPASSE-KEY
+
+q <- keys_raw %>% filter(condition == 121) %>% filter(Q==5)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q5 Impasse Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+```{r}
+#| label: Q5-IMPASSE-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #5 (Impasse Condition)"
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal")
+
+df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, nice, 
+         triangular, tversky, satisficing, orthogonal) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4)) %>%
+  pack_rows("Triangular", 1, 7) %>% 
+  pack_rows("Lines-Connect", 8, 13) %>% 
+  pack_rows("Satisfice", 14, 16) %>% 
+  pack_rows("other", 17, 31) 
+
+```
+
+
+
+### Testing Phase
+
+The following 10 questions were the same for both conditions.
+
 
 
 ### Peeking
@@ -1976,7 +2328,7 @@ Our approach to calculating an ORTHOGONAL PARTIAL score is as follows:
 
 -   trapdoor : default to -1 if select triangular
 
-## TODO EXPORT
+## EXPORT
 
 Summarize by subject Export subjects Export items
 
@@ -1985,21 +2337,57 @@ Summarize by subject Export subjects Export items
 Finally, we export the scored items and summarized subjects.
 
 ```{r}
-#| label: EXPORT-SCORES
+#| label: PREP-EXPORT
 
 #prep items
-df_items <- df_items %>% select(-best) %>% mutate(
-  tv_type = as.factor(tv_type)
+df_items <- df_items %>% mutate(
+  tv_type = as.factor(tv_type),
+  top_type = as.factor(top_type)
 )
 
+#summarize by subject
+subjects <- df_items %>% group_by(subject) %>% summarise (
+  subject = as.character(subject),
+  s_TRI = sum(score_TRI),
+  s_ORTH = sum(score_ORTH),
+  s_TVERSKY = sum(score_TVERSKY),
+  s_SATISFICE = sum(score_SATISFICE),
+  s_REF = sum(score_REF),
+  s_ABS = sum(score_ABS),
+  s_NABS = sum(score_niceABS),
+  s_SCALED = sum(score_SCALED)
+) %>% arrange(subject) %>% slice(1L)
+
+#import subjects
+df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+
+#TODO DOUBLE CHECK THIS!  
+x = merge(subjects, df_subjects)
+df_subjects <- x
+
+
+```
+```{r}
+stats = df_subjects %>% group_by(condition, mode) %>% summarise(mean = mean(s_SCALED))
+gf_bar(~s_SCALED, data = df_subjects) %>% 
+  gf_facet_grid(condition~mode) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Cumulative Scaled Score for Subject")+
+  theme_minimal()
+  
+
+```
+```{r}
+#| label: EXPORT-SCORES
+
 #SAVE FILES
-# write.csv(df_subjects,"data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
+write.csv(df_subjects,"data/2-scored-data/sgc3a_scored_participants.csv", row.names = FALSE)
 write.csv(df_items,"data/2-scored-data/sgc3a_scored_items.csv", row.names = FALSE)
 
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
-# rio::export(df_subjects, "data/1-study-level/sgc3a_participants.rds") # to R data structure file
+rio::export(df_subjects, "data/2-scored-data/sgc3a_scored_participants.rds") # to R data structure file
 rio::export(df_items, "data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
 
 ```
@@ -2093,8 +2481,14 @@ functions for for-loop version of scoring
 # #CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
 # calc_both_score <- function(question, cond, response){
 #   
-#   #STEP 1 GET KEY for this question and condition
-#   if (question < 6) #for q1 - q5 find key for question by condition
+#TRAPDOOR 
+#   #since no orth responses exist for impasse condition q1 - q5, set to 0
+#   if (question < 6 & cond == 121) {x = NA}
+#   
+#   #ELSE 
+#   #calculate union of ORTH and TRI
+#   else {
+#     if (question < 6 & cond == 111) #for q1 - q5 find key for question by condition
 #   {
 #      #grab the tri and orth keys for this question as well as N option set
 #      tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
@@ -2125,17 +2519,17 @@ functions for for-loop version of scoring
 #   #if response is not empty, split apart response for set comparison
 #     if(response != "")
 #     { response = response %>% str_split("") %>% unlist()}
-#     
-#   both_ps = length(intersect(response,both_p))
-#   both_qs = length(intersect(response,both_q))
-#   # df_items[x,'both_ps'] = both_ps
-#   # df_items[x,'both_qs'] = both_qs
+#   
+#     both_ps = length(intersect(response,both_p))
+#     both_qs = length(intersect(response,both_q))
+#   
 #  
 #   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
 #   x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
 #   
 #   #cleanup
-#   rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs)   
+#   rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs, question, cond, response )   
+#   }
 #   
 #   return(x) #true correct, trues, false correct, falses
 # }

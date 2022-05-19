@@ -60,12 +60,12 @@ options(scipen=1, digits=3)
 
 *The purpose of this notebook is explore the distribution of dependent variables for Study SGC3A.*
 
-+------------------------+--------------+
-| Pre-Requisite          | Followed By  |
-+========================+==============+
-| 1_sgc3A_harmonize.qmd\ |              |
-| 2_sgc3A_rescoring.qmd  |              |
-+------------------------+--------------+
++------------------------+---------------+
+| Pre-Requisite          | Followed By   |
++========================+===============+
+| 1_sgc3A_harmonize.qmd\ |               |
+| 2_sgc3A_rescoring.qmd  |               |
++------------------------+---------------+
 
 ```{r}
 #| label: IMPORT-DATA
@@ -74,13 +74,13 @@ options(scipen=1, digits=3)
 #| message : false
 
 #IMPORT DATA 
-#TODO REPLACE WITH 2-scored-data when its done
 df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
-df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds')
+df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)
-df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
+#TODO run when have rest of data scored 
+# df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 ```
 
 ## Sample
@@ -130,10 +130,11 @@ Cumulative scores indicate the response accuracy by participant across all items
 
 Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from \[0,15\].
 
+TODO sanity check this against s_ABS and s_NABS
 ```{r}
 #| label: ABS-SUBJECT
 
-title = "Descriptive Statistics of Response Accuracy (Absolute Score)"
+title = "Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)"
 abs.stats <- rbind(
   "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(absolute_score) %>% unlist() %>% favstats(),
   "online" = df_subjects %>% filter(mode == "asynch") %>% select(absolute_score) %>% unlist() %>% favstats()
@@ -151,62 +152,70 @@ For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats[
  
 #VISUALIZE distribution of response accuracy across SUBJECTS
 
-# plab <- ggplot(data = df_subjects %>% filter(mode == 'lab-synch'), aes(x = absolute_score)) + 
-#   geom_bar() +  # = 16, color = "black", data =  %>%
-#   facet_wrap(condition) + 
-#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +
-#   labs(title="Lab", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal()
-# 
-# ponline <- ggplot(data = df_subjects %>% filter(mode == 'asynch'), aes(x = absolute_score)) + 
-#   geom_bar() +  # = 16, color = "black", data =  %>%
-#   facet_wrap(~condition) + 
-#   geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +
-#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() 
-# 
-# plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
-# annotate_figure(plot, top = text_grob("Cumulative Absolute Accuracy Score by MODALITY",
-#    color = "black", face = "bold", size = 14))
-# 
-# 
-# ggplot(data = df_subjects, aes(x = absolute_score)) + 
-#   geom_bar() +  # = 16, color = "black", data =  %>%
-#   facet_grid(condition~mode) + 
-#   # geom_vline (aes(xintercept=mean(absolute_score)),color="blue", linetype="dashed", size=0.5) +
-#   labs(title="Online", x = "Cumulative Absolute Score", y="% of subjects") + theme_minimal() 
-
-
+#HISTOGRAM
 stats = df_subjects %>% group_by(condition, mode) %>% summarise(mean = mean(absolute_score))
 gf_bar(~absolute_score, data = df_subjects) %>% 
-  gf_facet_grid(condition~mode) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_lims(x = c(0, 15)) %>% 
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
   labs(x = "Cumulative Absolute Score for Subject")+
   theme_minimal()
   
 
 #RIDGEPLOT
-# ggplot(data = df_subjects, aes(x = absolute_score, y = mode)) +
-#   geom_density_ridges() + xlim(0,15)+ 
-#   facet_wrap(~condition, labeller = label_both) + 
-#   labs( x = "Cumulative Absolute Score for Subject") +
-#   theme_minimal()
+ggplot(data = df_subjects, aes(x = absolute_score, y = mode)) +
+  geom_density_ridges() + xlim(0,15)+
+  facet_wrap(~condition, labeller = label_both) +
+  labs( x = "Cumulative Absolute Score for Subject") +
+  theme_minimal()
 
 ```
 
 **TODO** double check that the subject-totals match the sum of the item level totals
 
+#### Cumulative Scaled Scores
+
+TODO describe scaled score
+```{r}
+#| label: SCALED-SUBJECT
+
+title = "Descriptive Statistics of Response Accuracy (Cumulative Scaled Score)"
+scaled.stats <- rbind(
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_SCALED) %>% unlist() %>% favstats()
+) 
+scaled.stats %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+```{r}
+#| label: VIS-SUBJECT-SCALED-SCORE
+ 
+#VISUALIZE distribution of response accuracy across SUBJECTS
+
+#HISTOGRAM
+stats = df_subjects %>% group_by(condition, mode) %>% summarise(mean = mean(s_SCALED))
+gf_histogram(~s_SCALED, data = df_subjects, binwidth = 1) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_lims(x = c(-15, 15)) %>%
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Cumulative Scaled Score for Subject")+
+  theme_minimal()
+  
+
+#RIDGEPLOT
+ggplot(data = df_subjects, aes(x = s_SCALED, y = condition)) +
+  geom_density_ridges() + xlim(-15,15)+
+  facet_wrap(~mode, labeller = label_both) +
+  labs( x = "Cumulative Scaled Score for Subject") +
+  theme_minimal()
+
+```
+
+
 #### Cumulative Interpretation Scores
 
-
-
-
-
-
-
-
-
-
-
-
+TODO describe interpretation score? can this be summarized 
 
 
 
@@ -215,8 +224,6 @@ gf_bar(~absolute_score, data = df_subjects) %>%
 Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.
 
 #### Item Absolute Score
-
-
 
 ```{r}
 #| label: ABS-ITEM
@@ -230,7 +237,6 @@ abs.stats.items %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-
 For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
 
 For *online replication*, (online) item accuracy scores (n = `r abs.stats.items["online",]$n`) range from `r round(abs.stats.items["online",]$min,2)` to `r round(abs.stats.items["online",]$max,2)` with a mean score of (M = `r round(abs.stats.items["online",]$mean,2)`, SD = `r round(abs.stats.items["online",]$sd,2)`).
@@ -240,6 +246,14 @@ For *online replication*, (online) item accuracy scores (n = `r abs.stats.items[
 
 #VISUALIZE distribution of response accuracy across ITEMS
 
+#HISTOGRAM
+stats = df_items %>% group_by(condition, mode) %>% summarise(mean = mean(score_niceABS))
+gf_bar(~score_niceABS, data = df_items) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Absolute Score for Item")+
+  theme_minimal()
+
 ggplot(data = df_items, aes(x = score_niceABS, y = mode)) +
   geom_density_ridges()+ 
   facet_wrap(~condition, labeller = label_both) + 
@@ -248,14 +262,81 @@ ggplot(data = df_items, aes(x = score_niceABS, y = mode)) +
 
 
 ```
+#### Item Scaled Score
 
+```{r}
+#| label: Scaled-ITEM
 
+title = "Descriptive Statistics of Response Accuracy (Scaled Score)"
+scaled.stats.items <- rbind(
+  "lab"= df_items %>% filter(mode == 'lab-synch') %>% select(score_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_items %>% filter(mode == "asynch") %>% select(score_SCALED) %>% unlist() %>% favstats()
+) 
+scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
 
+```
 
+TODO update this 
+For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
 
+For *online replication*, (online) item accuracy scores (n = `r abs.stats.items["online",]$n`) range from `r round(abs.stats.items["online",]$min,2)` to `r round(abs.stats.items["online",]$max,2)` with a mean score of (M = `r round(abs.stats.items["online",]$mean,2)`, SD = `r round(abs.stats.items["online",]$sd,2)`).
 
+```{r}
+#| label: VIS-ITEMS-SCALED-SCORE
+
+#VISUALIZE distribution of response accuracy across ITEMS
+
+#HISTOGRAM
+stats = df_items %>% group_by(condition, mode) %>% summarise(mean = mean(score_SCALED))
+gf_histogram(~score_SCALED, data = df_items) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Scaled Score for Item")+
+  theme_minimal()
+
+ggplot(data = df_items, aes(x = score_SCALED, y = condition)) +
+  geom_density_ridges()+ xlim(-1,1)+
+  facet_wrap(~mode, labeller = label_both) + 
+  labs( x = "Scaled Score for Item") +
+  theme_minimal()
+
+```
 
 #### Item Interpretation Scores
+
+
+```{r}
+#| label: VIS-ITEMS-INTERPRETATIONS
+
+#VISUALIZE distribution of interpretations across all ITEMS
+
+#HISTOGRAM
+
+gf_barh(~interpretation, data = df_items, fill = ~mode) %>% 
+  gf_facet_grid(mode~condition, labeller = label_both) +
+  labs(x = "Interpretation for Item")+
+  theme_minimal()+ theme(legend.position = "none")
+
+
+
+#restructue data 
+temp <- df_items %>% select(mode, condition, 
+                            score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
+ 
+  t.long = gather(temp,score, value, 3:6)
+  # t.long[t.long == ""] = NA
+  
+
+#TODO CONTINGENCY TABLE FOR THIS 
+ggplot(data = t.long, aes(x = value, y = score, fill=condition)) +
+  geom_density_ridges()+
+  facet_wrap(~condition, labeller = label_both) +
+  labs( x = "Interpretation Scores for Item") +
+  theme_minimal()
+
+
+```
+
 
 ## Response Latency
 
