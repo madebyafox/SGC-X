@@ -47,6 +47,8 @@ library(tidyverse) #ALL THE THINGS
 library(kableExtra) #printing tables 
 library(ggformula) #quick graphs
 library(ggpubr) #better graphs
+library(progressr) #progress bar in for loop
+library(pbapply) #progress bar and time estimate for *apply fns
 
 ```
 
@@ -223,11 +225,11 @@ f_partialP <- function(t,p,f,q) {
   #f = number of incorrect-selected options
   #q = number of false options
   #n = number of options + p + q
-  # ifelse( (p == 0), return(""), "") #handle empty response set gracefully by returning nothing rather than 0
+  
+  
   ifelse( (p == 0), return(NA), "") #handle empty response set gracefully by returning nothing rather than 0
   ifelse( (p != 0), return( (t / p) - (f/q)), "")
   
-  # return( (t / p) - (f/q))
 }
 ```
 
@@ -646,7 +648,7 @@ To verify we have generated the correct sets, we verify that for each question, 
 
 #### Satisficing Key
 
-Next we construct a key set based on the 'Satisficing' strategy. Satisficing involves selecting any data points within 0.5hr visual offset of the orthogonal interpretation of the graph (because no orthogonal response option is available) 
+Next we construct a key set based on the 'Satisficing' strategy. Satisficing involves selecting any data points within 0.5hr visual offset of the orthogonal interpretation of the graph (because no orthogonal response option is available)
 
 ```{r}
 #| label: KEY-SET-SATISFICE
@@ -1026,17 +1028,23 @@ Specifically, the following scores are calculated for each item:
 -   `score_niceABS` Is the response strictly correct? (triangular interpretation, not penalizing ref points)
 
 ```{r}
-#| label: SCORING-FUNCTIONS
+#| label: IMPORT-ITEMS
 
+backup <- read_rds('data/1-study-level/sgc3a_items.rds')
+df_items <- read_rds('data/1-study-level/sgc3a_items.rds')
+#TODO REMOVE FILTER 
+df_items <- df_items %>% filter(q < 6 ) 
 
-#CALCULATE THE TRIANGULAR, ORTHOGONAL OR TVERSKIAN SUBSCORES FROM KEYFRAME
-calc_sub_score <- function(keyframe, question, cond, response){
-  
-  #TODO verify type is in df_keymap$score
-  #type must be one of "tri", "orth", "tv_max", "tv_start", "tv_end", "tv_duration", "both", "ref"
-  #keyframe must be one of keys_raw, keys_tri, "keys_orth", "keys_tversky_max", "keys_tversky_start", "keys_tversky_end", "keys_tversky_duration", 
-  
-  #STEP 1 GET KEY 
+```
+
+```{r}
+#| label: SCORING-FUNCTIONS-mapply-friendly
+
+calc_sub_score2 <- function(question, cond, response, keyframe){
+
+  # print(paste(question, cond, response))
+
+    #STEP 1 GET KEY
   if (question < 6) #for q1 - q5 find key for question by condition
   {
     # print(keyframe)
@@ -1044,79 +1052,69 @@ calc_sub_score <- function(keyframe, question, cond, response){
     p =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
     q =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
     pn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_p)
-    qn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_q) 
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_q)
 
+    # print(p)
+    # print(q)
+    # print(paste("pn ",pn))
+    # print(paste("qn ",qn))
+    
   } else {
-    #GET KEY FOR THIS SCORE TYPE, QUESTION 
+    #GET KEY FOR THIS SCORE TYPE, QUESTION
     p =  keyframe %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
     q =  keyframe %>% filter(Q == question) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
     pn = keyframe %>% filter(Q == question) %>% select(n_p)
-    qn = keyframe %>% filter(Q == question) %>% select(n_q) 
+    qn = keyframe %>% filter(Q == question) %>% select(n_q)
   }
-  
+
   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  
+  #if response is not empty, split apart response for set comparison
+    if(response != "")
+    { response = response %>% str_split("") %>% unlist()}
+  
+  #set comparisons 
   ps = length(intersect(response,p))
+  # print(paste("correct selected" ,ps))
   qs = length(intersect(response,q))
+  # print(paste("incorrect selected", qs))
   # df_items[x,'tri_ps'] = tri_ps
   # df_items[x,'tri_qs'] = tri_qs
-  
-  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
-  x = f_partialP(ps,pn,qs,qn)
-  
+
+  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION
+  x = f_partialP(ps,pn,qs,qn) %>% unlist() %>% as.numeric()
+  # print(x)
   #cleanup
   rm(p,q,pn,qn,ps,qs)
-  
-  return(x) 
-  
+
+  return(x)
 }
 
 #CALCULATE THE REFERENCE SCORES
-calc_ref_score <- function(question, condition, response){
+calc_ref_score2 <- function(question, cond, response){
   
-  #STEP 1 GET KEY for this question and condition
-  if (question < 6) #for q1 - q5 find key for question by condition
-  {
-     #1. GET reference point from REF_POINT column in raw keys
-     ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
-     #2. get all possible options [doesn't matter which key, they're all the same]
-     ref_n =keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
-     #3. calc answers that aren't the reference point
-     ref_q = setdiff(ref_n,ref_p)
-     #4. cal number of ps and qs 
-     ref_pn = length(ref_p)
-     ref_qn = length(ref_q)
-  } else {
-    #get REFERENCE POINT keys for this question
-     #1. GET reference point from REF_POINT column in raw keys
-     ref_p = keys_raw %>% filter(Q == question) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
-     #2. get all possible options [doesn't matter which key, they're all the same]
-     ref_n =keys_raw %>% filter(Q == question) %>% select(OPTIONS) %>% pull(OPTIONS) %>% str_split("") %>% unlist() 
-     #3. calc answers that aren't the reference point
-     ref_q = setdiff(ref_n,ref_p)
-     #4. cal number of ps and qs 
-     ref_pn = length(ref_p)
-     ref_qn = length(ref_q)
-  }
-    
-  #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
-  ref_ps = length(intersect(response,ref_p))
-  ref_qs = length(intersect(response,ref_q))
-  # df_items[x,'both_ps'] = ref_ps
-  # df_items[x,'both_qs'] = ref_qs     
  
-  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
-  x = f_partialP(ref_ps,ref_pn,ref_qs,ref_qn)
-  
-  #cleanup
-  rm(ref_p,ref_q,ref_pn,ref_qn,ref_ps,ref_qs)   
-  
-  return(x) #true correct, trues, false correct, falses
-
+    #1. GET reference point from REF_POINT column in raw keys
+    ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
+     
+    #2. if response has more than one character, it can't be correct
+    #there is only ever 1 reference character
+    n = nchar(response)
+    if (n == 0) {x = 0}
+    else if(n>1) {x = 0}
+    else {
+      #3 is the response PRECISELY the REFERENCE POINT?
+      x = ref_p == response
+      x = as.numeric(x)  
+    }
+    
+    #cleanup
+    rm(ref_p, response, question, cond)   
+    return(x) #1 = match, 0 = not match
 }
 
-
 #CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
-calc_both_score <- function(question, condition, response){
+calc_both_score2 <- function(question, cond, response){
   
   #STEP 1 GET KEY for this question and condition
   if (question < 6) #for q1 - q5 find key for question by condition
@@ -1146,105 +1144,108 @@ calc_both_score <- function(question, condition, response){
   }
     
   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  
+  #if response is not empty, split apart response for set comparison
+    if(response != "")
+    { response = response %>% str_split("") %>% unlist()}
+  
   both_ps = length(intersect(response,both_p))
   both_qs = length(intersect(response,both_q))
   # df_items[x,'both_ps'] = both_ps
   # df_items[x,'both_qs'] = both_qs
  
   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
-  x = f_partialP(both_ps,both_pn,both_qs,both_qn)
+  x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
   
   #cleanup
   rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs)   
   
   return(x) #true correct, trues, false correct, falses
-  
 }
 
+
+#REORDER THE CHARACTERS IN A STRING
+reorder_inplace <- function(x)
+{
+  y =  x %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
+  return (y)
+}
 ```
 
-
-```{r}
-#| label: IMPORT-ITEMS
-
-backup <- read_rds('data/1-study-level/sgc3a_items.rds')
-df_items <- read_rds('data/1-study-level/sgc3a_items.rds')
-#TODO REMOE FILTER 
-df_items <- df_items %>% filter(q < 6 ) 
-
-```
 *note: this cell takes several minutes to run and is not optimized*
 
 ```{r}
-#| label: CALCULATE-SCORES[RUNS-SOOOO-LONG]
-#| warning : false
-#| message: false
+#| label: CALCULATE-SCORES-MAPPLY
+#| cache: true
 
-#CALCULATE SUBSCORES (in loop)
-for (x in 1:nrow(df_items)) {
+#RUN THIS OR THE CALCULATE-SCORES-FORLOOP
+# df_items = alt 
+
+#ALPHEBETIZE RESPONSE
+df_items$response = pbmapply(reorder_inplace, df_items$response)
+
+# #STRATEGY SUBSCORES
+df_items$score_TRI = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
+df_items$score_ORTH = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
+
+df_items$score_SATISFICE = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice))
+df_items$score_TV_max = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
+df_items$score_TV_start = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
+df_items$score_TV_end = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
+df_items$score_TV_duration = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
+
+#TODO SPECIAL SUBSCORES
+df_items$score_REF = pbmapply(calc_ref_score2, df_items$q, df_items$condition, df_items$response)
+df_items$score_BOTH = pbmapply(calc_both_score2, df_items$q, df_items$condition, df_items$response)
   
-  #PREPARE ITEMS FOR SCORING
-  #sort response vectors alphabetically
-  #doesn't impact scoring, but does impact response display tables
-   df_items[x,'response'] <-  df_items[x,'response'] %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
 
-  #get properties of the RESPONSE ITEM
-  qu = df_items[x,'q'] %>% as.numeric()
-  cond = as.character(df_items[x,'condition']) %>% as.numeric()
-  r = df_items[x,'response'] %>% str_split("") %>% unlist()
-
-  #calculate the main subscores
-  df_items[x,'score_TRI'] = calc_sub_score(keys_tri, qu, cond, r)
-  df_items[x,'score_ORTH'] = calc_sub_score(keys_orth, qu, cond, r)
-  df_items[x,'score_SATISFICE'] = calc_sub_score(keys_satisfice, qu, cond, r)
-  df_items[x,'score_TV_max'] = calc_sub_score(keys_tversky_max, qu, cond, r)
-  df_items[x,'score_TV_start'] = calc_sub_score(keys_tversky_start, qu, cond, r)
-  df_items[x,'score_TV_end'] = calc_sub_score(keys_tversky_end, qu, cond, r)
-  df_items[x,'score_TV_duration'] = calc_sub_score(keys_tversky_duration, qu, cond, r)
-
-  # # #calculate special subscores
-  df_items[x,'score_REF'] = calc_ref_score(qu, cond, r)
-  df_items[x,'score_BOTH'] = calc_both_score(qu, cond, r)
-}
-
-#CALCULATE ABSOLUTE SCORES
-#calculate absolute scores dichotomous
+#ABSOLUTE SCORES
 df_items$score_ABS = as.integer(df_items$correct) 
-#niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
 df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
- 
-#cleanup
-rm(qu,cond,r, x)
+
+# alt_scored = df_items
+
 ```
 
 ### Derive Interpretation
 
-
 Finally, we compare the interpretation subscores and decide which is highest. This indicates the interpretation that the individual's response most closely approximates. This algorithm makes assigns one of the following values to each item response:
 
 -   Orthogonal
+
 -   Triangular
+
 -   Tversky
+
 -   both Tri + Orth
+
 -   reference
+
 -   blank
+
 -   frenzy
+
 -   ?
 
-TODO HANDLE EQUAL COLUMNS
-TODO HANDLE ADDING SATISFICE TO ALGORITHM
+-   TODO HANDLE EQUAL COLUMNS
+
+-   TODO HANDLE ADDING SATISFICE TO ALGORITHM
 
 ```{r}
 #| label: DERIVE-INTERPRETATION
-#| warning: false
-#| message: false
+#| cache: true
 
 df_items$best <- "?" #set to null
 threshold_range = 0.5 #set required variance in subscores to be discriminant
 threshold_frenzy = 7
 
+pb <- timerProgressBar() 
+on.exit(close(pb)) 
+
 # df_items <- backup
 for (x in 1:nrow(df_items)) {
+  
+  setTimerProgressBar(pb, x) 
   
   #CALCULATE MAX TVERSKY SUBSCORE
   #first reshape subscores 
@@ -1283,8 +1284,9 @@ for (x in 1:nrow(df_items)) {
   #otherwise does the response perfectly match both TRI AND ORTH?
   else if( df_items[x,'score_BOTH'] == 1) {df_items[x,'best'] = "both tri + orth"}
   
-  #otherwise does the response perfectly match the reference point
-  else if( df_items[x,'score_REF'] == 1) {df_items[x,'best'] = "reference"}
+  #otherwise does the response perfectly match the reference point?
+  else if (!is.na(df_items[x,'score_REF'])) #only check if the score is NOT null
+    {if( df_items[x,'score_REF'] == 1) {df_items[x,'best'] = "reference"}}
   
   #otherwise if both TVERSKY and TRI == 1, it is a triangular response
   else if( df_items[x,'score_TRI'] == df_items[x,'score_TVERSKY'] &
@@ -1296,7 +1298,7 @@ for (x in 1:nrow(df_items)) {
    #is there enough variance between scores to be able to differentiate?
   
     if (r < threshold_range) {
-      #then we can't predict the interpretation
+      #then we can't predict the interpretation, leave it as "?"
     }
     else {
       #if there IS enough variance to be predictive, take the highest subscore
@@ -1304,15 +1306,10 @@ for (x in 1:nrow(df_items)) {
       if (p == "score_TRI") {df_items[x,'best'] = "Triangular"}
       else if (p == "score_ORTH") {df_items[x,'best'] = "Orthogonal"}
       else if (p == "score_TVERSKY") {df_items[x,'best'] = "Tversky"}
+      else if (p == "score_SATISFICE") {df_items[x,'best'] = "Satisfice"}
       
     }
   }
-  
-  
-#REFERENCE CODE FOR FINDING MAX COLUMNS [to avoid reshaping dataframe to long]
-# max = max.col(df_items[x,] %>% select(score_TRI,score_ORTH, score_TV_max, score_TV_start, score_TV_end), ties.method = "first")
-# df_items[x,'best'] = names[max]
-  
 }
 
 #cleanup 
@@ -1322,55 +1319,46 @@ rm(threshold_frenzy, threshold_range)
 #set order of levels
 df_items$interpretation <- factor(df_items$best, 
                                   levels = c("Orthogonal", "Triangular", "Tversky",
-                                             "reference", "both tri + orth", "blank","frenzy","?"))
+                                             "Satisfice", "reference", "both tri + orth", "blank","frenzy","?"))
 
-#recode as numeric
-df_items$score_TV_duration <- df_items$score_TV_duration %>% as.numeric()
-
+#recode as numeric inase they are char 
+# df_items$score_TV_duration <- df_items$score_TV_duration %>% as.numeric()
+# df_items$score_SATISFICE <- df_items$score_SATISFICE %>% as.numeric()
 ```
 
-TODO is there still a need for a trapdoor or discriminating score?
+### Derive Discriminant Score
+
+Triangular = +1 Tversky = +0.5 anything else = 0 Satisfice = -0.5 Orthogonal = -1
+
+TODO should 'both' be coded as 0 or 1 or 0.5?
 
 ```{r}
-f_partialC <- function(ps,p,qs,q) {
-                       # gs,g) {
+#| label: DISCRIMINANT-SCORE
 
-  #penalty_q = penalty for selecting an incorrect option
-  #penalty_g = penalty for selecting an irrelevant option
-  
-  #ps = number of correct-selected options
-  #p = number of true options
-  
-  #qs = number of incorrect-selected options
-  #q = number of false options
-  
-  
-  #gs = number of irrelevantly selected options
-  #g = number of irrelevant options
-  
-  
-  #n = number of options + p + q
-  # return( (ps/p) - (qs/q) )
-}
-```
+df_items$score_SCALED <- recode(df_items$interpretation,
+                          "Orthogonal" = -1,
+                          "Triangular" = 1,
+                          "Tversky" = 0.5,
+                          "Satisfice" = -0.5,
+                          "reference" = 0,
+                          "both tri + orth" = 0,
+                          "blank" = 0, 
+                          "frenzy" = 0,
+                          "?" = 0)
 
-```{r}
-
-# test <- df_items %>% filter(q<6) %>% filter(condition == 111) %>% select(q, response, score_TRI, score_ORTH, score_TVERSKY, score_BOTH, score_REF, range, best)
-
-# gf_histogram(~score_TRI, data = test)
-# gf_histogram(~score_ORTH, data = test)
-# gf_histogram(~score_ABS, data = test)
-# gf_histogram(~score_niceABS, data = test)
 ```
 
 ## EXPLORE RESPONSES
 
 In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
 
-### Control Condition
+### Scaffold Phase 
+
+The first five questions constitute the 'scaffold' (or learning) phase, where participants see a different version of the stimulus (specifically a different dataset is visualized) invoking a different experimental condition. 
 
 #### Question #1
+
+##### Q1. Control Condition
 
 We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
 
@@ -1463,6 +1451,7 @@ We see that nearly all of the subjects selected a response consistent with one o
 |                                                        |                                                                                                                                                                                                         |
 |                                                        | -   Possibly indicates uncertainty or confusion                                                                                                                                                         |
 +--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+: {tbl-colwidths="\[25,75\]"}
 
 Three responses were given that were not consistent with any of the identified interpretations. *Note that options highlighted in light grey are considered within the range of 'visual error', defined by 0.5hr offset from the interpretation-specific projection.*
 
@@ -1473,6 +1462,71 @@ Three responses were given that were not consistent with any of the identified i
 +=========================================================+==========================================+================================================================+
 | ![](static/interpretations/Q1_111_IJD.png){width="500"} | ![](static/interpretations/Q1_111_X.png) | ![](static/interpretations/Q1_111_Z.png)                       |
 +---------------------------------------------------------+------------------------------------------+----------------------------------------------------------------+
+: {tbl-colwidths="\[30,30,30\]"}
+
+
+
+##### Q1. Impasse Condition
+
+Next we explore the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
+
+
+![Question 1 --- Impasse Condition](static/questions/Q1_121.png){#fig-Q1-121}
+
+```{r}
+#| label: Q1-IMPASSE-KEY
+
+q <- keys_raw %>% filter(condition == 121) %>% filter(Q==1)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q1 Impasse Condition : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+Notice that there **is not orthogonal answer** for this question. This is the purpose of the impasse condition, to remove the possibility of selecting the orthogonal answer, we expect learners will be more likely to restructure their understanding of the coordinate system, and arrive at a correct (triangular) interpretation.
+
+```{r}
+#| label: Q1-IMPASSE-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #1 (Impasse Condition)"
+names = c("response","n","interpretation","absolute","tri","orth","tv_max","tv_start","tv_end","tv_dur")
+
+df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>% 
+  dplyr::summarise( count = n(), 
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI), 
+                    orthogonal =  unique(score_ORTH),
+                    tversky_max = unique(score_TV_max),
+                    tversky_start = unique(score_TV_start),
+                    tversky_end = unique(score_TV_end),
+                    tversky_duration = unique(score_TV_duration),
+                    interpretation = unique(interpretation)) %>% 
+  arrange(interpretation, desc(count)) %>% 
+  select(response, count, interpretation, nice, triangular, orthogonal, 
+         tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=6)) %>%
+  pack_rows("Triangular", 1, 1) %>% 
+  pack_rows("Lines-Connect", 2, 4) %>% 
+  pack_rows("Other", 4, 12) %>% 
+  footnote(general = "n = number of responses in sample", 
+           general_title = "Note: ",footnote_as_chunk = T) 
+
+```
+
 
 #### Question #2
 
@@ -1565,12 +1619,15 @@ Again, we see that most subjects selected a response consistent with one of the 
 |                                                          | -   Consistent with the reader identifying the reference point (D) on the graph                                                                                                                                                                                         |
 |                                                          | -   Possibly indicates uncertainty or confusion                                                                                                                                                                                                                         |
 +----------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+: {tbl-colwidths="\[25,75\]"}
+
 
 +-------------------------------------------------------+------------------------------------------+
 | B                                                     | C                                        |
 +=======================================================+==========================================+
 | ![](static/interpretations/Q2_111_B.png){width="500"} | ![](static/interpretations/Q2_111_C.png) |
 +-------------------------------------------------------+------------------------------------------+
+: {tbl-colwidths="\[30,30\]"}
 
 #### Question #3
 
@@ -1668,6 +1725,8 @@ TODO
 |                                                | -   the participant selects *all* (or nearly all) the data points                                                                                                                                                                                                                         |
 |                                                | -   possibly indicates confusion or uncertainty                                                                                                                                                                                                                                           |
 +------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+: {tbl-colwidths="\[25,75\]"}
+
 
 Six responses (from 9 participants) appear inconsistent with any interpretation.
 
@@ -1680,6 +1739,8 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 +-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | ![](static/interpretations/Q3_111_UE.png)     | ![](static/interpretations/Q3_111_U.png)  | ![](static/interpretations/Q3_111_E.png)  |
 +-----------------------------------------------+-------------------------------------------+-------------------------------------------+
+: {tbl-colwidths="\[30,30,30\]"}
+
 
 #### Question #4
 
@@ -1740,7 +1801,6 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 
 ```
 
-In Question 4 we see more than one variant of an orthogonal interpretation emerge.
 
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
@@ -1749,6 +1809,8 @@ In Question 4 we see more than one variant of an orthogonal interpretation emerg
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+: TBL4 test {tbl-colwidths="\[50,50\]"}
 
 #### Question #5
 
@@ -1808,69 +1870,10 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
 
 TODO note the compelling cases of internal inconsistency (HJDE)
 
-### Impasse Condition
+### Testing Phase 
 
-We can compare these responses to those produced by participants in the experimental impasse condition (`condition` = 121).
+The following 10 questions were the same for both conditions. 
 
-#### Question #1
-
-
-![Question 1 --- Impasse Condition](static/questions/Q1_121.png){#fig-Q1-121}
-
-```{r}
-#| label: Q1-IMPASSE-KEY
-
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==1)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE", "TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% select("TRI_allow", "ORTH_allow", "SATISFICE_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing", "Tversky [maximal]", "Tversky [start diagonal]", 
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q1 Impasse Condition : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
-```
-
-Notice that there **is not orthogonal answer** for this question. This is the purpose of the impasse condition, to remove the possibility of selecting the orthogonal answer, we expect learners will be more likely to restructure their understanding of the coordinate system, and arrive at a correct (triangular) interpretation. 
-
-
-```{r}
-#| label: Q1-IMPASSE-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #1 (Impasse Condition)"
-names = c("response","n","interpretation","absolute","tri","orth","tv_max","tv_start","tv_end","tv_dur")
-
-df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), 
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI), 
-                    orthogonal =  unique(score_ORTH),
-                    tversky_max = unique(score_TV_max),
-                    tversky_start = unique(score_TV_start),
-                    tversky_end = unique(score_TV_end),
-                    tversky_duration = unique(score_TV_duration),
-                    interpretation = unique(interpretation)) %>% 
-  arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, triangular, orthogonal, 
-         tversky_max, tversky_start, tversky_end, tversky_duration) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=6)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Lines-Connect", 2, 4) %>% 
-  pack_rows("Other", 4, 12) %>% 
-  footnote(general = "n = number of responses in sample", 
-           general_title = "Note: ",footnote_as_chunk = T) 
-
-```
 
 ### Peeking
 
@@ -2013,6 +2016,233 @@ rio::export(df_items, "data/2-scored-data/sgc3a_scored_items.rds") # to R data s
 
 ```{r}
 sessionInfo()
+```
+
+### ARCHIVE
+
+functions for for-loop version of scoring
+
+```{r}
+#| label: SCORING-FUNCTIONS-TRADITIONAL(BACKCUP)
+#| eval : false
+
+# #CALCULATE THE TRIANGULAR, ORTHOGONAL OR TVERSKIAN SUBSCORES FROM KEYFRAME
+# calc_sub_score <- function(question, cond, response,keyframe){
+# 
+#   #STEP 1 GET KEY
+#   if (question < 6) #for q1 - q5 find key for question by condition
+#   {
+#     # print(keyframe)
+#     #GET KEY FOR THIS SCORE TYPE, QUESTION AND CONDITION
+#     p =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+#     q =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+#     pn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_p)
+#     qn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_q)
+# 
+#   } else {
+#     #GET KEY FOR THIS SCORE TYPE, QUESTION
+#     p =  keyframe %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+#     q =  keyframe %>% filter(Q == question) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+#     pn = keyframe %>% filter(Q == question) %>% select(n_p)
+#     qn = keyframe %>% filter(Q == question) %>% select(n_q)
+#   }
+# 
+#   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+#   
+#   #if response is not empty, split apart response for set comparison
+#     if(response != "")
+#     { response = response %>% str_split("") %>% unlist()}
+#     
+#   ps = length(intersect(response,p))
+#   qs = length(intersect(response,q))
+#   # df_items[x,'tri_ps'] = tri_ps
+#   # df_items[x,'tri_qs'] = tri_qs
+# 
+#   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION
+#   x = f_partialP(ps,pn,qs,qn) %>% unlist() %>% as.numeric()
+#   
+#   #cleanup
+#   rm(p,q,pn,qn,ps,qs)
+#   return(x)
+# 
+# }
+# 
+# #CALCULATE THE REFERENCE SCORES
+# calc_ref_score <- function(question, cond, response){
+#   
+#     #1. GET reference point from REF_POINT column in raw keys
+#     ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
+#      
+#     #2. if response has more than one character, it can't be correct
+#     #there is only ever 1 reference character
+#     n = nchar(response)
+#     if (n == 0) {x = 0}
+#     else if(n>1) {x = 0}
+#     else {
+#       #3 is the response PRECISELY the REFERENCE POINT?
+#       x = ref_p == response
+#       x = as.numeric(x)  
+#     }
+#     
+#     #cleanup
+#     rm(ref_p, response, question, cond)   
+#     return(x) #1 = match, 0 = not match
+# }
+# 
+# 
+# #CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
+# calc_both_score <- function(question, cond, response){
+#   
+#   #STEP 1 GET KEY for this question and condition
+#   if (question < 6) #for q1 - q5 find key for question by condition
+#   {
+#      #grab the tri and orth keys for this question as well as N option set
+#      tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+#      orth_p = keys_orth %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+#      set_n =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+#      #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+#      both_p = union(tri_p, orth_p) #the selection of tri and p
+#      #2. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
+#      both_q = setdiff(set_n,both_p)
+#      both_pn = length(both_p)
+#      both_qn = length(both_q)
+#   } else{
+#     
+#      #grab the tri and orth keys for this question as well as N option set
+#      tri_p =  keys_tri %>%  filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+#      orth_p = keys_orth %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+#      set_n =  keys_tri %>%  filter(Q == question) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+#      #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+#      both_p = union(tri_p, orth_p) #the selection of tri and p
+#      #2. calc answers that shouldn't be selected as difference between N [same for all keys] and both_p
+#      both_q = setdiff(set_n,both_p)
+#      both_pn = length(both_p)
+#      both_qn = length(both_q)
+#   }
+#     
+#   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+#   
+#   #if response is not empty, split apart response for set comparison
+#     if(response != "")
+#     { response = response %>% str_split("") %>% unlist()}
+#     
+#   both_ps = length(intersect(response,both_p))
+#   both_qs = length(intersect(response,both_q))
+#   # df_items[x,'both_ps'] = both_ps
+#   # df_items[x,'both_qs'] = both_qs
+#  
+#   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
+#   x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
+#   
+#   #cleanup
+#   rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs)   
+#   
+#   return(x) #true correct, trues, false correct, falses
+# }
+
+```
+
+looping to do the scoring
+
+```{r}
+#| label: CALCULATE-SCORES-FORLOOP
+#RUN THIS OR THE CALCULATE-SCORES-MAPPLY
+# df_items = trad 
+# 
+# pb <- timerProgressBar() 
+# on.exit(close(pb)) 
+#  
+# #CALCULATE SUBSCORES (in loop)
+# 
+# for (x in 1:nrow(df_items)) {
+#   
+#   #show progress bar 
+#   setTimerProgressBar(pb, x) 
+#   
+#   #PREPARE ITEMS FOR SCORING
+#   #sort response vectors alphabetically
+#   #doesn't impact scoring, but does impact response display tables
+#    df_items[x,'response'] <-  df_items[x,'response'] %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
+# 
+#   #get properties of the RESPONSE ITEM
+#   qu = df_items[x,'q'] %>% as.numeric()
+#   cond = as.character(df_items[x,'condition']) %>% as.numeric()
+#   r = df_items[x,'response'] 
+# 
+#   #calculate the main subscores
+#   df_items[x,'score_TRI'] = calc_sub_score(qu, cond, r,keys_tri)
+#   df_items[x,'score_ORTH'] = calc_sub_score(qu, cond, r,keys_orth)
+#   df_items[x,'score_SATISFICE'] = calc_sub_score(qu, cond, r,keys_satisfice)
+#   df_items[x,'score_TV_max'] = calc_sub_score(qu, cond, r,keys_tversky_max)
+#   df_items[x,'score_TV_start'] = calc_sub_score(qu, cond, r,keys_tversky_start)
+#   df_items[x,'score_TV_end'] = calc_sub_score(qu, cond, r,keys_tversky_end)
+#   df_items[x,'score_TV_duration'] = calc_sub_score(qu, cond, r, keys_tversky_duration)
+#   
+#   #calculate special subscores
+#   df_items[x,'score_REF'] = calc_ref_score(qu, cond, r)
+#   df_items[x,'score_BOTH'] = calc_both_score(qu, cond, r)
+# }
+# 
+# #CALCULATE ABSOLUTE SCORES
+# #calculate absolute scores dichotomous
+# df_items$score_ABS = as.integer(df_items$correct)
+# #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
+# df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
+#  
+# #cleanup
+# rm(qu,cond,r, x)
+
+# trad_scored = df_items
+```
+
+sanity check equivalence of for-loop and mapply scoring
+
+```{r}
+#CHECK EQUIVALENCE OF LOOP AND MAPPLY SCORING 
+# tests = data.frame (
+#   alt_tri = alt_scored$score_TRI,
+#   trad_tri = trad_scored$score_TRI,
+#   alt_orth = alt_scored$score_ORTH,
+#   trad_orth = trad_scored$score_ORTH,
+#   alt_ref = alt_scored$score_REF,
+#   trad_ref = trad_scored$score_REF,
+#   alt_tv_max = alt_scored$score_TV_max,
+#   trad_tv_max = trad_scored$score_TV_max,
+#   alt_tv_dur = alt_scored$score_TV_duration,
+#   trad_tv_dur = trad_scored$score_TV_duration,
+#   alt_tv_start = alt_scored$score_TV_start,
+#   trad_tv_start = trad_scored$score_TV_start,
+#   alt_tv_end = alt_scored$score_TV_end,
+#   trad_tv_end = trad_scored$score_TV_end,
+#   alt_both = alt_scored$score_BOTH,
+#   trad_both = trad_scored$score_BOTH,
+#   trad_response = trad_scored$response,
+#   alt_response = alt_scored$response,
+#   q_match = trad_scored$q == alt_scored$q,
+#   q = trad_scored$q,
+#   c_match = trad_scored$condition == alt_scored$condition,
+#   condition = trad_scored$condition
+# )
+# 
+# tests$tri = tests$alt_tri == tests$trad_tri
+# tests$orth = tests$alt_orth == tests$trad_orth
+# tests$ref = tests$alt_ref == tests$trad_ref
+# tests$tvdur = tests$alt_tv_dur == tests$trad_tv_dur
+# tests$tvstart = tests$alt_tv_start == tests$trad_tv_start
+# tests$tvend = tests$alt_tv_end == tests$trad_tv_end
+# tests$both = tests$alt_both == tests$trad_both
+# 
+# #CHECKS 
+# unique(tests$tri)
+# unique(tests$orth)
+# unique(tests$ref)
+# unique(tests$tvdur)
+# unique(tests$tvstart)
+# unique(tests$tvend)
+# unique(tests$both)
+# 
+# unique(alt_scored$score_ABS == trad_scored$score_ABS)
+# unique(alt_scored$score_niceABS == trad_scored$score_niceABS)
 ```
 
 ### TODO A Discriminant Score
