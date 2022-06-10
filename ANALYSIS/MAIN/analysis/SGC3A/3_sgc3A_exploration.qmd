@@ -75,9 +75,14 @@ options(scipen=1, digits=3)
 df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
 
+#DROP STIMULUS-ENGINE GENERATED SCORES
+#these are overriden by scoring file generated scores
+df_subjects <- df_subjects %>% select(-absolute_score)
+
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)
 df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
+df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 ```
 
 ## Sample
@@ -132,52 +137,14 @@ Cumulative scores indicate the response accuracy by participant across all items
 
 #### Cumulative Absolute Score
 
-Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from \[0,15\].
-
-TODO sanity check this against s_ABS and s_NABS
+Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) `s_ABS` indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of discriminant items, the cumulative absolute score for an individual subject ranges from \[0,13\].
 
 ```{r}
 #| label: ABS-SUBJECT
-
-title = "Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)"
-abs.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(absolute_score) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(absolute_score) %>% unlist() %>% favstats()
-) 
-abs.stats %>% kbl (caption = title) %>% kable_classic()
-
-
 title = "Descriptive Statistics of Response Accuracy (Cumulative Item Absolute Score)"
 abs.stats <- rbind(
   "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_ABS) %>% unlist() %>% favstats(),
   "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_ABS) %>% unlist() %>% favstats()
-) 
-abs.stats %>% kbl (caption = title) %>% kable_classic()
-
-
-```
-
-TODO why is cum absolute not same as item level absolute?
-
-```{r}
-#| label: TEMP-ABS-_ITEM_SUBJECT
-
-title = "Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)"
-abs.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_ABS) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_ABS) %>% unlist() %>% favstats()
-) 
-abs.stats %>% kbl (caption = title) %>% kable_classic()
-
-```
-
-```{r}
-#| label: X-ABS-_ITEM_SUBJECT
-
-title = "Descriptive Statistics of Response Accuracy (Cumulative Absolute Score)"
-abs.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_NABS) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_NABS) %>% unlist() %>% favstats()
 ) 
 abs.stats %>% kbl (caption = title) %>% kable_classic()
 
@@ -188,58 +155,71 @@ For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]
 For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
 
 ```{r}
-#| label: VIS-SUBJECT-ABS-SCORE
+#| label: VIS-SUBJECT-ABS
  
 #VISUALIZE distribution of response accuracy across SUBJECTS
 
 #HISTOGRAM
-stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(absolute_score))
-gf_bar(~absolute_score, data = df_subjects) %>% 
+stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
+gf_density(~s_ABS, data = df_subjects) %>% 
   gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_lims(x = c(0, 15)) %>% 
+  gf_lims(x = c(0, 13)) %>% 
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Cumulative Absolute Score for Subject")+
+  labs(x = "Cumulative Absolute Score",
+       y = "proportion of subjects",
+       title = "Subject Cumulative Score (Absolute)",
+       subtitle = "Score distributions are comparable across modalities and different across conditions") + 
   theme_minimal()
   
 
 #RIDGEPLOT
-ggplot(data = df_subjects, aes(x = absolute_score, y = mode)) +
-  geom_density_ridges() + xlim(0,15)+
-  facet_wrap(~condition, labeller = label_both) +
-  labs( x = "Cumulative Absolute Score for Subject") +
-  theme_minimal()
+# ggplot(data = df_subjects, aes(x = s_NABS, y = mode)) +
+#   geom_density_ridges() + xlim(0,13)+
+#   facet_wrap(~condition, labeller = label_both) +
+#  labs(x = "Cumulative Absolute Score",
+#       y = "proportion of subjects",
+#        title = "Subject Cumulative Score (Absolute)",
+#        subtitle = "Score distributions are comparable across modalities and different across conditions") + 
+#   theme_minimal()
 
 ```
+**Are the by-condition group means significantly different by data collection modality? **
 
+To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means for each condition. 
 ```{r}
-#| label: VIS-ITEM-ABS-SCORE
- 
-#VISUALIZE distribution of response accuracy across SUBJECTS
+#| label : MODEL-ABSCORE-BY-MODALITY
 
-#HISTOGRAM
-stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_NABS))
-gf_bar(~s_NABS, data = df_subjects) %>% 
-  gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_lims(x = c(0, 15)) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Cumulative Absolute Score for Subject")+
-  theme_minimal()
-  
+paste("Two Sample T-Test for LAB vs. ONLINE control condition")
+t.test(data = df_subjects %>% filter(condition == 111), s_ABS ~ mode )
 
-#RIDGEPLOT
-ggplot(data = df_subjects, aes(x = s_NABS, y = mode)) +
-  geom_density_ridges() + xlim(0,15)+
-  facet_wrap(~condition, labeller = label_both) +
-  labs( x = "Cumulative Absolute Score for Subject") +
-  theme_minimal()
+paste("Two Sample T-Test for LAB vs. ONLINE impasse condition")
+t.test(data = df_subjects %>% filter(condition == 121), s_ABS ~ mode )
+
+paste("OLS Linear Regression Predicting Absolute Score by Data Collection Mode")
+summary(lm(data = df_subjects, formula = s_ABS ~ mode ))
 
 ```
 
-**TODO** double check that the subject-totals match the sum of the item level totals
+Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative absolute score indicates that data collection mode is not a significant predictor, explaining only 0.01% of variance in absolute score, F(1,328) = 1.03, p > 0.05. 
+
+
 
 #### Cumulative Scaled Scores
 
-TODO describe scaled score
+The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject
+The range is from -13 (all orthogonal) to 13 (all triangular).  Recall that the s_SCALED score for an item is a numeric representation of the strategy-consitent response, scaled from -1 to +1, where 
+"Orthogonal" = -1,
+                          "Satisfice" = -1,
+                          "Triangular" = 1,
+                          "Tversky" = 0.5,
+                          "both tri + orth" = 0.5,
+                          "reference" = 0,
+                          "blank" = 0, 
+                          "frenzy" = 0,
+                          "?" = 0)
+
+
+
 
 ```{r}
 #| label: SCALED-SUBJECT
