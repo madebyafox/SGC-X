@@ -80,7 +80,7 @@ df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)
 #TODO run when have rest of data scored 
-# df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
+df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 ```
 
 ## Sample
@@ -443,24 +443,71 @@ annotate_figure(plot,
 
 ## Model Peeking
 
+
+
+
+
 ```{r}
 library(supernova)
 library(report)
 library(lmerTest)
 library(lme4)
-m1 <- lm( s_SCALED ~ condition, data = df_subjects)
+m1 <- lm( s_SCALED ~ condition, data = df_subjects %>% filter(mode=='asynch'))
 m1
 summary(m1)
 anova(m1)
-supernova(m1)
+superanova(m1)
+plot(m1)
+gf_histogram(~s_SCALED, data = df_subjects)
+gf_histogram(~m1$residuals)
 
+
+#Assess assumption of independence of errors
+#DW statistic should be close to 2
+library(car)
+durbinWatsonTest(m1)
+
+#Test for equality of variance
+#H0 is equality; p > 0.05 infer you can't reject null
+leveneTest(m1)
 ```
 A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p <  0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI [4.56, 8.19].
 
 
 ```{r}
-report(m1)
+t.test(s_SCALED ~ condition, data = df_subjects)
+#%>% report()
 ```
+
+
+
+
+```{r}
+
+# report_participants(df_subjects)
+m1 %>% report()
+anova(m1) %>% report()
+#significant intercept means that group is significantly different than zero
+```
+
+```{r}
+#logistic regression on on scaled df_subjects because residuals not normal in lm?
+mlog <- glm(s_SCALED ~ condition , data = df_subjects, family = gaussian)
+summary(mlog)
+report(mlog)
+```
+
+
+
+```{r}
+#logistic regression on niceABS by condition
+#pretends that questions are independent and not from same subjects INVALID
+mlog <- glm(score_niceABS ~ condition , data = df_items %>% filter(q<6), family = binomial())
+summary(mlog)
+report(mlog)
+```
+
+
 ```{r}
 m2 <- lm( s_NABS ~ condition, data = df_subjects)
 m2
@@ -478,7 +525,6 @@ report(m2)
 ```
 
 ```{r}
-
 m.m1 <- lmer( score_SCALED ~ (1 + condition|subject), data = df_items)
 m.m1
 summary(m.m1)
