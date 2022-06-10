@@ -45,10 +45,8 @@ library(kableExtra) #printing tables
 library(mosaic) #simple descriptives [favstats]
 library(Hmisc) # %nin% operator
 library(ggpubr) #arrange plots
+library(report) #easystats reporting
 
-# library(pastecs) #stat.desc
-# library(car) #ANOVA, qqplot
-# library(effectsize) #effect size
 
 #set some output options
 library(dplyr, warn.conflicts = FALSE)
@@ -79,7 +77,6 @@ df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)
-#TODO run when have rest of data scored 
 df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 ```
 
@@ -101,7 +98,9 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 
 ### Participants
 
-```{r PARTICIPANTS}
+```{r}
+#| label: PARTICIPANTS
+
 #Describe participants
 subject.stats <- rbind(
   "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(age) %>% unlist() %>% favstats(),
@@ -120,6 +119,11 @@ For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round
 
 For **online replication** `r subject.stats["online",]$n` participants (`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
+```{r}
+#| label: REPORT-PARTICIPANTS
+report_participants(df_subjects, education = "schoolyear", sex = "gender", group = "mode")
+```
+
 ## Response Accuracy
 
 ### Cumulative Scores
@@ -131,6 +135,7 @@ Cumulative scores indicate the response accuracy by participant across all items
 Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of items, the cumulative absolute score for an individual subject ranges from \[0,15\].
 
 TODO sanity check this against s_ABS and s_NABS
+
 ```{r}
 #| label: ABS-SUBJECT
 
@@ -141,8 +146,19 @@ abs.stats <- rbind(
 ) 
 abs.stats %>% kbl (caption = title) %>% kable_classic()
 
+
+title = "Descriptive Statistics of Response Accuracy (Cumulative Item Absolute Score)"
+abs.stats <- rbind(
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_ABS) %>% unlist() %>% favstats(),
+  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_ABS) %>% unlist() %>% favstats()
+) 
+abs.stats %>% kbl (caption = title) %>% kable_classic()
+
+
 ```
+
 TODO why is cum absolute not same as item level absolute?
+
 ```{r}
 #| label: TEMP-ABS-_ITEM_SUBJECT
 
@@ -154,6 +170,7 @@ abs.stats <- rbind(
 abs.stats %>% kbl (caption = title) %>% kable_classic()
 
 ```
+
 ```{r}
 #| label: X-ABS-_ITEM_SUBJECT
 
@@ -218,12 +235,12 @@ ggplot(data = df_subjects, aes(x = s_NABS, y = mode)) +
 
 ```
 
-
 **TODO** double check that the subject-totals match the sum of the item level totals
 
 #### Cumulative Scaled Scores
 
 TODO describe scaled score
+
 ```{r}
 #| label: SCALED-SUBJECT
 
@@ -260,12 +277,9 @@ ggplot(data = df_subjects, aes(x = s_SCALED, y = condition)) +
 
 ```
 
-
 #### Cumulative Interpretation Scores
 
-TODO describe interpretation score? can this be summarized 
-
-
+TODO describe interpretation score? can this be summarized
 
 ### Item Score
 
@@ -310,6 +324,7 @@ ggplot(data = df_items, aes(x = score_niceABS, y = condition)) +
 
 
 ```
+
 #### Item Scaled Score
 
 ```{r}
@@ -324,8 +339,7 @@ scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-TODO update this 
-For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
+TODO update this For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
 
 For *online replication*, (online) item accuracy scores (n = `r abs.stats.items["online",]$n`) range from `r round(abs.stats.items["online",]$min,2)` to `r round(abs.stats.items["online",]$max,2)` with a mean score of (M = `r round(abs.stats.items["online",]$mean,2)`, SD = `r round(abs.stats.items["online",]$sd,2)`).
 
@@ -351,7 +365,6 @@ ggplot(data = df_items, aes(x = score_SCALED, y = condition)) +
 ```
 
 #### Item Interpretation Scores
-
 
 ```{r}
 #| label: VIS-ITEMS-INTERPRETATIONS
@@ -384,7 +397,6 @@ ggplot(data = t.long, aes(x = value, y = score, fill=condition)) +
 
 
 ```
-
 
 ## Response Latency
 
@@ -443,10 +455,6 @@ annotate_figure(plot,
 
 ## Model Peeking
 
-
-
-
-
 ```{r}
 library(supernova)
 library(report)
@@ -471,16 +479,13 @@ durbinWatsonTest(m1)
 #H0 is equality; p > 0.05 infer you can't reject null
 leveneTest(m1)
 ```
-A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p <  0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI [4.56, 8.19].
 
+A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p \< 0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI \[4.56, 8.19\].
 
 ```{r}
 t.test(s_SCALED ~ condition, data = df_subjects)
 #%>% report()
 ```
-
-
-
 
 ```{r}
 
@@ -497,8 +502,6 @@ summary(mlog)
 report(mlog)
 ```
 
-
-
 ```{r}
 #logistic regression on niceABS by condition
 #pretends that questions are independent and not from same subjects INVALID
@@ -506,7 +509,6 @@ mlog <- glm(score_niceABS ~ condition , data = df_items %>% filter(q<6), family 
 summary(mlog)
 report(mlog)
 ```
-
 
 ```{r}
 m2 <- lm( s_NABS ~ condition, data = df_subjects)
@@ -517,8 +519,7 @@ supernova(m2)
 
 ```
 
-
-A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p < 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI [1.04, 3.00])
+A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p \< 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI \[1.04, 3.00\])
 
 ```{r}
 report(m2)
@@ -547,6 +548,7 @@ m.m3 %>% report()
 ```{r}
 anova(m.m1, m.m2, m.m3)
 ```
+
 ## Resources
 
 -   https://rpkgs.datanovia.com/ggpubr/reference/index.html

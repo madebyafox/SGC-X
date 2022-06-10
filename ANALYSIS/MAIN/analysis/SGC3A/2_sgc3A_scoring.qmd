@@ -1291,7 +1291,8 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
 # alt_scored = df_items
 
 ```
-TODO: generate heat maps of Q9. Same answer but very different optimal operation paths! 
+
+TODO: generate heat maps of Q9. Same answer but very different optimal operation paths!
 
 ### Derive Interpretation
 
@@ -1430,8 +1431,7 @@ Triangular = +1 Tversky = +0.5 anything else = 0 Satisfice = -0.5 Orthogonal = -
 
 TODO should 'both' be coded as 0 or 1 or 0.5?
 
-TODO write description
-TODO recode with satisfice as -1 
+TODO write description TODO recode with satisfice as -1
 
 ```{r}
 #| label: DISCRIMINANT-SCORE
@@ -1670,7 +1670,6 @@ Two responses were given that were not consistent with any of the identified int
 +-------------------------------------------+
 
 : {tbl-colwidths="\[30\]"}
-
 
 ```{r}
 #| label: Q1-distribution
@@ -2015,7 +2014,9 @@ cols = c("interpretation", "answer","not penalized")
 d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
 ```
-TODO investigate these responses 17 at O? 
+
+TODO investigate these responses 17 at O?
+
 ```{r}
 #| label: Q3-IMPASSE-RESPONSES
 #| warning: false
@@ -2045,6 +2046,7 @@ df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>%
 
 
 ```
+
 ```{r}
 #| label: Q3-distribution
 
@@ -2160,7 +2162,9 @@ cols = c("interpretation", "answer","not penalized")
 d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
 ```
+
 TODO investigate D? add to tversky or orth?
+
 ```{r}
 #| label: Q4-IMPASSE-RESPONSES
 #| warning: false
@@ -2322,6 +2326,7 @@ df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>%
   pack_rows("Other", 17, 21) %>% 
   pack_rows("Unknown", 22, 31) 
 ```
+
 ```{r}
 #| label: Q5-distribution
 
@@ -2342,7 +2347,7 @@ gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q
 
 The following 10 questions were the same for both conditions.
 
-#### Question #6
+#### Question #6 NONDISCRIM
 
 ![Q6-Question](static/questions/Q6.png){#fig-Q6}
 
@@ -2370,7 +2375,9 @@ cols = c("interpretation", "answer","not penalized")
 d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T)
 ```
-TODO discuss non discriminant 
+
+TODO discuss non discriminant
+
 ```{r}
 #| label: Q6-RESPONSES
 #| warning: false
@@ -2393,6 +2400,7 @@ df_items %>% filter(q == 6) %>% group_by(response) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
 ```
+
 ```{r}
 #| label: Q6-distribution
 
@@ -2465,6 +2473,7 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
   pack_rows("Other", 14, 14) %>%
   pack_rows("Unknown", 15, 17)
 ```
+
 ```{r}
 #| label: Q7-distribution
 
@@ -2536,6 +2545,7 @@ df_items %>% filter(q == 8) %>% group_by(response) %>%
   pack_rows("Other", 17, 21) %>%
   pack_rows("Unknown", 22, 45)
 ```
+
 ```{r}
 #| label: Q8-distribution
 
@@ -2552,7 +2562,7 @@ gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q
 
 ```
 
-#### Question #9
+#### Question #9 NONDISCRIM
 
 ![Q9-Question](static/questions/Q9.png){#fig-Q9}
 
@@ -2605,6 +2615,7 @@ df_items %>% filter(q ==9) %>% group_by(response) %>%
   pack_rows("Other", 1, 2) %>%
   pack_rows("Unknown", 3, 19)
 ```
+
 ```{r}
 #| label: Q9-distribution
 
@@ -2749,6 +2760,7 @@ df_items %>% filter(q == 11) %>% group_by(response) %>%
   pack_rows("Other", 10, 12) %>%
   pack_rows("Unknown", 13, 17)
 ```
+
 ```{r}
 #| label: Q11-distribution
 
@@ -2821,6 +2833,7 @@ df_items %>% filter(q == 12) %>% group_by(response) %>%
   pack_rows("Other", 9, 10) %>%
   pack_rows("Unknown", 11, 14)
 ```
+
 ```{r}
 #| label: Q12-distribution
 
@@ -2964,6 +2977,7 @@ df_items %>% filter(q == 14) %>% group_by(response) %>%
   pack_rows("Other", 8, 9) %>%
   pack_rows("Unknown", 10, 22)
 ```
+
 ```{r}
 #| label: Q14-distribution
 
@@ -3036,6 +3050,7 @@ df_items %>% filter(q == 15) %>% group_by(response) %>%
   pack_rows("Other", 23, 23) %>%
   pack_rows("Unknown", 24, 44)
 ```
+
 ```{r}
 #| label: Q15-distribution
 
@@ -3071,8 +3086,6 @@ gf_density(~ score_SCALED, fill = ~condition, data = df_items) %>%
 
 ```
 
-
-
 ```{r}
 
 gf_density(~ score_niceABS, fill = ~condition, data = df_items) %>% 
@@ -3090,7 +3103,6 @@ gf_props(~ sorted_interpretation, fill = ~condition, data = df_items) %>%
   labs( title = "Distribution of Interpretations") + theme_minimal() + theme(legend.position = "blank")
 
 ```
-
 
 #### Scores through Time
 
@@ -3177,7 +3189,7 @@ Summarize by subject Export subjects Export items
 
 -   does response time predict interpretation vs. non interpretation?
 
-Finally, we export the scored items and summarized subjects.
+Finally, we export the scores for each item (df_items) and summarized over subjects (df_subjects)
 
 ```{r}
 #| label: PREP-EXPORT
@@ -3189,7 +3201,7 @@ df_items <- df_items %>% mutate(
 )
 
 #summarize by subject
-subjects <- df_items %>% group_by(subject) %>% dplyr::summarise (
+subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
   s_TRI = sum(score_TRI),
   s_ORTH = sum(score_ORTH),
