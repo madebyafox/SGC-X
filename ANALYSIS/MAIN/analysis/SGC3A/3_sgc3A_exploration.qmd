@@ -30,10 +30,6 @@ subtitle: 'Study SGC3A | 3 Exploration'
 
 **THIS NOTEBOOK IS INCOMPLETE**
 
-TODO
-
--   double check which Qs in task are non-discriminating (6 and 9?)
-
 ```{r}
 #| label: SETUP
 #| echo : true
@@ -46,7 +42,7 @@ library(mosaic) #simple descriptives [favstats]
 library(Hmisc) # %nin% operator
 library(ggpubr) #arrange plots
 library(report) #easystats reporting
-
+library(vcd) #mosaicplots
 
 #set some output options
 library(dplyr, warn.conflicts = FALSE)
@@ -133,7 +129,7 @@ report_participants(df_subjects, education = "schoolyear", sex = "gender", group
 
 ### Cumulative Scores
 
-Cumulative scores indicate the response accuracy by participant across all items in the graph comprehension task.
+Cumulative scores indicate the response accuracy by a particular participant across all discriminant items (n=13) in the graph comprehension task.
 
 #### Cumulative Absolute Score
 
@@ -152,7 +148,7 @@ abs.stats %>% kbl (caption = title) %>% kable_classic()
 
 For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
 
-For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
+For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slighly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
 
 ```{r}
 #| label: VIS-SUBJECT-ABS
@@ -183,16 +179,18 @@ gf_density(~s_ABS, data = df_subjects) %>%
 #   theme_minimal()
 
 ```
-**Are the by-condition group means significantly different by data collection modality? **
 
-To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means for each condition. 
+**Are the by-condition group means significantly different by data collection modality?**
+
+To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means of ABSOLUTE SCORE for each condition.
+
 ```{r}
 #| label : MODEL-ABSCORE-BY-MODALITY
 
-paste("Two Sample T-Test for LAB vs. ONLINE control condition")
+paste("Two Sample T-Test for S_ABS LAB vs. ONLINE control condition")
 t.test(data = df_subjects %>% filter(condition == 111), s_ABS ~ mode )
 
-paste("Two Sample T-Test for LAB vs. ONLINE impasse condition")
+paste("Two Sample T-Test for S_ABS LAB vs. ONLINE impasse condition")
 t.test(data = df_subjects %>% filter(condition == 121), s_ABS ~ mode )
 
 paste("OLS Linear Regression Predicting Absolute Score by Data Collection Mode")
@@ -200,26 +198,17 @@ summary(lm(data = df_subjects, formula = s_ABS ~ mode ))
 
 ```
 
-Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative absolute score indicates that data collection mode is not a significant predictor, explaining only 0.01% of variance in absolute score, F(1,328) = 1.03, p > 0.05. 
+Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative absolute score indicates that data collection mode is not a significant predictor, explaining only 0.01% of variance in absolute score, F(1,328) = 1.03, p \> 0.05.
 
-
+::: callout-note
+**It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
+:::
 
 #### Cumulative Scaled Scores
 
-The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject
-The range is from -13 (all orthogonal) to 13 (all triangular).  Recall that the s_SCALED score for an item is a numeric representation of the strategy-consitent response, scaled from -1 to +1, where 
-"Orthogonal" = -1,
-                          "Satisfice" = -1,
-                          "Triangular" = 1,
-                          "Tversky" = 0.5,
-                          "both tri + orth" = 0.5,
-                          "reference" = 0,
-                          "blank" = 0, 
-                          "frenzy" = 0,
-                          "?" = 0)
+The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject The range is from -13 (all orthogonal) to 13 (all triangular). Recall that the s_SCALED score for an item is a numeric representation of the strategy-consitent response, scaled from -1 to +1, where "Orthogonal" = -1, "Satisfice" = -1, "Triangular" = 1, "Tversky" = 0.5, "both tri + orth" = 0.5, "reference" = 0, "blank" = 0, "frenzy" = 0, "?" = 0.
 
-
-
+Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. 
 
 ```{r}
 #| label: SCALED-SUBJECT
@@ -233,6 +222,10 @@ scaled.stats %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
+For in person collection, cumulative absolute scores (n = `r scaled.stats["lab",]$n`) range from `r round(scaled.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(scaled.stats["lab",]$mean,2)`, SD = `r round(scaled.stats["lab",]$sd,2)`).
+
+For online replication, (online) cumulative accuracy scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slighly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
+
 ```{r}
 #| label: VIS-SUBJECT-SCALED-SCORE
  
@@ -240,48 +233,67 @@ scaled.stats %>% kbl (caption = title) %>% kable_classic()
 
 #HISTOGRAM
 stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_SCALED))
-gf_histogram(~s_SCALED, data = df_subjects, binwidth = 1) %>% 
+gf_density(~s_SCALED, data = df_subjects, binwidth = 1) %>% 
   gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_lims(x = c(-15, 15)) %>%
+  gf_lims(x = c(-13, 13)) %>%
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Cumulative Scaled Score for Subject")+
+   labs(x = "Cumulative Scaled Score",
+       y = "proportion of subjects",
+       title = "Subject Cumulative Score (Scaled)",
+       subtitle = "Score distributions are comparable across modalities and different across conditions") + 
   theme_minimal()
   
+```
 
-#RIDGEPLOT
-ggplot(data = df_subjects, aes(x = s_SCALED, y = condition)) +
-  geom_density_ridges() + xlim(-15,15)+
-  facet_wrap(~mode, labeller = label_both) +
-  labs( x = "Cumulative Scaled Score for Subject") +
-  theme_minimal()
+**Are the by-condition group means significantly different by data collection modality?**
+
+To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means of SCALED SCORE for each condition.
+
+```{r}
+#| label : MODEL-SCALEDSCORE-BY-MODALITY
+
+paste("Two Sample T-Test for s_SCALED LAB vs. ONLINE control condition")
+t.test(data = df_subjects %>% filter(condition == 111), s_SCALED ~ mode )
+
+paste("Two Sample T-Test for s_SCALED LAB vs. ONLINE impasse condition")
+t.test(data = df_subjects %>% filter(condition == 121), s_SCALED ~ mode )
+
+paste("OLS Linear Regression Predicting Scaled Score by Data Collection Mode")
+summary(lm(data = df_subjects, formula = s_SCALED ~ mode ))
 
 ```
 
-#### Cumulative Interpretation Scores
+Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative scaled score indicates that data collection mode is not a significant predictor, explaining less than 0.001% of variance in absolute score, F(1,328) = 0.0078, p \> 0.05.
 
-TODO describe interpretation score? can this be summarized
+::: callout-note
+**It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
+:::
 
-### Item Score
+### Item Scores
 
-Item scores indicate the response accuracy by a participant on each individual question in the graph comprehension task.
+Item scores indicate the response accuracy by a participant on each individual question discriminant question (n=13) in the graph comprehension task.
 
 #### Item Absolute Score
 
 ```{r}
 #| label: ABS-ITEM
 
-title = "Descriptive Statistics of Response Accuracy (Absolute Score)"
-abs.stats.items <- rbind(
-  "lab"= df_items %>% filter(mode == 'lab-synch') %>% select(score_niceABS) %>% unlist() %>% favstats(),
-  "online" = df_items %>% filter(mode == "asynch") %>% select(score_niceABS) %>% unlist() %>% favstats()
-) 
-abs.stats.items %>% kbl (caption = title) %>% kable_classic()
+x <- df_items %>% mutate(score = as.logical(score_ABS))
+
+title = "Proportion of Correct Items By Condition (Lab)"
+
+item.contingency <- df_items %>% filter(mode == "lab-synch") %>% select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+title = "Proportion of Correct Items By Condition (Online)"
+item.contingency <- df_items %>% filter(mode == "asynch") %>% select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+
 
 ```
 
-For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
-
-For *online replication*, (online) item accuracy scores (n = `r abs.stats.items["online",]$n`) range from `r round(abs.stats.items["online",]$min,2)` to `r round(abs.stats.items["online",]$max,2)` with a mean score of (M = `r round(abs.stats.items["online",]$mean,2)`, SD = `r round(abs.stats.items["online",]$sd,2)`).
+Across both data collection modalities, the proportion of correct answers is greater in the impasse vs. control condition. 
 
 ```{r}
 #| label: VIS-ITEMS-ABS-SCORE
@@ -290,27 +302,23 @@ For *online replication*, (online) item accuracy scores (n = `r abs.stats.items[
 
 #HISTOGRAM
 stats = df_items %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(score_niceABS))
-gf_bar(~score_niceABS, data = df_items) %>% 
-  gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Absolute Score for Item")+
+gf_props(~score_niceABS, data = df_items) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) +
+  labs(x = "Item Absolute Score",
+       title = "Item Absolute Score",
+       subtitle="Across modalities, the impasse condition yielded more correct responses")+
   theme_minimal()
-
-ggplot(data = df_items, aes(x = score_niceABS, y = condition)) +
-  geom_density_ridges()+ 
-  facet_wrap(mode~., labeller = label_both) + 
-  labs( x = "Absolute Score for Item") +
-  theme_minimal()
-
 
 ```
 
 #### Item Scaled Score
 
+At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1. 
+
 ```{r}
 #| label: Scaled-ITEM
 
-title = "Descriptive Statistics of Response Accuracy (Scaled Score)"
+title = "Descriptive Statistics of Item Response Accuracy (Scaled Score)"
 scaled.stats.items <- rbind(
   "lab"= df_items %>% filter(mode == 'lab-synch') %>% select(score_SCALED) %>% unlist() %>% favstats(),
   "online" = df_items %>% filter(mode == "asynch") %>% select(score_SCALED) %>% unlist() %>% favstats()
@@ -319,9 +327,7 @@ scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-TODO update this For *in person* collection, item absolute scores (n = `r abs.stats.items["lab",]$n`) range from `r round(abs.stats.items["lab",]$min,2)` to `r round(abs.stats.items["lab",]$max,2)` with a mean score of (M = `r round(abs.stats.items["lab",]$mean,2)`, SD = `r round(abs.stats.items["lab",]$sd,2)`).
 
-For *online replication*, (online) item accuracy scores (n = `r abs.stats.items["online",]$n`) range from `r round(abs.stats.items["online",]$min,2)` to `r round(abs.stats.items["online",]$max,2)` with a mean score of (M = `r round(abs.stats.items["online",]$mean,2)`, SD = `r round(abs.stats.items["online",]$sd,2)`).
 
 ```{r}
 #| label: VIS-ITEMS-SCALED-SCORE
@@ -330,16 +336,13 @@ For *online replication*, (online) item accuracy scores (n = `r abs.stats.items[
 
 #HISTOGRAM
 stats = df_items %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(score_SCALED))
-gf_histogram(~score_SCALED, data = df_items) %>% 
+gf_density(~score_SCALED, data = df_items) %>% 
   gf_facet_grid(condition~mode, labeller = label_both) %>% 
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Scaled Score for Item")+
-  theme_minimal()
-
-ggplot(data = df_items, aes(x = score_SCALED, y = condition)) +
-  geom_density_ridges()+ xlim(-1,1)+
-  facet_wrap(~mode, labeller = label_both) + 
-  labs( x = "Scaled Score for Item") +
+  labs(x = "Scaled Score for Item",
+       y = "Proportion of Items",
+       title = "Distribution of Accuracy per Item (Scale Score)",
+       subtitle="The impasse condition shifts density toward the positive score")+
   theme_minimal()
 
 ```
@@ -347,33 +350,45 @@ ggplot(data = df_items, aes(x = score_SCALED, y = condition)) +
 #### Item Interpretation Scores
 
 ```{r}
-#| label: VIS-ITEMS-INTERPRETATIONS
+#| label: FREQ-ITEMS-INTERPRETATIONS
 
 #VISUALIZE distribution of interpretations across all ITEMS
 
-#HISTOGRAM
 
-gf_barh(~interpretation, data = df_items, fill = ~mode) %>% 
+#REORDER INTERPRETATION LEVELS
+df_items$interpretation <- factor(df_items$interpretation, levels = c("Triangular", "Tversky", "both tri + orth", "blank", "?", "frenzy","reference","Satisfice", "Orthogonal"))            
+
+
+title = "Proportion of Interpretations Across Items Items By Condition (Lab)"
+item.contingency <- df_items %>% filter(mode == "lab-synch") %>% select(interpretation, condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+title = "Proportion of Interpretations Across Items Items By Condition (Online)"
+item.contingency <- df_items %>% filter(mode == "asynch") %>% select(interpretation, condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+
+
+```
+
+```{r}
+#| label: VIS-ITEMS-INTERPRETATIONS
+
+
+#PROPORTIONAL BAR CHART
+gf_propsh(~interpretation, data = df_items, fill = ~mode) %>% 
   gf_facet_grid(mode~condition, labeller = label_both) +
-  labs(x = "Interpretation for Item")+
+  labs(x = "Interpretation for Item",
+       title = "Proportion of Interpretations Across Items",
+       subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
   theme_minimal()+ theme(legend.position = "none")
 
 
-
-#restructue data 
-temp <- df_items %>% select(mode, condition, 
-                            score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
- 
-  t.long = gather(temp,score, value, 3:6)
-  # t.long[t.long == ""] = NA
-  
-
-#TODO CONTINGENCY TABLE FOR THIS 
-ggplot(data = t.long, aes(x = value, y = score, fill=condition)) +
-  geom_density_ridges()+
-  facet_wrap(~condition, labeller = label_both) +
-  labs( x = "Interpretation Scores for Item") +
-  theme_minimal()
+#MOSAIC PLOT
+vcd::mosaic(main="Proportion of Item Interpretation across Conditions",
+            data = df_items, condition ~ interpretation, rot_labels=c(0,90,0,0), 
+            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
+            spacing = spacing_dimequal(unit(1:2, "lines"))) 
 
 
 ```
