@@ -1427,16 +1427,7 @@ df_items$sorted_interpretation <- factor(df_items$best,
 
 ### Derive Discriminant Score
 
-"Orthogonal" = -1,
-                          "Satisfice" = -1,
-                          "Triangular" = 1,
-                          "Tversky" = 0.5,
-                          "both tri + orth" = 0.5,
-                          "reference" = 0,
-                          "blank" = 0, 
-                          "frenzy" = 0,
-                          "?" = 0)
-
+"Orthogonal" = -1, "Satisfice" = -1, "Triangular" = 1, "Tversky" = 0.5, "both tri + orth" = 0.5, "reference" = 0, "blank" = 0, "frenzy" = 0, "?" = 0)
 
 TODO should 'both' be coded as 0 or 1 or 0.5?
 
@@ -3209,7 +3200,7 @@ df_items <- df_items %>% mutate(
   top_type = as.factor(top_type)
 )
 
-#summarize by subject
+#summarize SCORES and TIME by subject
 subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
   s_TRI = sum(score_TRI),
@@ -3219,7 +3210,8 @@ subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr:
   s_REF = sum(score_REF),
   s_ABS = sum(score_ABS),
   s_NABS = sum(score_niceABS),
-  s_SCALED = sum(score_SCALED)
+  s_SCALED = sum(score_SCALED),
+  rt_m = sum(rt_s)/60
 ) %>% arrange(subject) %>% slice(1L)
 
 #import subjects
@@ -3227,8 +3219,7 @@ df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(
 
 #TODO DOUBLE CHECK THIS!  
 x = merge(subjects, df_subjects)
-df_subjects <- x
-
+df_subjects <- x %>% select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
 
 ```
 
@@ -3240,7 +3231,6 @@ gf_bar(~s_SCALED, data = df_subjects) %>%
   labs(x = "Cumulative Scaled Score for Subject")+
   theme_minimal()
   
-
 ```
 
 ```{r}
