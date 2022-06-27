@@ -1,0 +1,365 @@
+---
+# title: 'Exploration'
+subtitle: 'Study SGC3A | 4 Modelling'
+# author: 'Amy Rae Fox'
+# always_allow_html: true  
+# header-includes:
+#    - \usepackage{amsmath}
+# output:
+#   html_document:
+#     theme: yeti
+#     code_folding: hide
+#     fig_caption: yes
+#     number_sections: yes
+#     toc: yes
+#     toc_depth: 4
+#     toc_float:
+#       collapsed: no
+#       smooth_scroll: yes
+#   pdf_document: 
+#     toc: true
+#     toc_depth: 3
+#     latex_engine: xelatex
+# font-family: "DejaVu Sans"
+# mainfont: "DejaVu Sans"
+---
+
+\newpage
+
+# Modelling {#sec-SGC3A-modelling}
+
+TODO - port modelling from 3_exploration into 4_modelling
+
+```{r}
+#| label: SETUP
+#| echo : true
+#| warning : false
+#| message : false
+
+library(tidyverse) #ALL THE THINGS
+library(Hmisc) # %nin% operator
+library(ggpubr) #arrange plots
+library(ggformula) #easy graphs
+library(report) #easystats reporting
+library(see) #easystats visualization
+library(performance) #easystats model diagnostics
+
+
+#set some output options
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(ggplot2.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+```
+
+*The purpose of this notebook is explore the distribution of dependent variables for Study SGC3A.*
+
++-------------------------+---------------+
+| Pre-Requisite           | Followed By   |
++=========================+===============+
+| 1_sgc3A_harmonize.qmd\  | \|            |
+| 2_sgc3A_rescoring.qmd\  |               |
+| 3_sgc3A_exploration.qmd |               |
++-------------------------+---------------+
+
+```{r}
+#| label: IMPORT-DATA
+#| echo : true
+#| warning : false
+#| message : false
+
+#IMPORT DATA 
+df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
+df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
+
+
+#SEPARATE ITEM DATA BY QUESTION TYPE
+df_scaffold <- df_items %>% filter(q < 6)
+df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
+df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
+```
+
+
+## Cumulative Performance
+_Overall_ does the impasse condition affect performance on the graph comprehension task? 
+
+### Cumulative Score By Condition
+
+Cumulative scores indicate the response accuracy by a particular participant across all discriminant items (n=13) in the graph comprehension task.
+
+```{r}
+#| label: VIS-SUBJECT-ABS
+ 
+#VISUALIZE distribution of response accuracy across SUBJECTS
+
+#HISTOGRAM
+stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
+gf_density(~s_ABS, data = df_subjects) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_lims(x = c(0, 13)) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Cumulative Absolute Score",
+       y = "proportion of subjects",
+       title = "Subject Cumulative Score (Absolute)",
+       subtitle = "Score distributions are comparable across modalities and different across conditions") + 
+  theme_minimal()
+
+```
+
+**Does the IMPASSE condition yield higher scores?**
+
+#### Linear Regression
+
+To address this question we assess how much variance in cumulative (absolute) score is explained by experimental condition by utilizing OLS linear regression, predicting absolute score from condition.
+
+```{r}
+#| label: MODEL-cumulative-score-LAB
+
+#SCORE predicted by CONDITION
+m1 <- lm(s_ABS ~ condition, data = df_subjects %>% filter(mode=="lab-synch"))
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+# report(m1) #sanity check
+
+```
+
+**For in-lab data collection** an OLS linear regression predicting cumulative absolute score by experimental condition explains a statistically significant though small 7.5% variance in score (F(1,124) = 10.1, p \< 0.01). The estimated beta coefficient ($/beta$ = 2.76, 95% CI \[1.04, 4.48\]) predicts that participants in the impasse condition will on average score 2.76 points (21%) higher than those in the control condition.
+
+```{r}
+#| label: MODEL-cumulative-score-ONLINE
+
+#SCORE predicted by CONDITION
+m1 <- lm(s_ABS ~ condition, data = df_subjects %>% filter(mode=="asynch"))
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+#report(m1) #sanity check
+
+```
+
+**For the online replication**, an OLS linear regression model predicting cumulative absolute score by condition explains a statistically significant though small 5.5% of variance in absolute score (F(1,202) = 11.73, p \< 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 2.3 points higher on the task than those in the control condition (CI\[0.97, 3.59\]).
+
+::: callout-note
+**From these models we can reasonably conclude that the impasse condition yielded a small but reliable improvement in performance across items in the graph reading task.**
+:::
+
+**Model Diagnostics**
+
+```{r}
+#| label: DIAGNOSTICS-ABSCORE-LINEAR
+
+check_model(m1)
+
+```
+
+
+
+
+#### Poisson Regression
+
+The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can consider it a type of *count*, (ie. count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function).
+
+```{r}
+# library('fitdistrplus')
+# plot(fitdist(df_subjects$s_ABS,"pois"))
+# plot(fitdist(df_subjects$s_ABS,"norm"))
+# plot(fitdist(df_subjects$s_ABS,"beta"))
+# 
+# 
+# plotdist(df_subjects$s_ABS, histo = TRUE, demp = TRUE)
+# descdist(df_subjects$s_ABS, discrete=FALSE, boot=500)
+
+
+```
+
+```{r}
+#| label: MODEL-ABSCORE-POISSON
+
+#SCORE predicted by CONDITION --> POISSON DISTRIBUTION
+mp1 <- glm(s_ABS ~ condition, data = df_subjects %>% filter(mode=="lab-synch"), family = "poisson")
+paste("Model")
+summary(mp1)
+paste("Partition Variance")
+anova(mp1)
+paste("Confidence Interval on Parameter Estimates")
+confint(mp1)
+report(mp1) #sanity check
+
+```
+
+```{r}
+#| label: DIAGNOSTICS-ABSCORE-POISSON
+
+check_model(mp1)
+
+```
+
+```{r}
+#Which is a better fit? linear or poisson?
+
+compare_performance(m1,mp1)
+
+```
+
+#### COPIED FROM 3
+
+**Does the IMPASSE condition more accurate interpretation?**
+
+To address this question we assess how much variance in cumulative (absolute) score is explained by experimental condition.
+
+```{r}
+#| label: MODEL-scaled-score-LAB
+
+#SCORE predicted by CONDITION
+m1 <- lm(s_SCALED ~ condition, data = df_subjects %>% filter(mode=="lab-synch"))
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+# report(m1) #sanity check
+
+```
+
+**For in-lab data collection** an OLS linear regression predicting scaled score by experimental condition explains a statistically significant and moderate 15% variance in score (F(1,124) = 22.7, p \< 0.001). The estimated beta coefficient ($/beta$ = 7.88, 95% CI \[4.61, 11.2\]) predicts that participants in the impasse condition will on average score around 8 points (31%) higher than those in the control condition.
+
+```{r}
+#| label: MODEL-scaled-score-ONLINE
+
+#SCORE predicted by CONDITION
+m1 <- lm(s_SCALED ~ condition, data = df_subjects %>% filter(mode=="asynch"))
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+#report(m1) #sanity check
+
+```
+
+**For the online replication**, an OLS linear regression model predicting scaled score by condition explains a statistically significant and moderate 14% of variance in absolute score (F(1,202) = 32.4, p \< 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 6.8 points higher on the task than those in the control condition (CI\[4.43, 9.12\]).
+
+::: callout-note
+**From these models we can reasonably conclude that the impasse condition yields a reliable, moderate sized effect of improved interpretation on the graph reading tasks.**
+:::
+
+
+## First Question
+Does the impasse condition affect performance _on the first item_ of the graph comprehension task? 
+
+## Item-Level Performance
+Individual differences with a mixed model. 
+
+## Model Peeking
+
+TODO
+
+-   multiple regression with condition and response time
+
+```{r}
+library(supernova)
+library(report)
+library(lmerTest)
+library(lme4)
+m1 <- lm( s_SCALED ~ condition, data = df_subjects %>% filter(mode=='asynch'))
+m1
+summary(m1)
+anova(m1)
+superanova(m1)
+plot(m1)
+gf_histogram(~s_SCALED, data = df_subjects)
+gf_histogram(~m1$residuals)
+
+
+#Assess assumption of independence of errors
+#DW statistic should be close to 2
+library(car)
+durbinWatsonTest(m1)
+
+#Test for equality of variance
+#H0 is equality; p > 0.05 infer you can't reject null
+leveneTest(m1)
+```
+
+A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p \< 0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI \[4.56, 8.19\].
+
+```{r}
+t.test(s_SCALED ~ condition, data = df_subjects)
+#%>% report()
+```
+
+```{r}
+
+# report_participants(df_subjects)
+m1 %>% report()
+anova(m1) %>% report()
+#significant intercept means that group is significantly different than zero
+```
+
+```{r}
+#logistic regression on on scaled df_subjects because residuals not normal in lm?
+mlog <- glm(s_SCALED ~ condition , data = df_subjects, family = gaussian)
+summary(mlog)
+report(mlog)
+```
+
+```{r}
+#logistic regression on niceABS by condition
+#pretends that questions are independent and not from same subjects INVALID
+mlog <- glm(score_niceABS ~ condition , data = df_items %>% filter(q<6), family = binomial())
+summary(mlog)
+report(mlog)
+```
+
+```{r}
+m2 <- lm( s_NABS ~ condition, data = df_subjects)
+m2
+summary(m2)
+anova(m2)
+supernova(m2)
+
+```
+
+A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p \< 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI \[1.04, 3.00\])
+
+```{r}
+report(m2)
+```
+
+```{r}
+m.m1 <- lmer( score_SCALED ~ (1 + condition|subject), data = df_items)
+m.m1
+summary(m.m1)
+report(m.m1)
+```
+
+```{r}
+m.m2 <- lmer( score_SCALED ~ (1+ condition|q), data = df_items)
+m.m2
+summary(m.m2)
+report(m.m2)
+```
+
+```{r}
+m.m3 <- lmer( score_SCALED ~ (1+ condition|q) + (1+condition|subject), data = df_items)
+m.m3 %>% summary() 
+m.m3 %>% report()
+```
+
+```{r}
+anova(m.m1, m.m2, m.m3)
+```
+
+## Resources
+
+-   https://rpkgs.datanovia.com/ggpubr/reference/index.html

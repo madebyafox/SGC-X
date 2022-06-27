@@ -71,9 +71,6 @@ options(scipen=1, digits=3)
 df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
 
-#DROP STIMULUS-ENGINE GENERATED SCORES
-#these are overriden by scoring file generated scores
-df_subjects <- df_subjects %>% select(-absolute_score)
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)
@@ -180,35 +177,15 @@ gf_density(~s_ABS, data = df_subjects) %>%
 
 ```
 
-**Are the by-condition group means significantly different by data collection modality?**
-
-To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means of ABSOLUTE SCORE for each condition.
-
-```{r}
-#| label : MODEL-ABSCORE-BY-MODALITY
-
-paste("Two Sample T-Test for S_ABS LAB vs. ONLINE control condition")
-t.test(data = df_subjects %>% filter(condition == 111), s_ABS ~ mode )
-
-paste("Two Sample T-Test for S_ABS LAB vs. ONLINE impasse condition")
-t.test(data = df_subjects %>% filter(condition == 121), s_ABS ~ mode )
-
-paste("OLS Linear Regression Predicting Absolute Score by Data Collection Mode")
-summary(lm(data = df_subjects, formula = s_ABS ~ mode ))
-
-```
-
-Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative absolute score indicates that data collection mode is not a significant predictor, explaining only 0.01% of variance in absolute score, F(1,328) = 1.03, p \> 0.05.
-
-::: callout-note
-**It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
+::: callout-decision
+**Condition appears to exert a positive influence on Cumulative Absolute Score acrosss data collection modalities.**
 :::
 
 #### Cumulative Scaled Scores
 
-The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject The range is from -13 (all orthogonal) to 13 (all triangular). Recall that the s_SCALED score for an item is a numeric representation of the strategy-consitent response, scaled from -1 to +1, where "Orthogonal" = -1, "Satisfice" = -1, "Triangular" = 1, "Tversky" = 0.5, "both tri + orth" = 0.5, "reference" = 0, "blank" = 0, "frenzy" = 0, "?" = 0.
+The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject The range is from -13 (all orthogonal) to 13 (all triangular). Recall that the s_SCALED score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1, where "Orthogonal" = -1, "Satisfice" = -1, "Triangular" = 1, "Tversky" = 0.5, "both tri + orth" = 0.5, "reference" = 0, "blank" = 0, "frenzy" = 0, "?" = 0.
 
-Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. 
+Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score
 
 ```{r}
 #| label: SCALED-SUBJECT
@@ -245,28 +222,8 @@ gf_density(~s_SCALED, data = df_subjects, binwidth = 1) %>%
   
 ```
 
-**Are the by-condition group means significantly different by data collection modality?**
-
-To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means of SCALED SCORE for each condition.
-
-```{r}
-#| label : MODEL-SCALEDSCORE-BY-MODALITY
-
-paste("Two Sample T-Test for s_SCALED LAB vs. ONLINE control condition")
-t.test(data = df_subjects %>% filter(condition == 111), s_SCALED ~ mode )
-
-paste("Two Sample T-Test for s_SCALED LAB vs. ONLINE impasse condition")
-t.test(data = df_subjects %>% filter(condition == 121), s_SCALED ~ mode )
-
-paste("OLS Linear Regression Predicting Scaled Score by Data Collection Mode")
-summary(lm(data = df_subjects, formula = s_SCALED ~ mode ))
-
-```
-
-Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative scaled score indicates that data collection mode is not a significant predictor, explaining less than 0.001% of variance in absolute score, F(1,328) = 0.0078, p \> 0.05.
-
-::: callout-note
-**It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
+::: callout-decision
+**Condition appears to exert a positive influence on Scaled Score across data collection modalities.**
 :::
 
 ### Item Scores
@@ -289,11 +246,9 @@ title = "Proportion of Correct Items By Condition (Online)"
 item.contingency <- df_items %>% filter(mode == "asynch") %>% select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
-
-
 ```
 
-Across both data collection modalities, the proportion of correct answers is greater in the impasse vs. control condition. 
+Across both data collection modalities, the proportion of correct answers is greater in the impasse vs. control condition.
 
 ```{r}
 #| label: VIS-ITEMS-ABS-SCORE
@@ -313,7 +268,7 @@ gf_props(~score_niceABS, data = df_items) %>%
 
 #### Item Scaled Score
 
-At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1. 
+At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1.
 
 ```{r}
 #| label: Scaled-ITEM
@@ -326,8 +281,6 @@ scaled.stats.items <- rbind(
 scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
 
 ```
-
-
 
 ```{r}
 #| label: VIS-ITEMS-SCALED-SCORE
@@ -448,101 +401,60 @@ annotate_figure(plot,
 
 **TODO time on question**
 
-## Model Peeking
+
+## Due Diligence
+
+### Data Collection Mode on Absolute Score
+
+**Does Mode Change Effect of Condition on Score?**
+
+To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means of ABSOLUTE SCORE for each condition, and examine whether data collection modality is a significant predictor of variance in absolute score
 
 ```{r}
-library(supernova)
-library(report)
-library(lmerTest)
-library(lme4)
-m1 <- lm( s_SCALED ~ condition, data = df_subjects %>% filter(mode=='asynch'))
-m1
-summary(m1)
-anova(m1)
-superanova(m1)
-plot(m1)
-gf_histogram(~s_SCALED, data = df_subjects)
-gf_histogram(~m1$residuals)
+#| label : MODEL-ABSCORE-BY-MODALITY
 
+paste("Two Sample T-Test for S_ABS LAB vs. ONLINE control condition")
+t.test(data = df_subjects %>% filter(condition == 111), s_ABS ~ mode )
 
-#Assess assumption of independence of errors
-#DW statistic should be close to 2
-library(car)
-durbinWatsonTest(m1)
+paste("Two Sample T-Test for S_ABS LAB vs. ONLINE impasse condition")
+t.test(data = df_subjects %>% filter(condition == 121), s_ABS ~ mode )
 
-#Test for equality of variance
-#H0 is equality; p > 0.05 infer you can't reject null
-leveneTest(m1)
-```
-
-A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p \< 0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI \[4.56, 8.19\].
-
-```{r}
-t.test(s_SCALED ~ condition, data = df_subjects)
-#%>% report()
-```
-
-```{r}
-
-# report_participants(df_subjects)
-m1 %>% report()
-anova(m1) %>% report()
-#significant intercept means that group is significantly different than zero
-```
-
-```{r}
-#logistic regression on on scaled df_subjects because residuals not normal in lm?
-mlog <- glm(s_SCALED ~ condition , data = df_subjects, family = gaussian)
-summary(mlog)
-report(mlog)
-```
-
-```{r}
-#logistic regression on niceABS by condition
-#pretends that questions are independent and not from same subjects INVALID
-mlog <- glm(score_niceABS ~ condition , data = df_items %>% filter(q<6), family = binomial())
-summary(mlog)
-report(mlog)
-```
-
-```{r}
-m2 <- lm( s_NABS ~ condition, data = df_subjects)
-m2
-summary(m2)
-anova(m2)
-supernova(m2)
+paste("OLS Linear Regression Predicting Absolute Score by Data Collection Mode")
+summary(lm(data = df_subjects, formula = s_ABS ~ mode ))
 
 ```
 
-A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p \< 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI \[1.04, 3.00\])
+Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative absolute score indicates that data collection mode is not a significant predictor, explaining only 0.01% of variance in absolute score, F(1,328) = 1.03, p \> 0.05.
+
+::: callout-decision
+**It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
+:::
+
+### Data Collection Mode on Cumulative Score
+
+**Are the by-condition group means significantly different by data collection modality?**
+
+To verify that the data collected in the lab and remotely online are comparable, we perform a t-test on group means of SCALED SCORE for each condition.
 
 ```{r}
-report(m2)
+#| label : MODEL-SCALEDSCORE-BY-MODALITY
+
+paste("Two Sample T-Test for s_SCALED LAB vs. ONLINE control condition")
+t.test(data = df_subjects %>% filter(condition == 111), s_SCALED ~ mode )
+
+paste("Two Sample T-Test for s_SCALED LAB vs. ONLINE impasse condition")
+t.test(data = df_subjects %>% filter(condition == 121), s_SCALED ~ mode )
+
+paste("OLS Linear Regression Predicting Scaled Score by Data Collection Mode")
+summary(lm(data = df_subjects, formula = s_SCALED ~ mode ))
+
 ```
 
-```{r}
-m.m1 <- lmer( score_SCALED ~ (1 + condition|subject), data = df_items)
-m.m1
-summary(m.m1)
-report(m.m1)
-```
+Both t-tests are non-significant with 95% confidence intervals including 0. Further, an OLS linear regression model predicting cumulative scaled score indicates that data collection mode is not a significant predictor, explaining less than 0.001% of variance in absolute score, F(1,328) = 0.0078, p \> 0.05.
 
-```{r}
-m.m2 <- lmer( score_SCALED ~ (1+ condition|q), data = df_items)
-m.m2
-summary(m.m2)
-report(m.m2)
-```
-
-```{r}
-m.m3 <- lmer( score_SCALED ~ (1+ condition|q) + (1+condition|subject), data = df_items)
-m.m3 %>% summary() 
-m.m3 %>% report()
-```
-
-```{r}
-anova(m.m1, m.m2, m.m3)
-```
+::: callout-decision
+**It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
+:::
 
 ## Resources
 

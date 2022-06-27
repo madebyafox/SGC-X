@@ -1,0 +1,79 @@
+---
+title: "x_sgc3A_logistic"
+output: html_document
+date: '2022-06-27'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this notebook is to document learning about logistic regression, through the example of analyzing SGC3A data.
+
+## Logistic Regression
+
+A few important concepts in logistic regression:
+
+**ODDS** Odds are *not* probabilities. Whereas a probability represents the ratio of instances when an event occurs, divided by the total number of events, odds are the ratio of instances when an event occurs, divided by the number of instances when the event does not occur. The scale of probabilities always range from 0 to 1. While the scale of odds range from 0 to + infinity. Values between 0 and 1 indicate odds not in favor, and 1+ indicate odds very in favor.
+
+So for the example of a team winning one game out of 5:
+
+-   the probability of winning is = number of wins / number of games = 1/5 = 0.2 = 20% probability of win
+
+-   the odds of winning is = number of wins / number of losses = 1/4 = 1:4 odds of winnning; 0.25 odds of winning
+
+-   The odds can also be expressed as a ratio between probibilities : p / (1-p) ; 0.2 / 0.8 = 0.25
+
+**LOG ODDS** Because the scale of odds ranges from 0 to +1 and is thus asymmetric, it is common to *log transform* the odds, producing **log odds**. This yields a value ranging from negative infinity to positive infinity.
+
+**ODDS RATIO** Although odds are ratios (probability of event occurring / probability of event not occurring), they are not the same as odds ratios. Odds ratios are ratios of odds, and they are used to explore relationships between variables.
+
+Consider the example of the relationship between a team winning, and which uniforms they wear.
+
+| RESULT        | Win | Loss | TOTAL |
+|---------------|-----|------|-------|
+| White Uniform | 23  | 117  | 140   |
+| Red Uniform   | 6   | 210  | 216   |
+| **TOTAL**     | 29  | 327  | 356   |
+
+-   The total number of games played is 256.
+
+-   The **probability of winning** = \# wins / \# games = 29 / 356 = 0.0815
+
+-   The **odds of winning** = \# wins / \# losses = 29 / 327 = 0.0887
+
+To understand the relationship between uniform and game outcome we can calculate the odds ratio.
+
+*If the team is wearing white uniforms, are the odds higher that they will win the game?*
+
+odds ratio = odds of winning given white / odds of winning given red
+
+Given that the team is wearing a white uniform, the odds that they win the game are = 23 / 17
+
+Given that the team is wearing a red uniform, the odds that they win the game are = 6 / 210
+
+odds ratio = \[23/117\] / \[6/210\] = 1.97 / 0.0286 = 6.88
+
+The odds ratio tells us that the odds are 6.88 times greater that when the team wears a white uniform, they will also win the game.
+
+log(odds ratio) = log(6.88) = 1.93
+
+Compared to linear regression... the odds ratio (and logs odds ratio) are similar to R-squared in linear regression. They indicate the relationship between two variables. And like R-squared, they can be interpreted to yield a measure of effect size. Larger values mean the predictor explains more variation in the outcome, and smaller values indicate less variation explained.
+
+*What about statistical significance?*
+
+\(1\) Fisher's Exact Test
+
+\(2\) Chi-Square Test
+
+\(3\) Wald Test
+
+## Resources
+
+*Helpful Explanation Videos*
+
+-   Odds Ratios: https://www.youtube.com/watch?v=8nm0G-1uJzA
+
+-   Odds https://www.youtube.com/watch?v=ARfXDSkQf1Y&ab_channel=StatQuestwithJoshStarmer
+
+-   Logistic Regression Clearly Explained https://www.youtube.com/watch?v=yIYKR4sgzI8&ab_channel=StatQuestwithJoshStarmer
