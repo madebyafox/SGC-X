@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.328">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>SGC-X - 5&nbsp; Exploratory Analyses</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<link href="../../references.html" rel="next">
+<link href="../../analysis/SGC3A/4_sgc3A_hypotesting.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link id="quarto-text-highlighting-styles" href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="../../site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="../../site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Exploratory Analyses</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">SGC-X</a> 
+    </div>
+      </div>
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">Status</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a href="../../analysis/SGC3A/SGC3A.html" class="sidebar-item-text sidebar-link">SGC3A</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/1_sgc3A_harmonize.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Harmonization</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/2_sgc3A_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/3_sgc3A_description.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Description</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/4_sgc3A_hypotesting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Hypothesis Testing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/5_sgc3A_exploration.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Exploratory Analyses</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#xyz" id="toc-xyz" class="nav-link active" data-scroll-target="#xyz"> <span class="header-section-number">5.1</span> XYZ</a>
+  <ul class="collapse">
+  <li><a href="#xyz-1" id="toc-xyz-1" class="nav-link" data-scroll-target="#xyz-1"> <span class="header-section-number">5.1.1</span> XYZ</a>
+  <ul class="collapse">
+  <li><a href="#xyz-2" id="toc-xyz-2" class="nav-link" data-scroll-target="#xyz-2"> <span class="header-section-number">5.1.1.1</span> XYZ</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#copied-from-3" id="toc-copied-from-3" class="nav-link" data-scroll-target="#copied-from-3"> <span class="header-section-number">5.2</span> COPIED FROM 3</a></li>
+  <li><a href="#item-level-performance" id="toc-item-level-performance" class="nav-link" data-scroll-target="#item-level-performance"> <span class="header-section-number">5.3</span> Item-Level Performance</a></li>
+  <li><a href="#model-peeking" id="toc-model-peeking" class="nav-link" data-scroll-target="#model-peeking"> <span class="header-section-number">5.4</span> Model Peeking</a></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources"> <span class="header-section-number">5.5</span> RESOURCES</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-SGC3A-exploration" class="quarto-section-identifier d-none d-lg-block"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Exploratory Analyses</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Study SGC3A | 5 Exploratory Analyses</p>
+</div>
+
+
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<div style="page-break-after: always;"></div>
+<p><strong>TODO</strong><br>
+- clarify core questions being asked<br>
+- review models already created in ARCHIVE?<br>
+- explore response consistency</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc) <span class="co"># %nin% operator</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr) <span class="co">#arrange plots</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggformula) <span class="co">#easy graphs</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(report) <span class="co">#easystats reporting</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(see) <span class="co">#easystats visualization</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(performance) <span class="co">#easystats model diagnostics</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gmodels) <span class="co">#contingency table and CHISQR</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcd) <span class="co">#mosaic plots</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcdExtra) <span class="co">#mosaic plots</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#printing tables </span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#set some output options</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">dplyr.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">ggplot2.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p><em>The purpose of this notebook is exploratory analyses of data collected for study SGC3A.</em></p>
+<table class="table">
+<colgroup>
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Pre-Requisite</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1_sgc3A_harmonize.qmd<br>
+2_sgc3A_scoring.qmd</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT DATA </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_items.rds'</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_participants.rds'</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#SEPARATE ITEM DATA BY QUESTION TYPE</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>df_scaffold <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&lt;</span> <span class="dv">6</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>df_test <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&gt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%nin%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>df_nondiscrim <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p><strong>TODO</strong></p>
+<section id="xyz" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="xyz"><span class="header-section-number">5.1</span> XYZ</h2>
+<section id="xyz-1" class="level3" data-number="5.1.1">
+<h3 data-number="5.1.1" class="anchored" data-anchor-id="xyz-1"><span class="header-section-number">5.1.1</span> XYZ</h3>
+<section id="xyz-2" class="level4" data-number="5.1.1.1">
+<h4 data-number="5.1.1.1" class="anchored" data-anchor-id="xyz-2"><span class="header-section-number">5.1.1.1</span> XYZ</h4>
+<table class="table">
+<colgroup>
+<col style="width: 3%">
+<col style="width: 96%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Research Question</th>
+<th>Does the frequency of correct (vs) incorrect responses on the first question differ by condition? [Is response accuracy independent of condition?]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Analysis Strategy</strong></td>
+<td>Chi-Square test of independence on outcome <code>score_niceABS</code> by <code>condition</code> for <code>df_items</code> where <code>q == 1</code></td>
+</tr>
+<tr class="even">
+<td><strong>Justification</strong></td>
+<td><p>(0) simplest method to examine independence of two categorical factors; logistic regression is recommended for binomial ~ continuous</p>
+<p>(1) independence assumption : as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent</p>
+<p>(2) frequency size assumption : expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)</p></td>
+</tr>
+<tr class="odd">
+<td><strong>Steps</strong></td>
+<td><p>(1) Express raw data as contingency table &amp; visualize</p>
+<p>(2) Calculate Chi-Squared Statistic and p-value</p>
+<p>(3) Interpret Odds-Ratio as effect size</p></td>
+</tr>
+<tr class="even">
+<td><strong>Inference</strong></td>
+<td><p><strong>Lab</strong> A Pearson’s Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, <span class="math inline">\(\chi^2\)</span> (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. In this particular data sample, the sample odds ratio 2.18 indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than if the control condition (Odds Ratio = 2.18, p = 0.055, 95% CI [0.982, +Inf]).</p>
+<p><strong>Online</strong> A Pearson’s Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, <span class="math inline">\(\chi^2\)</span> (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. The sample odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI [1.37, +Inf]).</p></td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#FITER THE DATASET</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">==</span><span class="dv">1</span>) </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#PROPORTIONAL BAR CHART</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_niceABS, <span class="at">data =</span> df, <span class="at">fill =</span> <span class="sc">~</span>mode) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(mode<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Correct Response on Q 1"</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Accuracy on First Question by Condition (Both Modalities)"</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle=</span><span class="st">"Impasse Condition yields a greater proportion of correct responses than control "</span>)<span class="sc">+</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/VIS-LR-Q1.tri.by.Cond-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#MOSAIC PLOT</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>vcd<span class="sc">::</span><span class="fu">mosaic</span>(<span class="at">main=</span><span class="st">"Accuracy on First Question by Condition (Both Modalities)"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> df, score_niceABS <span class="sc">~</span> condition, <span class="at">rot_labels=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">90</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">offset_varnames =</span> <span class="fu">c</span>(<span class="at">left =</span> <span class="fl">4.5</span>), <span class="at">offset_labels =</span> <span class="fu">c</span>(<span class="at">left =</span> <span class="sc">-</span><span class="fl">0.5</span>),<span class="at">just_labels =</span> <span class="st">"right"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">spacing =</span> <span class="fu">spacing_dimequal</span>(<span class="fu">unit</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="st">"lines"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/VIS-LR-Q1.tri.by.Cond-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PRINT CONTINGENCY TABLE</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Proportion of Correct Responses On First Item (Both Modalities)"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>item.contingency <span class="ot">&lt;-</span>  df <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(condition, score_niceABS) <span class="sc">%&gt;%</span> <span class="fu">table</span>() <span class="sc">%&gt;%</span> <span class="fu">prop.table</span>() <span class="sc">%&gt;%</span> <span class="fu">addmargins</span>()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>item.contingency <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class=" lightable-classic" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Proportion of Correct Responses On First Item (Both Modalities)</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> 0 </th>
+   <th style="text-align:right;"> 1 </th>
+   <th style="text-align:right;"> Sum </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 111 </td>
+   <td style="text-align:right;"> 0.412 </td>
+   <td style="text-align:right;"> 0.067 </td>
+   <td style="text-align:right;"> 0.479 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 121 </td>
+   <td style="text-align:right;"> 0.373 </td>
+   <td style="text-align:right;"> 0.148 </td>
+   <td style="text-align:right;"> 0.521 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Sum </td>
+   <td style="text-align:right;"> 0.785 </td>
+   <td style="text-align:right;"> 0.215 </td>
+   <td style="text-align:right;"> 1.000 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"lab-synch"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">CrossTable</span>( <span class="at">x =</span> df<span class="sc">$</span>condition, <span class="at">y =</span> df<span class="sc">$</span>score_niceABS, <span class="at">fisher =</span> <span class="cn">TRUE</span>, <span class="at">chisq=</span><span class="cn">TRUE</span>, <span class="at">expected =</span> <span class="cn">TRUE</span>, <span class="at">sresid =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ 
+   Cell Contents
+|-------------------------|
+|                       N |
+|              Expected N |
+| Chi-square contribution |
+|           N / Row Total |
+|           N / Col Total |
+|         N / Table Total |
+|-------------------------|
+
+ 
+Total Observations in Table:  126 
+
+ 
+             | df$score_niceABS 
+df$condition |         0 |         1 | Row Total | 
+-------------|-----------|-----------|-----------|
+         111 |        52 |        10 |        62 | 
+             |    47.730 |    14.270 |           | 
+             |     0.382 |     1.278 |           | 
+             |     0.839 |     0.161 |     0.492 | 
+             |     0.536 |     0.345 |           | 
+             |     0.413 |     0.079 |           | 
+-------------|-----------|-----------|-----------|
+         121 |        45 |        19 |        64 | 
+             |    49.270 |    14.730 |           | 
+             |     0.370 |     1.238 |           | 
+             |     0.703 |     0.297 |     0.508 | 
+             |     0.464 |     0.655 |           | 
+             |     0.357 |     0.151 |           | 
+-------------|-----------|-----------|-----------|
+Column Total |        97 |        29 |       126 | 
+             |     0.770 |     0.230 |           | 
+-------------|-----------|-----------|-----------|
+
+ 
+Statistics for All Table Factors
+
+
+Pearson's Chi-squared test 
+------------------------------------------------------------
+Chi^2 =  3.27     d.f. =  1     p =  0.0707 
+
+Pearson's Chi-squared test with Yates' continuity correction 
+------------------------------------------------------------
+Chi^2 =  2.55     d.f. =  1     p =  0.111 
+
+ 
+Fisher's Exact Test for Count Data
+------------------------------------------------------------
+Sample estimate odds ratio:  2.18 
+
+Alternative hypothesis: true odds ratio is not equal to 1
+p =  0.0909 
+95% confidence interval:  0.86 5.84 
+
+Alternative hypothesis: true odds ratio is less than 1
+p =  0.979 
+95% confidence interval:  0 5.03 
+
+Alternative hypothesis: true odds ratio is greater than 1
+p =  0.0547 
+95% confidence interval:  0.982 Inf 
+
+
+ </code></pre>
+</div>
+</div>
+<p>Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, ‘Expected N’. The model predicts more than 5 observations in each cell.) The Pearson’s Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, <span class="math inline">\(\chi^2\)</span> (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. In this particular data sample, the odds ratio 2.18 indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.18, p = 0.055, 95% CI [0.982, +Inf]).</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">CrossTable</span>( <span class="at">x =</span> df<span class="sc">$</span>condition, <span class="at">y =</span> df<span class="sc">$</span>score_niceABS, <span class="at">fisher =</span> <span class="cn">TRUE</span>, <span class="at">chisq=</span><span class="cn">TRUE</span>, <span class="at">expected =</span> <span class="cn">TRUE</span>, <span class="at">sresid =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ 
+   Cell Contents
+|-------------------------|
+|                       N |
+|              Expected N |
+| Chi-square contribution |
+|           N / Row Total |
+|           N / Col Total |
+|         N / Table Total |
+|-------------------------|
+
+ 
+Total Observations in Table:  204 
+
+ 
+             | df$score_niceABS 
+df$condition |         0 |         1 | Row Total | 
+-------------|-----------|-----------|-----------|
+         111 |        84 |        12 |        96 | 
+             |    76.235 |    19.765 |           | 
+             |     0.791 |     3.050 |           | 
+             |     0.875 |     0.125 |     0.471 | 
+             |     0.519 |     0.286 |           | 
+             |     0.412 |     0.059 |           | 
+-------------|-----------|-----------|-----------|
+         121 |        78 |        30 |       108 | 
+             |    85.765 |    22.235 |           | 
+             |     0.703 |     2.711 |           | 
+             |     0.722 |     0.278 |     0.529 | 
+             |     0.481 |     0.714 |           | 
+             |     0.382 |     0.147 |           | 
+-------------|-----------|-----------|-----------|
+Column Total |       162 |        42 |       204 | 
+             |     0.794 |     0.206 |           | 
+-------------|-----------|-----------|-----------|
+
+ 
+Statistics for All Table Factors
+
+
+Pearson's Chi-squared test 
+------------------------------------------------------------
+Chi^2 =  7.26     d.f. =  1     p =  0.00707 
+
+Pearson's Chi-squared test with Yates' continuity correction 
+------------------------------------------------------------
+Chi^2 =  6.35     d.f. =  1     p =  0.0117 
+
+ 
+Fisher's Exact Test for Count Data
+------------------------------------------------------------
+Sample estimate odds ratio:  2.68 
+
+Alternative hypothesis: true odds ratio is not equal to 1
+p =  0.00894 
+95% confidence interval:  1.23 6.17 
+
+Alternative hypothesis: true odds ratio is less than 1
+p =  0.998 
+95% confidence interval:  0 5.42 
+
+Alternative hypothesis: true odds ratio is greater than 1
+p =  0.00539 
+95% confidence interval:  1.37 Inf 
+
+
+ </code></pre>
+</div>
+</div>
+<p>Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, ‘Expected N’. The model predicts more than 5 observations in each cell.) The Pearson’s Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, <span class="math inline">\(\chi^2\)</span> (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. The odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI [1.37, +Inf]).</p>
+</section>
+</section>
+</section>
+<section id="copied-from-3" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="copied-from-3"><span class="header-section-number">5.2</span> COPIED FROM 3</h2>
+<p><strong>Does the IMPASSE condition more accurate interpretation?</strong></p>
+<p>To address this question we assess how much variance in cumulative (absolute) score is explained by experimental condition.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#SCORE predicted by CONDITION</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode<span class="sc">==</span><span class="st">"lab-synch"</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Model"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Model"</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = s_SCALED ~ condition, data = df_subjects %&gt;% filter(mode == 
+    "lab-synch"))
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-12.75  -6.87  -4.87   9.03  19.13 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)     -6.13       1.18   -5.20  8.0e-07 ***
+condition121     7.88       1.65    4.76  5.2e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 9.28 on 124 degrees of freedom
+Multiple R-squared:  0.155, Adjusted R-squared:  0.148 
+F-statistic: 22.7 on 1 and 124 DF,  p-value: 5.21e-06</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Partition Variance"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Partition Variance"</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: s_SCALED
+           Df Sum Sq Mean Sq F value  Pr(&gt;F)    
+condition   1   1955    1955    22.7 5.2e-06 ***
+Residuals 124  10681      86                    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Confidence Interval on Parameter Estimates"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Confidence Interval on Parameter Estimates"</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>             2.5 % 97.5 %
+(Intercept)  -8.46   -3.8
+condition121  4.61   11.2</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># report(m1) #sanity check</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p><strong>For in-lab data collection</strong> an OLS linear regression predicting scaled score by experimental condition explains a statistically significant and moderate 15% variance in score (F(1,124) = 22.7, p &lt; 0.001). The estimated beta coefficient (<span class="math inline">\(/beta\)</span> = 7.88, 95% CI [4.61, 11.2]) predicts that participants in the impasse condition will on average score around 8 points (31%) higher than those in the control condition.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#SCORE predicted by CONDITION</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode<span class="sc">==</span><span class="st">"asynch"</span>))</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Model"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Model"</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = s_SCALED ~ condition, data = df_subjects %&gt;% filter(mode == 
+    "asynch"))
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-13.16  -7.16  -3.02   7.12  18.62 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    -5.620      0.866   -6.49  6.5e-10 ***
+condition121    6.777      1.190    5.70  4.3e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 8.48 on 202 degrees of freedom
+Multiple R-squared:  0.138, Adjusted R-squared:  0.134 
+F-statistic: 32.4 on 1 and 202 DF,  p-value: 4.3e-08</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Partition Variance"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Partition Variance"</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: s_SCALED
+           Df Sum Sq Mean Sq F value  Pr(&gt;F)    
+condition   1   2334    2334    32.4 4.3e-08 ***
+Residuals 202  14536      72                    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Confidence Interval on Parameter Estimates"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Confidence Interval on Parameter Estimates"</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>             2.5 % 97.5 %
+(Intercept)  -7.33  -3.91
+condition121  4.43   9.12</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#report(m1) #sanity check</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p><strong>For the online replication</strong>, an OLS linear regression model predicting scaled score by condition explains a statistically significant and moderate 14% of variance in absolute score (F(1,202) = 32.4, p &lt; 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 6.8 points higher on the task than those in the control condition (CI[4.43, 9.12]).</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>From these models we can reasonably conclude that the impasse condition yields a reliable, moderate sized effect of improved interpretation on the graph reading tasks.</strong></p>
+</div>
+</div>
+</section>
+<section id="item-level-performance" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="item-level-performance"><span class="header-section-number">5.3</span> Item-Level Performance</h2>
+<p>Individual differences with a mixed model.</p>
+</section>
+<section id="model-peeking" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="model-peeking"><span class="header-section-number">5.4</span> Model Peeking</h2>
+<p>TODO</p>
+<ul>
+<li>multiple regression with condition and response time</li>
+</ul>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(supernova)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'supernova'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:scales':
+
+    number</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(report)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: lme4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Matrix</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'Matrix'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:tidyr':
+
+    expand, pack, unpack</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Registered S3 methods overwritten by 'lme4':
+  method                          from
+  cooks.distance.influence.merMod car 
+  influence.merMod                car 
+  dfbeta.influence.merMod         car 
+  dfbetas.influence.merMod        car </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lmerTest'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:lme4':
+
+    lmer</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:stats':
+
+    step</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>( s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode<span class="sc">==</span><span class="st">'asynch'</span>))</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>m1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = s_SCALED ~ condition, data = df_subjects %&gt;% filter(mode == 
+    "asynch"))
+
+Coefficients:
+ (Intercept)  condition121  
+       -5.62          6.78  </code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = s_SCALED ~ condition, data = df_subjects %&gt;% filter(mode == 
+    "asynch"))
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-13.16  -7.16  -3.02   7.12  18.62 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    -5.620      0.866   -6.49  6.5e-10 ***
+condition121    6.777      1.190    5.70  4.3e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 8.48 on 202 degrees of freedom
+Multiple R-squared:  0.138, Adjusted R-squared:  0.134 
+F-statistic: 32.4 on 1 and 202 DF,  p-value: 4.3e-08</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: s_SCALED
+           Df Sum Sq Mean Sq F value  Pr(&gt;F)    
+condition   1   2334    2334    32.4 4.3e-08 ***
+Residuals 202  14536      72                    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">superanova</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> Analysis of Variance Table (Type III SS)
+ Model: s_SCALED ~ condition
+
+                                SS  df       MS      F    PRE     p
+ ----- --------------- | --------- --- -------- ------ ------ -----
+ Model (error reduced) |  2334.346   1 2334.346 32.439 0.1384 .0000
+ Error (from model)    | 14536.196 202   71.961                    
+ ----- --------------- | --------- --- -------- ------ ------ -----
+ Total (empty model)   | 16870.543 203   83.106                    </code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/unnamed-chunk-9-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/unnamed-chunk-9-4.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>s_SCALED, <span class="at">data =</span> df_subjects)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/unnamed-chunk-9-5.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>m1<span class="sc">$</span>residuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="5_sgc3A_exploration_files/figure-html/unnamed-chunk-9-6.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Assess assumption of independence of errors</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="co">#DW statistic should be close to 2</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: carData</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'carData'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:vcdExtra':
+
+    Burt</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'car'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:dplyr':
+
+    recode</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:purrr':
+
+    some</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">durbinWatsonTest</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> lag Autocorrelation D-W Statistic p-value
+   1         -0.0134          2.01   0.878
+ Alternative hypothesis: rho != 0</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Test for equality of variance</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a><span class="co">#H0 is equality; p &gt; 0.05 infer you can't reject null</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a><span class="fu">leveneTest</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Levene's Test for Homogeneity of Variance (center = median)
+       Df F value Pr(&gt;F)  
+group   1     5.4  0.021 *
+      202                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p &lt; 0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI [4.56, 8.19].</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Welch Two Sample t-test
+
+data:  s_SCALED by condition
+t = -7, df = 322, p-value = 1e-12
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -9.10 -5.29
+sample estimates:
+mean in group 111 mean in group 121 
+            -5.82              1.38 </code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="co">#%&gt;% report()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co"># report_participants(df_subjects)</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>m1 <span class="sc">%&gt;%</span> <span class="fu">report</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a linear model (estimated using OLS) to predict s_SCALED with condition (formula: s_SCALED ~ condition). The model explains a statistically significant and moderate proportion of variance (R2 = 0.14, F(1, 202) = 32.44, p &lt; .001, adj. R2 = 0.13). The model's intercept, corresponding to condition = 111, is at -5.62 (95% CI [-7.33, -3.91], t(202) = -6.49, p &lt; .001). Within this model:
+
+  - The effect of condition [121] is statistically significant and positive (beta = 6.78, 95% CI [4.43, 9.12], t(202) = 5.70, p &lt; .001; Std. beta = 0.74, 95% CI [0.49, 1.00])
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using the Wald approximation.</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1) <span class="sc">%&gt;%</span> <span class="fu">report</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>For one-way between subjects designs, partial eta squared is equivalent to eta squared.
+Returning eta squared.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The ANOVA suggests that:
+
+  - The main effect of condition is statistically significant and medium (F(1, 202) = 32.44, p &lt; .001; Eta2 = 0.14, 95% CI [0.07, 1.00])</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="co">#significant intercept means that group is significantly different than zero</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="co">#logistic regression on on scaled df_subjects because residuals not normal in lm?</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>mlog <span class="ot">&lt;-</span> <span class="fu">glm</span>(s_SCALED <span class="sc">~</span> condition , <span class="at">data =</span> df_subjects, <span class="at">family =</span> gaussian)</span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mlog)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = s_SCALED ~ condition, family = gaussian, data = df_subjects)
+
+Deviance Residuals: 
+   Min      1Q  Median      3Q     Max  
+-13.38   -7.18   -3.28    8.50   18.82  
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    -5.820      0.698   -8.34  2.1e-15 ***
+condition121    7.198      0.967    7.45  8.6e-13 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for gaussian family taken to be 77)
+
+    Null deviance: 29508  on 329  degrees of freedom
+Residual deviance: 25242  on 328  degrees of freedom
+AIC: 2374
+
+Number of Fisher Scoring iterations: 2</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(mlog)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a linear model (estimated using ML) to predict s_SCALED with condition (formula: s_SCALED ~ condition). The model's explanatory power is moderate (R2 = 0.14). The model's intercept, corresponding to condition = 111, is at -5.82 (95% CI [-7.19, -4.45], t(328) = -8.34, p &lt; .001). Within this model:
+
+  - The effect of condition [121] is statistically significant and positive (beta = 7.20, 95% CI [5.30, 9.09], t(328) = 7.45, p &lt; .001; Std. beta = 0.76, 95% CI [0.56, 0.96])
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using </code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="co">#logistic regression on niceABS by condition</span></span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a><span class="co">#pretends that questions are independent and not from same subjects INVALID</span></span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>mlog <span class="ot">&lt;-</span> <span class="fu">glm</span>(score_niceABS <span class="sc">~</span> condition , <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">&lt;</span><span class="dv">6</span>), <span class="at">family =</span> <span class="fu">binomial</span>())</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mlog)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = score_niceABS ~ condition, family = binomial(), 
+    data = df_items %&gt;% filter(q &lt; 6))
+
+Deviance Residuals: 
+   Min      1Q  Median      3Q     Max  
+-0.980  -0.980  -0.649   1.389   1.823  
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)   -1.4508     0.0907  -15.99   &lt;2e-16 ***
+condition121   0.9672     0.1147    8.43   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 1986.2  on 1649  degrees of freedom
+Residual deviance: 1911.3  on 1648  degrees of freedom
+AIC: 1915
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(mlog)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a logistic model (estimated using ML) to predict score_niceABS with condition (formula: score_niceABS ~ condition). The model's explanatory power is weak (Tjur's R2 = 0.04). The model's intercept, corresponding to condition = 111, is at -1.45 (95% CI [-1.63, -1.28], p &lt; .001). Within this model:
+
+  - The effect of condition [121] is statistically significant and positive (beta = 0.97, 95% CI [0.74, 1.19], p &lt; .001; Std. beta = 0.97, 95% CI [0.74, 1.19])
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using </code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">lm</span>( s_NABS <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects)</span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a>m2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = s_NABS ~ condition, data = df_subjects)
+
+Coefficients:
+ (Intercept)  condition121  
+        2.47          2.46  </code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = s_NABS ~ condition, data = df_subjects)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+ -4.92  -3.67  -2.47   4.08  10.53 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)     2.468      0.384    6.43  4.4e-10 ***
+condition121    2.456      0.531    4.62  5.5e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 4.82 on 328 degrees of freedom
+Multiple R-squared:  0.0611,    Adjusted R-squared:  0.0583 
+F-statistic: 21.4 on 1 and 328 DF,  p-value: 5.49e-06</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: s_NABS
+           Df Sum Sq Mean Sq F value  Pr(&gt;F)    
+condition   1    497     497    21.4 5.5e-06 ***
+Residuals 328   7629      23                    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="fu">supernova</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> Analysis of Variance Table (Type III SS)
+ Model: s_NABS ~ condition
+
+                               SS  df      MS      F    PRE     p
+ ----- --------------- | -------- --- ------- ------ ------ -----
+ Model (error reduced) |  496.765   1 496.765 21.357 0.0611 .0000
+ Error (from model)    | 7629.359 328  23.260                    
+ ----- --------------- | -------- --- ------- ------ ------ -----
+ Total (empty model)   | 8126.124 329  24.699                    </code></pre>
+</div>
+</div>
+<p>A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p &lt; 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI [1.04, 3.00])</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a linear model (estimated using OLS) to predict s_NABS with condition (formula: s_NABS ~ condition). The model explains a statistically significant and weak proportion of variance (R2 = 0.06, F(1, 328) = 21.36, p &lt; .001, adj. R2 = 0.06). The model's intercept, corresponding to condition = 111, is at 2.47 (95% CI [1.71, 3.22], t(328) = 6.43, p &lt; .001). Within this model:
+
+  - The effect of condition [121] is statistically significant and positive (beta = 2.46, 95% CI [1.41, 3.50], t(328) = 4.62, p &lt; .001; Std. beta = 0.49, 95% CI [0.28, 0.70])
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using the Wald approximation.</code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>m.m1 <span class="ot">&lt;-</span> <span class="fu">lmer</span>( score_SCALED <span class="sc">~</span> (<span class="dv">1</span> <span class="sc">+</span> condition<span class="sc">|</span>subject), <span class="at">data =</span> df_items)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Model failed to converge with 1 negative eigenvalue: -8.1e-04</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb99"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a>m.m1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML ['lmerModLmerTest']
+Formula: score_SCALED ~ (1 + condition | subject)
+   Data: df_items
+REML criterion at convergence: 9773
+Random effects:
+ Groups   Name         Std.Dev. Corr 
+ subject  (Intercept)  0.632         
+          condition121 0.827    -0.71
+ Residual              0.591         
+Number of obs: 4950, groups:  subject, 330
+Fixed Effects:
+(Intercept)  
+    -0.0617  </code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb101"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m.m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: score_SCALED ~ (1 + condition | subject)
+   Data: df_items
+
+REML criterion at convergence: 9773
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.9664 -0.6738 -0.0461  0.5889  2.7646 
+
+Random effects:
+ Groups   Name         Variance Std.Dev. Corr 
+ subject  (Intercept)  0.400    0.632         
+          condition121 0.685    0.827    -0.71
+ Residual              0.349    0.591         
+Number of obs: 4950, groups:  subject, 330
+
+Fixed effects:
+            Estimate Std. Error       df t value Pr(&gt;|t|)  
+(Intercept)  -0.0617     0.0344 326.4131   -1.79    0.074 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb103"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(m.m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a constant (intercept-only) linear mixed model (estimated using REML and nloptwrap optimizer) to predict score_SCALED (formula: score_SCALED ~ 1). The model included condition and subject as random effects (formula: ~1 + condition | subject). . The model's intercept is at -0.06 (95% CI [-0.13, 5.71e-03], t(4945) = -1.79, p = 0.073). Within this model:
+
+  -  ()
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using </code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb105"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a>m.m2 <span class="ot">&lt;-</span> <span class="fu">lmer</span>( score_SCALED <span class="sc">~</span> (<span class="dv">1</span><span class="sc">+</span> condition<span class="sc">|</span>q), <span class="at">data =</span> df_items)</span>
+<span id="cb105-2"><a href="#cb105-2" aria-hidden="true" tabindex="-1"></a>m.m2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML ['lmerModLmerTest']
+Formula: score_SCALED ~ (1 + condition | q)
+   Data: df_items
+REML criterion at convergence: 11500
+Random effects:
+ Groups   Name         Std.Dev. Corr 
+ q        (Intercept)  0.602         
+          condition121 0.530    -0.93
+ Residual              0.765         
+Number of obs: 4950, groups:  q, 15
+Fixed Effects:
+(Intercept)  
+      0.172  </code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb107"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m.m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: score_SCALED ~ (1 + condition | q)
+   Data: df_items
+
+REML criterion at convergence: 11500
+
+Scaled residuals: 
+   Min     1Q Median     3Q    Max 
+-1.972 -0.794 -0.093  0.887  2.164 
+
+Random effects:
+ Groups   Name         Variance Std.Dev. Corr 
+ q        (Intercept)  0.363    0.602         
+          condition121 0.281    0.530    -0.93
+ Residual              0.585    0.765         
+Number of obs: 4950, groups:  q, 15
+
+Fixed effects:
+            Estimate Std. Error      df t value Pr(&gt;|t|)   
+(Intercept)   0.1717     0.0575 14.0014    2.98   0.0099 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb109"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(m.m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a constant (intercept-only) linear mixed model (estimated using REML and nloptwrap optimizer) to predict score_SCALED (formula: score_SCALED ~ 1). The model included condition and q as random effects (formula: ~1 + condition | q). . The model's intercept is at 0.17 (95% CI [0.06, 0.28], t(4945) = 2.98, p = 0.003). Within this model:
+
+  -  ()
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using </code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb111"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a>m.m3 <span class="ot">&lt;-</span> <span class="fu">lmer</span>( score_SCALED <span class="sc">~</span> (<span class="dv">1</span><span class="sc">+</span> condition<span class="sc">|</span>q) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">+</span>condition<span class="sc">|</span>subject), <span class="at">data =</span> df_items)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+Model failed to converge with max|grad| = 0.00208782 (tol = 0.002, component 1)</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb113"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a>m.m3 <span class="sc">%&gt;%</span> <span class="fu">summary</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: score_SCALED ~ (1 + condition | q) + (1 + condition | subject)
+   Data: df_items
+
+REML criterion at convergence: 8593
+
+Scaled residuals: 
+   Min     1Q Median     3Q    Max 
+-3.724 -0.644 -0.016  0.697  3.599 
+
+Random effects:
+ Groups   Name         Variance Std.Dev. Corr 
+ subject  (Intercept)  0.339    0.583         
+          condition121 0.218    0.467    -0.46
+ q        (Intercept)  0.268    0.517         
+          condition121 0.197    0.443    -0.91
+ Residual              0.266    0.516         
+Number of obs: 4950, groups:  subject, 330; q, 15
+
+Fixed effects:
+            Estimate Std. Error     df t value Pr(&gt;|t|)
+(Intercept)    0.117      0.071 24.208    1.65     0.11
+optimizer (nloptwrap) convergence code: 0 (OK)
+Model failed to converge with max|grad| = 0.00208782 (tol = 0.002, component 1)</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb115"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a>m.m3 <span class="sc">%&gt;%</span> <span class="fu">report</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>We fitted a constant (intercept-only) linear mixed model (estimated using REML and nloptwrap optimizer) to predict score_SCALED (formula: score_SCALED ~ 1). The model included condition, q and subject as random effects (formula: list(~1 + condition | q, ~1 + condition | subject)). . The model's intercept is at 0.12 (95% CI [-0.02, 0.26], t(4942) = 1.65, p = 0.098). Within this model:
+
+  -  ()
+
+Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using </code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb117"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m.m1, m.m2, m.m3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>refitting model(s) with ML (instead of REML)</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data: df_items
+Models:
+m.m1: score_SCALED ~ (1 + condition | subject)
+m.m2: score_SCALED ~ (1 + condition | q)
+m.m3: score_SCALED ~ (1 + condition | q) + (1 + condition | subject)
+     npar   AIC   BIC logLik deviance Chisq Df Pr(&gt;Chisq)    
+m.m1    5  9778  9811  -4884     9768                        
+m.m2    5 11506 11539  -5748    11496     0  0               
+m.m3    8  8605  8657  -4295     8589  2907  3     &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+</section>
+<section id="resources" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="resources"><span class="header-section-number">5.5</span> RESOURCES</h2>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../analysis/SGC3A/4_sgc3A_hypotesting.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Hypothesis Testing</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../references.html" class="pagination-link">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb120" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb120-2"><a href="#cb120-2" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> 'Study SGC3A | 5 Exploratory Analyses'</span></span>
+<span id="cb120-3"><a href="#cb120-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb120-4"><a href="#cb120-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-5"><a href="#cb120-5" aria-hidden="true" tabindex="-1"></a>\newpage</span>
+<span id="cb120-6"><a href="#cb120-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-7"><a href="#cb120-7" aria-hidden="true" tabindex="-1"></a><span class="fu"># Exploratory Analyses {#sec-SGC3A-exploration}</span></span>
+<span id="cb120-8"><a href="#cb120-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-9"><a href="#cb120-9" aria-hidden="true" tabindex="-1"></a>**TODO**  </span>
+<span id="cb120-10"><a href="#cb120-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>clarify core questions being asked  </span>
+<span id="cb120-11"><a href="#cb120-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>review models already created in ARCHIVE?  </span>
+<span id="cb120-12"><a href="#cb120-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>explore response consistency</span>
+<span id="cb120-13"><a href="#cb120-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-16"><a href="#cb120-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-17"><a href="#cb120-17" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SETUP</span></span>
+<span id="cb120-18"><a href="#cb120-18" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
+<span id="cb120-19"><a href="#cb120-19" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
+<span id="cb120-20"><a href="#cb120-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-21"><a href="#cb120-21" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS</span></span>
+<span id="cb120-22"><a href="#cb120-22" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc) <span class="co"># %nin% operator</span></span>
+<span id="cb120-23"><a href="#cb120-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr) <span class="co">#arrange plots</span></span>
+<span id="cb120-24"><a href="#cb120-24" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggformula) <span class="co">#easy graphs</span></span>
+<span id="cb120-25"><a href="#cb120-25" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(report) <span class="co">#easystats reporting</span></span>
+<span id="cb120-26"><a href="#cb120-26" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(see) <span class="co">#easystats visualization</span></span>
+<span id="cb120-27"><a href="#cb120-27" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(performance) <span class="co">#easystats model diagnostics</span></span>
+<span id="cb120-28"><a href="#cb120-28" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gmodels) <span class="co">#contingency table and CHISQR</span></span>
+<span id="cb120-29"><a href="#cb120-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcd) <span class="co">#mosaic plots</span></span>
+<span id="cb120-30"><a href="#cb120-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcdExtra) <span class="co">#mosaic plots</span></span>
+<span id="cb120-31"><a href="#cb120-31" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#printing tables </span></span>
+<span id="cb120-32"><a href="#cb120-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-33"><a href="#cb120-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-34"><a href="#cb120-34" aria-hidden="true" tabindex="-1"></a><span class="co">#set some output options</span></span>
+<span id="cb120-35"><a href="#cb120-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb120-36"><a href="#cb120-36" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">dplyr.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb120-37"><a href="#cb120-37" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">ggplot2.summarise.inform =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb120-38"><a href="#cb120-38" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
+<span id="cb120-39"><a href="#cb120-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-40"><a href="#cb120-40" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-41"><a href="#cb120-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-42"><a href="#cb120-42" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is exploratory analyses of data collected for study SGC3A.*</span>
+<span id="cb120-43"><a href="#cb120-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-44"><a href="#cb120-44" aria-hidden="true" tabindex="-1"></a>+------------------------+</span>
+<span id="cb120-45"><a href="#cb120-45" aria-hidden="true" tabindex="-1"></a>| Pre-Requisite          |</span>
+<span id="cb120-46"><a href="#cb120-46" aria-hidden="true" tabindex="-1"></a>+========================+</span>
+<span id="cb120-47"><a href="#cb120-47" aria-hidden="true" tabindex="-1"></a>| 1_sgc3A_harmonize.qmd\ |</span>
+<span id="cb120-48"><a href="#cb120-48" aria-hidden="true" tabindex="-1"></a>| 2_sgc3A_scoring.qmd  |</span>
+<span id="cb120-49"><a href="#cb120-49" aria-hidden="true" tabindex="-1"></a>+------------------------+</span>
+<span id="cb120-50"><a href="#cb120-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-53"><a href="#cb120-53" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-54"><a href="#cb120-54" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-DATA</span></span>
+<span id="cb120-55"><a href="#cb120-55" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo : true</span></span>
+<span id="cb120-56"><a href="#cb120-56" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
+<span id="cb120-57"><a href="#cb120-57" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
+<span id="cb120-58"><a href="#cb120-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-59"><a href="#cb120-59" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT DATA </span></span>
+<span id="cb120-60"><a href="#cb120-60" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_items.rds'</span>)</span>
+<span id="cb120-61"><a href="#cb120-61" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'data/2-scored-data/sgc3a_scored_participants.rds'</span>)</span>
+<span id="cb120-62"><a href="#cb120-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-63"><a href="#cb120-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-64"><a href="#cb120-64" aria-hidden="true" tabindex="-1"></a><span class="co">#SEPARATE ITEM DATA BY QUESTION TYPE</span></span>
+<span id="cb120-65"><a href="#cb120-65" aria-hidden="true" tabindex="-1"></a>df_scaffold <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&lt;</span> <span class="dv">6</span>)</span>
+<span id="cb120-66"><a href="#cb120-66" aria-hidden="true" tabindex="-1"></a>df_test <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">&gt;</span> <span class="dv">6</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%nin%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>))</span>
+<span id="cb120-67"><a href="#cb120-67" aria-hidden="true" tabindex="-1"></a>df_nondiscrim <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>))</span>
+<span id="cb120-68"><a href="#cb120-68" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-69"><a href="#cb120-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-70"><a href="#cb120-70" aria-hidden="true" tabindex="-1"></a>**TODO**</span>
+<span id="cb120-71"><a href="#cb120-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-72"><a href="#cb120-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-73"><a href="#cb120-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-74"><a href="#cb120-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-75"><a href="#cb120-75" aria-hidden="true" tabindex="-1"></a><span class="fu">## XYZ</span></span>
+<span id="cb120-76"><a href="#cb120-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-77"><a href="#cb120-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-78"><a href="#cb120-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-79"><a href="#cb120-79" aria-hidden="true" tabindex="-1"></a><span class="fu">### XYZ</span></span>
+<span id="cb120-80"><a href="#cb120-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-81"><a href="#cb120-81" aria-hidden="true" tabindex="-1"></a><span class="fu">#### XYZ</span></span>
+<span id="cb120-82"><a href="#cb120-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-83"><a href="#cb120-83" aria-hidden="true" tabindex="-1"></a>+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span>
+<span id="cb120-84"><a href="#cb120-84" aria-hidden="true" tabindex="-1"></a>| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? <span class="sc">\[</span>Is response accuracy independent of condition?<span class="sc">\]</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |</span>
+<span id="cb120-85"><a href="#cb120-85" aria-hidden="true" tabindex="-1"></a>+=======================+=======================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+</span>
+<span id="cb120-86"><a href="#cb120-86" aria-hidden="true" tabindex="-1"></a>| **Analysis Strategy** | Chi-Square test of independence on outcome <span class="in">`score_niceABS`</span> by <span class="in">`condition`</span> for <span class="in">`df_items`</span> where <span class="in">`q == 1`</span>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |</span>
+<span id="cb120-87"><a href="#cb120-87" aria-hidden="true" tabindex="-1"></a>+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span>
+<span id="cb120-88"><a href="#cb120-88" aria-hidden="true" tabindex="-1"></a>| **Justification**     | <span class="sc">\(</span>0<span class="sc">\)</span> simplest method to examine independence of two categorical factors; logistic regression is recommended for binomial \~ continuous                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |</span>
+<span id="cb120-89"><a href="#cb120-89" aria-hidden="true" tabindex="-1"></a>|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |</span>
+<span id="cb120-90"><a href="#cb120-90" aria-hidden="true" tabindex="-1"></a>|                       | <span class="sc">\(</span>1<span class="sc">\)</span> independence assumption : as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |</span>
+<span id="cb120-91"><a href="#cb120-91" aria-hidden="true" tabindex="-1"></a>|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |</span>
+<span id="cb120-92"><a href="#cb120-92" aria-hidden="true" tabindex="-1"></a>|                       | <span class="sc">\(</span>2<span class="sc">\)</span> frequency size assumption : expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |</span>
+<span id="cb120-93"><a href="#cb120-93" aria-hidden="true" tabindex="-1"></a>+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span>
+<span id="cb120-94"><a href="#cb120-94" aria-hidden="true" tabindex="-1"></a>| **Steps**             | <span class="sc">\(</span>1<span class="sc">\)</span> Express raw data as contingency table &amp; visualize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |</span>
+<span id="cb120-95"><a href="#cb120-95" aria-hidden="true" tabindex="-1"></a>|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |</span>
+<span id="cb120-96"><a href="#cb120-96" aria-hidden="true" tabindex="-1"></a>|                       | <span class="sc">\(</span>2<span class="sc">\)</span> Calculate Chi-Squared Statistic and p-value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |</span>
+<span id="cb120-97"><a href="#cb120-97" aria-hidden="true" tabindex="-1"></a>|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |</span>
+<span id="cb120-98"><a href="#cb120-98" aria-hidden="true" tabindex="-1"></a>|                       | <span class="sc">\(</span>3<span class="sc">\)</span> Interpret Odds-Ratio as effect size                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |</span>
+<span id="cb120-99"><a href="#cb120-99" aria-hidden="true" tabindex="-1"></a>+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span>
+<span id="cb120-100"><a href="#cb120-100" aria-hidden="true" tabindex="-1"></a>| **Inference**         | **Lab** A Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. In this particular data sample, the sample odds ratio 2.18 indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than if the control condition (Odds Ratio = 2.18, p = 0.055, 95% CI <span class="sc">\[</span>0.982, +Inf<span class="sc">\]</span>). |</span>
+<span id="cb120-101"><a href="#cb120-101" aria-hidden="true" tabindex="-1"></a>|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |</span>
+<span id="cb120-102"><a href="#cb120-102" aria-hidden="true" tabindex="-1"></a>|                       | **Online** A Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. The sample odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI <span class="sc">\[</span>1.37, +Inf<span class="sc">\]</span>).                                         |</span>
+<span id="cb120-103"><a href="#cb120-103" aria-hidden="true" tabindex="-1"></a>+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</span>
+<span id="cb120-104"><a href="#cb120-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-107"><a href="#cb120-107" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-108"><a href="#cb120-108" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-LR-Q1.tri.by.Cond</span></span>
+<span id="cb120-109"><a href="#cb120-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-110"><a href="#cb120-110" aria-hidden="true" tabindex="-1"></a><span class="co">#FITER THE DATASET</span></span>
+<span id="cb120-111"><a href="#cb120-111" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">==</span><span class="dv">1</span>) </span>
+<span id="cb120-112"><a href="#cb120-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-113"><a href="#cb120-113" aria-hidden="true" tabindex="-1"></a><span class="co">#PROPORTIONAL BAR CHART</span></span>
+<span id="cb120-114"><a href="#cb120-114" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_niceABS, <span class="at">data =</span> df, <span class="at">fill =</span> <span class="sc">~</span>mode) <span class="sc">%&gt;%</span> </span>
+<span id="cb120-115"><a href="#cb120-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(mode<span class="sc">~</span>condition, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb120-116"><a href="#cb120-116" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Correct Response on Q 1"</span>,</span>
+<span id="cb120-117"><a href="#cb120-117" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Accuracy on First Question by Condition (Both Modalities)"</span>,</span>
+<span id="cb120-118"><a href="#cb120-118" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle=</span><span class="st">"Impasse Condition yields a greater proportion of correct responses than control "</span>)<span class="sc">+</span></span>
+<span id="cb120-119"><a href="#cb120-119" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb120-120"><a href="#cb120-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-121"><a href="#cb120-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-122"><a href="#cb120-122" aria-hidden="true" tabindex="-1"></a><span class="co">#MOSAIC PLOT</span></span>
+<span id="cb120-123"><a href="#cb120-123" aria-hidden="true" tabindex="-1"></a>vcd<span class="sc">::</span><span class="fu">mosaic</span>(<span class="at">main=</span><span class="st">"Accuracy on First Question by Condition (Both Modalities)"</span>,</span>
+<span id="cb120-124"><a href="#cb120-124" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> df, score_niceABS <span class="sc">~</span> condition, <span class="at">rot_labels=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">90</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb120-125"><a href="#cb120-125" aria-hidden="true" tabindex="-1"></a>            <span class="at">offset_varnames =</span> <span class="fu">c</span>(<span class="at">left =</span> <span class="fl">4.5</span>), <span class="at">offset_labels =</span> <span class="fu">c</span>(<span class="at">left =</span> <span class="sc">-</span><span class="fl">0.5</span>),<span class="at">just_labels =</span> <span class="st">"right"</span>,</span>
+<span id="cb120-126"><a href="#cb120-126" aria-hidden="true" tabindex="-1"></a>            <span class="at">spacing =</span> <span class="fu">spacing_dimequal</span>(<span class="fu">unit</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="st">"lines"</span>)))</span>
+<span id="cb120-127"><a href="#cb120-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-128"><a href="#cb120-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-129"><a href="#cb120-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-130"><a href="#cb120-130" aria-hidden="true" tabindex="-1"></a><span class="co">#PRINT CONTINGENCY TABLE</span></span>
+<span id="cb120-131"><a href="#cb120-131" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Proportion of Correct Responses On First Item (Both Modalities)"</span></span>
+<span id="cb120-132"><a href="#cb120-132" aria-hidden="true" tabindex="-1"></a>item.contingency <span class="ot">&lt;-</span>  df <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(condition, score_niceABS) <span class="sc">%&gt;%</span> <span class="fu">table</span>() <span class="sc">%&gt;%</span> <span class="fu">prop.table</span>() <span class="sc">%&gt;%</span> <span class="fu">addmargins</span>()</span>
+<span id="cb120-133"><a href="#cb120-133" aria-hidden="true" tabindex="-1"></a>item.contingency <span class="sc">%&gt;%</span> <span class="fu">kbl</span> (<span class="at">caption =</span> title) <span class="sc">%&gt;%</span> <span class="fu">kable_classic</span>()</span>
+<span id="cb120-134"><a href="#cb120-134" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-135"><a href="#cb120-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-138"><a href="#cb120-138" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-139"><a href="#cb120-139" aria-hidden="true" tabindex="-1"></a><span class="co">#| label : TBL-Q1.TRI.by.COND-LAB</span></span>
+<span id="cb120-140"><a href="#cb120-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-141"><a href="#cb120-141" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"lab-synch"</span>)</span>
+<span id="cb120-142"><a href="#cb120-142" aria-hidden="true" tabindex="-1"></a><span class="fu">CrossTable</span>( <span class="at">x =</span> df<span class="sc">$</span>condition, <span class="at">y =</span> df<span class="sc">$</span>score_niceABS, <span class="at">fisher =</span> <span class="cn">TRUE</span>, <span class="at">chisq=</span><span class="cn">TRUE</span>, <span class="at">expected =</span> <span class="cn">TRUE</span>, <span class="at">sresid =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb120-143"><a href="#cb120-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-144"><a href="#cb120-144" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-145"><a href="#cb120-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-146"><a href="#cb120-146" aria-hidden="true" tabindex="-1"></a>Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, 'Expected N'. The model predicts more than 5 observations in each cell.) The Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. In this particular data sample, the odds ratio 2.18 indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.18, p = 0.055, 95% CI <span class="sc">\[</span>0.982, +Inf<span class="sc">\]</span>).</span>
+<span id="cb120-147"><a href="#cb120-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-150"><a href="#cb120-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-151"><a href="#cb120-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| label : TBL-Q1.TRI.by.COND-ONLINE</span></span>
+<span id="cb120-152"><a href="#cb120-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-153"><a href="#cb120-153" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode <span class="sc">==</span> <span class="st">"asynch"</span>)</span>
+<span id="cb120-154"><a href="#cb120-154" aria-hidden="true" tabindex="-1"></a><span class="fu">CrossTable</span>( <span class="at">x =</span> df<span class="sc">$</span>condition, <span class="at">y =</span> df<span class="sc">$</span>score_niceABS, <span class="at">fisher =</span> <span class="cn">TRUE</span>, <span class="at">chisq=</span><span class="cn">TRUE</span>, <span class="at">expected =</span> <span class="cn">TRUE</span>, <span class="at">sresid =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb120-155"><a href="#cb120-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-156"><a href="#cb120-156" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-157"><a href="#cb120-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-158"><a href="#cb120-158" aria-hidden="true" tabindex="-1"></a>Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, 'Expected N'. The model predicts more than 5 observations in each cell.) The Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. The odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI <span class="sc">\[</span>1.37, +Inf<span class="sc">\]</span>).</span>
+<span id="cb120-159"><a href="#cb120-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-160"><a href="#cb120-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-161"><a href="#cb120-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-162"><a href="#cb120-162" aria-hidden="true" tabindex="-1"></a><span class="fu">## COPIED FROM 3</span></span>
+<span id="cb120-163"><a href="#cb120-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-164"><a href="#cb120-164" aria-hidden="true" tabindex="-1"></a>**Does the IMPASSE condition more accurate interpretation?**</span>
+<span id="cb120-165"><a href="#cb120-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-166"><a href="#cb120-166" aria-hidden="true" tabindex="-1"></a>To address this question we assess how much variance in cumulative (absolute) score is explained by experimental condition.</span>
+<span id="cb120-167"><a href="#cb120-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-170"><a href="#cb120-170" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-171"><a href="#cb120-171" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: MODEL-scaled-score-LAB</span></span>
+<span id="cb120-172"><a href="#cb120-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-173"><a href="#cb120-173" aria-hidden="true" tabindex="-1"></a><span class="co">#SCORE predicted by CONDITION</span></span>
+<span id="cb120-174"><a href="#cb120-174" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode<span class="sc">==</span><span class="st">"lab-synch"</span>))</span>
+<span id="cb120-175"><a href="#cb120-175" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Model"</span>)</span>
+<span id="cb120-176"><a href="#cb120-176" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span>
+<span id="cb120-177"><a href="#cb120-177" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Partition Variance"</span>)</span>
+<span id="cb120-178"><a href="#cb120-178" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1)</span>
+<span id="cb120-179"><a href="#cb120-179" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Confidence Interval on Parameter Estimates"</span>)</span>
+<span id="cb120-180"><a href="#cb120-180" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(m1)</span>
+<span id="cb120-181"><a href="#cb120-181" aria-hidden="true" tabindex="-1"></a><span class="co"># report(m1) #sanity check</span></span>
+<span id="cb120-182"><a href="#cb120-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-183"><a href="#cb120-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-184"><a href="#cb120-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-185"><a href="#cb120-185" aria-hidden="true" tabindex="-1"></a>**For in-lab data collection** an OLS linear regression predicting scaled score by experimental condition explains a statistically significant and moderate 15% variance in score (F(1,124) = 22.7, p <span class="sc">\&lt;</span> 0.001). The estimated beta coefficient ($/beta$ = 7.88, 95% CI <span class="sc">\[</span>4.61, 11.2<span class="sc">\]</span>) predicts that participants in the impasse condition will on average score around 8 points (31%) higher than those in the control condition.</span>
+<span id="cb120-186"><a href="#cb120-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-189"><a href="#cb120-189" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-190"><a href="#cb120-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: MODEL-scaled-score-ONLINE</span></span>
+<span id="cb120-191"><a href="#cb120-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-192"><a href="#cb120-192" aria-hidden="true" tabindex="-1"></a><span class="co">#SCORE predicted by CONDITION</span></span>
+<span id="cb120-193"><a href="#cb120-193" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode<span class="sc">==</span><span class="st">"asynch"</span>))</span>
+<span id="cb120-194"><a href="#cb120-194" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Model"</span>)</span>
+<span id="cb120-195"><a href="#cb120-195" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span>
+<span id="cb120-196"><a href="#cb120-196" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Partition Variance"</span>)</span>
+<span id="cb120-197"><a href="#cb120-197" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1)</span>
+<span id="cb120-198"><a href="#cb120-198" aria-hidden="true" tabindex="-1"></a><span class="fu">paste</span>(<span class="st">"Confidence Interval on Parameter Estimates"</span>)</span>
+<span id="cb120-199"><a href="#cb120-199" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(m1)</span>
+<span id="cb120-200"><a href="#cb120-200" aria-hidden="true" tabindex="-1"></a><span class="co">#report(m1) #sanity check</span></span>
+<span id="cb120-201"><a href="#cb120-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-202"><a href="#cb120-202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-203"><a href="#cb120-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-204"><a href="#cb120-204" aria-hidden="true" tabindex="-1"></a>**For the online replication**, an OLS linear regression model predicting scaled score by condition explains a statistically significant and moderate 14% of variance in absolute score (F(1,202) = 32.4, p <span class="sc">\&lt;</span> 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 6.8 points higher on the task than those in the control condition (CI<span class="sc">\[</span>4.43, 9.12<span class="sc">\]</span>).</span>
+<span id="cb120-205"><a href="#cb120-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-206"><a href="#cb120-206" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb120-207"><a href="#cb120-207" aria-hidden="true" tabindex="-1"></a>**From these models we can reasonably conclude that the impasse condition yields a reliable, moderate sized effect of improved interpretation on the graph reading tasks.**</span>
+<span id="cb120-208"><a href="#cb120-208" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb120-209"><a href="#cb120-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-210"><a href="#cb120-210" aria-hidden="true" tabindex="-1"></a><span class="fu">## Item-Level Performance</span></span>
+<span id="cb120-211"><a href="#cb120-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-212"><a href="#cb120-212" aria-hidden="true" tabindex="-1"></a>Individual differences with a mixed model.</span>
+<span id="cb120-213"><a href="#cb120-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-214"><a href="#cb120-214" aria-hidden="true" tabindex="-1"></a><span class="fu">## Model Peeking</span></span>
+<span id="cb120-215"><a href="#cb120-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-216"><a href="#cb120-216" aria-hidden="true" tabindex="-1"></a>TODO</span>
+<span id="cb120-217"><a href="#cb120-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-218"><a href="#cb120-218" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>multiple regression with condition and response time</span>
+<span id="cb120-219"><a href="#cb120-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-222"><a href="#cb120-222" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-223"><a href="#cb120-223" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(supernova)</span>
+<span id="cb120-224"><a href="#cb120-224" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(report)</span>
+<span id="cb120-225"><a href="#cb120-225" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span>
+<span id="cb120-226"><a href="#cb120-226" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb120-227"><a href="#cb120-227" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>( s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects <span class="sc">%&gt;%</span> <span class="fu">filter</span>(mode<span class="sc">==</span><span class="st">'asynch'</span>))</span>
+<span id="cb120-228"><a href="#cb120-228" aria-hidden="true" tabindex="-1"></a>m1</span>
+<span id="cb120-229"><a href="#cb120-229" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span>
+<span id="cb120-230"><a href="#cb120-230" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1)</span>
+<span id="cb120-231"><a href="#cb120-231" aria-hidden="true" tabindex="-1"></a><span class="fu">superanova</span>(m1)</span>
+<span id="cb120-232"><a href="#cb120-232" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(m1)</span>
+<span id="cb120-233"><a href="#cb120-233" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>s_SCALED, <span class="at">data =</span> df_subjects)</span>
+<span id="cb120-234"><a href="#cb120-234" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>m1<span class="sc">$</span>residuals)</span>
+<span id="cb120-235"><a href="#cb120-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-236"><a href="#cb120-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-237"><a href="#cb120-237" aria-hidden="true" tabindex="-1"></a><span class="co">#Assess assumption of independence of errors</span></span>
+<span id="cb120-238"><a href="#cb120-238" aria-hidden="true" tabindex="-1"></a><span class="co">#DW statistic should be close to 2</span></span>
+<span id="cb120-239"><a href="#cb120-239" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb120-240"><a href="#cb120-240" aria-hidden="true" tabindex="-1"></a><span class="fu">durbinWatsonTest</span>(m1)</span>
+<span id="cb120-241"><a href="#cb120-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-242"><a href="#cb120-242" aria-hidden="true" tabindex="-1"></a><span class="co">#Test for equality of variance</span></span>
+<span id="cb120-243"><a href="#cb120-243" aria-hidden="true" tabindex="-1"></a><span class="co">#H0 is equality; p &gt; 0.05 infer you can't reject null</span></span>
+<span id="cb120-244"><a href="#cb120-244" aria-hidden="true" tabindex="-1"></a><span class="fu">leveneTest</span>(m1)</span>
+<span id="cb120-245"><a href="#cb120-245" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-246"><a href="#cb120-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-247"><a href="#cb120-247" aria-hidden="true" tabindex="-1"></a>A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p <span class="sc">\&lt;</span> 0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI <span class="sc">\[</span>4.56, 8.19<span class="sc">\]</span>.</span>
+<span id="cb120-248"><a href="#cb120-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-251"><a href="#cb120-251" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-252"><a href="#cb120-252" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(s_SCALED <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects)</span>
+<span id="cb120-253"><a href="#cb120-253" aria-hidden="true" tabindex="-1"></a><span class="co">#%&gt;% report()</span></span>
+<span id="cb120-254"><a href="#cb120-254" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-255"><a href="#cb120-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-258"><a href="#cb120-258" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-259"><a href="#cb120-259" aria-hidden="true" tabindex="-1"></a><span class="co"># report_participants(df_subjects)</span></span>
+<span id="cb120-260"><a href="#cb120-260" aria-hidden="true" tabindex="-1"></a>m1 <span class="sc">%&gt;%</span> <span class="fu">report</span>()</span>
+<span id="cb120-261"><a href="#cb120-261" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m1) <span class="sc">%&gt;%</span> <span class="fu">report</span>()</span>
+<span id="cb120-262"><a href="#cb120-262" aria-hidden="true" tabindex="-1"></a><span class="co">#significant intercept means that group is significantly different than zero</span></span>
+<span id="cb120-263"><a href="#cb120-263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-264"><a href="#cb120-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-267"><a href="#cb120-267" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-268"><a href="#cb120-268" aria-hidden="true" tabindex="-1"></a><span class="co">#logistic regression on on scaled df_subjects because residuals not normal in lm?</span></span>
+<span id="cb120-269"><a href="#cb120-269" aria-hidden="true" tabindex="-1"></a>mlog <span class="ot">&lt;-</span> <span class="fu">glm</span>(s_SCALED <span class="sc">~</span> condition , <span class="at">data =</span> df_subjects, <span class="at">family =</span> gaussian)</span>
+<span id="cb120-270"><a href="#cb120-270" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mlog)</span>
+<span id="cb120-271"><a href="#cb120-271" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(mlog)</span>
+<span id="cb120-272"><a href="#cb120-272" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-273"><a href="#cb120-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-276"><a href="#cb120-276" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-277"><a href="#cb120-277" aria-hidden="true" tabindex="-1"></a><span class="co">#logistic regression on niceABS by condition</span></span>
+<span id="cb120-278"><a href="#cb120-278" aria-hidden="true" tabindex="-1"></a><span class="co">#pretends that questions are independent and not from same subjects INVALID</span></span>
+<span id="cb120-279"><a href="#cb120-279" aria-hidden="true" tabindex="-1"></a>mlog <span class="ot">&lt;-</span> <span class="fu">glm</span>(score_niceABS <span class="sc">~</span> condition , <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q<span class="sc">&lt;</span><span class="dv">6</span>), <span class="at">family =</span> <span class="fu">binomial</span>())</span>
+<span id="cb120-280"><a href="#cb120-280" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mlog)</span>
+<span id="cb120-281"><a href="#cb120-281" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(mlog)</span>
+<span id="cb120-282"><a href="#cb120-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-283"><a href="#cb120-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-286"><a href="#cb120-286" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-287"><a href="#cb120-287" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">lm</span>( s_NABS <span class="sc">~</span> condition, <span class="at">data =</span> df_subjects)</span>
+<span id="cb120-288"><a href="#cb120-288" aria-hidden="true" tabindex="-1"></a>m2</span>
+<span id="cb120-289"><a href="#cb120-289" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m2)</span>
+<span id="cb120-290"><a href="#cb120-290" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m2)</span>
+<span id="cb120-291"><a href="#cb120-291" aria-hidden="true" tabindex="-1"></a><span class="fu">supernova</span>(m2)</span>
+<span id="cb120-292"><a href="#cb120-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-293"><a href="#cb120-293" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-294"><a href="#cb120-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-295"><a href="#cb120-295" aria-hidden="true" tabindex="-1"></a>A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p <span class="sc">\&lt;</span> 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI <span class="sc">\[</span>1.04, 3.00<span class="sc">\]</span>)</span>
+<span id="cb120-296"><a href="#cb120-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-299"><a href="#cb120-299" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-300"><a href="#cb120-300" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(m2)</span>
+<span id="cb120-301"><a href="#cb120-301" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-302"><a href="#cb120-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-305"><a href="#cb120-305" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-306"><a href="#cb120-306" aria-hidden="true" tabindex="-1"></a>m.m1 <span class="ot">&lt;-</span> <span class="fu">lmer</span>( score_SCALED <span class="sc">~</span> (<span class="dv">1</span> <span class="sc">+</span> condition<span class="sc">|</span>subject), <span class="at">data =</span> df_items)</span>
+<span id="cb120-307"><a href="#cb120-307" aria-hidden="true" tabindex="-1"></a>m.m1</span>
+<span id="cb120-308"><a href="#cb120-308" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m.m1)</span>
+<span id="cb120-309"><a href="#cb120-309" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(m.m1)</span>
+<span id="cb120-310"><a href="#cb120-310" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-311"><a href="#cb120-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-314"><a href="#cb120-314" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-315"><a href="#cb120-315" aria-hidden="true" tabindex="-1"></a>m.m2 <span class="ot">&lt;-</span> <span class="fu">lmer</span>( score_SCALED <span class="sc">~</span> (<span class="dv">1</span><span class="sc">+</span> condition<span class="sc">|</span>q), <span class="at">data =</span> df_items)</span>
+<span id="cb120-316"><a href="#cb120-316" aria-hidden="true" tabindex="-1"></a>m.m2</span>
+<span id="cb120-317"><a href="#cb120-317" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m.m2)</span>
+<span id="cb120-318"><a href="#cb120-318" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(m.m2)</span>
+<span id="cb120-319"><a href="#cb120-319" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-320"><a href="#cb120-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-323"><a href="#cb120-323" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-324"><a href="#cb120-324" aria-hidden="true" tabindex="-1"></a>m.m3 <span class="ot">&lt;-</span> <span class="fu">lmer</span>( score_SCALED <span class="sc">~</span> (<span class="dv">1</span><span class="sc">+</span> condition<span class="sc">|</span>q) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">+</span>condition<span class="sc">|</span>subject), <span class="at">data =</span> df_items)</span>
+<span id="cb120-325"><a href="#cb120-325" aria-hidden="true" tabindex="-1"></a>m.m3 <span class="sc">%&gt;%</span> <span class="fu">summary</span>() </span>
+<span id="cb120-326"><a href="#cb120-326" aria-hidden="true" tabindex="-1"></a>m.m3 <span class="sc">%&gt;%</span> <span class="fu">report</span>()</span>
+<span id="cb120-327"><a href="#cb120-327" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-328"><a href="#cb120-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-331"><a href="#cb120-331" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb120-332"><a href="#cb120-332" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m.m1, m.m2, m.m3)</span>
+<span id="cb120-333"><a href="#cb120-333" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb120-334"><a href="#cb120-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb120-335"><a href="#cb120-335" aria-hidden="true" tabindex="-1"></a><span class="fu">## RESOURCES</span></span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>

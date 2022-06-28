@@ -1,38 +1,28 @@
 ---
-# title: 'Exploration'
-subtitle: 'Study SGC3A | 3 Exploration'
-# author: 'Amy Rae Fox'
-# always_allow_html: true  
-# header-includes:
-#    - \usepackage{amsmath}
-# output:
-#   html_document:
-#     theme: yeti
-#     code_folding: hide
-#     fig_caption: yes
-#     number_sections: yes
-#     toc: yes
-#     toc_depth: 4
-#     toc_float:
-#       collapsed: no
-#       smooth_scroll: yes
-#   pdf_document: 
-#     toc: true
-#     toc_depth: 3
-#     latex_engine: xelatex
-# font-family: "DejaVu Sans"
-# mainfont: "DejaVu Sans"
+subtitle: 'Study SGC3A | 3 Description'
 ---
 
 \newpage
 
-# Exploration {#sec-SGC3A-exploration}
+# Description {#sec-SGC3A-description}
 
-**THIS NOTEBOOK IS INCOMPLETE**
+**TODO**
+
+-   refactor titles to match hypo testing
+-   describe response consistency
+-   finish description of latency
+
+*The purpose of this notebook is describe the distributions of dependent variables for Study SGC3A.*
+
++------------------------+
+| Pre-Requisite          |
++========================+
+| 1_sgc3A_harmonize.qmd\ |
+| 2_sgc3A_scoring.qmd    |
++------------------------+
 
 ```{r}
 #| label: SETUP
-#| echo : true
 #| warning : false
 #| message : false
 
@@ -50,23 +40,6 @@ options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
-```
-
-*The purpose of this notebook is explore the distribution of dependent variables for Study SGC3A.*
-
-+------------------------+---------------+
-| Pre-Requisite          | Followed By   |
-+========================+===============+
-| 1_sgc3A_harmonize.qmd\ |               |
-| 2_sgc3A_rescoring.qmd  |               |
-+------------------------+---------------+
-
-```{r}
-#| label: IMPORT-DATA
-#| echo : true
-#| warning : false
-#| message : false
-
 #IMPORT DATA 
 df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
@@ -78,7 +51,7 @@ df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 ```
 
-## Sample
+## SAMPLE
 
 ### Data Collection
 
@@ -97,7 +70,7 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 ### Participants
 
 ```{r}
-#| label: PARTICIPANTS
+#| label: DESC-PARTICIPANTS
 
 #Describe participants
 subject.stats <- rbind(
@@ -122,7 +95,7 @@ For **online replication** `r subject.stats["online",]$n` participants (`r round
 report_participants(df_subjects, education = "schoolyear", sex = "gender", group = "mode")
 ```
 
-## Response Accuracy
+## RESPONSE ACCURACY
 
 ### Cumulative Scores
 
@@ -133,7 +106,7 @@ Cumulative scores indicate the response accuracy by a particular participant acr
 Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) `s_ABS` indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of discriminant items, the cumulative absolute score for an individual subject ranges from \[0,13\].
 
 ```{r}
-#| label: ABS-SUBJECT
+#| label: DESC-SUBJ-ABS
 title = "Descriptive Statistics of Response Accuracy (Cumulative Item Absolute Score)"
 abs.stats <- rbind(
   "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_ABS) %>% unlist() %>% favstats(),
@@ -148,7 +121,7 @@ For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]
 For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slighly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
 
 ```{r}
-#| label: VIS-SUBJECT-ABS
+#| label: VIS-SUBJ-ABS
  
 #VISUALIZE distribution of response accuracy across SUBJECTS
 
@@ -178,7 +151,7 @@ gf_density(~s_ABS, data = df_subjects) %>%
 ```
 
 ::: callout-decision
-**Condition appears to exert a positive influence on Cumulative Absolute Score acrosss data collection modalities.**
+**Condition appears to exert a positive influence on Cumulative Absolute Score across data collection modalities.**
 :::
 
 #### Cumulative Scaled Scores
@@ -188,7 +161,7 @@ The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 str
 Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score
 
 ```{r}
-#| label: SCALED-SUBJECT
+#| label: DESC-SUBJ-SCALED
 
 title = "Descriptive Statistics of Response Accuracy (Cumulative Scaled Score)"
 scaled.stats <- rbind(
@@ -204,7 +177,7 @@ For in person collection, cumulative absolute scores (n = `r scaled.stats["lab",
 For online replication, (online) cumulative accuracy scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slighly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
 
 ```{r}
-#| label: VIS-SUBJECT-SCALED-SCORE
+#| label: VIS-SUBJ-SCALED
  
 #VISUALIZE distribution of response accuracy across SUBJECTS
 
@@ -233,7 +206,7 @@ Item scores indicate the response accuracy by a participant on each individual q
 #### Item Absolute Score
 
 ```{r}
-#| label: ABS-ITEM
+#| label: DESC-ITEM-ABS
 
 x <- df_items %>% mutate(score = as.logical(score_ABS))
 
@@ -251,7 +224,7 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 Across both data collection modalities, the proportion of correct answers is greater in the impasse vs. control condition.
 
 ```{r}
-#| label: VIS-ITEMS-ABS-SCORE
+#| label: VIS-ITEM-ABS
 
 #VISUALIZE distribution of response accuracy across ITEMS
 
@@ -271,7 +244,7 @@ gf_props(~score_niceABS, data = df_items) %>%
 At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1.
 
 ```{r}
-#| label: Scaled-ITEM
+#| label: DESC-ITEM-SCALED
 
 title = "Descriptive Statistics of Item Response Accuracy (Scaled Score)"
 scaled.stats.items <- rbind(
@@ -283,7 +256,7 @@ scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
 ```
 
 ```{r}
-#| label: VIS-ITEMS-SCALED-SCORE
+#| label: VIS-ITEM-SCALED
 
 #VISUALIZE distribution of response accuracy across ITEMS
 
@@ -303,7 +276,7 @@ gf_density(~score_SCALED, data = df_items) %>%
 #### Item Interpretation Scores
 
 ```{r}
-#| label: FREQ-ITEMS-INTERPRETATIONS
+#| label: DESC-ITEM-INTEPRETATION
 
 #VISUALIZE distribution of interpretations across all ITEMS
 
@@ -325,7 +298,7 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 ```
 
 ```{r}
-#| label: VIS-ITEMS-INTERPRETATIONS
+#| label: VIS-ITEM-INTERPRETATION
 
 
 #PROPORTIONAL BAR CHART
@@ -346,7 +319,7 @@ vcd::mosaic(main="Proportion of Item Interpretation across Conditions",
 
 ```
 
-## Response Latency
+## RESPONSE LATENCY
 
 -   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
 
@@ -401,8 +374,11 @@ annotate_figure(plot,
 
 **TODO time on question**
 
+## RESPONSE CONSISTENCY
 
-## Due Diligence
+**TODO**
+
+## DUE DILIGENCE
 
 ### Data Collection Mode on Absolute Score
 
@@ -456,6 +432,6 @@ Both t-tests are non-significant with 95% confidence intervals including 0. Furt
 **It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
 :::
 
-## Resources
+## RESOURCES
 
 -   https://rpkgs.datanovia.com/ggpubr/reference/index.html

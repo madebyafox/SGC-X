@@ -1,30 +1,10 @@
 ---
-# title: 'Response Scoring'
 subtitle: 'Study SGC3A | 2 Response Scoring'
-# author: 'Amy Rae Fox'
-# always_allow_html: true  
-# header-includes:
-#    - \usepackage{amsmath}
-# output:
-#   html_document:
-#     theme: yeti
-#     code_folding: hide
-#     fig_caption: yes
-#     number_sections: yes
-#     toc: yes
-#     toc_depth: 4
-#     toc_float:
-#       collapsed: no
-#       smooth_scroll: yes
-#   pdf_document: 
-#     toc: true
-#     toc_depth: 3
-#     latex_engine: xelatex
-# font-family: "DejaVu Sans"
-# mainfont: "DejaVu Sans"
 ---
 
 \newpage
+
+# Response Scoring {#sec-SGC3A-scoring}
 
 **TODO**
 
@@ -32,11 +12,14 @@ subtitle: 'Study SGC3A | 2 Response Scoring'
 -   finish item level response exploration
 -   complete raw key for Q 6 - Q 15
 
-# Response Scoring {#sec-SGC3A-scoring}
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
+
+| Pre-Requisite         |
+|-----------------------|
+| 1_sgc3A_harmonize.qmd |
 
 ```{r}
 #| label: SETUP
-#| echo : true
 #| warning : false
 #| message : false
 
@@ -50,14 +33,6 @@ library(pbapply) #progress bar and time estimate for *apply fns
 library(Hmisc) # %nin% operator
 
 ```
-
-**THIS NOTEBOOK IS INCOMPLETE**
-
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
-
-| Pre-Requisite         | Followed By             |
-|-----------------------|-------------------------|
-| 1_sgc3A_harmonize.qmd | 3_sgc3A_exploration.qmd |
 
 ## MULTIPLE RESPONSE SCORING
 
@@ -1664,11 +1639,9 @@ TODO ADJUST 'both' to select for both tri/satisfice or both tri/orth
 
 Two responses were given that were not consistent with any of the identified interpretations.
 
-+-------------------------------------------+
 | **\[E\],\[X\]**                           |
-+===========================================+
+|-------------------------------------------|
 | ![](static/interpretations/Q1_121_EX.png) |
-+-------------------------------------------+
 
 : {tbl-colwidths="\[30\]"}
 
@@ -1786,11 +1759,9 @@ Again, we see that most subjects selected a response consistent with one of the 
 
 : {tbl-colwidths="\[25,75\]"}
 
-+-------------------------------------------------------+------------------------------------------+
 | B                                                     | C                                        |
-+=======================================================+==========================================+
+|-------------------------------------------------------|------------------------------------------|
 | ![](static/interpretations/Q2_111_B.png){width="500"} | ![](static/interpretations/Q2_111_C.png) |
-+-------------------------------------------------------+------------------------------------------+
 
 : {tbl-colwidths="\[30,30\]"}
 
@@ -1975,15 +1946,11 @@ TODO
 
 Six responses (from 9 participants) appear inconsistent with any interpretation.
 
-+-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | K (**n=3)**                                   | AH (n=1)                                  | DE (n=1)                                  |
-+===============================================+===========================================+===========================================+
+|-----------------------------------------------|-------------------------------------------|-------------------------------------------|
 | ![]()![](static/interpretations/Q3_111_K.png) | ![](static/interpretations/Q3_111_AH.png) | ![](static/interpretations/Q3_111_ED.png) |
-+-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | **UE (n=1)**                                  | **U (n=1)**                               | **E (n=1)**                               |
-+-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | ![](static/interpretations/Q3_111_UE.png)     | ![](static/interpretations/Q3_111_U.png)  | ![](static/interpretations/Q3_111_E.png)  |
-+-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 
 : {tbl-colwidths="\[30,30,30\]"}
 
@@ -2125,13 +2092,10 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
   pack_rows("Unknown", 11, 16) 
 ```
 
-+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
-+========================================================================================================================================================================================================================+=================================================================================================================================================================================================================================================================================================================================================================================================+
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ![](static/interpretations/Q4_111_ORTH.png) \|                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                 |
-+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |
-+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 : TBL4 test {tbl-colwidths="\[50,50\]"}
 
