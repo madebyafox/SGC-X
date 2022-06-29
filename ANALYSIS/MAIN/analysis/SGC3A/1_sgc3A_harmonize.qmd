@@ -29,10 +29,6 @@ subtitle: 'Study SGC3A | 1 Data File Harmonization'
 
 # Harmonization {#sec-SGC3A-harmonize}
 
-**TODO**
-
--   refactor code chunk labels
-
 *The purpose of this notebook is to harmonize data files collected across different data collection sessions for study SGC_3A.*
 
 | Pre-Requisite                                                                                                   | Followed By         |
@@ -73,9 +69,11 @@ The underlying data structure of the stimulus web application changed across the
 
 First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_subjects` containing one row for each subject (across all periods). Note that we *are not* discarding any *response* data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.
 
-*Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook.*
+*Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. No raw data (responses and response times) are discarded, only algorithmically-derived scores for the responses.*
 
-```{r IMPORT-SUBJECTS}
+```{r}
+#| label: IMPORT-SUBJECTS
+
 #IMPORT PARTICIPANT DATA
 
 #set datafiles
@@ -183,7 +181,8 @@ rm(fall17,fall21,spring18,winter22)
 
 Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_items` containing one row for each *graph comprehension task question* (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we *do not* discard any *response* data. Rather, we *do* discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.
 
-```{r IMPORT-ITEMS}
+```{r}
+#| label: IMPORT-ITEMS
 
 #set datafiles
 fall17 <- "data/0-session-level/fall17_sgc3a_blocks.csv"
@@ -275,7 +274,8 @@ rm(fall17,fall21,spring18,winter22, map_relations)
 
 Next, we validate that we have the complete number of item-level records based on the number of subject-level records
 
-```{r RECONCILE}
+```{r}
+#| label: RECONCILE
 
 #the number of items should be equal to 15 x the number of subjects
 nrow(df_items) == 15* nrow(df_subjects) #TRUE
@@ -289,7 +289,8 @@ df_items %>% group_by(subject) %>% summarise(n = n()) %>% filter(n != 15) %>% nr
 
 Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)
 
-```{r GENERATE-FILES}
+```{r}
+#| label: EXPORT-FILES
 
 #SAVE FILES
 write.csv(df_subjects,"data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
@@ -306,5 +307,7 @@ rio::export(df_items, "data/1-study-level/sgc3a_items.rds") # to R data structur
 ## RESOURCES
 
 ```{r}
+#| label: SESSION
+
 sessionInfo()
 ```

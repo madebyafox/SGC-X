@@ -9,6 +9,7 @@ subtitle: 'Study SGC3A | 3 Description'
 **TODO**
 
 -   refactor titles to match hypo testing
+-   add first question latency and accuracy 
 -   describe response consistency
 -   finish description of latency
 
@@ -34,16 +35,21 @@ library(ggpubr) #arrange plots
 library(report) #easystats reporting
 library(vcd) #mosaicplots
 
-#set some output options
+#OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
+```
+
+```{r}
+#| label: IMPORT-DATA
+#| warning : false
+#| message : false
 
 #IMPORT DATA 
 df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
-
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)

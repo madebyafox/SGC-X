@@ -97,6 +97,8 @@ f =
 \end{gather*} \text{where } 0 \le i \le n
 
 ```{r}
+#| label: DICHOTOMOUS-SCORING-ALGORITH
+
 f_dichom <- function(i, n) {
  
   # print(paste("i is :",i," n is:",n)) 
@@ -140,6 +142,8 @@ f &= (1/n * i) - (1/n * (n-i)) \\
 \end{align}
 ```
 ```{r}
+#| label: PARTIALN-SCORING-ALGORITH
+
 f_partialN <- function(i, n) {
 
 # print(paste("i is :",i," n is:",n))
@@ -192,6 +196,8 @@ f &= (p_s / p) - ({q_s}/{q}) \\
 \end{align}
 ```
 ```{r}
+#| label: PARTIALP-SCORING-ALGORITH
+
 f_partialP <- function(t,p,f,q) {
 
   #t = number of correct-selected options
@@ -200,10 +206,8 @@ f_partialP <- function(t,p,f,q) {
   #q = number of false options
   #n = number of options + p + q
   
-  
   ifelse( (p == 0), return(NA), "") #handle empty response set gracefully by returning nothing rather than 0
   ifelse( (p != 0), return( (t / p) - (f/q)), "")
-  
 }
 ```
 
@@ -216,6 +220,8 @@ Consider the following example:
 *For a question with* $n = 5$ response options (data points A, B, C, D and E) with a correct response of A, the schemes under consideration yield the following scores:
 
 ```{r}
+#| label: SCHEME-COMPARISON-5
+
 title <- "Comparison of Scoring Schemes for n = 5 options [ A,B,C,D,E ]"
 
 correct <- c( "A____",  
@@ -315,6 +321,7 @@ rm(dt, abs, correct,i,names,partial1,partial2,response,title)
 Next we consider an example from our study, with $n = 15$ options and $p = 1$ correct option to be selected.
 
 ```{r}
+#| label: SCHEME-COMPARISON-15
 
 title <- "Comparison of Scoring Schemes for SGC3 with n=15 and p=1 options [A,B...N,O]  "
 
@@ -1425,6 +1432,195 @@ df_items$score_SCALED <- recode(df_items$interpretation,
 
 ```
 
+## SUMMARIZE BY SUBJECT
+
+Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.
+
+```{r}
+#| label: SUMMARIZE-BY-SUBJECT
+
+#prep items
+df_items <- df_items %>% mutate(
+  tv_type = as.factor(tv_type),
+  top_type = as.factor(top_type),
+  condition_pretty = recode_factor(condition, "111" = "Control", "121" =  "Impasse")
+)
+
+#summarize SCORES and TIME by subject
+subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
+  subject = as.character(subject),
+  s_TRI = sum(score_TRI),
+  s_ORTH = sum(score_ORTH),
+  s_TVERSKY = sum(score_TVERSKY),
+  s_SATISFICE = sum(score_SATISFICE),
+  s_REF = sum(score_REF),
+  s_ABS = sum(score_ABS),
+  s_NABS = sum(score_niceABS),
+  s_SCALED = sum(score_SCALED),
+  rt_m = sum(rt_s)/60,
+  condition_pretty = recode_factor(condition, "111" = "Control", "121" =  "Impasse")
+) %>% arrange(subject) %>% slice(1L)
+
+#import subjects
+df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+
+#TODO DOUBLE CHECK THIS!  
+x = merge(subjects, df_subjects)
+df_subjects <- x %>% select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
+
+```
+
+## EXPLORE DISTRIBUTIONS
+
+```{r}
+#| label: FILTER-DISCRIM
+
+# treat score nice abs as factor
+df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(score_niceABS = as.factor(score_niceABS))
+
+```
+
+### Absolute Score
+
+```{r}
+#| label: DISTR-ABSCORE
+
+options(repr.plot.width =9, repr.plot.height =12)
+
+#DISTRIBUTION ABSOLUTE SCORE FULL TASK
+gf_bar(~score_niceABS, fill = ~condition_pretty, position = position_dodge(), data = df) +
+  labs( x = "Absolute Score", 
+        title = "Distribution of Absolute Score (All Items)",
+        subtitle = "The Impasse Condition (blue) yields more correct responses across the entire task",
+        y = "Number of Items") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+#DISTRIBUTION ABSOLUTE SCORE BY ITEM
+gf_bar(~score_niceABS, fill = ~condition_pretty, position = position_dodge(), data = df)  %>% 
+  gf_facet_grid(condition_pretty~q) + 
+  labs( x = "Absolute Score", 
+        title = "Distribution of Absolute Score by Item",
+        subtitle = "The Impasse Condition (blue) yields more correct responses on each item",
+        y = "Number of Subjects") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+#DISTRIBUTION ABSOLUTE SCORE BY SUBJECT
+gf_bar(~s_NABS, fill = ~condition_pretty, position = position_dodge(), data = df_subjects) %>% 
+gf_facet_grid(condition_pretty ~. )+
+  labs( x = "Cumulative Absolute Score", 
+        title = "Distribution of Cumulative Absolute Score (by Subject)",
+        subtitle = "The Impasse Condition (blue) yields higher cumulative absolute scores",
+        y = "Number of Subjects") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+```
+
+### Scaled Score
+
+```{r}
+#| label: DISTR-SCALEDSCORE
+
+options(repr.plot.width =9, repr.plot.height =12)
+
+#DISTRIBUTION SCALED SCORE FULL TASK
+gf_bar(~score_SCALED, fill = ~condition_pretty, position = position_dodge(), data = df) +
+  labs( x = "Scaled Score", 
+        title = "Distribution of Scaled Score (All Items)",
+        subtitle = "The Impasse Condition (blue) yields higher scaled scores across the entire task",
+        y = "Number of Items") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+#DISTRIBUTION SCALED SCORE BY ITEM
+gf_bar(~score_SCALED, fill = ~condition_pretty, position = position_dodge(), data = df)  %>% 
+  gf_facet_grid(condition_pretty~q) + 
+  labs( x = "Scaled Score", 
+        title = "Distribution of Scaled Score by Item",
+        subtitle = "The Impasse Condition (blue) yields higher scaled scores on each item",
+        y = "Number of Subjects") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+#DISTRIBUTION SCALED SCORE BY SUBJECT
+gf_histogram(~s_SCALED, fill = ~condition_pretty, data = df_subjects)  %>% 
+  gf_facet_grid(condition_pretty ~. )+
+  labs( x = "Cumulative Scaled Score", 
+        title = "Distribution of Cumulative Absolute Score (by Subject)",
+        subtitle = "The Impasse Condition (blue) yields higher cumulative scaled scores",
+        y = "Number of Subjects") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+```
+
+TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance TODO: INVESTIGATE DISTRIBUTIONS of each subscore type
+
+### Interpretations
+
+```{r}
+#| label: DISTR-INTERPRETATIONS
+
+#DISTRIBUTION OF INTERPRETATION
+gf_props(~ sorted_interpretation, fill = ~condition_pretty, data = df) %>% 
+  gf_facet_grid( condition_pretty ~ ., labeller = label_both) + 
+  labs( title = "Distribution of Interpretations (across Task)",
+        x = "Graph Interpretation",
+        y = "Proportion of Responses",
+        subtitle = "The Impasse condition (blue) yields more Triangular and intermediary responses") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+#DISTRIBUTION OF INTERPRETATION ACROSS ITEMS
+gf_barh(~ sorted_interpretation, fill = ~condition_pretty, data = df) %>% 
+  gf_facet_grid( condition_pretty~q) + 
+  labs( title = "Distribution of Interpretations (by Item)",
+        subtitle = "The impasse condition (blue) yields more Triangular responses on each question",
+        y = "Interpretation", x = "Number of Subjects") + theme_minimal() + theme(legend.position = "blank")
+
+```
+
+### Interpretation Subscores
+
+...TODO INSPECT AND DO REMAINING
+
+```{r}
+#| label: DIST-SUBSCORES
+
+gf_histogram(~ s_NABS, fill = ~condition_pretty, data = df_subjects) %>% 
+  gf_facet_wrap( ~ condition_pretty, labeller = label_both) + 
+  labs( x = "Item ABSOLUTE Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
+
+gf_histogram(~ s_SCALED, fill = ~condition_pretty, data = df_subjects) %>% 
+  gf_facet_wrap( ~ condition_pretty, labeller = label_both) + 
+  labs( x = "Item SCALED Score", title = "Distribution of Scaled Score") + theme_minimal() + theme(legend.position = "blank")
+
+gf_histogram(~ s_TRI, fill = ~condition_pretty, data = df_subjects) %>% 
+  gf_facet_wrap( ~ condition_pretty, labeller = label_both) + 
+  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
+
+gf_histogram(~ s_ORTH, fill = ~condition_pretty, data = df_subjects) %>% 
+  gf_facet_wrap( ~ condition_pretty, labeller = label_both) + 
+  labs( x = "Item ORTHOGONAL Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
+
+
+```
+
+### Score Relationships
+
+TODO investigate relationships between different subscores
+
+```{r}
+#| label: REL-SCORES
+
+gf_jitter( score_TRI ~ score_ORTH, fill = ~condition_pretty, alpha = 0.5, data = df_items) %>% 
+  gf_facet_wrap( ~ condition_pretty, labeller = label_both) + 
+  labs( x = "ORTH score", y = "TRI score", 
+        title = "Relationship between ORTH and TRI scores") + theme_minimal() + theme(legend.position = "blank")
+
+```
+
 ## EXPLORE RESPONSES
 
 In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
@@ -1759,9 +1955,11 @@ Again, we see that most subjects selected a response consistent with one of the 
 
 : {tbl-colwidths="\[25,75\]"}
 
++-------------------------------------------------------+------------------------------------------+
 | B                                                     | C                                        |
-|-------------------------------------------------------|------------------------------------------|
++=======================================================+==========================================+
 | ![](static/interpretations/Q2_111_B.png){width="500"} | ![](static/interpretations/Q2_111_C.png) |
++-------------------------------------------------------+------------------------------------------+
 
 : {tbl-colwidths="\[30,30\]"}
 
@@ -1946,11 +2144,15 @@ TODO
 
 Six responses (from 9 participants) appear inconsistent with any interpretation.
 
++-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | K (**n=3)**                                   | AH (n=1)                                  | DE (n=1)                                  |
-|-----------------------------------------------|-------------------------------------------|-------------------------------------------|
++===============================================+===========================================+===========================================+
 | ![]()![](static/interpretations/Q3_111_K.png) | ![](static/interpretations/Q3_111_AH.png) | ![](static/interpretations/Q3_111_ED.png) |
++-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | **UE (n=1)**                                  | **U (n=1)**                               | **E (n=1)**                               |
++-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 | ![](static/interpretations/Q3_111_UE.png)     | ![](static/interpretations/Q3_111_U.png)  | ![](static/interpretations/Q3_111_E.png)  |
++-----------------------------------------------+-------------------------------------------+-------------------------------------------+
 
 : {tbl-colwidths="\[30,30,30\]"}
 
@@ -2092,10 +2294,13 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
   pack_rows("Unknown", 11, 16) 
 ```
 
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
++========================================================================================================================================================================================================================+=================================================================================================================================================================================================================================================================================================================================================================================================+
 | ![](static/interpretations/Q4_111_ORTH.png) \|                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                 |
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | If the subject calculates end time for each data point (using duration on the y axis), they find that an (incorrect) projection of point U 'end time' intersects with the (incorrect) orthogonal projection of 4:00PM. | Alternatively, some subjects selected points E and D which intersect with an orthogonal projection from 4:00pm. We call this an 'orthogonal-lines connect" strategy, because it (incorrectly) adapts the orthogonal procedure for finding events that *start* at 4:00pm in order to find those that *end* at 4:00pm, thus selecting any data point with an orthogonal intersection with 4:00pm. |
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 : TBL4 test {tbl-colwidths="\[50,50\]"}
 
@@ -3032,102 +3237,6 @@ gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q
 
 ```
 
-### Peeking
-
-#### Score Distributions
-
-```{r}
-
-gf_density(~ score_SCALED, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid( q ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores") + theme_minimal() + theme(legend.position = "blank")
-
-# mosaic( formula = ~question + interpretation,
-#        data = df_items %>% filter(condition == 111),
-#        main="INTERPRETATION by Graph and Direction",
-#        sub = "",
-#        spacing = spacing_equal(unit(1, "lines")),
-#        split_vertical = TRUE)
-
-```
-
-```{r}
-
-gf_density(~ score_niceABS, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Item Absolute Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
-
-
-gf_density(~ score_TRI, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~ sorted_interpretation, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( title = "Distribution of Interpretations") + theme_minimal() + theme(legend.position = "blank")
-
-```
-
-#### Scores through Time
-
-```{r}
-
-gf_histogram(~ score_niceABS, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid(q ~ condition, labeller = label_both) + 
-  labs( x = "Item Absolute Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
-
-
-gf_density(~ score_TRI, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid(q ~ condition, labeller = label_both) + 
-  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
-
-gf_density(~ score_ORTH, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid(q ~ condition, labeller = label_both) + 
-  labs( x = "Item ORTHGONAL Score", title = "Distribution of Orthogonal Score") + theme_minimal() + theme(legend.position = "blank")
-
-
-gf_bar(~ sorted_interpretation, fill = ~condition, data = df_items) %>% 
-  gf_facet_grid( q ~condition, labeller = label_both) + 
-  labs( title = "Distribution of Interpretations") + theme_minimal() + theme(legend.position = "blank")
-
-```
-
-#### Score Relationships
-
-```{r}
-
-gf_jitter( score_TRI ~ score_ORTH, fill = ~condition, alpha = 0.5, data = df_items) %>% 
-  gf_facet_wrap( ~ condition, labeller = label_both) + 
-  labs( x = "ORTH score", y = "TRI score", 
-        title = "Relationship between ORTH and TRI scores") + theme_minimal() + theme(legend.position = "blank")
-
-```
-
-#### Scores by Subject
-
-```{r}
-subject_scores <- df_items %>% group_by(subject) %>% dplyr::summarize(
-  TRI = sum(score_TRI),
-  ORTH = sum(score_ORTH),
-  # DISCRIM = sum(score_TRI + score_ORTH),
-  ABSOLUTE = sum(score_niceABS),
-  condition = unique(condition)
-)
-```
-
-```{r}
-gf_histogram(~ ABSOLUTE, fill = ~condition, data = subject_scores) %>% 
-  gf_facet_wrap( ~ condition, labeller = label_both) + 
-  labs( x = "Item Absolute Score", title = "Distribution of Absolute Score") + theme_minimal() + theme(legend.position = "blank")
-
-
-gf_density(~ TRI, fill = ~condition, data = subject_scores) %>% 
-  gf_facet_wrap( ~ condition, labeller = label_both) + 
-  labs( x = "Item TRIANGULAR Score", title = "Distribution of Triangular Score") + theme_minimal() + theme(legend.position = "blank")
-
-```
-
 TODO TRAPDOOR?
 
 SET T = options that result in -1 score (trapdoor)
@@ -3150,53 +3259,7 @@ Our approach to calculating an ORTHOGONAL PARTIAL score is as follows:
 
 ## EXPORT
 
-Summarize by subject Export subjects Export items
-
--   does response time predict interpretation vs. non interpretation?
-
 Finally, we export the scores for each item (df_items) and summarized over subjects (df_subjects)
-
-```{r}
-#| label: PREP-EXPORT
-
-#prep items
-df_items <- df_items %>% mutate(
-  tv_type = as.factor(tv_type),
-  top_type = as.factor(top_type)
-)
-
-#summarize SCORES and TIME by subject
-subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
-  subject = as.character(subject),
-  s_TRI = sum(score_TRI),
-  s_ORTH = sum(score_ORTH),
-  s_TVERSKY = sum(score_TVERSKY),
-  s_SATISFICE = sum(score_SATISFICE),
-  s_REF = sum(score_REF),
-  s_ABS = sum(score_ABS),
-  s_NABS = sum(score_niceABS),
-  s_SCALED = sum(score_SCALED),
-  rt_m = sum(rt_s)/60
-) %>% arrange(subject) %>% slice(1L)
-
-#import subjects
-df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
-
-#TODO DOUBLE CHECK THIS!  
-x = merge(subjects, df_subjects)
-df_subjects <- x %>% select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
-
-```
-
-```{r}
-stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_SCALED))
-gf_bar(~s_SCALED, data = df_subjects) %>% 
-  gf_facet_grid(condition~mode) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Cumulative Scaled Score for Subject")+
-  theme_minimal()
-  
-```
 
 ```{r}
 #| label: EXPORT-SCORES

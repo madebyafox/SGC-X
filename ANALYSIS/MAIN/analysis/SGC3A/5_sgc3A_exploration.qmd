@@ -12,6 +12,15 @@ subtitle: 'Study SGC3A | 5 Exploratory Analyses'
 - explore response consistency
 - fix references
 
+*The purpose of this notebook is exploratory analyses of data collected for study SGC3A.*
+
++------------------------+
+| Pre-Requisite          |
++========================+
+| 1_sgc3A_harmonize.qmd\ |
+| 2_sgc3A_scoring.qmd    |
++------------------------+
+
 ```{r}
 #| label: SETUP
 #| warning : false
@@ -29,8 +38,7 @@ library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
 
-
-#set some output options
+#OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
@@ -38,18 +46,9 @@ options(scipen=1, digits=3)
 
 ```
 
-*The purpose of this notebook is exploratory analyses of data collected for study SGC3A.*
-
-+------------------------+
-| Pre-Requisite          |
-+========================+
-| 1_sgc3A_harmonize.qmd\ |
-| 2_sgc3A_scoring.qmd  |
-+------------------------+
 
 ```{r}
 #| label: IMPORT-DATA
-#| echo : true
 #| warning : false
 #| message : false
 
@@ -64,9 +63,16 @@ df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 ```
 
-**TODO**
 
+Exploratory Questions
 
+Consistency | How consistent are learners in their interpretation of the graph? Do they adopt an interpretation on the first question and hold constant? Or do they change interpretations from question to question? Are there any interpretations that serve as 'absorbing states' (i.e. once encountered, the learner does not exist this state). 
+
+Time Course of Exploration | What is the relationship between response accuracy (and interpretation) and time spent on each item?
+
+Can exploration strategies be derived from mouse cursor activity?
+
+-   does response time predict interpretation vs. non interpretation?
 
 
 ## XYZ
