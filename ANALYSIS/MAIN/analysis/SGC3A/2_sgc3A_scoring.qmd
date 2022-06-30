@@ -1446,16 +1446,6 @@ df_items <- df_items %>% mutate(
   condition_pretty = recode_factor(condition, "111" = "Control", "121" =  "Impasse")
 )
 
-
-#modal interpretations
-#first score
-#seventh score
-#scaffold score
-#first interpretation
-#seventh interpretation
-
-
-
 #summarize SCORES and TIME by subject
 subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
@@ -1479,46 +1469,45 @@ subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>
   item_n_OTHER = count(sorted_interpretation %nin% c("Triangular","Orthogonal","Tversky","Satisfice"))
 ) %>% arrange(subject) %>% slice(1L)
 
-
 #summarize first scaffold item of interest by subject
 subjects_q1 <- df_items %>% filter(q == 1) %>% mutate(
   item_q1_NABS = score_niceABS,
   item_q1_interpretation = sorted_interpretation,
   item_q1_rt = rt_s,
-) %>% select(subject, item_q1_NABS, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
+) %>% dplyr::select(subject, item_q1_NABS, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
 
 #summarize last test item of interest by subject
 subjects_q5 <- df_items %>% filter(q == 5) %>% mutate(
   item_q5_NABS = score_niceABS,
   item_q5_interpretation = sorted_interpretation,
   item_q5_rt = rt_s,
-) %>% select(subject, item_q5_NABS, item_q5_interpretation,item_q5_rt) %>% arrange(subject) 
+) %>% dplyr::select(subject, item_q5_NABS, item_q5_interpretation,item_q5_rt) %>% arrange(subject) 
 
 #summarize first test item of interest by subject
 subjects_q7 <- df_items %>% filter(q == 7) %>% mutate(
   item_q7_NABS = score_niceABS,
   item_q7_interpretation = sorted_interpretation,
   item_q7_rt = rt_s,
-) %>% select(subject, item_q7_NABS, item_q7_interpretation,item_q7_rt) %>% arrange(subject)
+) %>% dplyr::select(subject, item_q7_NABS, item_q7_interpretation,item_q7_rt) %>% arrange(subject)
 
 #summarize last test item of interest by subject
 subjects_q15 <- df_items %>% filter(q == 15) %>% mutate(
   item_q15_NABS = score_niceABS,
   item_q15_interpretation = sorted_interpretation,
   item_q15_rt = rt_s,
-) %>% select(subject, item_q15_NABS, item_q15_interpretation,item_q15_rt) %>% arrange(subject)
+) %>% dplyr::select(subject, item_q15_NABS, item_q15_interpretation,item_q15_rt) %>% arrange(subject)
 
 #summarize scaffold performance
 subjects_scaffold <- df_items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
   item_scaffold_NABS = sum(score_niceABS),
   item_scaffold_rt = sum(rt_s)
-)%>% select(subject, item_scaffold_NABS, item_scaffold_rt) %>% arrange(subject) 
+)%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_rt) %>% arrange(subject) 
 
 #summarize scaffold performance
 subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
   item_test_NABS = sum(score_niceABS),
   item_test_rt = sum(rt_s)
-)%>% select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
+)%>% dplyr::select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
 
 #import subjects
 df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
@@ -1540,9 +1529,59 @@ x = merge(x, subjects_q7)
 x = merge(x, subjects_q15)
 x = merge(x, subjects_scaffold)
 x = merge(x, subjects_test)
-df_subjects <- x %>% select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
+df_subjects <- x %>% dplyr::select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
+
+rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)
+```
+
+```{r}
+#| label: SUMMARIZE-CUMULATIVE PROGRESS
+
+
+#filter for valid items
+x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,condition, q,score_niceABS)
+
+#pivot wider
+wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
+
+#calc stepwise cumulative score
+wide$c1 = wide$q_1
+wide$c2 = wide$c1 + wide$q_2
+wide$c3 = wide$c2 + wide$q_3
+wide$c4 = wide$c3 + wide$q_4
+wide$c5 = wide$c4 + wide$q_5
+wide$c6 = wide$c5 + wide$q_7
+wide$c7 = wide$c6 + wide$q_8
+wide$c8 = wide$c7 + wide$q_10
+wide$c9 = wide$c8 + wide$q_11
+wide$c10 = wide$c9 + wide$q_12
+wide$c11 = wide$c10 + wide$q_13
+wide$c12 = wide$c11 + wide$q_14
+wide$c13 = wide$c12 + wide$q_15
+wide <- wide %>% select(subject,condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+
+#lengthen 
+long <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
+long$question <- as.integer(long$question)
+
+
+subs <- df_subjects$subject
+
+
+# long_perfect <- perfect %>% pivot_longer(!subject, names_to = "step", values_to = "score")
+df <- long %>% filter(subject %in% (subs %>% head(100)))
+ggplot(data = long, aes(x = question, y = score, group = subject, alpha = 0.01, color = condition)) + 
+ geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
+ facet_wrap(~condition) + 
+ theme(legend.position = "none")
+
+#AVERAGES 
+
+
+
 
 ```
+
 
 ## EXPLORE DISTRIBUTIONS
 
