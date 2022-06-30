@@ -1446,8 +1446,18 @@ df_items <- df_items %>% mutate(
   condition_pretty = recode_factor(condition, "111" = "Control", "121" =  "Impasse")
 )
 
+
+#modal interpretations
+#first score
+#seventh score
+#scaffold score
+#first interpretation
+#seventh interpretation
+
+
+
 #summarize SCORES and TIME by subject
-subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
+subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
   s_TRI = sum(score_TRI),
   s_ORTH = sum(score_ORTH),
@@ -1458,14 +1468,78 @@ subjects <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr:
   s_NABS = sum(score_niceABS),
   s_SCALED = sum(score_SCALED),
   rt_m = sum(rt_s)/60,
-  condition_pretty = recode_factor(condition, "111" = "Control", "121" =  "Impasse")
+  condition_pretty = recode_factor(condition, "111" = "Control", "121" =  "Impasse"),
+  item_avg_rt = mean(rt_s),
+  item_min_rt = min(rt_s),
+  item_max_rt = max(rt_s),
+  item_n_TRI = count(sorted_interpretation == "Triangular"),
+  item_n_ORTH = count(sorted_interpretation == "Orthogonal"),
+  item_n_TV = count(sorted_interpretation == "Tversky"),
+  item_n_SAT = count(sorted_interpretation == "Satisfice"),
+  item_n_OTHER = count(sorted_interpretation %nin% c("Triangular","Orthogonal","Tversky","Satisfice"))
 ) %>% arrange(subject) %>% slice(1L)
+
+
+#summarize first scaffold item of interest by subject
+subjects_q1 <- df_items %>% filter(q == 1) %>% mutate(
+  item_q1_NABS = score_niceABS,
+  item_q1_interpretation = sorted_interpretation,
+  item_q1_rt = rt_s,
+) %>% select(subject, item_q1_NABS, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
+
+#summarize last test item of interest by subject
+subjects_q5 <- df_items %>% filter(q == 5) %>% mutate(
+  item_q5_NABS = score_niceABS,
+  item_q5_interpretation = sorted_interpretation,
+  item_q5_rt = rt_s,
+) %>% select(subject, item_q5_NABS, item_q5_interpretation,item_q5_rt) %>% arrange(subject) 
+
+#summarize first test item of interest by subject
+subjects_q7 <- df_items %>% filter(q == 7) %>% mutate(
+  item_q7_NABS = score_niceABS,
+  item_q7_interpretation = sorted_interpretation,
+  item_q7_rt = rt_s,
+) %>% select(subject, item_q7_NABS, item_q7_interpretation,item_q7_rt) %>% arrange(subject)
+
+#summarize last test item of interest by subject
+subjects_q15 <- df_items %>% filter(q == 15) %>% mutate(
+  item_q15_NABS = score_niceABS,
+  item_q15_interpretation = sorted_interpretation,
+  item_q15_rt = rt_s,
+) %>% select(subject, item_q15_NABS, item_q15_interpretation,item_q15_rt) %>% arrange(subject)
+
+#summarize scaffold performance
+subjects_scaffold <- df_items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
+  item_scaffold_NABS = sum(score_niceABS),
+  item_scaffold_rt = sum(rt_s)
+)%>% select(subject, item_scaffold_NABS, item_scaffold_rt) %>% arrange(subject) 
+
+#summarize scaffold performance
+subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
+  item_test_NABS = sum(score_niceABS),
+  item_test_rt = sum(rt_s)
+)%>% select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
 
 #import subjects
 df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
+#SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
+unique(subjects_summary$subject == df_subjects$subject)
+unique(subjects_summary$subject == subjects_q1$subject)
+unique(subjects_summary$subject == subjects_q5$subject)
+unique(subjects_summary$subject == subjects_q7$subject)
+unique(subjects_summary$subject == subjects_q15$subject)
+unique(subjects_summary$subject == subjects_scaffold$subject)
+unique(subjects_summary$subject == subjects_test$subject)
+
 #TODO DOUBLE CHECK THIS!  
-x = merge(subjects, df_subjects)
+x = merge(df_subjects, subjects_summary)
+x = merge(x, subjects_q1)
+x = merge(x, subjects_q5)
+x = merge(x, subjects_q7)
+x = merge(x, subjects_q15)
+x = merge(x, subjects_scaffold)
+x = merge(x, subjects_test)
 df_subjects <- x %>% select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
 
 ```
