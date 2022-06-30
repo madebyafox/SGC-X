@@ -11,6 +11,7 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 -   MODEL diagnostics
 -   review models already created in ARCHIVE?
 -   explore response consistency
+-   run w/ s_ABS
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC3A study.*
 
@@ -63,7 +64,6 @@ The Null Hypothesis asserts that *no significant differences in performance will
 
 ```{r}
 #| label: IMPORT-DATA
-#| echo : true
 #| warning : false
 #| message : false
 
@@ -117,7 +117,7 @@ Cumulative absolute score gives us a measure of the exact triangular-correctness
 |                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |                       | **For the online replication**, an OLS linear regression model predicting cumulative absolute score by condition explains a statistically significant though small 5.5% of variance in absolute score (F(1,202) = 11.73, p \< 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 2.3 points higher on the task than those in the control condition ($\beta$ = 2.28, CI\[0.97, 3.59\]). |
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
+TODO FIX MEAN LINE
 ```{r}
 #| label: VIS-SUBJECT-ABS
  
@@ -126,6 +126,7 @@ Cumulative absolute score gives us a measure of the exact triangular-correctness
 #HISTOGRAM
 stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
 gf_density(~s_ABS, data = df_subjects) %>% 
+  gf_vline(xintercept = 4, color = "blue") %>% 
   gf_facet_grid(condition~mode, labeller = label_both) %>% 
   gf_lims(x = c(0, 13)) %>% 
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
@@ -150,8 +151,8 @@ paste("Partition Variance")
 anova(m1)
 paste("Confidence Interval on Parameter Estimates")
 confint(m1)
-# report(m1) #sanity check
-
+report(m1) #sanity check
+check_model(m1)
 ```
 
 **For in-lab data collection** an OLS linear regression predicting cumulative absolute score by experimental condition explains a statistically significant though small 7.5% variance in score (F(1,124) = 10.1, p \< 0.01). The estimated beta coefficient ($\beta$ = 2.76, 95% CI \[1.04, 4.48\]) predicts that participants in the impasse condition will on average score 2.76 points (21%) higher than those in the control condition.
@@ -169,6 +170,8 @@ gf_density(~s_ABS, data = df_subjects) %>%
        subtitle = "Score distributions are comparable across modalities and different across conditions") + 
   theme_minimal()
 ```
+
+
 
 ##### Online Replication
 
@@ -224,6 +227,23 @@ plot(result <- check_homogeneity(m1))
 
 **TODO**
 
+##### Combined
+
+```{r}
+#| label: MODEL-SUB_ABS-combined
+
+#SCORE predicted by CONDITION
+m1 <- lm(s_ABS ~ condition, data = df_subjects)
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+#report(m1) #sanity check
+check_model(m1)
+
+```
 #### Poisson Regression
 
 The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can consider it a type of *count*, (ie. count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function).
@@ -245,7 +265,7 @@ The outcome variable absolute score is clearly not normal. As it represents the 
 #| label: MODEL-ABSCORE-POISSON
 
 #SCORE predicted by CONDITION --> POISSON DISTRIBUTION
-mp1 <- glm(s_ABS ~ condition, data = df_subjects %>% filter(mode=="lab-synch"), family = "poisson")
+mp1 <- glm(s_ABS ~ condition, data = df_subjects, family = "poisson")
 paste("Model")
 summary(mp1)
 paste("Partition Variance")
@@ -262,6 +282,22 @@ report(mp1) #sanity check
 check_model(mp1)
 
 ```
+
+```{r}
+#| label: MODEL-ABSCORE-NEGBINOM
+library(MASS)
+#SCORE predicted by CONDITION --> POISSON DISTRIBUTION
+mnb1 <- glm.nb(s_ABS ~ condition, data = df_subjects )
+paste("Model")
+summary(mnb1)
+paste("Partition Variance")
+anova(mnb1)
+paste("Confidence Interval on Parameter Estimates")
+confint(mnb1)
+report(mnb1) #sanity check
+check_model(mnb1)
+```
+
 
 ```{r}
 #Which is a better fit? linear or poisson?

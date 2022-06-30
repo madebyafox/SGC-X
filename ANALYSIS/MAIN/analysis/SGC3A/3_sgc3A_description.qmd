@@ -12,6 +12,7 @@ subtitle: 'Study SGC3A | 3 Description'
 -   add first question latency and accuracy 
 -   describe response consistency
 -   finish description of latency
+-   replace s_ABS with s_NABS?
 
 *The purpose of this notebook is describe the distributions of dependent variables for Study SGC3A.*
 
@@ -28,12 +29,14 @@ subtitle: 'Study SGC3A | 3 Description'
 #| message : false
 
 library(tidyverse) #ALL THE THINGS
-library(kableExtra) #printing tables 
-library(mosaic) #simple descriptives [favstats]
 library(Hmisc) # %nin% operator
-library(ggpubr) #arrange plots
-library(report) #easystats reporting
-library(vcd) #mosaicplots
+library(mosaic) #simple descriptives [favstats]
+library(multimode) #test for multimodality
+library(performance) #multimodality
+
+library(kableExtra) #printing tables 
+# library(vcd) #mosaicplots
+# library(ggpubr) #arrange plots
 
 #OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
@@ -55,6 +58,8 @@ df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
 df_scaffold <- df_items %>% filter(q < 6)
 df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
+
+
 ```
 
 ## SAMPLE
@@ -96,10 +101,6 @@ For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round
 
 For **online replication** `r subject.stats["online",]$n` participants (`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-```{r}
-#| label: REPORT-PARTICIPANTS
-report_participants(df_subjects, education = "schoolyear", sex = "gender", group = "mode")
-```
 
 ## RESPONSE ACCURACY
 
@@ -116,7 +117,8 @@ Recall from [Section -@sec-absolute-scoring] that the absolute score (following 
 title = "Descriptive Statistics of Response Accuracy (Cumulative Item Absolute Score)"
 abs.stats <- rbind(
   "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_ABS) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_ABS) %>% unlist() %>% favstats()
+  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_ABS) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% select(s_ABS) %>% unlist() %>% favstats()
 ) 
 abs.stats %>% kbl (caption = title) %>% kable_classic()
 
@@ -128,6 +130,64 @@ For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats[
 
 ```{r}
 #| label: VIS-SUBJ-ABS
+
+gf_density(~s_NABS, data = df_subjects) +
+  labs(x = "Cumulative Absolute Score",
+       y = "proportion of subjects",
+       title = "Subject Cumulative Score (Absolute)",
+       subtitle = "Not a normal distribution") + 
+  theme_minimal()
+
+```
+
+Visual inspection of this distribution suggests it is not normal, and perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). TODO REFERENCE
+
+```{r}
+#| label: CHECK-SUBJ-ABS
+
+multimode::modetest(df_subjects$s_NABS)
+n_modes = multimode::nmodes(df_subjects$s_NABS, bw=2)
+multimode::locmodes(df_subjects$s_NABS,mod0 =  n_modes, display = TRUE)
+
+```
+The excess mass test for multimodality suggests the distribution is multimodal (m=0.1, p < 0.001), with two identifiable modes at 0.26 and 12.3, and antimode at 7. 
+
+```{r}
+plot(check_distribution(df_subjects$s_NABS))
+
+```
+Considering only families of unimodal distributions, the most probably distribution (as predicted by package `performance`) is negative-binomial. 
+
+
+```{r}
+#| label: MASS-111
+df <- df_subjects %>% filter(condition==111)
+multimode::modetest(df$s_NABS)
+n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
+multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
+
+```
+
+
+
+```{r}
+#| label: MASS-121
+df <- df_subjects %>% filter(condition==121)
+multimode::modetest(df$s_NABS)
+n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
+multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
+
+```
+```{r}
+control = df_subjects %>% filter(condition == 111) 
+impasse = df_subjects %>% filter(condition == 121) 
+
+```
+
+
+
+```{r}
+#| label: VIS-SUBJ-ABS-SPLIT
  
 #VISUALIZE distribution of response accuracy across SUBJECTS
 
