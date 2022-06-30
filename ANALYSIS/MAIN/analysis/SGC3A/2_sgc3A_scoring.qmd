@@ -1539,7 +1539,7 @@ rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subje
 
 
 #filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,condition, q,score_niceABS)
+x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, condition, q,score_niceABS)
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
@@ -1558,24 +1558,19 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% select(subject,condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 long <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
 long$question <- as.integer(long$question)
 
 
-subs <- df_subjects$subject
-
-
-# long_perfect <- perfect %>% pivot_longer(!subject, names_to = "step", values_to = "score")
-df <- long %>% filter(subject %in% (subs %>% head(100)))
+# subs <- df_subjects$subject
+# df <- long %>% filter(subject %in% (subs %>% head(100)))
 ggplot(data = long, aes(x = question, y = score, group = subject, alpha = 0.01, color = condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_wrap(~condition) + 
- theme(legend.position = "none")
-
-#AVERAGES 
+ facet_wrap(mode~condition) + 
+ theme_minimal()
 
 
 
