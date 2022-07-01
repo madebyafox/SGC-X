@@ -1270,7 +1270,7 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
 
 ```
 
-### Derive Interpretation
+### Derive Interpretation {#sec-SGC3A-interpretation}
 
 Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.
 
@@ -1401,7 +1401,7 @@ df_items <- df_items %>% dplyr::select(-best)
 # df_items$score_SATISFICE <- df_items$score_SATISFICE %>% as.numeric()
 ```
 
-### Derive Scaled Score
+### Derive Scaled Score {#sec-SGC3A-scaledScore}
 
 The `interpretation` response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.
 
