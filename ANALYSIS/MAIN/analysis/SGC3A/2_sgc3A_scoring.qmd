@@ -1371,10 +1371,15 @@ for (x in 1:nrow(df_items)) {
 rm(t, t.long, x, r,p)
 rm(threshold_frenzy, threshold_range)
 
-#set order of levels
-df_items$interpretation <- factor(df_items$best,
+#set order of levels for response exploration table
+df_items$int2 <- factor(df_items$best,
                                   levels = c("Triangular", "Tversky",
                                              "Satisfice", "Orthogonal", "reference", "both tri + orth", "blank","frenzy","?"))
+
+#set order of levels
+df_items$interpretation <- factor(df_items$best,
+                                  levels = c("Orthogonal","Satisfice", "frenzy","?","reference","blank",
+                                               "both tri + orth", "Tversky","Triangular"))
 
 #collapsed representation of scale of interpretations
 df_items$high_interpretation <- fct_collapse(df_items$interpretation,
@@ -1855,7 +1860,7 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -1963,7 +1968,7 @@ df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2025,7 +2030,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q1 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2077,7 +2082,7 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2181,7 +2186,7 @@ df_items %>% filter(q == 2 & condition == 121) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2207,7 +2212,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q2 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2259,7 +2264,7 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2376,7 +2381,7 @@ df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2401,7 +2406,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q3 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2455,7 +2460,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2524,7 +2529,7 @@ df_items %>% filter(q == 4 & condition == 121) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2547,7 +2552,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q4 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2599,7 +2604,7 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2658,7 +2663,7 @@ df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
   select(response, count, interpretation, nice, 
@@ -2681,7 +2686,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q5 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2737,7 +2742,7 @@ df_items %>% filter(q == 6) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -2755,7 +2760,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q6 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2805,7 +2810,7 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -2828,7 +2833,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 7)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 7)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q7 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2878,7 +2883,7 @@ df_items %>% filter(q == 8) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -2900,7 +2905,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 8)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 8)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q8 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -2950,7 +2955,7 @@ df_items %>% filter(q ==9) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -2970,7 +2975,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 9)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 9)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q9 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -3020,7 +3025,7 @@ df_items %>% filter(q == 10) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -3043,7 +3048,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 10)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 10)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q10 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -3093,7 +3098,7 @@ df_items %>% filter(q == 11) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -3115,7 +3120,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 11)) %>%
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 11)) %>%
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q11 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -3165,7 +3170,7 @@ df_items %>% filter(q == 12) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -3188,7 +3193,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 12)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 12)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q12 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -3238,7 +3243,7 @@ df_items %>% filter(q == 13) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -3260,7 +3265,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 13)) %>%
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 13)) %>%
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q13 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -3310,7 +3315,7 @@ df_items %>% filter(q == 14) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -3332,7 +3337,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 14)) %>%
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 14)) %>%
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q14 ") + 
   theme_minimal() + theme(legend.position = "blank")
@@ -3382,7 +3387,7 @@ df_items %>% filter(q == 15) %>% group_by(response) %>%
                     orthogonal =  unique(score_ORTH),
                     satisficing =  unique(score_SATISFICE),
                     tversky = unique(score_TVERSKY),
-                    interpretation = unique(interpretation),
+                    interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
   select(response, count, interpretation, nice,
@@ -3405,7 +3410,7 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~sorted_interpretation, fill = ~condition, data = df_items %>% filter(q == 15)) %>%
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 15)) %>%
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q15 ") + 
   theme_minimal() + theme(legend.position = "blank")
