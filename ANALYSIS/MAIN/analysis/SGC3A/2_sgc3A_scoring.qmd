@@ -1455,6 +1455,7 @@ subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>
   s_ABS = sum(score_ABS,na.rm=TRUE),
   s_NABS = sum(score_niceABS,na.rm=TRUE),
   s_SCALED = sum(score_SCALED,na.rm=TRUE),
+  DV_percent_NABS = s_NABS/13,
   rt_m = sum(rt_s)/60,
   item_avg_rt = mean(rt_s),
   item_min_rt = min(rt_s),
@@ -1539,7 +1540,7 @@ rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subje
 #| label: SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS
 
 #filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, condition, q,score_niceABS) 
+x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, condition, q,score_niceABS) 
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
@@ -1558,7 +1559,7 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% dplyr::select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 df_absolute_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
