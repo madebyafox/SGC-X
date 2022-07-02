@@ -7,6 +7,7 @@ subtitle: 'Study SGC3A | 5 Exploratory Analyses'
 # Exploratory Analyses {#sec-SGC3A-exploration}
 
 **TODO**  
+- response consistency
 - clarify core questions being asked  
 - review models already created in ARCHIVE?  
 - explore response consistency
@@ -26,7 +27,7 @@ subtitle: 'Study SGC3A | 5 Exploratory Analyses'
 #| warning : false
 #| message : false
 
-library(tidyverse) #ALL THE THINGS
+library(multimode) #mode mass tests
 library(Hmisc) # %nin% operator
 library(ggpubr) #arrange plots
 library(ggformula) #easy graphs
@@ -37,6 +38,8 @@ library(gmodels) #contingency table and CHISQR
 library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
+library(tidyverse) #ALL THE THINGS
+
 
 #OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
@@ -74,6 +77,34 @@ Can exploration strategies be derived from mouse cursor activity?
 
 -   does response time predict interpretation vs. non interpretation?
 
+
+#### Mass Movement
+"movement of mass" from one mode to another
+
+Considering only families of unimodal distributions, the most probably distribution (as predicted by package `performance`) is negative-binomial.
+
+```{r}
+#| label: MASS-111
+df <- df_subjects %>% filter(condition==111)
+multimode::modetest(df$s_NABS)
+n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
+multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
+
+```
+
+```{r}
+#| label: MASS-121
+df <- df_subjects %>% filter(condition==121)
+multimode::modetest(df$s_NABS)
+n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
+multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
+
+```
+
+
+## RESPONSE CONSISTENCY
+
+**TODO**
 
 ## XYZ
 
