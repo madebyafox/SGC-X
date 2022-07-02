@@ -27,7 +27,6 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 #| warning : false
 #| message : false
 
-library(tidyverse) #ALL THE THINGS
 library(Hmisc) # %nin% operator
 library(ggpubr) #arrange plots
 library(ggformula) #easy graphs
@@ -39,12 +38,29 @@ library(gmodels) #contingency table and CHISQR
 library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
+library(tidyverse) #ALL THE THINGS
+
 
 #OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
+
+# Custom ggplot theme to make pretty plots
+# Get the font at https://fonts.google.com/specimen/Barlow+Semi+Condensed
+theme_clean <- function() {
+  theme_minimal(base_family = "Barlow Semi Condensed") +
+    theme(panel.grid.minor = element_blank(),
+          plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
+          axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
+          strip.text = element_text(family = "BarlowSemiCondensed-Bold",
+                                    size = rel(1), hjust = 0),
+          strip.background = element_rect(fill = "grey80", color = NA))
+}
+
+# Make labels use Barlow by default
+# update_geom_defaults("label_repel", list(family = "Barlow Semi Condensed"))
 
 ```
 
@@ -82,11 +98,36 @@ df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 
 Over the course of the entire graph comprehension task does the impasse condition affect performance on the graph comprehension task?
 
-### Cumulative Absolute Score
+
+### Total Absolute Score 
 
 Cumulative absolute score gives us a measure of the exact triangular-correctness of each response given by a participant across all discriminant items (n=13) in the graph comprehension task.
 
-#### Linear Regression
+#### Beta Regression (% Correct)
+
+
+Beta regression on % correct (with standard transformation for including [0,1])
+```{r}
+
+library(betareg)
+
+sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS)
+n = nrow(sub) %>% unlist()
+sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
+
+histogram(sub$dv_transformed)
+histogram(df_subjects$DV_percent_NABS)
+mb <- betareg(dv_transformed ~ condition, data = sub)
+
+summary(mb)
+plot(mb)
+
+```
+
+#### Linear Regression (Transformed # Correct)
+
+
+#### Linear Regression (# Correct)
 
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Research Question     | Does posing a mental impasse improve performance?                                                                                                                                                                                                                                                                                                                                                                                                  |
