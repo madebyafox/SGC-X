@@ -84,11 +84,13 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 #Describe participants
 subject.stats <- rbind(
   "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(age) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(age) %>% unlist() %>% favstats()
+  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(age) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(age) %>% unlist() %>% favstats()
 ) 
 subject.stats$female <- c(
   (df_subjects %>% filter(mode == 'lab-synch') %>%  filter(gender=="Female") %>% count())$n,
-  (df_subjects %>% filter(mode == "asynch") %>% filter(gender=="Female") %>% count())$n
+  (df_subjects %>% filter(mode == "asynch") %>% filter(gender=="Female") %>% count())$n,
+  (df_subjects %>% filter(gender=="Female") %>% count())$n
 )
 
 title = "Descriptive Statistics of Participant Age and Gender"
@@ -98,6 +100,9 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()
 For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round(subject.stats["lab",]$female/subject.stats["lab",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
 For **online replication** `r subject.stats["online",]$n` participants (`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
+
+Combined **overall** `r subject.stats["combined",]$n` participants (`r round(subject.stats["combined",]$female/subject.stats["combined",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years). Participants were randomly assigned to one of two experimental groups.
+
 
 ## RESPONSE ACCURACY
 
@@ -197,9 +202,9 @@ summary(beta_)
 
 ```
 
-Interpreting the Cullen and Frey graph, it *appears* that number total number of correct responses per subject may follow a beta distribution.
+Interpreting the Cullen and Frey graph, it *appears* that number percentage of correct responses per subject may follow a beta distribution.
 
-Infact, if we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]` (note: I assume `fitdistrplus` transforms the variable )
+Infact, if we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]`.
 
 
 ::: callout-note
@@ -450,30 +455,6 @@ facet(p, facet.by=c("pretty_condition","mode")) +
 #   theme_minimal()
   
 ```
-
-
-
-
-
-```{r}
-#| label: VIS-ITEM-SCALED
-
-#VISUALIZE distribution of response accuracy across ITEMS
-
-#HISTOGRAM
-stats = df_items %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(score_SCALED))
-gf_density(~score_SCALED, data = df_items) %>% 
-  gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Scaled Score for Item",
-       y = "Proportion of Items",
-       title = "Distribution of Accuracy per Item (Scale Score)",
-       subtitle="The impasse condition shifts density toward the positive score")+
-  theme_minimal()
-
-```
-
-
 
 
 
