@@ -242,8 +242,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><em>The purpose of this notebook is to harmonize data files collected across different data collection sessions for study SGC_3A.</em></p>
 <table class="table">
 <colgroup>
-<col style="width: 84%">
-<col style="width: 15%">
+<col style="width: 75%">
+<col style="width: 25%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -391,7 +391,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
 <span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
 <span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term, <span class="at">levels=</span> <span class="fu">c</span>(<span class="st">"fall17"</span>,<span class="st">"spring18"</span>,<span class="st">"fall21"</span>,<span class="st">"winter22"</span>)),</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"lab-synch"</span>,<span class="st">"asynch"</span>)),</span>
 <span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">factor</span>(gender),</span>
 <span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>    <span class="at">schoolyear =</span> <span class="fu">factor</span>(schoolyear, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"First"</span>,<span class="st">"Second"</span>,<span class="st">"Third"</span>,<span class="st">"Fourth"</span>,<span class="st">"Fifth"</span>,<span class="st">"Other"</span>))</span>
 <span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>  )</span>
@@ -462,8 +462,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
 <span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term),</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term, <span class="at">levels=</span> <span class="fu">c</span>(<span class="st">"fall17"</span>,<span class="st">"spring18"</span>,<span class="st">"fall21"</span>,<span class="st">"winter22"</span>)),</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"lab-synch"</span>,<span class="st">"asynch"</span>)),</span>
 <span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="fu">as.integer</span>(q)) <span class="sc">%&gt;%</span> </span>
 <span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">#rename answer column to RESPONSE </span></span>
 <span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">response =</span> answer) <span class="sc">%&gt;%</span> </span>
@@ -578,16 +578,16 @@ loaded via a namespace (and not attached):
  [9] reprex_2.0.1      labelled_2.9.1    evaluate_0.15     httr_1.4.3       
 [13] pillar_1.7.0      rlang_1.0.3       curl_4.3.2        readxl_1.4.0     
 [17] rstudioapi_0.13   data.table_1.14.2 rmarkdown_2.14    foreign_0.8-82   
-[21] munsell_0.5.0     broom_0.8.0       compiler_4.2.1    modelr_0.1.8     
-[25] xfun_0.31         pkgconfig_2.0.3   htmltools_0.5.2   tidyselect_1.1.2 
-[29] rio_0.5.29        fansi_1.0.3       crayon_1.5.1      tzdb_0.3.0       
-[33] dbplyr_2.2.1      withr_2.5.0       grid_4.2.1        jsonlite_1.8.0   
-[37] gtable_0.3.0      lifecycle_1.0.1   DBI_1.1.3         magrittr_2.0.3   
-[41] scales_1.2.0      zip_2.2.0         cli_3.3.0         stringi_1.7.6    
-[45] fs_1.5.2          xml2_1.3.3        ellipsis_0.3.2    generics_0.1.2   
-[49] vctrs_0.4.1       openxlsx_4.2.5    tools_4.2.1       glue_1.6.2       
-[53] hms_1.1.1         fastmap_1.1.0     yaml_2.3.5        colorspace_2.0-3 
-[57] rvest_1.0.2       knitr_1.39        haven_2.5.0      </code></pre>
+[21] htmlwidgets_1.5.4 munsell_0.5.0     broom_0.8.0       compiler_4.2.1   
+[25] modelr_0.1.8      xfun_0.31         pkgconfig_2.0.3   htmltools_0.5.2  
+[29] tidyselect_1.1.2  rio_0.5.29        fansi_1.0.3       crayon_1.5.1     
+[33] tzdb_0.3.0        dbplyr_2.2.1      withr_2.5.0       grid_4.2.1       
+[37] jsonlite_1.8.0    gtable_0.3.0      lifecycle_1.0.1   DBI_1.1.3        
+[41] magrittr_2.0.3    scales_1.2.0      zip_2.2.0         cli_3.3.0        
+[45] stringi_1.7.6     fs_1.5.2          xml2_1.3.3        ellipsis_0.3.2   
+[49] generics_0.1.2    vctrs_0.4.1       openxlsx_4.2.5    tools_4.2.1      
+[53] glue_1.6.2        hms_1.1.1         fastmap_1.1.0     yaml_2.3.5       
+[57] colorspace_2.0-3  rvest_1.0.2       knitr_1.39        haven_2.5.0      </code></pre>
 </div>
 </div>
 
@@ -773,7 +773,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is to harmonize data files collected across different data collection sessions for study SGC_3A.*</span>
 <span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>| Pre-Requisite                                                                                                   | Followed By         |</span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>|-----------------------------------------------------------------------------------------------------------------|---------------------|</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>|------------------------------------------------------|------------------|</span>
 <span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>| spring17_clean_data.Rmd <span class="kw">&lt;br&gt;</span> spring18_clean_data.Rmd <span class="kw">&lt;br&gt;</span> fall21_clean_data.Rmd <span class="kw">&lt;br&gt;</span> winter2022_clean_sgc3a.Rmd | 2_sgc3A_scoring.qmd |</span>
 <span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
@@ -898,7 +898,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb11-161"><a href="#cb11-161" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
 <span id="cb11-162"><a href="#cb11-162" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
 <span id="cb11-163"><a href="#cb11-163" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term, <span class="at">levels=</span> <span class="fu">c</span>(<span class="st">"fall17"</span>,<span class="st">"spring18"</span>,<span class="st">"fall21"</span>,<span class="st">"winter22"</span>)),</span>
-<span id="cb11-164"><a href="#cb11-164" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
+<span id="cb11-164"><a href="#cb11-164" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"lab-synch"</span>,<span class="st">"asynch"</span>)),</span>
 <span id="cb11-165"><a href="#cb11-165" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">factor</span>(gender),</span>
 <span id="cb11-166"><a href="#cb11-166" aria-hidden="true" tabindex="-1"></a>    <span class="at">schoolyear =</span> <span class="fu">factor</span>(schoolyear, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"First"</span>,<span class="st">"Second"</span>,<span class="st">"Third"</span>,<span class="st">"Fourth"</span>,<span class="st">"Fifth"</span>,<span class="st">"Other"</span>))</span>
 <span id="cb11-167"><a href="#cb11-167" aria-hidden="true" tabindex="-1"></a>  )</span>
@@ -970,8 +970,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb11-235"><a href="#cb11-235" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb11-236"><a href="#cb11-236" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(subject),</span>
 <span id="cb11-237"><a href="#cb11-237" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(condition),</span>
-<span id="cb11-238"><a href="#cb11-238" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term),</span>
-<span id="cb11-239"><a href="#cb11-239" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode),</span>
+<span id="cb11-238"><a href="#cb11-238" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> <span class="fu">factor</span>(term, <span class="at">levels=</span> <span class="fu">c</span>(<span class="st">"fall17"</span>,<span class="st">"spring18"</span>,<span class="st">"fall21"</span>,<span class="st">"winter22"</span>)),</span>
+<span id="cb11-239"><a href="#cb11-239" aria-hidden="true" tabindex="-1"></a>    <span class="at">mode =</span> <span class="fu">factor</span>(mode, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"lab-synch"</span>,<span class="st">"asynch"</span>)),</span>
 <span id="cb11-240"><a href="#cb11-240" aria-hidden="true" tabindex="-1"></a>    <span class="at">q =</span> <span class="fu">as.integer</span>(q)) <span class="sc">%&gt;%</span> </span>
 <span id="cb11-241"><a href="#cb11-241" aria-hidden="true" tabindex="-1"></a>  <span class="co">#rename answer column to RESPONSE </span></span>
 <span id="cb11-242"><a href="#cb11-242" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">response =</span> answer) <span class="sc">%&gt;%</span> </span>
