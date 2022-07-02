@@ -32,7 +32,7 @@ subtitle: 'Study SGC3A | 1 Data File Harmonization'
 *The purpose of this notebook is to harmonize data files collected across different data collection sessions for study SGC_3A.*
 
 | Pre-Requisite                                                                                                   | Followed By         |
-|--------------------------------------------------------|----------------|
+|------------------------------------------------------|------------------|
 | spring17_clean_data.Rmd <br> spring18_clean_data.Rmd <br> fall21_clean_data.Rmd <br> winter2022_clean_sgc3a.Rmd | 2_sgc3A_scoring.qmd |
 
 ```{r}
@@ -157,7 +157,7 @@ df_subjects <- rbind(df_subjects, df_subjects_winter22, df_subjects_before) %>%
     subject = factor(subject),
     condition = factor(condition),
     term = factor(term, levels= c("fall17","spring18","fall21","winter22")),
-    mode = factor(mode),
+    mode = factor(mode, levels=c("lab-synch","asynch")),
     gender = factor(gender),
     schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
   )
