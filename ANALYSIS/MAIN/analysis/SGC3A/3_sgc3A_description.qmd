@@ -8,11 +8,8 @@ subtitle: 'Study SGC3A | 3 Description'
 
 **TODO**
 
--   refactor titles to match hypo testing
--   add first question latency and accuracy 
--   describe response consistency
 -   finish description of latency
--   replace s_ABS with s_NABS?
+-   consider raincloud/boxplots/violins with ggpubr/ggdist
 
 *The purpose of this notebook is describe the distributions of dependent variables for Study SGC3A.*
 
@@ -32,10 +29,11 @@ subtitle: 'Study SGC3A | 3 Description'
 library(Hmisc) # %nin% operator
 library(mosaic) #simple descriptives [favstats]
 library(multimode) #test for multimodality
+library(fitdistrplus) #fitting distributions
 library(performance) #multimodality
 library(kableExtra) #printing tables 
-# library(vcd) #mosaicplots
-# library(ggpubr) #arrange plots
+library(vcd) #mosaicplots
+library(ggpubr) #arrange plots
 library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
@@ -43,6 +41,7 @@ library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
+
 ```
 
 ```{r}
@@ -52,13 +51,12 @@ options(scipen=1, digits=3)
 
 #IMPORT DATA 
 df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
-df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
+df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds') 
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
 df_scaffold <- df_items %>% filter(q < 6)
 df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
-
 
 ```
 
@@ -85,8 +83,8 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 
 #Describe participants
 subject.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(age) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(age) %>% unlist() %>% favstats()
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(age) %>% unlist() %>% favstats(),
+  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(age) %>% unlist() %>% favstats()
 ) 
 subject.stats$female <- c(
   (df_subjects %>% filter(mode == 'lab-synch') %>%  filter(gender=="Female") %>% count())$n,
@@ -101,225 +99,361 @@ For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round
 
 For **online replication** `r subject.stats["online",]$n` participants (`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-
 ## RESPONSE ACCURACY
 
-### Cumulative Scores
+### Total Scores
 
-Cumulative scores indicate the response accuracy by a particular participant across all discriminant items (n=13) in the graph comprehension task.
+Total scores indicate the response accuracy by a particular participant across all discriminant items (n=13) in the graph comprehension task.
 
-#### Cumulative Absolute Score
+#### Total Absolute Score
 
-Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) `s_ABS` indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of discriminant items, the cumulative absolute score for an individual subject ranges from \[0,13\].
+Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) `s_NABS` indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of discriminant items, the cumulative absolute score for an individual subject ranges from \[0,13\].
 
 ```{r}
 #| label: DESC-SUBJ-ABS
-title = "Descriptive Statistics of Response Accuracy (Cumulative Item Absolute Score)"
+title = "Descriptive Statistics of Response Accuracy (Total Absolute Score)"
 abs.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_ABS) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_ABS) %>% unlist() %>% favstats(),
-  "combined" = df_subjects %>% select(s_ABS) %>% unlist() %>% favstats()
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
+  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(s_NABS) %>% unlist() %>% favstats()
 ) 
 abs.stats %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-For *in person* collection, cumulative absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
+For *in person* collection, total absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
 
-For *online replication*, (online) cumulative accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slighly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
+For *online replication*, (online) total absolute accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
+
+When combined *overall*, total absolute accuracy scores (n = `r abs.stats["combined",]$n`) range from `r round(abs.stats["combined",]$min,2)` to `r round(abs.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["combined",]$mean,2)`, SD = `r round(abs.stats["combined",]$sd,2)`).
+
 
 ```{r}
 #| label: VIS-SUBJ-ABS
 
+#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL ABSOLUTE
 gf_density(~s_NABS, data = df_subjects) +
-  labs(x = "Cumulative Absolute Score",
-       y = "proportion of subjects",
-       title = "Subject Cumulative Score (Absolute)",
-       subtitle = "Not a normal distribution") + 
+  labs(x = "number of correct responses",
+       y = "% of subjects",
+       title = "Distribution of Subject Total Absolute Score",
+       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
   theme_minimal()
 
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "s_NABS", binwidth = 1,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE) 
+facet(p, facet.by=c("pretty_condition","mode")) + 
+  labs( title = "Distribution of Total Absolute Score (by Mode and Condition)",
+        subtitle ="Pattern of response is the same across data collection modes but differs by condition",
+        x = "Total Absolute Score", y = "number of participants") + 
+  theme_minimal() + theme(legend.position = "blank") 
+
+
+##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
+# stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
+# gf_density(~s_ABS, data = df_subjects) %>% 
+#   gf_facet_grid(condition~mode, labeller = label_both) %>% 
+#   gf_lims(x = c(0, 13)) %>% 
+#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
+#   labs(x = "total number correct ",
+#        y = "proportion of subjects",
+#        title = "Distribution of Total Score (by Modality and Condition)",
+#        subtitle = "Score distributions are comparable across experiment modalities, but differ by conditions") + 
+#   theme_minimal()
+  
 ```
 
-Visual inspection of this distribution suggests it is not normal, and perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). TODO REFERENCE
+Visual inspection of this distribution suggests it is not normal, and perhaps perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). TODO REFERENCE
 
 ```{r}
 #| label: CHECK-SUBJ-ABS
 
 multimode::modetest(df_subjects$s_NABS)
-n_modes = multimode::nmodes(df_subjects$s_NABS, bw=2)
-multimode::locmodes(df_subjects$s_NABS,mod0 =  n_modes, display = TRUE)
-
+n_modes = multimode::nmodes(df_subjects$s_NABS, bw=2) #bw = 2questions/15 = 0.15%
+l_modes = multimode::locmodes(df_subjects$s_NABS,mod0 =  n_modes, display = TRUE)
 ```
-The excess mass test for multimodality suggests the distribution is multimodal (m=0.1, p < 0.001), with two identifiable modes at 0.26 and 12.3, and antimode at 7. 
+
+The excess mass test for multimodality suggests the distribution is infact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
+
+But what kind of distribution is this data? Next, we use the `fitdistrplus` package to compare the distribution of this variable to a variety of probability distribution families. First, we transform the \# correct items to % correct items by dividing it by the total number of items (n = 13).
 
 ```{r}
-plot(check_distribution(df_subjects$s_NABS))
+#| label: FIT-DIST-TOTAL-ABS
 
-```
-Considering only families of unimodal distributions, the most probably distribution (as predicted by package `performance`) is negative-binomial. 
+#describe the distribution
+descdist(data = df_subjects$DV_percent_NABS, discrete = FALSE, boot = 1000)
 
+print("FIT A NORMAL DISTRIBUTION")
+normal_ = fitdist(df_subjects$DV_percent_NABS,"norm")
+plot(normal_)
 
-```{r}
-#| label: MASS-111
-df <- df_subjects %>% filter(condition==111)
-multimode::modetest(df$s_NABS)
-n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
-multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
-
-```
-
-
-
-```{r}
-#| label: MASS-121
-df <- df_subjects %>% filter(condition==121)
-multimode::modetest(df$s_NABS)
-n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
-multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
-
-```
-```{r}
-control = df_subjects %>% filter(condition == 111) 
-impasse = df_subjects %>% filter(condition == 121) 
+print("FIT A BETA DISTRIBUTION")
+beta_ = fitdist(df_subjects$DV_percent_NABS,"beta", method="mme" )
+plot(beta_)
+summary(beta_)
 
 ```
 
+Interpreting the Cullen and Frey graph, it *appears* that number total number of correct responses per subject may follow a beta distribution.
+
+Infact, if we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]` (note: I assume `fitdistrplus` transforms the variable )
 
 
-```{r}
-#| label: VIS-SUBJ-ABS-SPLIT
- 
-#VISUALIZE distribution of response accuracy across SUBJECTS
-
-#HISTOGRAM
-stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
-gf_density(~s_ABS, data = df_subjects) %>% 
-  gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_lims(x = c(0, 13)) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Cumulative Absolute Score",
-       y = "proportion of subjects",
-       title = "Subject Cumulative Score (Absolute)",
-       subtitle = "Score distributions are comparable across modalities and different across conditions") + 
-  theme_minimal()
-  
-
-#RIDGEPLOT
-# ggplot(data = df_subjects, aes(x = s_NABS, y = mode)) +
-#   geom_density_ridges() + xlim(0,13)+
-#   facet_wrap(~condition, labeller = label_both) +
-#  labs(x = "Cumulative Absolute Score",
-#       y = "proportion of subjects",
-#        title = "Subject Cumulative Score (Absolute)",
-#        subtitle = "Score distributions are comparable across modalities and different across conditions") + 
-#   theme_minimal()
-
-```
-
-::: callout-decision
+::: callout-note
 **Condition appears to exert a positive influence on Cumulative Absolute Score across data collection modalities.**
 :::
 
-#### Cumulative Scaled Scores
+#### Total Scaled Scores
 
-The Cumulative Scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject The range is from -13 (all orthogonal) to 13 (all triangular). Recall that the s_SCALED score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1, where "Orthogonal" = -1, "Satisfice" = -1, "Triangular" = 1, "Tversky" = 0.5, "both tri + orth" = 0.5, "reference" = 0, "blank" = 0, "frenzy" = 0, "?" = 0.
+The total scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject. This score ranges from from -13 (all orthogonal) to 13 (all triangular). Recall that the `s_SCALED` score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1 (see [Section -@sec-SGC3A-scaledScore])
 
-Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score
+Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score. 
 
 ```{r}
 #| label: DESC-SUBJ-SCALED
 
-title = "Descriptive Statistics of Response Accuracy (Cumulative Scaled Score)"
+title = "Descriptive Statistics of Response Accuracy (Total Scaled Score)"
 scaled.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(s_SCALED) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% select(s_SCALED) %>% unlist() %>% favstats()
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats()
 ) 
 scaled.stats %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-For in person collection, cumulative absolute scores (n = `r scaled.stats["lab",]$n`) range from `r round(scaled.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(scaled.stats["lab",]$mean,2)`, SD = `r round(scaled.stats["lab",]$sd,2)`).
+For **in person collection**, total scaled scores (n = `r scaled.stats["lab",]$n`) range from `r round(scaled.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(scaled.stats["lab",]$mean,2)`, SD = `r round(scaled.stats["lab",]$sd,2)`).
 
-For online replication, (online) cumulative accuracy scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slighly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
+For **online replication**, total scaled scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
+
+When combined **overall**, total scaled scores (n = `r scaled.stats["combined",]$n`) range from `r round(scaled.stats["combined",]$min,2)` to `r round(scaled.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["combined",]$mean,2)`, SD = `r round(scaled.stats["combined",]$sd,2)`).
+
 
 ```{r}
 #| label: VIS-SUBJ-SCALED
- 
-#VISUALIZE distribution of response accuracy across SUBJECTS
 
-#HISTOGRAM
-stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_SCALED))
-gf_density(~s_SCALED, data = df_subjects, binwidth = 1) %>% 
-  gf_facet_grid(condition~mode, labeller = label_both) %>% 
-  gf_lims(x = c(-13, 13)) %>%
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-   labs(x = "Cumulative Scaled Score",
-       y = "proportion of subjects",
-       title = "Subject Cumulative Score (Scaled)",
-       subtitle = "Score distributions are comparable across modalities and different across conditions") + 
+#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL SCALED
+gf_density(~s_SCALED, data = df_subjects) +
+  labs(x = "total scaled score",
+       y = "% of subjects",
+       title = "Distribution of Subject Total Scaled Score",
+       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
   theme_minimal()
-  
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "s_SCALED",binwidth=1,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE) 
+facet(p, facet.by=c("pretty_condition","mode")) + 
+  labs( title = "Distribution of Total Scaled Score (by Condition and Mode)",
+        subtitle ="Pattern of response is similar across data collection modes but differs by condition",
+        x = "total scaled score", y = "number of participants") + 
+  theme_minimal() + theme(legend.position = "blank") 
+
+
+##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
+# stats = df_subjects %>% group_by(pretty_condition, mode) %>% dplyr::summarise(mean = mean(s_SCALED))
+# gf_density(~s_SCALED, data = df_subjects) %>%
+#   gf_facet_grid(pretty_condition~mode) %>%
+#   gf_lims(x = c(-13, 13)) %>%
+#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
+#   labs(x = "total number correct ",
+#        y = "proportion of subjects",
+#        title = "Distribution of Scaled Score (by Modality and Condition)",
+#        subtitle = "Score distributions are similar across experiment modalities, but differ by conditions") +
+#   theme_minimal()
+
 ```
 
-::: callout-decision
+
+Visual inspection of this distribution suggests it is not normal, and perhaps perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). 
+
+```{r}
+#| label: CHECK-SUBJ-SCALED
+
+multimode::modetest(df_subjects$s_SCALED)
+n_modes = multimode::nmodes(df_subjects$s_SCALED, bw=2) #bw = 2questions/15 = 0.15%
+l_modes = multimode::locmodes(df_subjects$s_SCALED,mod0 =  n_modes, display = TRUE)
+```
+
+The excess mass test for multimodality suggests the distribution is in fact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
+
+
+::: callout-note
 **Condition appears to exert a positive influence on Scaled Score across data collection modalities.**
 :::
 
-### Item Scores
 
-Item scores indicate the response accuracy by a participant on each individual question discriminant question (n=13) in the graph comprehension task.
 
-#### Item Absolute Score
+#### Total Interpretations
+
+Next we consider the the interpretations assigned to each response.
 
 ```{r}
-#| label: DESC-ITEM-ABS
+#| label: DESC-TOTAL-INTEPRETATIONS
 
-x <- df_items %>% mutate(score = as.logical(score_ABS))
-
-title = "Proportion of Correct Items By Condition (Lab)"
-
-item.contingency <- df_items %>% filter(mode == "lab-synch") %>% select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
+title = "Proportion of Interpretations Across Items Items By Condition (Lab)"
+item.contingency <- df_items %>% filter(mode == "lab-synch") %>% dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
-title = "Proportion of Correct Items By Condition (Online)"
-item.contingency <- df_items %>% filter(mode == "asynch") %>% select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
+title = "Proportion of Interpretations Across Items Items By Condition (Online)"
+item.contingency <- df_items %>% filter(mode == "asynch") %>% dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
 item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+
+title = "Proportion of Interpretations Across Items Items By Condition (Combined)"
+item.contingency <- df_items %>%  dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
 
 ```
 
-Across both data collection modalities, the proportion of correct answers is greater in the impasse vs. control condition.
+```{r}
+#| label: VIS-ITEM-INTERPRETATION
+
+
+#PROPORTIONAL BAR CHART
+gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>% 
+  gf_facet_grid(mode~pretty_condition, labeller = label_both) +
+  labs(x = "% of items",
+       title = "Proportion of Interpretations Across Items",
+       subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
+  theme_minimal()+ theme(legend.position = "none")
+
+
+#MOSAIC PLOT
+vcd::mosaic(main="Proportion of Interpretations across Conditions",
+            data = df_items, pretty_condition ~ interpretation, rot_labels=c(0,90,0,0), 
+            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
+            spacing = spacing_dimequal(unit(1:2, "lines"))) 
+
+
+```
+
+
+### First Item Scores
+
+Next we consider the response accuracy on _just_ the first question of the graph comprehension task: a subject's first exposure to the TM graph. 
+
+
+#### First Item Absolute Score
+
+Next we consider the absolute score assigned the first response.
 
 ```{r}
-#| label: VIS-ITEM-ABS
+#| label: DESC-FIRST-ABSOLUTE
 
-#VISUALIZE distribution of response accuracy across ITEMS
+title = "Proportion of Correct Response on First Item (Lab)"
+item.contingency <- df_subjects %>% filter(mode == "lab-synch") %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
 
-#HISTOGRAM
-stats = df_items %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(score_niceABS))
-gf_props(~score_niceABS, data = df_items) %>% 
-  gf_facet_grid(condition~mode, labeller = label_both) +
-  labs(x = "Item Absolute Score",
-       title = "Item Absolute Score",
-       subtitle="Across modalities, the impasse condition yielded more correct responses")+
+title = "Proportion of Correct Response on First Item (Online)"
+item.contingency <- df_subjects %>% filter(mode == "asynch") %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+title = "Proportion of Correct Response on First Item (Combined)"
+item.contingency <- df_subjects %>%  dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+
+```
+
+```{r}
+#| label: VIS-FIRST-ABSOLUTE
+
+#PROPORTIONAL BAR CHART
+gf_props(~item_q1_NABS, data = df_subjects) +
+  labs(x = "response accuracy",
+       y = "% subjects",
+       title = "Proportion of Correct Responses on First Item",
+       subtitle="")+
+  theme_minimal()+ theme(legend.position = "none")
+
+#PROPORTIONAL BAR CHART
+gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>% 
+  gf_facet_grid(mode~pretty_condition, labeller = label_both) +
+  labs(x = "% of items",
+       title = "Proportion of Correct Responses on First Item (by Modality and Condition)",
+       subtitle="")+
+  theme_minimal()+ theme(legend.position = "none")
+
+
+#MOSAIC PLOT
+vcd::mosaic(main="Proportion of Correct Responses on First Item",
+            data = df_subjects, pretty_condition ~ item_q1_NABS, rot_labels=c(0,90,0,0), 
+            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
+            spacing = spacing_dimequal(unit(1:2, "lines"))) 
+
+
+```
+
+#### First Item Scaled Score
+
+At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1. (note: we evaluate scaled_score on the first item rather than interpretation, because no orthogonal interpretation is available in the impasse condition)
+
+```{r}
+#| label: DESC-FIRST-SCALED
+title = "Descriptive Statistics of Response Accuracy (First Item Scaled Score)"
+firstscaled.stats <- rbind(
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats()
+) 
+firstscaled.stats %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+For **in person** collection, first item scaled scores  (n = `r firstscaled.stats["lab",]$n`) range from `r round(firstscaled.stats["lab",]$min,2)` to `r round(firstscaled.stats["lab",]$max,2)` with a mean score of (M = `r round(firstscaled.stats["lab",]$mean,2)`, SD = `r round(firstscaled.stats["lab",]$sd,2)`).
+
+For **online replication**, (online) first item scaled scores (n = `r firstscaled.stats["online",]$n`) range from `r round(firstscaled.stats["online",]$min,2)` to `r round(firstscaled.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(firstscaled.stats["online",]$mean,2)`, SD = `r round(firstscaled.stats["online",]$sd,2)`).
+
+When combined **overall**, first item scaled scores (n = `r firstscaled.stats["combined",]$n`) range from `r round(firstscaled.stats["combined",]$min,2)` to `r round(firstscaled.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(firstscaled.stats["combined",]$mean,2)`, SD = `r round(firstscaled.stats["combined",]$sd,2)`).
+
+```{r}
+#| label: VIS-FIRST-SCALED
+
+#GGFORMULA | PROPORTIONAL HISTOGRAM SUBJECT FIRST SCALED
+gf_props(~item_q1_SCALED, data = df_subjects) +
+  labs(x = "scaled score (first item)",
+       y = "% of subjects",
+       title = "Distribution of First Item Scaled Score",
+       subtitle = "") + 
   theme_minimal()
 
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "item_q1_SCALED", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE) 
+facet(p, facet.by=c("pretty_condition","mode")) + 
+  labs( title = "Distribution of First Item Scaled Score (by Mode and Condition)",
+        subtitle ="Pattern of response is the same across data collection modes but differs by condition",
+        x = "scaled score (firt item) ", y = "number of participants") + 
+  theme_minimal() + theme(legend.position = "blank") 
+
+
+##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
+# stats = df_subjects %>% group_by(pretty_condition, mode) %>% dplyr::summarise(mean = mean(item_q1_SCALED))
+# gf_density(~item_q1_SCALED, data = df_subjects) %>%
+#   gf_facet_grid(pretty_condition~mode, labeller = label_both) %>%
+#   gf_lims(x = c(-1, 1)) %>%
+#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
+# labs( title = "Distribution of First Item Scaled Score (by Mode and Condition)",
+#         subtitle ="Pattern of response is the same across data collection modes but differs by condition",
+#         x = "scaled score (firt item) ", y = "number of participants") + 
+#   theme_minimal()
+  
 ```
 
-#### Item Scaled Score
 
-At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1.
 
-```{r}
-#| label: DESC-ITEM-SCALED
 
-title = "Descriptive Statistics of Item Response Accuracy (Scaled Score)"
-scaled.stats.items <- rbind(
-  "lab"= df_items %>% filter(mode == 'lab-synch') %>% select(score_SCALED) %>% unlist() %>% favstats(),
-  "online" = df_items %>% filter(mode == "asynch") %>% select(score_SCALED) %>% unlist() %>% favstats()
-) 
-scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
-
-```
 
 ```{r}
 #| label: VIS-ITEM-SCALED
@@ -339,51 +473,9 @@ gf_density(~score_SCALED, data = df_items) %>%
 
 ```
 
-#### Item Interpretation Scores
-
-```{r}
-#| label: DESC-ITEM-INTEPRETATION
-
-#VISUALIZE distribution of interpretations across all ITEMS
-
-
-#REORDER INTERPRETATION LEVELS
-df_items$interpretation <- factor(df_items$interpretation, levels = c("Triangular", "Tversky", "both tri + orth", "blank", "?", "frenzy","reference","Satisfice", "Orthogonal"))            
-
-
-title = "Proportion of Interpretations Across Items Items By Condition (Lab)"
-item.contingency <- df_items %>% filter(mode == "lab-synch") %>% select(interpretation, condition) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
-
-title = "Proportion of Interpretations Across Items Items By Condition (Online)"
-item.contingency <- df_items %>% filter(mode == "asynch") %>% select(interpretation, condition) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 
 
-```
-
-```{r}
-#| label: VIS-ITEM-INTERPRETATION
-
-
-#PROPORTIONAL BAR CHART
-gf_propsh(~interpretation, data = df_items, fill = ~mode) %>% 
-  gf_facet_grid(mode~condition, labeller = label_both) +
-  labs(x = "Interpretation for Item",
-       title = "Proportion of Interpretations Across Items",
-       subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
-  theme_minimal()+ theme(legend.position = "none")
-
-
-#MOSAIC PLOT
-vcd::mosaic(main="Proportion of Item Interpretation across Conditions",
-            data = df_items, condition ~ interpretation, rot_labels=c(0,90,0,0), 
-            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
-            spacing = spacing_dimequal(unit(1:2, "lines"))) 
-
-
-```
 
 ## RESPONSE LATENCY
 
@@ -398,8 +490,8 @@ vcd::mosaic(main="Proportion of Item Interpretation across Conditions",
 ```{r DESCRIBE-TOTALTIME}
 #DESCRIBE distribution of response time
 time.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% select(totaltime_m) %>% unlist() %>% favstats(),
-  "online"= df_subjects %>% filter(mode == 'asynch') %>% select(totaltime_m) %>% unlist() %>% favstats()
+  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
+  "online"= df_subjects %>% filter(mode == 'asynch') %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats()
 )
 
 title = "Descriptive Statistics of Response Latency (Time on Study)"
@@ -439,10 +531,6 @@ annotate_figure(plot,
 ### Time on Question
 
 **TODO time on question**
-
-## RESPONSE CONSISTENCY
-
-**TODO**
 
 ## DUE DILIGENCE
 
@@ -501,3 +589,95 @@ Both t-tests are non-significant with 95% confidence intervals including 0. Furt
 ## RESOURCES
 
 -   https://rpkgs.datanovia.com/ggpubr/reference/index.html
+
+```{r}
+#| label: session
+sessionInfo()
+```
+
+
+## ARCHIVE
+
+Sample ridgeplot code
+
+```{r}
+
+#RIDGEPLOT
+# ggplot(data = df_subjects, aes(x = s_NABS, y = mode)) +
+#   geom_density_ridges() + xlim(0,13)+
+#   facet_wrap(~condition, labeller = label_both) +
+# labs(x = "total number correct ",
+# y = "proportion of subjects",
+#        title = "Subject Cumulative Score (Absolute)",
+#        subtitle = "Score distributions are comparable across modalities and different across conditions") +
+#   theme_minimal()
+
+```
+
+
+**Item Absolute Score**
+```{r}
+
+x <- df_items %>% mutate(score = as.logical(score_ABS))
+
+title = "Proportion of Correct Items By Condition (Lab)"
+
+item.contingency <- df_items %>% filter(mode == "lab-synch") %>% dplyr::select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+title = "Proportion of Correct Items By Condition (Online)"
+item.contingency <- df_items %>% filter(mode == "asynch") %>% dplyr::select(score_ABS, condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+```{r}
+
+#VISUALIZE distribution of response accuracy across ITEMS
+
+#HISTOGRAM
+stats = df_items %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(score_niceABS))
+gf_props(~score_niceABS, data = df_items) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) +
+  labs(x = "Item Absolute Score",
+       title = "Item Absolute Score",
+       subtitle="Across modalities, the impasse condition yielded more correct responses")+
+  theme_minimal()
+
+```
+
+
+**Item Scaled Score**
+
+At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1.
+
+
+```{r}
+
+title = "Descriptive Statistics of Item Response Accuracy (Scaled Score)"
+scaled.stats.items <- rbind(
+  "lab"= df_items %>% filter(mode == 'lab-synch') %>% dplyr::select(score_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_items %>% filter(mode == "asynch") %>% dplyr::select(score_SCALED) %>% unlist() %>% favstats()
+) 
+scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+
+```{r}
+
+#VISUALIZE distribution of response accuracy across ITEMS
+
+#HISTOGRAM
+stats = df_items %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(score_SCALED))
+gf_density(~score_SCALED, data = df_items) %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Scaled Score for Item",
+       y = "Proportion of Items",
+       title = "Distribution of Accuracy per Item (Scale Score)",
+       subtitle="The impasse condition shifts density toward the positive score")+
+  theme_minimal()
+
+```
+
