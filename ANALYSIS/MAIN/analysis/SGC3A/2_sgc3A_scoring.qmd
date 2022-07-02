@@ -1473,16 +1473,18 @@ subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>
 #summarize first scaffold item of interest by subject
 subjects_q1 <- df_items %>% filter(q == 1) %>% mutate(
   item_q1_NABS = score_niceABS,
+  item_q1_SCALED = score_SCALED,
   item_q1_interpretation = interpretation,
   item_q1_rt = rt_s,
-) %>% dplyr::select(subject, item_q1_NABS, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
+) %>% dplyr::select(subject, item_q1_NABS, item_q1_SCALED, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
 
 #summarize last test item of interest by subject
 subjects_q5 <- df_items %>% filter(q == 5) %>% mutate(
   item_q5_NABS = score_niceABS,
+  item_q5_SCALED = score_SCALED,
   item_q5_interpretation = interpretation,
   item_q5_rt = rt_s,
-) %>% dplyr::select(subject, item_q5_NABS, item_q5_interpretation,item_q5_rt) %>% arrange(subject)
+) %>% dplyr::select(subject, item_q5_NABS, item_q5_SCALED, item_q5_interpretation,item_q5_rt) %>% arrange(subject)
 
 #summarize first test item of interest by subject
 subjects_q7 <- df_items %>% filter(q == 7) %>% mutate(
@@ -1570,6 +1572,7 @@ df_absolute_progress$question <- as.integer(df_absolute_progress$question)
 rm(x,wide)
 
 ```
+
 ```{r}
 #| label: SUMMARIZE-CUMULATIVE SCALED PROGRESS
 
@@ -1730,8 +1733,7 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
 
 ```
 
-
-### Progress over Task 
+### Progress over Task
 
 ```{r}
 #| label: VIZ-PROGRESS
@@ -1762,8 +1764,6 @@ ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, 
  theme_minimal() + theme(legend.position = "blank")
 
 ```
-
-
 
 ### Interpretation Subscores
 
@@ -1800,7 +1800,6 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
         theme_minimal() + theme(legend.position = "blank")
 
 ```
-
 
 ## EXPLORE RESPONSES
 
