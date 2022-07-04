@@ -103,7 +103,6 @@ For **online replication** `r subject.stats["online",]$n` participants (`r round
 
 Combined **overall** `r subject.stats["combined",]$n` participants (`r round(subject.stats["combined",]$female/subject.stats["combined",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-
 ## RESPONSE ACCURACY
 
 ### Total Scores
@@ -131,7 +130,6 @@ For *in person* collection, total absolute scores (n = `r abs.stats["lab",]$n`) 
 For *online replication*, (online) total absolute accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
 
 When combined *overall*, total absolute accuracy scores (n = `r abs.stats["combined",]$n`) range from `r round(abs.stats["combined",]$min,2)` to `r round(abs.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["combined",]$mean,2)`, SD = `r round(abs.stats["combined",]$sd,2)`).
-
 
 ```{r}
 #| label: VIS-SUBJ-ABS
@@ -206,7 +204,6 @@ Interpreting the Cullen and Frey graph, it *appears* that number percentage of c
 
 Infact, if we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]`.
 
-
 ::: callout-note
 **Condition appears to exert a positive influence on Cumulative Absolute Score across data collection modalities.**
 :::
@@ -215,7 +212,7 @@ Infact, if we fit this variable using both a normal and beta distribution (using
 
 The total scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject. This score ranges from from -13 (all orthogonal) to 13 (all triangular). Recall that the `s_SCALED` score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1 (see [Section -@sec-SGC3A-scaledScore])
 
-Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score. 
+Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score.
 
 ```{r}
 #| label: DESC-SUBJ-SCALED
@@ -235,7 +232,6 @@ For **in person collection**, total scaled scores (n = `r scaled.stats["lab",]$n
 For **online replication**, total scaled scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
 
 When combined **overall**, total scaled scores (n = `r scaled.stats["combined",]$n`) range from `r round(scaled.stats["combined",]$min,2)` to `r round(scaled.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["combined",]$mean,2)`, SD = `r round(scaled.stats["combined",]$sd,2)`).
-
 
 ```{r}
 #| label: VIS-SUBJ-SCALED
@@ -275,8 +271,7 @@ facet(p, facet.by=c("pretty_condition","mode")) +
 
 ```
 
-
-Visual inspection of this distribution suggests it is not normal, and perhaps perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). 
+Visual inspection of this distribution suggests it is not normal, and perhaps perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018).
 
 ```{r}
 #| label: CHECK-SUBJ-SCALED
@@ -288,12 +283,9 @@ l_modes = multimode::locmodes(df_subjects$s_SCALED,mod0 =  n_modes, display = TR
 
 The excess mass test for multimodality suggests the distribution is in fact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
 
-
 ::: callout-note
 **Condition appears to exert a positive influence on Scaled Score across data collection modalities.**
 :::
-
-
 
 #### Total Interpretations
 
@@ -340,11 +332,9 @@ vcd::mosaic(main="Proportion of Interpretations across Conditions",
 
 ```
 
-
 ### First Item Scores
 
-Next we consider the response accuracy on _just_ the first question of the graph comprehension task: a subject's first exposure to the TM graph. 
-
+Next we consider the response accuracy on *just* the first question of the graph comprehension task: a subject's first exposure to the TM graph.
 
 #### First Item Absolute Score
 
@@ -413,7 +403,7 @@ firstscaled.stats %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-For **in person** collection, first item scaled scores  (n = `r firstscaled.stats["lab",]$n`) range from `r round(firstscaled.stats["lab",]$min,2)` to `r round(firstscaled.stats["lab",]$max,2)` with a mean score of (M = `r round(firstscaled.stats["lab",]$mean,2)`, SD = `r round(firstscaled.stats["lab",]$sd,2)`).
+For **in person** collection, first item scaled scores (n = `r firstscaled.stats["lab",]$n`) range from `r round(firstscaled.stats["lab",]$min,2)` to `r round(firstscaled.stats["lab",]$max,2)` with a mean score of (M = `r round(firstscaled.stats["lab",]$mean,2)`, SD = `r round(firstscaled.stats["lab",]$sd,2)`).
 
 For **online replication**, (online) first item scaled scores (n = `r firstscaled.stats["online",]$n`) range from `r round(firstscaled.stats["online",]$min,2)` to `r round(firstscaled.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(firstscaled.stats["online",]$mean,2)`, SD = `r round(firstscaled.stats["online",]$sd,2)`).
 
@@ -455,8 +445,6 @@ facet(p, facet.by=c("pretty_condition","mode")) +
 #   theme_minimal()
   
 ```
-
-
 
 ## RESPONSE LATENCY
 
@@ -576,7 +564,6 @@ Both t-tests are non-significant with 95% confidence intervals including 0. Furt
 sessionInfo()
 ```
 
-
 ## ARCHIVE
 
 Sample ridgeplot code
@@ -595,8 +582,8 @@ Sample ridgeplot code
 
 ```
 
-
 **Item Absolute Score**
+
 ```{r}
 
 x <- df_items %>% mutate(score = as.logical(score_ABS))
@@ -627,11 +614,9 @@ gf_props(~score_niceABS, data = df_items) %>%
 
 ```
 
-
 **Item Scaled Score**
 
 At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1.
-
 
 ```{r}
 
@@ -643,7 +628,6 @@ scaled.stats.items <- rbind(
 scaled.stats.items %>% kbl (caption = title) %>% kable_classic()
 
 ```
-
 
 ```{r}
 
@@ -661,4 +645,3 @@ gf_density(~score_SCALED, data = df_items) %>%
   theme_minimal()
 
 ```
-

@@ -98,15 +98,14 @@ df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 
 Over the course of the entire graph comprehension task does the impasse condition affect performance on the graph comprehension task?
 
-
-### Total Absolute Score 
+### Total Absolute Score
 
 Cumulative absolute score gives us a measure of the exact triangular-correctness of each response given by a participant across all discriminant items (n=13) in the graph comprehension task.
 
 #### Beta Regression (% Correct)
 
+Beta regression on % correct (with standard transformation for including \[0,1\])
 
-Beta regression on % correct (with standard transformation for including [0,1])
 ```{r}
 
 library(betareg)
@@ -124,8 +123,7 @@ plot(mb)
 
 ```
 
-#### Linear Regression (Transformed # Correct)
-
+#### Linear Regression (Transformed \# Correct)
 
 #### Linear Regression (# Correct)
 
@@ -158,7 +156,9 @@ plot(mb)
 |                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |                       | **For the online replication**, an OLS linear regression model predicting cumulative absolute score by condition explains a statistically significant though small 5.5% of variance in absolute score (F(1,202) = 11.73, p \< 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 2.3 points higher on the task than those in the control condition ($\beta$ = 2.28, CI\[0.97, 3.59\]). |
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
 TODO FIX MEAN LINE
+
 ```{r}
 #| label: VIS-SUBJECT-ABS
  
@@ -212,8 +212,6 @@ gf_density(~s_ABS, data = df_subjects) %>%
   theme_minimal()
 ```
 
-
-
 ##### Online Replication
 
 ```{r}
@@ -240,9 +238,9 @@ confint(m1)
 ##### **Model Diagnostics**
 
 ```{r}
-plot(performance_accuracy(m1, method = "boot"))
-
-see::check_distribution(m1)
+# plot(performance_accuracy(m1, method = "boot"))
+# 
+# see::check_distribution(m1)
 ```
 
 ```{r}
@@ -257,10 +255,10 @@ see::check_distribution(m1)
 # Infuential Observations
 # Normality of Residuals
 
-plot(check_collinearity(m1))
-plot(check_normality(m1), type = "qq")
-plot(check_heteroscedasticity(m1))
-plot(result <- check_homogeneity(m1))
+# plot(check_collinearity(m1))
+# plot(check_normality(m1), type = "qq")
+# plot(check_heteroscedasticity(m1))
+# plot(result <- check_homogeneity(m1))
 
 
 
@@ -285,6 +283,7 @@ confint(m1)
 check_model(m1)
 
 ```
+
 #### Poisson Regression
 
 The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can consider it a type of *count*, (ie. count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function).
@@ -338,7 +337,6 @@ confint(mnb1)
 report(mnb1) #sanity check
 check_model(mnb1)
 ```
-
 
 ```{r}
 #Which is a better fit? linear or poisson?
