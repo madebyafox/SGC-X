@@ -13,9 +13,7 @@ subtitle: 'Study SGC3A | 2 Response Scoring'
 -   TODO: generate heat maps of Q9. Same answer but very different optimal operation paths!
 -   see individual item level todos on response exploration
 
-# Response Scoring {#sec-SGC3A-scoring}
-
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC_3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
 
 | Pre-Requisite         |
 |-----------------------|
@@ -36,10 +34,390 @@ library(tidyverse) #ALL THE THINGS
 
 ```
 
+## MULTIPLE RESPONSE SCORING
+
+The *graph comprehension task* of study SGC 3A presents readers with a graph, a question, and a series of checkboxes. Participants are instructed to use the graph to answer the question, and respond by selecting all the checkboxes that apply, where each checkbox corresponds to a datapoint in the graph.
+
+![**Figure 1. Sample Graph Comprehension (Question \# 6)**](static/img/sample_graphComprehensionTask.png)
+
+In the psychology and education literatures on Tests & Measures, the format of this type of question is referred to as Multiple Response (MR), (also: Multiple Choice Multiple Answer (MCMA) and Multiple Answer Multiple Choice (MAMC)). It has a number of properties that make it different from traditional Single Answer Multiple Choice (SAMC) questions, where the respondent marks a single response from a number of options. In particular, there are a number of very different ways that MAMC questions can be *scored*.
+
+In tranditional SAMC format questions, one point is given for selecting the option designated as correct, and zero points given for marking any of the alternative (i.e. distractor) options. Individual response options on MAMC questions, however might be partially correct ($i$), while responses on other answer options within the same item might be incorrect ($n – i$). In MR, it is not obvious how to allocate points when the respondent marks a true-correct option (i.e. options that *should* be selected, denoted $p$), as well as one or more false-correct options (i.e. options that *should not* be selected, denoted $q$). Should partial credit be awarded? If so, are options that respondents false-selected and false-unselected items equally penalized?
+
+@schmidtRelationExamineesTrue2021 performed a systematic literature review of publications proposing MAMC (or equivalent) scoring schemes, ultimately synthesizing over 80 sources into 27 distinct scoring approaches. Upon reviewing the benefits of trade-offs of each approach, for this study we choose utilize two of the schemes: **dichotomous scoring** ( @schmidtRelationExamineesTrue2021 scheme #1), and **partial scoring** $[-1/q,0, +1/p]$ ( @schmidtRelationExamineesTrue2021 scheme #26), as well as a scaled **discriminant score** that leverages partial scoring to discriminate between strategy-specific patterns of response.
+
+### Response Encoding
+
+First, we note that the question type evaluated by @schmidtRelationExamineesTrue2021 is referred to as *Multiple True-False* (MTF), a variant of MAMC where respondents are presented with a question (stem) and series of response options with True/False (e.g. radio buttons) for each. Depending on the implementation of the underlying instrument, it may or may not be possible for respondents to *not respond* to a particular option (i.e. leave the item 'blank'). Although MTF questions have a different underlying implementation (and potentially different psychometric properties) they are identical in their mathematical properties; that is, responses to a MAMC question of 'select all that apply' can be coded as a series of T/F responses to each response option
+
+![**Figure 2. SAMC (vs) MAMC (vs) MTF**](static/img/MAMC-MTF.png){#fig-ItemTypes}
+
+In this example (@fig-ItemTypes), we see an example of a question with four response options ($n=4$) in each question type. In the **SAMC** approach (at left), there are four possible responses, given explicitly by the response options (respondent can select only one) $(\text{number of possible responses} = n)$. With only four possible responses, we cannot entirely discriminate between all combinations of the underlying response variants we might be interested in, and must always choose an 'ideal subset' of possible distractors to present as response options. In the MAMC (middle) and MTF (at right), the *same number of response options* ($n=4$) yield a much greater number $(\text{number of possible responses} = 2^{n})$. We can also see the equivalence between a MAMC and MTF format questions with the same response options. Options the respondent *selects* in MAMC are can be coded as T, and options they leave *unselected* can be coded as F. Thus, for response options (ABCD), a response of \[AB\] can also be encoded as \[TTFF\].
+
+### Scoring Schemes
+
+In the sections that follow, we use the terminology:
+
+**Properties of the Stimulus-Question**
+
+```{=tex}
+\begin{align}
+n &= \text{number of response options} \\  
+  &= p + q \\ 
+  p &= \text{number of true-select options (i.e. should be selected)} \\
+  q &= \text{number of true-unselect options (i.e. should not be selected)} 
+\end{align}
+```
+**Properties of the Subject's Response**
+
+```{=tex}
+\begin{align} 
+i &= \text{number of options in correct state}, (0 ≤ i ≤ n) \\ 
+f &= \text{resulting score} 
+\end{align}
+```
+#### Dichotomous Scoring {#sec-absolute-scoring}
+
+**Dichotomous Scoring** is the strictest scoring scheme, where a response only receives points if it is *exactly* correct, meaning the respondent includes *only correct-select* options, and does select any additional (i.e. incorrect-select) options that should not be selected. This is also known as *all or nothing scoring*, and importantly, it ignores any partial knowledge that a participant may be expressing through their choice of options. They may select some but not all of the correct-select options, and one or more but not all of the correct-unselect items, but receive the same score as a respondent selects none of the correct-select options, or all of the correct-unselect options. In this sense, dichotomous scoring tells us *only* about perfect knowledge, and ignores any indication of partial knowledge the respondent may be indicating through their selection of response options.
+
+**In Dichotomous Scoring**
+
+-   score for the question is either 0 or 1
+-   full credit is only given if all responses are correct; otherwise no credit
+-   does not account for *partial knowledge*. - with increasing number of response options, scoring becomes stricter as each statement must be marked correctly.
+
+The algorithm for **dichotomous scoring** is given by:
+
+\begin{gather*}
+f = 
+\begin{cases}
+  1, \text{if } i = n \\    
+  0, \text{otherwise}    
+\end{cases}
+\end{gather*} \text{where } 0 \le i \le n
+
+```{r}
+#| label: DICHOTOMOUS-SCORING-ALGORITH
+
+f_dichom <- function(i, n) {
+ 
+  # print(paste("i is :",i," n is:",n)) 
+  
+  #if (n == 0 ) return error 
+  ifelse( (n == 0), print("ERROR n can't be 0"), "")
+  
+  #if (i > n ) return error 
+  ifelse( (i > n), print("i n can't > n"), "")
+  
+  #if (i==n) return 1, else 0
+  return (ifelse( (i==n), 1 , 0))
+ 
+}
+```
+
+#### Partial Scoring \[-1/n, +1/n\]
+
+**Partial Scoring** refers to a class or scoring schemes that award the respondent partial credit depending on pattern of options they select. @schmidtRelationExamineesTrue2021 identify twenty-six different partial credit scoring schemes in the literature, varying in the range of possible scores, and the relative weighting of incorrectly selected (vs) incorrectly unselected options.
+
+A particularly elegant approach to partial scoring is referred to as the $[-1/n, +1/n]$ approach ( @schmidtRelationExamineesTrue2021 #17). This approach is appealing in the context of SGC3A, because it: (1) takes into account all information provided by the respondent: the pattern of what the select, and choose not to select.
+
+**In Partial Scoring** $[-1/n, +1/n]$:
+
+-   Scores range from \[-1, +1\]
+-   One point is awarded if all options are *correct*
+-   One point point is subtracted if all options are *incorrect*.
+-   Intermediate results are credited as fractions accordingly ($+1/n$ for each correct, $-1/n$ for each incorrect)
+-   This results in *at chance performance* (i.e. half of the given options marked correctly), being awarded 0 points are awarded
+
+This scoring is more consistent with the motivating theory that Triangular Graph readers start out with an incorrect (i.e. orthogonal, cartesian) interpretation of the coordinate system, and transition to a correct (i.e. triangular) interpretation. But the first step in making this transition is realizing the cartesian interpretation *is incorrect*, which may yield blank responses where the respondent is essentially saying, 'there is no correct answer to this question'.
+
+@schmidtRelationExamineesTrue2021 describe the *Partial* ${[-1/n, +1/n]}$ scoring scheme as the *only* scoring method (of the 27 described) where respondents' scoring results can be interpreted as a percentage of their true knowledge. One important drawback of this method is that a respondent may receive credit (a great deal of credit, depending on the number of answer options n) even if she did not select *any* options. In the case (such as ours) where there are many more response options $n$ than there are options meant to be selected $p$, this partial scoring algorithm poses a challenge because the respondent can achieve an almost completely perfect score by selecting a small number of options that should not be selected.
+
+The algorithm for **partial scoring**$[-1/n, +1/n]$ is given by:
+
+```{=tex}
+\begin{align}
+f &= (1/n * i) - (1/n * (n-i)) \\
+&= (2i - n)/{n} 
+\end{align}
+```
+```{r}
+#| label: PARTIALN-SCORING-ALGORITH
+
+f_partialN <- function(i, n) {
+
+# print(paste("i is :",i," n is:",n))
+
+#if(n==0) return error
+ifelse((n==0),print("ERROR: n should not be 0"),"")
+
+#if(i >n ) return error
+ifelse((i > n),print("ERROR: i CANNOT BE GREATER THAN n"),"")
+
+return ((2*i - n) / n) 
+}
+```
+
+#### Partial Scoring \[-1/q, +1/p\]
+
+One drawback of the Partial Scoring $[-1/n, +1/n]$ approach is that treats the choice to select, and choice to not select options as equally indicative of the respondent's understanding. That is to say, incorrectly selecting one particular option is no more or less informative than incorrectly not-selecting a different item. This represents an important difference between MAMC (i.e. "select all correct options") vs MTF (i.e. "Mark each option as true or false") questions.
+
+In our study, the selection of any particular option (remember options represent data points on the stimulus graph) is indicative of a particular interpretation of the stimulus. Incorrectly selecting an option indicates an interpretation of the graph with respect to that particular option. Alternatively, failing to select a correct option *might* mean the individual has a different interpretation, or that they failed to find *all* the data points consistent with the interpretation.
+
+For this reason, we consider another alternative Partial Scoring scheme that takes into consideration only the selected statements, without penalizing statements incorrectly *not selected*. (See @schmidtRelationExamineesTrue2021 method #26; also referred to as the Morgan-Method) This partial scoring scheme takes into consideration that the most effort-free (or 'default') response for any given item is the null, or blank response. Blank responses indicate *no understanding*, perhaps *confusion*, or refusal to answer. These lack of responses are awarded zero credit. Whereas taking the action to select an *incorrect* option is effortful, and is indicative of *incorrect understanding*.
+
+**Partial Scoring** $[-1/q, +1/p]$:
+
+-   awards +1/p for each correctly selected option ($p_s$), and subtracts $1/(n-p) = 1/q$ for each incorrectly selected option ($q_s$)
+-   only considers *selected* options; does not penalize nor reward *unselected* options
+
+**Properties of Item**
+
+```{=tex}
+\begin{align}
+p &= \text{number of true-select options (i.e. should be selected)} \\
+q &= \text{number of true-unselect options (i.e. should not be selected)} \\
+n &= \text{number of options} \: ( n = p + q)
+\end{align}
+```
+**Properties of Response**
+
+```{=tex}
+\begin{align}
+p_s &= \text{number of true-select options selected (i.e. number of correctly checked options)}\\
+q_s &= \text{number of true-unselect options selected (i.e. number of incorrectly checked options }
+\end{align}
+```
+The algorithm for **partial scoring** $[-1/q, +1/p]$ is given by:
+
+```{=tex}
+\begin{align}
+f &= (p_s / p) - ({q_s}/{q}) \\
+\end{align}
+```
+```{r}
+#| label: PARTIALP-SCORING-ALGORITH
+
+f_partialP <- function(t,p,f,q) {
+
+  #t = number of correct-selected options
+  #p = number of true options
+  #f = number of incorrect-selected options
+  #q = number of false options
+  #n = number of options + p + q
+  
+  ifelse( (p == 0), return(NA), "") #handle empty response set gracefully by returning nothing rather than 0
+  ifelse( (p != 0), return( (t / p) - (f/q)), "")
+}
+```
+
+### Comparison of Schemes
+
+Which scoring scheme is most appropriate for the goals of the graph comprehension task?
+
+Consider the following example:
+
+*For a question with* $n = 5$ response options (data points A, B, C, D and E) with a correct response of A, the schemes under consideration yield the following scores:
+
+```{r}
+#| label: SCHEME-COMPARISON-5
+
+title <- "Comparison of Scoring Schemes for n = 5 options [ A,B,C,D,E ]"
+
+correct <- c( "A____",  
+              "A____",      
+              "A____",        
+              "A____",        
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____" ) 
+
+response <- c("A____",  
+              "AB___",      
+              "A___E",      
+              "AB__E",        
+              "____E",
+              "___DE",
+              "_BCDE",      
+              "ABCDE",      
+              "_____" )
+
+i <- c(        5,       
+               4,              
+               4,              
+               3,               
+               
+               3,
+               2,
+               0,
+               1,
+               4)
+
+abs <- c(f_dichom(5,5), 
+         f_dichom(4,5), 
+         f_dichom(4,5), 
+         f_dichom(3,5), 
+         
+         f_dichom(3,5), 
+         f_dichom(2,5),
+         f_dichom(0,5),
+         f_dichom(1,5),
+         f_dichom(4,5))
+
+partial1 <- c(f_partialN(5,5), 
+              f_partialN(4,5), 
+              f_partialN(4,5), 
+              f_partialN(3,5), 
+              
+              f_partialN(3,5), 
+              f_partialN(2,5),
+              f_partialN(0,5),
+              f_partialN(1,5),
+              f_partialN(4,5))
+
+partial2 <- c(f_partialP(1,1,0,4), 
+              f_partialP(1,1,1,4), 
+              f_partialP(1,1,1,4), 
+              f_partialP(1,1,2,4), 
+              
+              f_partialP(0,1,1,4),
+              f_partialP(0,1,2,4),
+              f_partialP(0,1,4,4),
+              f_partialP(1,1,4,4), 
+              f_partialP(0,1,0,4))
+
+names = c(    "Correct Answer",
+              "Response",
+              "i ",
+              "Dichotomous",
+              "Partial [-1/n, +1/n]",
+              "Partial[-1/q, +1/p]")
+
+dt <- data.frame(correct, response, i, abs, partial1 , partial2)
+
+kbl(dt, col.names = names, caption = title, digits=3) %>%
+  kable_classic() %>%
+    add_header_above(c("Response Scenario " = 3, "Scores" = 3)) %>% 
+    pack_rows("Perfect Response", 1, 1) %>%
+    pack_rows("Correct + Extra Incorrect Selections", 2, 4) %>%
+    pack_rows("Only Incorrect Selections", 5, 6) %>%
+    pack_rows("Completely Inverse Response ", 7, 7) %>%
+    pack_rows("Selected ALL or NONE", 8, 9) %>%
+    footnote(general = paste("i = number of options in correct state; _ indicates option not selected"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+#cleanup
+rm(dt, abs, correct,i,names,partial1,partial2,response,title)
+```
+
+-   We see that in the Dichotomous scheme, only the precisely correct response (row 1) yields a score other than zero. This scheme does now allow us to differentiate between different response patters.
+
+-   The Partial $[-1/n, +1/n]$ scheme yields a range from $[-1,1]$, differentiating between responses. However, a blank response (bottom row) receives the same score (0.6) as the selection of the correct option + 1 incorrect option (row 2), which is problematic with for the goals of this study, where we need to differentiate between states of confusion or uncertainty yielding blank responses and the intentional selection of incorrect items.
+
+-   The Partial $[-1/q, +1/p]$ scheme also yields a range of scores from $[-1,1]$. A blank response (bottom row) yields the same score ($0$) as the selection of *all* answer options (row 7); both are patterns of behavior we would expect to see if a respondent is confused or uncertain that there is a correct answer to the question.
+
+Next we consider an example from our study, with $n = 15$ options and $p = 1$ correct option to be selected.
+
+```{r}
+#| label: SCHEME-COMPARISON-15
+
+title <- "Comparison of Scoring Schemes for SGC3 with n=15 and p=1 options [A,B...N,O]  "
+
+correct <- c( "A____",  
+              "A____",      
+              "A____",      
+              "A____",        
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____",      
+              "A____" ) 
+
+response <- c("A__...__",  
+              "AB_...__",      
+              "A__..._O",      
+              "AB_..._O",        
+              "___..._O",      
+              "___...NO",      
+              "_BC...NO",
+              "ABC...NO",      
+              "___...__" )
+
+i <- c(        15,       
+               14,              
+               14,              
+               13,
+               13,               
+               12,          
+               0,
+               1,
+               14)
+
+abs <- c(f_dichom(15,15), 
+         f_dichom(14,15), 
+         f_dichom(14,15), 
+         f_dichom(13,15), 
+         f_dichom(13,15),
+         f_dichom(12,15),
+         f_dichom(0,15),
+         f_dichom(1,15),
+         f_dichom(14,15))
+
+partial1 <- c(f_partialN(15,15), 
+              f_partialN(14,15), 
+              f_partialN(14,15), 
+              f_partialN(13,15), 
+              f_partialN(13,15),
+              f_partialN(12,15),
+              f_partialN(0,15),
+              f_partialN(1,15),
+              f_partialN(14,15))
+
+partial2 <- c(f_partialP(1,1,0,14), 
+              f_partialP(1,1,1,14), 
+              f_partialP(1,1,1,14), 
+              f_partialP(1,1,2,14), 
+              f_partialP(0,1,1,14),
+              f_partialP(0,1,2,14),
+              f_partialP(0,1,14,14),
+              f_partialP(1,1,14,14), 
+              f_partialP(0,1,0,14))
+
+names = c(    "Correct Answer",
+              "Response",
+              "$i$ ",
+              "Dichotomous",
+              "Partial [-1/n, +1/n]",
+              "Partial [-1/q, +1/p]")
+
+dt <- data.frame(correct, response, i, abs, partial1 , partial2)
+
+kbl(dt, col.names = names, caption = title, digits=3) %>%
+  kable_classic() %>%
+    add_header_above(c("Response Scenario " = 3, "Scores" = 3)) %>% 
+    pack_rows("Perfect Response", 1, 1) %>%
+    pack_rows("Correct + Extra Incorrect Selections", 2, 4) %>%
+    pack_rows("Only Incorrect Selections", 5, 6) %>%
+    pack_rows("Completely Inverse Response ", 7, 7) %>%
+    pack_rows("Selected ALL or NONE", 8, 9) %>%
+    footnote(general = paste("i = number of options in correct state; _ indicates option not selected"),
+           general_title = "Note: ",footnote_as_chunk = T)
+
+#cleanup
+rm(dt, abs, correct,i,names,partial1,partial2,response,title)
+```
+
+Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate between patterns of responses, in a way that is more sensible for the goals of the SGC3 graph comprehension task.
+
+::: {.callout-caption appearance="simple" icon="false"}
+## Decision
+
+The Partial $[-1/q, +1/p]$ scheme is more appropriate for scoring the graph comprehension task than the Partial $[-1/n, +1/n]$ scheme because it allows us to differentially penalize incorrectly *selected* and incorrectly *not selected* answer options.
+:::
 
 ## SCORE SGC DATA
-
-To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
@@ -57,29 +435,627 @@ Based on prior observational studies where we observed emergence of other altern
 
 ### Prepare Answer Keys
 
-**TODO UPDATE** We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
+We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
 
 ```{r}
 #| label: IMPORT-KEYS
 #| warning: false
 #| message: false
 
-# #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+key_111_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_111_key.csv') %>% mutate(condition = 111, phase = "scaffold")
+key_121_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_121_key.csv')%>% mutate(condition = 121, phase = "scaffold")
+cs = rep('c', 23) %>% str_c(collapse="") #create column spec 
+key_test_raw <- read_csv('analysis/utils/keys/SGCX_test_key.csv', col_types = cs)%>% mutate(condition = "", phase = "test") 
 
-#SAVE KEYS FOR FUTURE USE
-keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
-keys_orth <-  read_csv("analysis/utils/keys/parsed_keys/keys_orth")
-keys_tri <-  read_csv("analysis/utils/keys/parsed_keys/keys_tri")
-keys_satisfice_left <-  read_csv("analysis/utils/keys/parsed_keys/keys_satisfice_left")
-keys_satisfice_right <-  read_csv("analysis/utils/keys/parsed_keys/keys_satisfice_right")
-keys_tversky_duration <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_duration")
-keys_tversky_end <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_end")
-keys_tversky_max <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_max")
-keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_start")
+keys_raw <- rbind(key_111_raw, key_121_raw, key_test_raw )
+rm(key_111_raw, key_121_raw, key_test_raw)
 
 ```
+
+In order to calculate scores using the $[-1/q, +1/p]$ algorithm, we need to define the subset of all response options (set N) that should be selected (set P) and should not be selected (set Q). In order to calculate subscores for each graph interpretation (i.e. triangular, orthogonal, tversky) we must define these sets independently for each interpretation. For each question, the `keys_raw` dataframe gives us set N (all response options), and a set P (options that should be selected) for *each interpretation*. From these we must derive set Q for each interpretation.
+
+-   SET $N$, all response options (superset) . This set is the same across all interpretations (a property of the question) and is given in the answer key.
+
+-   SET $P$, $P \subset N$ , the subset of options that **should** be selected (rewarded as +1/p) . This set differs by interpretation, and is given in the answer key.
+
+-   SET $A, A \subset N, A \sqcup P$ , the subset of options that **should not** be selected, *but if they are, aren't penalized* (i.e. these options are ignored. Not rewarded, nor penalized). These include any options referenced in the question (i.e. select shifts that start at the same time as X; don't penalize if they also select 'X'), as well as options within 0.5hr offset from the data point to accommodate reasonable visual errors. This set differs by interpretation, and is given in the answer key (columns `REF_POINT` and `_also`).
+
+-   SET $Q$, the subset of options that **should not be selected** and are penalized (as -1/q). This set differs by interpretation and is not given in the answer key. We can derive set Q for each interpretation by $Q = N - (P \cup A)$
+
+The next step in scoring is preparing interpretation-specific answer keys that specify sets N, P, A and Q for each question.
+
+#### Triangular Key
+
+First we construct a key set based on the 'Triangular' interpretation (i.e. the actually correct answers).
+
+```{r}
+#| label: KEY-SET-TRI
+
+verify_tri = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TRIANGULAR KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tri <- keys_raw %>% 
+  select(Q, condition, OPTIONS, TRIANGULAR, TRI_allow, REF_POINT) %>% 
+  mutate(
+    
+    #replace NAs 
+    TRI_allow = str_replace_na(TRI_allow,""),
+    REF_POINT = str_replace_na(REF_POINT,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TRIANGULAR,
+    set_p = str_replace_na(set_p,""),#replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TRI_allow,REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""),#replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DEFINE SETS N, P, A
+for (x in 1:nrow(keys_tri)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tri[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tri[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tri[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tri[x,'set_q'] = Q
+  keys_tri[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tri[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tri <- keys_tri %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+#cleanup 
+rm(N,A,P,Q,n_q,s,x,tempunion)
+  
+```
+
+This leaves us a dataframe `keys_tri` that define the sets of response options consistent with the triangular graph interpretation.
+
+To verify we have generated the correct sets, we verify that for each question, each option in N is included in either set P, A or Q (once and only once).
+
+`r verify_tri`
+
+#### Orthogonal Key
+
+Next we construct a key set based on the 'Orthogonal' interpretation.
+
+```{r}
+#| label: KEY-SET-ORTH
+
+verify_orth = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT ORTHOGONAL KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_orth <- keys_raw %>% 
+  select(Q, condition, OPTIONS, ORTHOGONAL, ORTH_allow, REF_POINT) %>% 
+  mutate(
+    
+    #replace NAs 
+    ORTH_allow = str_replace_na(ORTH_allow,""),
+    REF_POINT = str_replace_na(REF_POINT,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = ORTHOGONAL,
+    set_p = str_replace_na(set_p,""),#replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(ORTH_allow,REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answer options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_orth)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_orth[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_orth[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_orth[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
+ 
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # print(s)
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_orth[x,'set_q'] = Q
+  keys_orth[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  # print(tempunion)
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+
+  verify_orth[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x, cs)
+```
+
+This leaves us a dataframe `keys_orth` that define the sets of response options consistent with the orthogonal graph interpretation.
+
+To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
+
+`r verify_orth`
+
+#### Tversky Keys
+
+Next we construct the key set based on a partial-understanding strategy we refer to as 'Tversky'. We use the label Tversky as shorthand for a partial interpretation of the coordinate system where subjects select a set of responses that lay along a connecting line from the referenced data point or referenced time for that item. The term is named for Barbara Tversky based on her work on graphical primitives (e.g. "lines connect, arrows direct, boxes contain").
+
+```{r}
+#| label: KEY-SETS-TVERSKY
+
+verify_max = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-MAX
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_max <- keys_raw %>% 
+  select(Q, condition, OPTIONS, REF_POINT, TV_max, TV_max_allow) %>% 
+  mutate(
+  
+    #replace NAs 
+    REF_POINT = str_replace_na(REF_POINT,""),
+    TV_max = str_replace_na(TV_max,""),
+    TV_max_allow = str_replace_na(TV_max_allow,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_max,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_max_allow,REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_max)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_max[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_max[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_max[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_max[x,'set_q'] = Q
+  keys_tversky_max[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_max[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_max <- keys_tversky_max %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+verify_tversky_start = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-START
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_start <- keys_raw %>% 
+  select(Q, condition, OPTIONS, REF_POINT, TV_start, TV_start_allow) %>% 
+  mutate(
+  
+    #replace NAs 
+    REF_POINT = str_replace_na(REF_POINT,""),
+    TV_start = str_replace_na(TV_start,""),
+    TV_start_allow = str_replace_na(TV_start_allow,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_start,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_start_allow,REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_start)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_start[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_start[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_start[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_start[x,'set_q'] = Q
+  keys_tversky_start[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tversky_start[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_start <- keys_tversky_start %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+
+verify_tversky_end = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-END
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_end <- keys_raw %>% 
+  select(Q, condition, OPTIONS, REF_POINT, TV_end, TV_end_allow) %>% 
+  mutate(
+  
+    #replace NAs 
+    REF_POINT = str_replace_na(REF_POINT,""),
+    TV_end = str_replace_na(TV_end,""),
+    TV_end_allow = str_replace_na(TV_end_allow,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_end,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_end_allow,REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_end)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_end[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_end[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_end[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_end[x,'set_q'] = Q
+  keys_tversky_end[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tversky_end[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_end <- keys_tversky_end %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+verify_tversky_duration = c()
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT TVERSKY KEY SET for TVERSKY-DURATION
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_tversky_duration <- keys_raw %>% 
+  select(Q, condition, OPTIONS, REF_POINT, TV_dur, TV_dur_allow) %>% 
+  mutate(
+  
+    #replace NAs 
+    REF_POINT = str_replace_na(REF_POINT,""),
+    TV_dur = str_replace_na(TV_dur,""),
+    TV_dur_allow = str_replace_na(TV_dur_allow,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = TV_dur,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(TV_dur_allow,REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_tversky_duration)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_tversky_duration[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_tversky_duration[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_tversky_duration[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_tversky_duration[x,'set_q'] = Q
+  keys_tversky_duration[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_tversky_duration[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_tversky_duration <- keys_tversky_duration %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x)
+```
+
+This leaves us four dataframes, each corresponding to a different variant of a 'lines connecting to reference point' strategy.\
+- `keys_tversky_max` : the superset of lines connecting options - `keys_tversky_start` : lines connecting to the rightward diagonal (start time) of the reference point - `keys_tversky_end`: lines connecting to the leftward diagonal (end time) of the reference point - `keys_tversky_duration`: lines connecting to the horizontal y-intercept (duration) of the reference point
+
+To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
+
+`r verify_max`
+
+`r verify_tversky_start`
+
+`r verify_tversky_end`
+
+`r verify_tversky_duration`
+
+#### Satisficing Key
+
+Next we construct two keys based on the 'Satisficing' strategy. Satisficing involves selecting any data points within 0.5hr visual offset of the orthogonal interpretation of the graph (because no orthogonal response option is available). One key represents selecting a point slightly to the left of the orthogonal, and the other key represents selecting a point slightly to the right of the orthogonal. The "Satisficing" strategy involves the reader selecting data points *nearest* to the orthogonal projection from the reference point in the question. We observe this strategy in some readers when there is no orthogonal response available (i.e. in the impasse condition), so they select the points nearest to the projection (i.e. "close enough").
+
+```{r}
+#| label: KEY-SET-SATISFICE
+
+verify_satisfice_right = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT SATISFICE RIGHT KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_satisfice_right <- keys_raw %>% 
+  select(Q, condition, OPTIONS, SATISFICE_right, REF_POINT) %>% 
+  mutate(
+    #replace NAs
+    REF_POINT = str_replace_na(REF_POINT,""),
+
+    #P options that SHOULD be selected (rewarded)
+    set_p = SATISFICE_right,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+
+    #A options that are ignored if selected
+    set_a = str_c(REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_satisfice_right)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_satisfice_right[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_satisfice_right[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_satisfice_right[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # print(s)
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  #save set to data frame
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_satisfice_right[x,'set_q'] = Q
+  keys_satisfice_right[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_satisfice_right[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_satisfice_right <- keys_satisfice_right %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
+
+
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x)
+
+
+
+verify_satisfice_left = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT SATISFICE left KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_satisfice_left <- keys_raw %>% 
+  select(Q, condition, OPTIONS, SATISFICE_left, REF_POINT) %>% 
+  mutate(
+    
+    #replace NAs 
+    REF_POINT = str_replace_na(REF_POINT,""),
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = SATISFICE_left,
+    set_p = str_replace_na(set_p,""), #replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = str_c(REF_POINT, sep=""),
+    set_a = str_replace_na(set_a,""), #replace na if empty
+    n_a = nchar(set_a),
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n)
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DO THE STUFF THAT'S EASIER IN A LOOP
+for (x in 1:nrow(keys_satisfice_left)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_satisfice_left[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_satisfice_left[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_satisfice_left[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # print(s)
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  #save set to data frame
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_satisfice_left[x,'set_q'] = Q
+  keys_satisfice_left[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_satisfice_left[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_satisfice_left <- keys_satisfice_left %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
+
+
+#cleanup
+rm(A, N, n_q, P, Q, s, tempunion, x)
+
+```
+
+This leaves us a dataframe `keys_satisfice` that define the sets of response options consistent with the orthogonal graph interpretation.
+
+To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
+
+`r verify_satisfice_left` `r verify_satisfice_right`
+
+```{r}
+#| label: CLEANUP-VERIFICATIONS
+#cleanup
+rm(verify_tri, verify_orth, verify_max, verify_tversky_duration, verify_tversky_end, verify_tversky_start, verify_satisfice_right, verify_satisfice_left)
+```
+
 ### Score Items
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (e.g. `keys_orth`, `keys_tri`, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item in `df_items`, and can be used to determine which graph interpretation the subject held.
@@ -113,24 +1089,152 @@ Specifically, the following scores are calculated for each item:
 ```{r}
 #| label: IMPORT-ITEMS
 
-#HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
-
 #backup <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds') #for troubleshooting only
 df_items <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds')
 
 ```
 
 ```{r}
-#| label: IMPORT-SCORING-FUNCTIONS
+#| label: SCORING-FUNCTIONS-mapply-friendly
 
-# #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+calc_sub_score2 <- function(question, cond, response, keyframe){
 
-source("analysis/utils/scoring.R")
+  # print(paste(question, cond, response))
 
+    #STEP 1 GET KEY
+  if (question < 6) #for q1 - q5 find key for question by condition
+  {
+    # print(keyframe)
+    #GET KEY FOR THIS SCORE TYPE, QUESTION AND CONDITION
+    p =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_q)
+
+    # print(p)
+    # print(q)
+    # print(paste("pn ",pn))
+    # print(paste("qn ",qn))
+    
+  } else {
+    #GET KEY FOR THIS SCORE TYPE, QUESTION
+    p =  keyframe %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% select(n_q)
+  }
+
+  #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  
+  #if response is not empty, split apart response for set comparison
+    if(response != "")
+    { response = response %>% str_split("") %>% unlist()}
+  
+  #set comparisons 
+  ps = length(intersect(response,p))
+  # print(paste("correct selected" ,ps))
+  qs = length(intersect(response,q))
+  # print(paste("incorrect selected", qs))
+  # df_items[x,'tri_ps'] = tri_ps
+  # df_items[x,'tri_qs'] = tri_qs
+
+  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION
+  x = f_partialP(ps,pn,qs,qn) %>% unlist() %>% as.numeric()
+  # print(x)
+  #cleanup
+  rm(p,q,pn,qn,ps,qs)
+
+  return(x)
+}
+
+#CALCULATE THE REFERENCE SCORES
+calc_ref_score2 <- function(question, cond, response){
+  
+  #1. GET reference point from REF_POINT column in raw keys
+  if (question < 6) {
+    ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
+  } else {
+    ref_p = keys_raw %>% filter(Q == question) %>%select(REF_POINT) %>% 
+      pull(REF_POINT) %>% str_split("") %>% unlist()
+  }
+    
+    #2. Is the response PRECISELY the REFERENCE POINT?
+    x = identical(ref_p,response)
+    x = as.numeric(x)  
+  
+    # paste("ref: ",ref_p)
+    # paste("response: ",response)
+    # paste("x: ",ref_p == response)
+    
+    #cleanup
+    rm(ref_p, response, question, cond)   
+    return(x) #1 = match, 0 = not match
+}
+
+#CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
+calc_both_score2 <- function(question, cond, response){
+  
+  
+  #TRAPDOOR 
+  #since no orth responses exist for impasse condition q1 - q5, set to 0
+  if (question < 6 & cond == 121) {x = NA}
+  
+  #ELSE 
+  #calculate union of ORTH and TRI
+  else {
+    if (question < 6 & cond == 111) #for q1 - q5 find key for question by condition
+  {
+     #grab the tri and orth keys for this question as well as N option set
+     tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     orth_p = keys_orth %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     set_n =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+     both_p = union(tri_p, orth_p) #the selection of tri and p
+     #2. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
+     both_q = setdiff(set_n,both_p)
+     both_pn = length(both_p)
+     both_qn = length(both_q)
+  } else{
+    
+     #grab the tri and orth keys for this question as well as N option set
+     tri_p =  keys_tri %>%  filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     orth_p = keys_orth %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+     set_n =  keys_tri %>%  filter(Q == question) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
+     #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
+     both_p = union(tri_p, orth_p) #the selection of tri and p
+     #2. calc answers that shouldn't be selected as difference between N [same for all keys] and both_p
+     both_q = setdiff(set_n,both_p)
+     both_pn = length(both_p)
+     both_qn = length(both_q)
+  }
+    
+  #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  
+  #if response is not empty, split apart response for set comparison
+    if(response != "")
+    { response = response %>% str_split("") %>% unlist()}
+  
+    both_ps = length(intersect(response,both_p))
+    both_qs = length(intersect(response,both_q))
+  
+ 
+  #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
+  x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
+  
+  #cleanup
+  rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs, question, cond, response )   
+  }
+  
+  return(x) #true correct, trues, false correct, false
+}
+
+
+#REORDER THE CHARACTERS IN A STRING
+reorder_inplace <- function(x)
+{
+  y =  x %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
+  return (y)
+}
 ```
 
 *note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records*
@@ -144,23 +1248,26 @@ source("analysis/utils/scoring.R")
 #ALPHEBETIZE RESPONSE
 df_items$response = pbmapply(reorder_inplace, df_items$response)
 
-#STRATEGY PARTIAL-SUBSCORES
-df_items$score_TRI = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
-df_items$score_ORTH = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
-df_items$score_SAT_left = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
-df_items$score_SAT_right = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
-df_items$score_TV_max = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
-df_items$score_TV_start = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
-df_items$score_TV_end = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
-df_items$score_TV_duration = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
+#STRATEGY SUBSCORES
+df_items$score_TRI = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
+df_items$score_ORTH = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
 
-#SPECIAL ABSOLUTE SUBSCORES
-df_items$score_REF = pbmapply(calc_refscore, df_items$q, df_items$response)
-df_items$score_BOTH = as.integer((df_items$score_TRI == 1) & (df_items$score_ORTH ==1))
+df_items$score_SAT_left = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
+df_items$score_SAT_right = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
+
+df_items$score_TV_max = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
+df_items$score_TV_start = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
+df_items$score_TV_end = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
+df_items$score_TV_duration = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
+
+#SPECIAL SUBSCORES
+df_items$score_REF = pbmapply(calc_ref_score2, df_items$q, df_items$condition, df_items$response)
+df_items$score_BOTH = pbmapply(calc_both_score2, df_items$q, df_items$condition, df_items$response)
+  
 
 #ABSOLUTE SCORES
 df_items$score_ABS = as.integer(df_items$correct) 
-df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't penalize ref or ve-area
+df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
 
 ```
 
@@ -168,7 +1275,7 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't pe
 
 Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.
 
-The final output is called `interpretation`.
+The final output is called `best`.
 
 ```{r}
 #| label: DERIVE-INTERPRETATION
@@ -329,10 +1436,6 @@ Next, we summarize the item level scores by subject in order to calculate cummul
 
 ```{r}
 #| label: SUMMARIZE-BY-SUBJECT
-
-# #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
 
 #prep items
 df_items <- df_items %>% mutate(
@@ -718,7 +1821,7 @@ We start by exploring the range of response options checked by participants on Q
 ```{r}
 #| label: Q1-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==1)
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==1)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -944,7 +2047,7 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) 
 ```{r}
 #| label: Q2-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==2)
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==2)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1126,7 +2229,7 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) 
 ```{r}
 #| label: Q3-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==3)
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==3)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1322,7 +2425,7 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) 
 ```{r}
 #| label: Q4-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==4)
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==4)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1466,7 +2569,7 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) 
 ```{r}
 #| label: Q5-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==5)
+q <- keys_raw %>% filter(condition == 111) %>% filter(Q==5)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -2335,6 +3438,19 @@ setwd(imac)
 #export R DATA STRUCTURES (include codebook metadata)
 # rio::export(df_subjects, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") # to R data structure file
 # rio::export(df_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
+
+
+#SAVE KEYS FOR FUTURE USE
+write.csv(keys_raw,"analysis/utils/keys/parsed_keys/keys_raw", row.names = FALSE)
+write.csv(keys_orth,"analysis/utils/keys/parsed_keys/keys_orth", row.names = FALSE)
+write.csv(keys_tri,"analysis/utils/keys/parsed_keys/keys_tri", row.names = FALSE)
+write.csv(keys_satisfice_left,"analysis/utils/keys/parsed_keys/keys_satisfice_left", row.names = FALSE)
+write.csv(keys_satisfice_right,"analysis/utils/keys/parsed_keys/keys_satisfice_right", row.names = FALSE)
+write.csv(keys_tversky_duration,"analysis/utils/keys/parsed_keys/keys_tversky_duration", row.names = FALSE)
+write.csv(keys_tversky_end,"analysis/utils/keys/parsed_keys/keys_tversky_end", row.names = FALSE)
+write.csv(keys_tversky_max,"analysis/utils/keys/parsed_keys/keys_tversky_max", row.names = FALSE)
+write.csv(keys_tversky_start,"analysis/utils/keys/parsed_keys/keys_tversky_start", row.names = FALSE)
+
 
 ```
 
