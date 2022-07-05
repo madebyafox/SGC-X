@@ -29,7 +29,9 @@ mainfont: "DejaVu Sans"
 knitr::opts_chunk$set(echo = TRUE)
 library(jsonlite)
 library(tidyjson)
+library(ggformula) #simple graphs
 library(dplyr)
+
 
 # codebook stuff 
 library(codebook) #core codebook functions 
@@ -496,6 +498,39 @@ codebook(df_items,#ONLY FOR HTML EXPORT
          metadata_json = FALSE,
          survey_overview = FALSE,
          missingness_report = FALSE)
+```
+
+
+# Explore
+Exploration of the distribution of key response variables for validation purposes: 
+
+```{r}
+
+
+gf_histogram( ~absolute_score ,data = df_participants) + 
+  labs(title = "SGC4B Distribution of Absolute Score")
+
+gf_histogram( ~absolute_score ,data = df_participants) %>% 
+  gf_facet_wrap(~pretty_condition) +
+  labs(title = "SGC4B Distribution of Absolute Score (by Condition)")
+
+gf_props(~correct, data = df_items) + 
+  labs(title = "SGC4B Distribution of Item Absolute Score")
+
+gf_props(~correct, data = df_items) %>% 
+  gf_facet_wrap(~pretty_condition) + 
+  labs(title = "SGC4B Distribution of Item Absolute Score (by Condition)")
+
+gf_histogram( ~totaltime_m ,data = df_participants) + 
+  labs(title = "SGC4B Distribution of Absolute Score")
+
+gf_histogram( ~absolute_score ,data = df_participants) %>% 
+  gf_facet_wrap(~pretty_condition) +
+  labs(title = "SGC4B Distribution of Total Study Time")
+
+gf_histogram(~rt_s, data = df_items) + 
+  labs(title = "SGC4B Distribution of Item Response Time")
+
 ```
 
 # Data Export
