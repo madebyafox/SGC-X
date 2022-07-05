@@ -323,6 +323,9 @@ imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS
 mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
 setwd(mbp)
 
+#import subjects
+df_subjects <- read_rds('analysis/SGC5/data/1-study-level/sgc5_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+
 #prep items
 df_items <- df_items %>% mutate(
   tv_type = as.factor(tv_type),
@@ -398,9 +401,6 @@ subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subj
   item_test_NABS = sum(score_niceABS),
   item_test_rt = sum(rt_s)
 )%>% dplyr::select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
-
-#import subjects
-df_subjects <- read_rds('analysis/SGC5/data/1-study-level/sgc5_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
 #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
 unique(subjects_summary$subject == df_subjects$subject)
@@ -644,7 +644,7 @@ ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject
 
 #VISUALIZE progress over time SCALED score 
 ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
- geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
+ geom_line(position=position_jitter(w=0.15, h=0.00), size=0.1) +
  facet_wrap(~pretty_condition) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
@@ -705,7 +705,7 @@ We start by exploring the range of response options checked by participants on Q
 ```{r}
 #| label: Q1-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==1)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==1)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -738,7 +738,7 @@ Notice that for this Question, the *Triangular* answer is the same as the *Tvers
 title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
+df_items %>% filter(q == 1) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
@@ -752,11 +752,11 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Lines-Connect", 2, 2) %>% 
-  pack_rows("Orthogonal", 3, 3) %>% 
-  pack_rows("Other", 4, 4)  %>% 
-  pack_rows("Unknown", 5, 7)  %>% 
+  # pack_rows("Triangular", 1, 1) %>% 
+  # pack_rows("Lines-Connect", 2, 2) %>% 
+  # pack_rows("Orthogonal", 3, 3) %>% 
+  # pack_rows("Other", 4, 4)  %>% 
+  # pack_rows("Unknown", 5, 7)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
@@ -813,7 +813,7 @@ Three responses were given that were not consistent with any of the identified i
 ```{r}
 #| label: Q2-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==2)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==2)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -842,7 +842,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 title <- "Frequency of Selected Response Options for Question #2 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>% 
+df_items %>% filter(q == 2 ) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
@@ -856,11 +856,11 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>%
-  pack_rows("Lines-Connect", 3, 4) %>% 
-  pack_rows("Orthogonal", 5, 7) %>%
-  pack_rows("Other", 8, 8)  %>% 
-  pack_rows("Unknown", 9, 10)  %>% 
+  # pack_rows("Triangular", 1, 2) %>%
+  # pack_rows("Lines-Connect", 3, 4) %>% 
+  # pack_rows("Orthogonal", 5, 7) %>%
+  # pack_rows("Other", 8, 8)  %>% 
+  # pack_rows("Unknown", 9, 10)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
@@ -917,7 +917,7 @@ Again, we see that most subjects selected a response consistent with one of the 
 ```{r}
 #| label: Q3-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==3)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==3)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -946,7 +946,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 title <- "Frequency of Selected Response Options for Question #3 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>% 
+df_items %>% filter(q == 3 ) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
@@ -959,12 +959,13 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Lines-Connect", 3, 7) %>% 
-  pack_rows("Orthogonal", 8, 8) %>% 
-  pack_rows("Other", 9, 10) %>% 
-  pack_rows("Unknown", 11, 17)  
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
+# %>%
+#   pack_rows("Triangular", 1, 2) %>% 
+#   pack_rows("Lines-Connect", 3, 7) %>% 
+#   pack_rows("Orthogonal", 8, 8) %>% 
+#   pack_rows("Other", 9, 10) %>% 
+#   pack_rows("Unknown", 11, 17)  
 
 ```
 
@@ -1034,7 +1035,7 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 ```{r}
 #| label: Q4-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==4)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==4)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1063,7 +1064,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 title <- "Frequency of Selected Response Options for Question #4 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>% 
+df_items %>% filter(q == 4 ) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
@@ -1076,12 +1077,13 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Lines-Connect", 3, 3) %>% 
-  pack_rows("Orthogonal", 4, 8) %>% 
-  pack_rows("Other", 9, 10) %>% 
-  pack_rows("Unknown", 11, 16) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
+# %>%
+#   pack_rows("Triangular", 1, 2) %>% 
+#   pack_rows("Lines-Connect", 3, 3) %>% 
+#   pack_rows("Orthogonal", 4, 8) %>% 
+#   pack_rows("Other", 9, 10) %>% 
+#   pack_rows("Unknown", 11, 16) 
 ```
 
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -1101,7 +1103,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 ```{r}
 #| label: Q5-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==5)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==5)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1130,7 +1132,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 title <- "Frequency of Selected Response Options for Question #5 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>% 
+df_items %>% filter(q == 5 & condition == "DEFAULT") %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
