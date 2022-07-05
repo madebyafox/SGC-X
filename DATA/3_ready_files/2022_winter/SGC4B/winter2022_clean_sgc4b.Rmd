@@ -68,7 +68,7 @@ ex_participants = data.frame()
 
 *note*: The SGC4B data files do not contain the 'explanation' column (the subject's typed explanation to the free response question asking them to explain a particular question.) I'm not certain why this field is not in the dataset, but I've traced it back to the DB records and see it is not in the jsPsych trial level data. Most likely these data were collected at the start of the data collection period, and this question was added to the study afterward. This is not a critical problem, because the explanation question is an exploratory analysis and not used for hypothesis testing. 
 
-*note* : We drop all scores calcluated in the stimulus engine, as they are recalculate during analysis using a different MC scoring algorithm.
+*note* : We drop all scores calculated in the stimulus engine (except absolute score, which uses simple # strictly correct), as they are recalculate during analysis using a different MC scoring algorithm.
 ```{r PARTICIPANTS-SETUP}
 
 #create factors in PARTICIPANTS
@@ -125,7 +125,7 @@ df_participants <- df_participants %>%
     status,
     term,
     violations,
-    # absolute_score,
+    absolute_score,
     # discriminant_score,
     # tri_score,
     # orth_score,
@@ -139,8 +139,7 @@ df_participants <- df_participants %>%
 #ADD CONTROL CONDITION MOVED FROM SGC4A 
 #TODO | verify that 4bCONTROL has been copied to input folder; out of 4A output folder
 control_participants<- read.csv("input/winter22_sgc4b_CONTROL_participants.csv") %>% 
-select(-explanation,
-    - absolute_score, -discriminant_score, -tri_score, -orth_score, -other_score, -blank_score)  %>%
+select(-explanation, -discriminant_score, -tri_score, -orth_score, -other_score, -blank_score)  %>%
 mutate(
   condition= as.character(condition),
   subject = as.character(subject))
