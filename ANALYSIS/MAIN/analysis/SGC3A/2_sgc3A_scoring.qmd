@@ -8,14 +8,13 @@ subtitle: 'Study SGC3A | 2 Response Scoring'
 
 **TODO**
 
--   refactor to import external scoring fns
 -   finish item level response exploration
 -   TODO: generate heat maps of Q9. Same answer but very different optimal operation paths!
 -   see individual item level todos on response exploration
 
-# Response Scoring {#sec-SGC3A-scoring}
+# Response Scoring
 
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
 | Pre-Requisite         |
 |-----------------------|
@@ -36,10 +35,9 @@ library(tidyverse) #ALL THE THINGS
 
 ```
 
-
 ## SCORE SGC DATA
 
-To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
+To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
@@ -57,7 +55,7 @@ Based on prior observational studies where we observed emergence of other altern
 
 ### Prepare Answer Keys
 
-**TODO UPDATE** We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
+We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
 
 ```{r}
 #| label: IMPORT-KEYS
@@ -80,6 +78,7 @@ keys_tversky_max <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_max"
 keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_start")
 
 ```
+
 ### Score Items
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (e.g. `keys_orth`, `keys_tri`, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item in `df_items`, and can be used to determine which graph interpretation the subject held.
