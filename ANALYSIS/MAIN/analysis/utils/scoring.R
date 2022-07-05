@@ -1,7 +1,5 @@
 # SCORING FUNCTIONS FOR SGC DISSERTATION PROJECT
 
-
-
 #CALCULATE PARTIAL PQ SCORE 
 f_partialP <- function(t,p,f,q) {
   
@@ -16,35 +14,50 @@ f_partialP <- function(t,p,f,q) {
 }
 
 
+#REORDER THE CHARACTERS IN A STRING
+reorder_inplace <- function(x)
+{
+  y =  x %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
+  return (y)
+}
 
-calc_sub_score2 <- function(question, cond, response, keyframe){
+#———————————————---
+#CALCULATE SUBSCORE
+# calculates subscore by accepting a question number, condition number, response set and key dataframe
+# finds appropriate answer set in keyframe based on question and condition 
+# performs set comparison to calc p,q,pn,qn,ps,qs
+# uses these values to calculate partial_p
+# returns score
+calc_subscore <- function(question, cond, response, keyframe){
   
-  # print(paste(question, cond, response))
+  #print(paste(question, cond, response))
   
   #STEP 1 GET KEY
-  if (question < 6) #for q1 - q5 find key for question by condition
+  #—————————————————————————————————
+  
+  ## | only SGC3A impasse condition (121) Q1->5 have different answers (based on different dataset graphed)
+  if (cond == 121 & question < 6 )
   {
-    # print(keyframe)
-    #GET KEY FOR THIS SCORE TYPE, QUESTION AND CONDITION
-    p =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    q =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    pn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_p)
-    qn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_q)
+    #GET KEY FOR Q1-Q6 COND 121
+    p =  keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(n_q)
     
     # print(p)
     # print(q)
     # print(paste("pn ",pn))
     # print(paste("qn ",qn))
-    
   } else {
     #GET KEY FOR THIS SCORE TYPE, QUESTION
-    p =  keyframe %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    q =  keyframe %>% filter(Q == question) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    pn = keyframe %>% filter(Q == question) %>% select(n_p)
-    qn = keyframe %>% filter(Q == question) %>% select(n_q)
+    p =  keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(n_q)
   }
   
   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
+  #—————————————————————————————————
   
   #if response is not empty, split apart response for set comparison
   if(response != "")
@@ -67,16 +80,17 @@ calc_sub_score2 <- function(question, cond, response, keyframe){
   return(x)
 }
 
-#CALCULATE THE REFERENCE SCORES
-calc_ref_score2 <- function(question, cond, response){
+#———————————————---
+#CALCULATE REF-SCORE
+# calculates exact match to reference point by accepting a question number, condition number, and response set
+# finds appropriate answer set in keyframe based on question and condition 
+# looks for exact set 
+# returns score 0 or 1 
+calc_refscore <- function(question, response){
   
-  #1. GET reference point from REF_POINT column in raw keys
-  if (question < 6) {
-    ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
-  } else {
-    ref_p = keys_raw %>% filter(Q == question) %>%select(REF_POINT) %>% 
-      pull(REF_POINT) %>% str_split("") %>% unlist()
-  }
+  #1. GET reference point from REF_POINT column in raw keys [condition doesn't matter, ref point is in Q which is always the same]
+  ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(REF_POINT) %>% 
+    pull(REF_POINT) %>% str_split("") %>% unlist()
   
   #2. Is the response PRECISELY the REFERENCE POINT?
   x = identical(ref_p,response)
@@ -87,71 +101,6 @@ calc_ref_score2 <- function(question, cond, response){
   # paste("x: ",ref_p == response)
   
   #cleanup
-  rm(ref_p, response, question, cond)   
+  rm(ref_p, response, question)   
   return(x) #1 = match, 0 = not match
-}
-
-#CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
-calc_both_score2 <- function(question, cond, response){
-  
-  
-  #TRAPDOOR 
-  #since no orth responses exist for impasse condition q1 - q5, set to 0
-  if (question < 6 & cond == 121) {x = NA}
-  
-  #ELSE 
-  #calculate union of ORTH and TRI
-  else {
-    if (question < 6 & cond == 111) #for q1 - q5 find key for question by condition
-    {
-      #grab the tri and orth keys for this question as well as N option set
-      tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-      orth_p = keys_orth %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-      set_n =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
-      #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
-      both_p = union(tri_p, orth_p) #the selection of tri and p
-      #2. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
-      both_q = setdiff(set_n,both_p)
-      both_pn = length(both_p)
-      both_qn = length(both_q)
-    } else{
-      
-      #grab the tri and orth keys for this question as well as N option set
-      tri_p =  keys_tri %>%  filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-      orth_p = keys_orth %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-      set_n =  keys_tri %>%  filter(Q == question) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
-      #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
-      both_p = union(tri_p, orth_p) #the selection of tri and p
-      #2. calc answers that shouldn't be selected as difference between N [same for all keys] and both_p
-      both_q = setdiff(set_n,both_p)
-      both_pn = length(both_p)
-      both_qn = length(both_q)
-    }
-    
-    #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
-    
-    #if response is not empty, split apart response for set comparison
-    if(response != "")
-    { response = response %>% str_split("") %>% unlist()}
-    
-    both_ps = length(intersect(response,both_p))
-    both_qs = length(intersect(response,both_q))
-    
-    
-    #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
-    x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
-    
-    #cleanup
-    rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs, question, cond, response )   
-  }
-  
-  return(x) #true correct, trues, false correct, false
-}
-
-
-#REORDER THE CHARACTERS IN A STRING
-reorder_inplace <- function(x)
-{
-  y =  x %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
-  return (y)
 }
