@@ -173,11 +173,8 @@ df_subjects <- read_rds("analysis/SGC4B/data/0-study-level/sgc4b_participants.rd
 
 #reduce data collected using NEW webapp to useful columns
 df_subjects <- df_subjects %>% 
-  mutate(score = absolute_score, 
-         pretty_condition = recode_factor(condition, "11111" = "orthogonal-triangular", "113" =  "triangle-inside", "114"="orthogonal-inside", "115"="orthogonal-full")
-         ) %>% 
   #select only columns we'll be analyzing, discard others
-  dplyr::select( subject, condition, term, mode, 
+  dplyr::select( subject, condition, pretty_condition, study, term, mode, 
                  #demographics
                  gender, age, language, schoolyear, country,
                  #effort survey
@@ -185,7 +182,10 @@ df_subjects <- df_subjects %>%
                  #explanations
                  other,disability,
                  #response characteristics
-                 totaltime_m, absolute_score)
+                 totaltime_m,
+                 #exploratory factors
+                 violations, browser, width, height
+                 )
 
 
 effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
@@ -221,7 +221,7 @@ df_items <- read_rds("analysis/SGC4B/data/0-study-level/sgc4b_items.rds") #use R
 
 #reduce data collected using new webapp
 df_items <- df_items %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  select(subject, condition, study, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
