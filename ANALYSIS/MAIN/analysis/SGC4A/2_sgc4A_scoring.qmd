@@ -6,8 +6,7 @@ subtitle: 'Study SGC4A | 2 Response Scoring'
 
 # Response Scoring {#sec-SGC4A-scoring}
 
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
-
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
 ```{r}
 #| label: SETUP
@@ -26,7 +25,7 @@ library(tidyverse) #ALL THE THINGS
 
 ## SCORE SGC DATA
 
-To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
+To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
 In SGC_4 we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
@@ -44,7 +43,7 @@ Based on prior observational studies where we observed emergence of other altern
 
 ### Prepare Answer Keys
 
-We start by importing answer keys. 
+We start by importing answer keys.
 
 ```{r}
 #| label: IMPORT-KEYS
@@ -151,7 +150,6 @@ df_items$score_ABS = as.integer(df_items$correct)
 df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't penalize ref or ve-area
 
 ```
-
 
 ### Derive Interpretation {#sec-SGC4A-interpretation}
 
@@ -1024,7 +1022,6 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 #### Question #4
 
 \[PLACEHOLDER --- NOT YET CONSIDERED THIS QUESTION\]
-
 
 ![Q4---Control Condition](static/questions/Q4_111.png){#fig-Q4-111}
 
