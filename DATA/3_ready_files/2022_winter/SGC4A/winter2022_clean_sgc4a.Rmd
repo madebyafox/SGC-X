@@ -25,8 +25,13 @@ mainfont: "DejaVu Sans"
 
 *The purpose of this file is processing the combined data files for Winter 2022 into files that contain only valid data for analysis, excluding invalid sessions and participants*
 
+**IMPORTANT**  
+Must manually define working directory at 1 level above 4A [ie at 2022_winter level]. This is required for splitting and saving 4B control participants.
 ```{r SETUP, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+session_dir = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/DATA/3_ready_files/2022_winter"
+knitr::opts_knit$set(session_dir)
+
 library(jsonlite)
 library(tidyjson)
 library(dplyr)
@@ -39,6 +44,9 @@ library(labelled) #labelling conveninence functions
 checkMode <- function() {
   knitr::opts_current$get('dev')
 }
+
+#PRINTWD
+getwd()
 ```
 
 Data is imported from 2 files, indicating two levels of analysis: participants and blocks (item-level). 
@@ -263,9 +271,14 @@ nrow(df_items) == nrow(df_items_keep) + nrow(df_items_split)
 df_participants_split$study <- "SGC4B"
 df_items_split$study <- "SGC4B"
 
-#export other half control for SGC4B
+
+#WRITE 4B CONTROL TO OUTPUT OF THIS STUDY FOR REFERENCE
 write.csv(df_participants_split,"output/winter22_sgc4b_CONTROL_participants.csv", row.names = FALSE)
 write.csv(df_items_split,"output/winter22_sgc4b_CONTROL_items.csv", row.names = FALSE)
+
+#WRITE 4B CONTROL TO INPUT OF 4B WHERE 4B CLEANING FILE CAN FIND IT
+write.csv(df_participants_split,"../SGC4B/input/winter22_sgc4b_CONTROL_participants.csv", row.names = FALSE)
+write.csv(df_items_split,"../SGC4B/input/winter22_sgc4b_CONTROL_items.csv", row.names = FALSE)
 
 #RECONSTRUCT DF_ITEMS
 df_items <- df_items_keep
@@ -519,8 +532,8 @@ For transparency, we save and identify the excluded data.
 
 ```{r save-EXCLUSIONS}
 
-write.csv(ex_participants,"output/excluded_participants_winter22_sgc4a.csv", row.names = FALSE)
-write.csv(ex_items,"output/excluded_items_winter22_sgc4a.csv", row.names = FALSE)
+write.csv(ex_participants,"output/excluded_participants_sgc4A.csv", row.names = FALSE)
+write.csv(ex_items,"output/excluded_items_sgc4A.csv", row.names = FALSE)
 
 ```
 
@@ -528,16 +541,20 @@ write.csv(ex_items,"output/excluded_items_winter22_sgc4a.csv", row.names = FALSE
 
 ## Analysis-Ready Files
 
+Finally, we generate analysis ready files as .csv and .rds(containing data dictionary metatdata)
+
+
 ```{r GENERATE-FILES}
 
 #save participant file
-
-write.csv(df_participants,"output/winter22_sgc4a_participants.csv", row.names = FALSE)
-
+write.csv(df_participants,"output/sgc4a_participants.csv", row.names = FALSE)
 #save item file
-write.csv(df_items,"output/winter22_sgc4a_items.csv", row.names = FALSE)
+write.csv(df_items,"output/sgc4a_items.csv", row.names = FALSE)
 
- 
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_participants, "output/sgc4a_participants.rds") # to R data structure file
+rio::export(df_items, "output/sgc4a_items.rds") # to R data structure file
+
 
 ```
 

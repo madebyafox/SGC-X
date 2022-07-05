@@ -6,12 +6,10 @@ subtitle: 'Study SGC3A | 5 Exploratory Analyses'
 
 # Exploratory Analyses {#sec-SGC3A-exploration}
 
-**TODO**  
-- response consistency
-- clarify core questions being asked  
-- review models already created in ARCHIVE?  
-- explore response consistency
-- fix references
+**TODO**\
+- response consistency - clarify core questions being asked\
+- review models already created in ARCHIVE?\
+- explore response consistency - fix references
 
 *The purpose of this notebook is exploratory analyses of data collected for study SGC3A.*
 
@@ -49,15 +47,14 @@ options(scipen=1, digits=3)
 
 ```
 
-
 ```{r}
 #| label: IMPORT-DATA
 #| warning : false
 #| message : false
 
 #IMPORT DATA 
-df_items <- read_rds('data/2-scored-data/sgc3a_scored_items.rds')
-df_subjects <- read_rds('data/2-scored-data/sgc3a_scored_participants.rds')
+df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
+df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds')
 
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
@@ -66,19 +63,18 @@ df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 ```
 
-
 Exploratory Questions
 
-Consistency | How consistent are learners in their interpretation of the graph? Do they adopt an interpretation on the first question and hold constant? Or do they change interpretations from question to question? Are there any interpretations that serve as 'absorbing states' (i.e. once encountered, the learner does not exist this state). 
+Consistency \| How consistent are learners in their interpretation of the graph? Do they adopt an interpretation on the first question and hold constant? Or do they change interpretations from question to question? Are there any interpretations that serve as 'absorbing states' (i.e. once encountered, the learner does not exist this state).
 
-Time Course of Exploration | What is the relationship between response accuracy (and interpretation) and time spent on each item?
+Time Course of Exploration \| What is the relationship between response accuracy (and interpretation) and time spent on each item?
 
 Can exploration strategies be derived from mouse cursor activity?
 
 -   does response time predict interpretation vs. non interpretation?
 
-
 #### Mass Movement
+
 "movement of mass" from one mode to another
 
 Considering only families of unimodal distributions, the most probably distribution (as predicted by package `performance`) is negative-binomial.
@@ -101,14 +97,11 @@ multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
 
 ```
 
-
 ## RESPONSE CONSISTENCY
 
 **TODO**
 
 ## XYZ
-
-
 
 ### XYZ
 
@@ -184,8 +177,6 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
 ```
 
 Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, 'Expected N'. The model predicts more than 5 observations in each cell.) The Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. The odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI \[1.37, +Inf\]).
-
-
 
 ## COPIED FROM 3
 
@@ -336,4 +327,3 @@ anova(m.m1, m.m2, m.m3)
 ```
 
 ## RESOURCES
-
