@@ -3,6 +3,9 @@ subtitle: 'Study SGC5 | 2 Response Scoring'
 ---
 
 \newpage
+**TODO**
+-     update graph subtitles 
+-     update pretty_condition
 
 # Response Scoring {#sec-SGC5-scoring}
 
@@ -319,9 +322,9 @@ Next, we summarize the item level scores by subject in order to calculate cummul
 #| label: SUMMARIZE-BY-SUBJECT
 
 # #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #import subjects
 df_subjects <- read_rds('analysis/SGC5/data/1-study-level/sgc5_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
@@ -1132,7 +1135,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 title <- "Frequency of Selected Response Options for Question #5 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 5 & condition == "DEFAULT") %>% group_by(response) %>% 
+df_items %>% filter(q == 5 ) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
@@ -1145,12 +1148,13 @@ df_items %>% filter(q == 5 & condition == "DEFAULT") %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 4) %>% 
-  pack_rows("Lines-Connect", 5, 7) %>% 
-  pack_rows("Orthogonal", 8, 9) %>% 
-  pack_rows("Other", 10, 11) %>% 
-  pack_rows("Unknown", 12, 22) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 4) %>% 
+#   pack_rows("Lines-Connect", 5, 7) %>% 
+#   pack_rows("Orthogonal", 8, 9) %>% 
+#   pack_rows("Other", 10, 11) %>% 
+#   pack_rows("Unknown", 12, 22) 
 ```
 
 TODO note the compelling cases of internal inconsistency (HJDE)
@@ -1278,12 +1282,13 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 5) %>%
-  pack_rows("Lines-Connect", 6, 9) %>%
-  pack_rows("Orthogonal", 10, 13) %>%
-  pack_rows("Other", 14, 14) %>%
-  pack_rows("Unknown", 15, 17)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 5) %>%
+#   pack_rows("Lines-Connect", 6, 9) %>%
+#   pack_rows("Orthogonal", 10, 13) %>%
+#   pack_rows("Other", 14, 14) %>%
+#   pack_rows("Unknown", 15, 17)
 ```
 
 ```{r}
@@ -1351,11 +1356,12 @@ df_items %>% filter(q == 8) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 10) %>%
-  pack_rows("Orthogonal", 11, 16) %>%
-  pack_rows("Other", 17, 21) %>%
-  pack_rows("Unknown", 22, 45)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 10) %>%
+#   pack_rows("Orthogonal", 11, 16) %>%
+#   pack_rows("Other", 17, 21) %>%
+#   pack_rows("Unknown", 22, 45)
 ```
 
 ```{r}
@@ -1423,9 +1429,10 @@ df_items %>% filter(q ==9) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Other", 1, 2) %>%
-  pack_rows("Unknown", 3, 19)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Other", 1, 2) %>%
+#   pack_rows("Unknown", 3, 19)
 ```
 
 ```{r}
@@ -1493,12 +1500,13 @@ df_items %>% filter(q == 10) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>%
-  pack_rows("Lines-Connect", 3, 7) %>%
-  pack_rows("Orthogonal", 8, 11) %>%
-  pack_rows("Other", 12, 14) %>%
-  pack_rows("Unknown", 15, 27)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 2) %>%
+#   pack_rows("Lines-Connect", 3, 7) %>%
+#   pack_rows("Orthogonal", 8, 11) %>%
+#   pack_rows("Other", 12, 14) %>%
+#   pack_rows("Unknown", 15, 27)
 ```
 
 ```{r}
@@ -1566,11 +1574,12 @@ df_items %>% filter(q == 11) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 4) %>%
-  pack_rows("Orthogonal", 5, 9) %>%
-  pack_rows("Other", 10, 12) %>%
-  pack_rows("Unknown", 13, 17)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 4) %>%
+#   pack_rows("Orthogonal", 5, 9) %>%
+#   pack_rows("Other", 10, 12) %>%
+#   pack_rows("Unknown", 13, 17)
 ```
 
 ```{r}
@@ -1638,12 +1647,13 @@ df_items %>% filter(q == 12) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 3) %>%
-  pack_rows("Lines-Connect", 4, 6) %>%
-  pack_rows("Orthogonal", 7, 8) %>%
-  pack_rows("Other", 9, 10) %>%
-  pack_rows("Unknown", 11, 14)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 3) %>%
+#   pack_rows("Lines-Connect", 4, 6) %>%
+#   pack_rows("Orthogonal", 7, 8) %>%
+#   pack_rows("Other", 9, 10) %>%
+#   pack_rows("Unknown", 11, 14)
 ```
 
 ```{r}
@@ -1711,11 +1721,12 @@ df_items %>% filter(q == 13) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 3) %>%
-  pack_rows("Orthogonal", 4, 13) %>%
-  pack_rows("Other", 14, 14) %>%
-  pack_rows("Unknown", 15, 36)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 3) %>%
+#   pack_rows("Orthogonal", 4, 13) %>%
+#   pack_rows("Other", 14, 14) %>%
+#   pack_rows("Unknown", 15, 36)
 ```
 
 ```{r}
@@ -1783,11 +1794,12 @@ df_items %>% filter(q == 14) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 4) %>%
-  pack_rows("Orthogonal", 5, 7) %>%
-  pack_rows("Other", 8, 9) %>%
-  pack_rows("Unknown", 10, 22)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
+# %>%
+#   pack_rows("Triangular", 1, 4) %>%
+#   pack_rows("Orthogonal", 5, 7) %>%
+#   pack_rows("Other", 8, 9) %>%
+#   pack_rows("Unknown", 10, 22)
 ```
 
 ```{r}
@@ -1855,12 +1867,13 @@ df_items %>% filter(q == 15) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 10) %>%
-  pack_rows("Lines-Connect", 11, 13) %>%
-  pack_rows("Orthogonal", 14, 22) %>%
-  pack_rows("Other", 23, 23) %>%
-  pack_rows("Unknown", 24, 44)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 10) %>%
+#   pack_rows("Lines-Connect", 11, 13) %>%
+#   pack_rows("Orthogonal", 14, 22) %>%
+#   pack_rows("Other", 23, 23) %>%
+#   pack_rows("Unknown", 24, 44)
 ```
 
 ```{r}
