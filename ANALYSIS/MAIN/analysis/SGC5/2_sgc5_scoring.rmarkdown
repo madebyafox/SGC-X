@@ -2,11 +2,13 @@
 subtitle: 'Study SGC5 | 2 Response Scoring'
 ---
 
+
 \newpage
 
 # Response Scoring {#sec-SGC5-scoring}
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC5 study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
+
 
 ```{r}
 #| label: SETUP
@@ -22,6 +24,7 @@ library(Hmisc) # %nin% operator
 library(tidyverse) #ALL THE THINGS
 
 ```
+
 
 ## SCORE SGC DATA
 
@@ -45,6 +48,7 @@ Based on prior observational studies where we observed emergence of other altern
 
 We start by importing answer keys.
 
+
 ```{r}
 #| label: IMPORT-KEYS
 #| warning: false
@@ -67,6 +71,7 @@ keys_tversky_max <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_max"
 keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_start")
 
 ```
+
 
 ### Score Items {#sec-SGC5-scoring}
 
@@ -98,6 +103,7 @@ Specifically, the following scores are calculated for each item:
 -   `score_ABS` Is the response strictly correct? (triangular interpretation)
 -   `score_niceABS` Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer *in addition to* they also select the data point referenced in the question.
 
+
 ```{r}
 #| label: IMPORT-ITEMS
 
@@ -121,7 +127,9 @@ source("analysis/utils/scoring.R")
 
 ```
 
+
 *note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records*
+
 
 ```{r}
 #| label: CALCULATE-SCORES-MAPPLY
@@ -152,9 +160,11 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't pe
 
 ```
 
+
 ### Derive Interpretation {#sec-SGC5-interpretation}
 
 Finally, we use the interpretation subscores to classify the response as a particular interpretation (or "?" if the response cannot be classified). [For details, see @sec-SGC3A-interpretation ]
+
 
 ```{r}
 #| label: DERIVE-INTERPRETATION
@@ -283,6 +293,7 @@ df_items <- df_items %>% dplyr::select(-best)
 # df_items$score_SATISFICE <- df_items$score_SATISFICE %>% as.numeric()
 ```
 
+
 ### Derive Scaled Score {#sec-SGC5-scaledScore}
 
 The `interpretation` response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.
@@ -294,6 +305,7 @@ Specifically, we assign the following values to each interpretation:
 -   (0): REFERENCE POINT, BLANK (indicates the individual thinks there is no answer, recognizes that ORTHOGONAL cannot be correct, but does not conceive of triangular)
 -   (+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they "see" a triangular response, but lack certainty and also select the ORTHOGONAL response)
 -   (+1) TRIANGULAR +1
+
 
 ```{r}
 #| label: DISCRIMINANT-SCORE
@@ -311,9 +323,11 @@ df_items$score_SCALED <- recode(df_items$interpretation,
 
 ```
 
+
 ## SUMMARIZE BY SUBJECT
 
 Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.
+
 
 ```{r}
 #| label: SUMMARIZE-BY-SUBJECT
@@ -494,7 +508,9 @@ rm(x,wide)
 
 ```
 
+
 ## EXPLORE DISTRIBUTIONS
+
 
 ```{r}
 #| label: VIS-SETUP
@@ -513,7 +529,9 @@ df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
   )
 ```
 
+
 ### Absolute Score
+
 
 ```{r}
 #| label: DISTR-ABSCORE
@@ -549,7 +567,9 @@ gf_facet_grid(pretty_condition ~. )+
 
 ```
 
+
 ### Scaled Score
+
 
 ```{r}
 #| label: DISTR-SCALEDSCORE
@@ -587,10 +607,12 @@ gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
 
 ```
 
+
 -   TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance
 -   TODO: INVESTIGATE DISTRIBUTIONS of each subscore type
 
 ### Interpretations
+
 
 ```{r}
 #| label: DISTR-INTERPRETATIONS
@@ -620,7 +642,9 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
 
 ```
 
+
 ### Progress over Task
+
 
 ```{r}
 #| label: VIZ-PROGRESS
@@ -652,7 +676,9 @@ ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, 
 
 ```
 
+
 ### Interpretation Subscores
+
 
 ```{r}
 #| label: DIST-SUBSCORES
@@ -688,6 +714,7 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
 
 ```
 
+
 ## EXPLORE RESPONSES
 
 In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
@@ -701,6 +728,7 @@ The first five questions constitute the 'scaffold' (or learning) phase, where pa
 We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
 
 ![Question 1 --- Control Condition](static/questions/Q1_111.png){#fig-Q1-111}
+
 
 ```{r}
 #| label: Q1-CONTROL-KEY
@@ -727,9 +755,11 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
+
 Here we summarize the distinct response options given by participants on this item. Each letter in `response` indicates a checkbox selected by the participant (See @fig-Q1-111 ). `n` indicates the number of participants who gave this response, while `interpretation` indicates the *graph interpretation* most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response. NA indicates that there is no score calculated (occurs when there is no subset of response options that accord with that interpretation for this question).
 
 Notice that for this Question, the *Triangular* answer is the same as the *Tversky \[start diagonal\]* answer. In fact, for most questions, one of the Tversky sub-types will match the correct response.
+
 
 ```{r}
 #| label: Q1-CONTROL-RESPONSES
@@ -761,6 +791,7 @@ df_items %>% filter(q == 1) %>% group_by(response) %>%
            general_title = "Note: ",footnote_as_chunk = T) 
 
 ```
+
 
 We see that nearly all of the subjects selected a response consistent with one of the identified interpretations. Responses that do not accord with any interpretation are indicated as `?` .
 
@@ -809,6 +840,7 @@ Three responses were given that were not consistent with any of the identified i
 #### Question #2
 
 ![Q2---Control Condition](static/questions/Q2_111.png){#fig-Q2-111}
+
 
 ```{r}
 #| label: Q2-CONTROL-KEY
@@ -866,6 +898,7 @@ df_items %>% filter(q == 2 ) %>% group_by(response) %>%
 
 ```
 
+
 Again, we see that most subjects selected a response consistent with one of the identified interpretations. (note, when the question stem includes a data point rather than time as reference, we do not penalize respondents for selecting the reference data point *in addition* to an interpretation consistent response. For example, in this question, we do not penalize respondents for selecting option D, the reference point in the question. )
 
 +----------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -913,6 +946,7 @@ Again, we see that most subjects selected a response consistent with one of the 
 #### Question #3
 
 ![Q3---Control Condition](static/questions/Q3_111.png){#fig-Q3-111}
+
 
 ```{r}
 #| label: Q3-CONTROL-KEY
@@ -968,6 +1002,7 @@ df_items %>% filter(q == 3 ) %>% group_by(response) %>%
 #   pack_rows("Unknown", 11, 17)  
 
 ```
+
 
 TODO
 
@@ -1032,6 +1067,7 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 
 ![Q4---Control Condition](static/questions/Q4_111.png){#fig-Q4-111}
 
+
 ```{r}
 #| label: Q4-CONTROL-KEY
 
@@ -1086,6 +1122,7 @@ df_items %>% filter(q == 4 ) %>% group_by(response) %>%
 #   pack_rows("Unknown", 11, 16) 
 ```
 
+
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Orthogonal                                                                                                                                                                                                             | Orthogonal-LinesConnecting                                                                                                                                                                                                                                                                                                                                                                      |
 +========================================================================================================================================================================================================================+=================================================================================================================================================================================================================================================================================================================================================================================================+
@@ -1099,6 +1136,7 @@ df_items %>% filter(q == 4 ) %>% group_by(response) %>%
 #### Question #5
 
 ![Q5---Control Condition](static/questions/Q5_111.png){#fig-Q5-111}
+
 
 ```{r}
 #| label: Q5-CONTROL-KEY
@@ -1153,6 +1191,7 @@ df_items %>% filter(q == 5 & condition == "DEFAULT") %>% group_by(response) %>%
   pack_rows("Unknown", 12, 22) 
 ```
 
+
 TODO note the compelling cases of internal inconsistency (HJDE)
 
 ### Testing Phase
@@ -1162,6 +1201,7 @@ The following 10 questions were the same for both conditions.
 #### Question #6 NONDISCRIM
 
 ![Q6-Question](static/questions/Q6.png){#fig-Q6}
+
 
 ```{r}
 #| label: Q6-KEY
@@ -1188,7 +1228,9 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
   footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T)
 ```
 
+
 TODO discuss non discriminant
+
 
 ```{r}
 #| label: Q6-RESPONSES
@@ -1229,9 +1271,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) 
 
 ```
 
+
 #### Question #7
 
 ![Q7-Question](static/questions/Q7.png){#fig-Q7}
+
 
 ```{r}
 #| label: Q7-KEY
@@ -1302,9 +1346,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 7))
 
 ```
 
+
 #### Question #8
 
 ![Q8-Question](static/questions/Q8.png){#fig-Q8}
+
 
 ```{r}
 #| label: Q8-KEY
@@ -1374,9 +1420,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 8))
 
 ```
 
+
 #### Question #9 NONDISCRIM
 
 ![Q9-Question](static/questions/Q9.png){#fig-Q9}
+
 
 ```{r}
 #| label: Q9-KEY
@@ -1444,9 +1492,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 9))
 
 ```
 
+
 #### Question #10
 
 ![Q10-Question](static/questions/Q10.png){#fig-Q10}
+
 
 ```{r}
 #| label: Q10-KEY
@@ -1517,9 +1567,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 10)
 
 ```
 
+
 #### Question #11
 
 ![Q11-Question](static/questions/Q11.png){#fig-Q11}
+
 
 ```{r}
 #| label: Q11-KEY
@@ -1589,9 +1641,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 11)
 
 ```
 
+
 #### Question #12
 
 ![Q12-Question](static/questions/Q12.png){#fig-Q12}
+
 
 ```{r}
 #| label: Q12-KEY
@@ -1662,9 +1716,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 12)
 
 ```
 
+
 #### Question #13
 
 ![Q13-Question](static/questions/Q13.png){#fig-Q13}
+
 
 ```{r}
 #| label: Q13-KEY
@@ -1734,9 +1790,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 13)
 
 ```
 
+
 #### Question #14
 
 ![Q14-Question](static/questions/Q14.png){#fig-Q14}
+
 
 ```{r}
 #| label: Q14-KEY
@@ -1806,9 +1864,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 14)
 
 ```
 
+
 #### Question #15
 
 ![Q15-Question](static/questions/Q15.png){#fig-Q15}
+
 
 ```{r}
 #| label: Q15-KEY
@@ -1879,9 +1939,11 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 15)
 
 ```
 
+
 ## EXPORT
 
 Finally, we export the scores for each item (`df_items`) and summarized over subjects (`df_subjects`), as well as cumulative progress dataframes (`df_absolute_progress`, `df_scaled_progress`)
+
 
 ```{r}
 #| label: EXPORT-SCORES
@@ -1904,8 +1966,11 @@ rio::export(df_items, "analysis/SGC5/data/2-scored-data/sgc5_scored_items.rds") 
 
 ```
 
+
 ## RESOURCES
+
 
 ```{r}
 sessionInfo()
 ```
+
