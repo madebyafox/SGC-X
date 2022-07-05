@@ -47,16 +47,30 @@ Posing a mental impasse
 -   [impasse condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO)
 
 ```{r}
+#| label: SETUP
+#| warning: false
+#| message : false
+
+library(codebook) #data dictionary
+library(tidyverse) #ALL THE THINGS
+library(kableExtra) #tables
+
+#set some output options
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+```
+
+```{r}
 #| label: IMPORT-DATA
 #| warning : false
 #| message : false
 
-library(tidyverse)
-library(kableExtra)
-
-# dir = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-
-study_dir = "analysis/SGC3A/"
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds')
@@ -141,7 +155,7 @@ Data was collected by convenience sample of a university subject pool. Initial d
 
 ## ANALYSIS
 
-### Data Preparation
+### Data Preparation {#sec-SGC3A-harmonize}
 
 Data were collected via a custom web application and stored in a NoSQL database. The following exclusion criteria were applied during data cleaning:
 
@@ -151,12 +165,11 @@ Data were collected via a custom web application and stored in a NoSQL database.
 -   self-rated effort \> 2; subjects who reported, "not trying hard/rushing through questions" or "started out trying hard but giving up at some point" were excluded from analysis.
 -   attention check ==TRUE ; subjects who failed to answer a mid-study attention check question (Graph Comprehension Task Question #6) are excluded
 
-Before analysis, data files from individual data collection periods are harmonized into a common data format ([Section -@sec-SGC3A-harmonize]).
+Before analysis, data files from individual data collection periods are harmonized into a common data format.
 
-#### Harmonization {#sec-SGC3A-harmonize}
 
 | Pre-Requisite                                                                                                   | Followed By         |
-|-----------------------------------------------------------------------------------------------------------------|---------------------|
+|--------------------------------------------------------|---------------|
 | spring17_clean_data.Rmd <br> spring18_clean_data.Rmd <br> fall21_clean_data.Rmd <br> winter2022_clean_sgc3a.Rmd | 2_sgc3A_scoring.qmd |
 
 Data for study SGC_3A were collected across four time periods, interrupted by the Covid-19 pandemic.
@@ -169,21 +182,6 @@ Data for study SGC_3A were collected across four time periods, interrupted by th
 | Winter 2022 | asynchronous, online, SONA             |
 
 Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.
-
-```{r}
-#| label: SETUP
-#| warning: false
-#| message : false
-
-library(tidyverse) #ALL THE THINGS
-library(codebook) #data dictionary
-
-#set some output options
-library(dplyr, warn.conflicts = FALSE)
-options(dplyr.summarise.inform = FALSE)
-options(scipen=1, digits=3)
-
-```
 
 The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
 
@@ -198,6 +196,11 @@ First we import participant-level data from each data collection period, selecti
 
 #IMPORT PARTICIPANT DATA
 
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
+
 #set datafiles
 fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_participants.csv"
 spring18 <- "analysis/SGC3A/data/0-session-level/spring18_sgc3a_participants.csv"
@@ -205,9 +208,9 @@ fall21 <- "analysis/SGC3A/data/0-session-level/fall21_sgc3a_participants.csv"
 winter22 <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_participants.rds"
 
 #read datafiles, set mode and term
-df_subjects_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
-df_subjects_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_subjects_fall21 <- read.csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
+df_subjects_fall17 <- read_csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
+df_subjects_spring18 <- read_csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
+df_subjects_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_subjects_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #SAVE METADATA FROM WINTER, but no rows 
@@ -306,6 +309,11 @@ Next we import item-level data from each data collection period, selecting only 
 ```{r}
 #| label: IMPORT-ITEMS
 
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
+
 #set datafiles
 fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_blocks.csv"
 spring18 <- "analysis/SGC3A/data/0-session-level/spring18_sgc3a_blocks.csv"
@@ -313,9 +321,9 @@ fall21 <- "analysis/SGC3A/data/0-session-level/fall21_sgc3a_blocks.csv"
 winter22 <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_items.rds"
 
 #read datafiles, set mode and term
-df_items_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
-df_items_spring18 <- read.csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
-df_items_fall21 <- read.csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
+df_items_fall17 <- read_csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
+df_items_spring18 <- read_csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
+df_items_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
@@ -413,6 +421,11 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 
 ```{r}
 #| label: EXPORT-FILES
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #SAVE FILES
 write.csv(df_subjects,"analysis/SGC3A/data/1-study-level/sgc3a_participants.csv", row.names = FALSE)

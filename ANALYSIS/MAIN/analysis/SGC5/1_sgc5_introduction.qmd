@@ -14,15 +14,30 @@ In Study 5 we explore ...
 -   [impasse condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO)
 
 ```{r}
+#| label: SETUP
+#| warning: false
+#| message : false
+
+library(codebook) #data dictionary
+library(tidyverse) #ALL THE THINGS
+library(kableExtra) #tables
+
+#set some output options
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+```
+
+```{r}
 #| label: IMPORT-DATA
 #| warning : false
 #| message : false
 
-library(tidyverse)
-library(kableExtra)
-
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# setwd(imac)
 
 #IMPORT DATA 
 df_subjects <- read_csv('analysis/SGC5/data/0-study-level/sgc5_participants.csv') 
@@ -98,7 +113,7 @@ Data was collected by convenience sample ...
 
 ## ANALYSIS
 
-### Data Preparation
+### Data Preparation {#sec-SGC5-harmonize}
 
 Data were collected via a custom web application and stored in a NoSQL database. The following exclusion criteria were applied during data cleaning:
 
@@ -108,26 +123,11 @@ Data were collected via a custom web application and stored in a NoSQL database.
 -   self-rated effort \> 2; subjects who reported, "not trying hard/rushing through questions" or "started out trying hard but giving up at some point" were excluded from analysis.
 -   attention check ==TRUE ; subjects who failed to answer a mid-study attention check question (Graph Comprehension Task Question #6) are excluded
 
-#### Wrangling {#sec-SGC5-harmonize}
 
 | Pre-Requisite              | Followed By        |
 |----------------------------|--------------------|
 | winter2022_clean_sgc5a.Rmd | 2_sgc5_scoring.qmd |
 
-```{r}
-#| label: SETUP
-#| warning: false
-#| message : false
-
-library(tidyverse) #ALL THE THINGS
-library(codebook) #data dictionary
-
-#set some output options
-library(dplyr, warn.conflicts = FALSE)
-options(dplyr.summarise.inform = FALSE)
-options(scipen=1, digits=3)
-
-```
 
 The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
 
@@ -143,10 +143,10 @@ First we import participant-level data, selecting only the columns relevant for 
 #IMPORT PARTICIPANT DATA
 
 
-# #HACK WD FOR LOCAL RUNNING?
+# HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# setwd(imac)
 
 #import file
 df_subjects <- read_rds("analysis/SGC5/data/0-study-level/sgc5_participants.rds") #use RDS file as it contains metadata

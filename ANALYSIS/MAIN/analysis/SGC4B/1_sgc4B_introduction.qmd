@@ -18,15 +18,30 @@ In Study 4B we explore ...
 -   [impasse condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO)
 
 ```{r}
+#| label: SETUP
+#| warning: false
+#| message : false
+
+library(codebook) #data dictionary
+library(tidyverse) #ALL THE THINGS
+library(kableExtra) #tables
+
+#set some output options
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+```
+
+```{r}
 #| label: IMPORT-DATA
 #| warning : false
 #| message : false
 
-library(tidyverse)
-library(kableExtra)
-
-# dir = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(dir)
+# HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC4B/data/0-study-level/sgc4b_participants.rds')
@@ -39,9 +54,10 @@ TODO UPDATE CONDITION NAMES
 #| label : INSPECT-DATA-COLLECTION
 
 title = "Participants by Condition"
-cols = c("COND1","COND1","COND3","COND4","TOTAL")
+# cols = c("CONTROL","COND1","COND3","TOTAL")
 cont <- table(df_subjects$term, df_subjects$condition)
-cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_classic()
+cont %>%  addmargins() %>% kbl(caption = title) %>% kable_classic()
+                               # , col.names = cols) %>% kable_classic()
 
 ```
 
@@ -104,7 +120,9 @@ Participants completed the study via a web-browser.
 
 Data were collected by convenience sample of a university subject pool ... ANALYSIS
 
-### Data Preparation
+## ANALYSIS
+
+### Data Preparation {#sec-SGC4B-harmonize}
 
 Data were collected via a custom web application and stored in a NoSQL database. The following exclusion criteria were applied during data cleaning:
 
@@ -114,26 +132,11 @@ Data were collected via a custom web application and stored in a NoSQL database.
 -   self-rated effort \> 2; subjects who reported, "not trying hard/rushing through questions" or "started out trying hard but giving up at some point" were excluded from analysis.
 -   attention check ==TRUE ; subjects who failed to answer a mid-study attention check question (Graph Comprehension Task Question #6) are excluded
 
-#### Wrangling {#sec-SGC4B-harmonize}
 
 | Pre-Requisite              | Followed By         |
 |----------------------------|---------------------|
 | winter2022_clean_sgc4b.Rmd | 2_sgc4B_scoring.qmd |
 
-```{r}
-#| label: SETUP
-#| warning: false
-#| message : false
-
-library(tidyverse) #ALL THE THINGS
-library(codebook) #data dictionary
-
-#set some output options
-library(dplyr, warn.conflicts = FALSE)
-options(dplyr.summarise.inform = FALSE)
-options(scipen=1, digits=3)
-
-```
 
 The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
 
@@ -147,6 +150,11 @@ First we import participant-level data, selecting only the columns relevant for 
 #| label: IMPORT-SUBJECTS
 
 #IMPORT PARTICIPANT DATA
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #import file
 df_subjects <- read_rds("analysis/SGC4B/data/0-study-level/sgc4b_participants.rds") #use RDS file as it contains metadata
@@ -204,6 +212,11 @@ Next we import item-level data from each data collection period, selecting only 
 
 ```{r}
 #| label: IMPORT-ITEMS
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #read datafiles
 df_items <- read_rds("analysis/SGC4B/data/0-study-level/sgc4b_items.rds") #use RDS file as it contains metadata
