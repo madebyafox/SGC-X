@@ -4,7 +4,7 @@ subtitle: 'Study SGC4A | 2 Response Scoring'
 
 \newpage
 
-**TODO** update graph subtitles - recode pretty_condition and pretty_interpretation in intro
+**TODO** update graph subtitles 
 
 # Response Scoring {#sec-SGC4A-scoring}
 
@@ -54,7 +54,7 @@ We start by importing answer keys.
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # setwd(imac)
 
 #SAVE KEYS FOR FUTURE USE
@@ -105,7 +105,7 @@ Specifically, the following scores are calculated for each item:
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # setwd(imac)
 
 #backup <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds') #for troubleshooting only
@@ -323,9 +323,9 @@ Next, we summarize the item level scores by subject in order to calculate cummul
 #| label: SUMMARIZE-BY-SUBJECT
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+setwd(imac)
 
 #IMPORT subjects file
 df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
@@ -333,14 +333,12 @@ df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rd
 #prep items
 df_items <- df_items %>% mutate(
   tv_type = as.factor(tv_type),
-  top_type = as.factor(top_type),
-  pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5")
+  top_type = as.factor(top_type)
 )
 
 #summarize SCORES and TIME by subject
 subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
-  pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5"),
   s_TRI = sum(score_TRI,na.rm=TRUE),
   s_ORTH = sum(score_ORTH,na.rm=TRUE),
   s_TVERSKY = sum(score_TVERSKY,na.rm=TRUE),
@@ -508,7 +506,6 @@ options(repr.plot.width =9, repr.plot.height =12)
 #create temp data frame for visualizations
 df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
   score_niceABS = as.factor(score_niceABS),
-  pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5"),
   pretty_interpretation = factor(interpretation,
     levels = c("Orthogonal", "Satisfice", 
                "frenzy","?",
@@ -533,24 +530,24 @@ gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), 
   theme_minimal()
 
 #DISTRIBUTION ABSOLUTE SCORE BY ITEM
-# gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), data = df)  %>% 
-#   gf_facet_grid(pretty_condition~q) + 
-#   labs( x = "Absolute Score", 
-#         title = "Distribution of Absolute Score (by Item)",
-#         subtitle = "Impasse Condition (blue) yields more correct responses on each item",
-#         y = "Proprition of Subjects") +
-#   scale_fill_discrete(name = "Condition") +  
-#   theme_minimal()
+gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), data = df)  %>%
+  gf_facet_grid(pretty_condition~q) +
+  labs( x = "Absolute Score",
+        title = "Distribution of Absolute Score (by Item)",
+        subtitle = "Impasse Condition (blue) yields more correct responses on each item",
+        y = "Proprition of Subjects") +
+  scale_fill_discrete(name = "Condition") +
+  theme_minimal()
 
 #DISTRIBUTION ABSOLUTE SCORE BY SUBJECT
-# gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = df_subjects) %>%
-# gf_facet_grid(pretty_condition ~. )+
-#   labs( x = "Total Absolute Score",
-#         title = "Distribution of Total Absolute Score (by Subject)",
-#         subtitle = "Impasse Condition (blue) yields higher total absolute scores",
-#         y = "Proportion of Subjects") +
-#   scale_fill_discrete(name = "Condition") +
-#   theme_minimal() + theme(legend.position = "blank")
+gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = df_subjects) %>%
+gf_facet_grid(pretty_condition ~. )+
+  labs( x = "Total Absolute Score",
+        title = "Distribution of Total Absolute Score (by Subject)",
+        subtitle = "Impasse Condition (blue) yields higher total absolute scores",
+        y = "Proportion of Subjects") +
+  scale_fill_discrete(name = "Condition") +
+  theme_minimal() + theme(legend.position = "blank")
 
 ```
 

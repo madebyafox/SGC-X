@@ -372,9 +372,9 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4B&amp;con
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT DATA </span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC4B/data/0-study-level/sgc4b_participants.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -518,9 +518,9 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4B&amp;con
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT PARTICIPANT DATA</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#import file</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"analysis/SGC4B/data/0-study-level/sgc4b_participants.rds"</span>) <span class="co">#use RDS file as it contains metadata</span></span>
@@ -536,19 +536,19 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4B&amp;con
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using NEW webapp to useful columns</span></span>
 <span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> df_subjects <span class="sc">%&gt;%</span> </span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">score =</span> absolute_score, </span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">pretty_condition =</span> <span class="fu">recode_factor</span>(condition, <span class="st">"11111"</span> <span class="ot">=</span> <span class="st">"orthogonal-triangular"</span>, <span class="st">"113"</span> <span class="ot">=</span>  <span class="st">"triangle-inside"</span>, <span class="st">"114"</span><span class="ot">=</span><span class="st">"orthogonal-inside"</span>, <span class="st">"115"</span><span class="ot">=</span><span class="st">"orthogonal-full"</span>)</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>( subject, condition, term, mode, </span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#demographics</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>                 gender, age, language, schoolyear, country,</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#effort survey</span></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>                 effort, difficulty, confidence, enjoyment, </span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#explanations</span></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>                 other,disability,</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#response characteristics</span></span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>                 totaltime_m, absolute_score)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>( subject, condition, pretty_condition, study, term, mode, </span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#demographics</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>                 gender, age, language, schoolyear, country,</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#effort survey</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>                 effort, difficulty, confidence, enjoyment, </span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#explanations</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>                 other,disability,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#response characteristics</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>                 totaltime_m,</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#exploratory factors</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>                 violations, browser, width, height</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>                 )</span>
 <span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>effort_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"I tried my best on each question"</span>, <span class="st">"I tried my best on most questions"</span>)</span>
@@ -574,16 +574,16 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4B&amp;con
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#read datafiles</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"analysis/SGC4B/data/0-study-level/sgc4b_items.rds"</span>) <span class="co">#use RDS file as it contains metadata</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using new webapp</span></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> </span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term, mode, question, q, answer, correct, rt_s) <span class="sc">%&gt;%</span> <span class="co">#unfactor before combine</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, study, term, mode, question, q, answer, correct, rt_s) <span class="sc">%&gt;%</span> <span class="co">#unfactor before combine</span></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">as.character</span>(subject),</span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">as.character</span>(condition),</span>
@@ -628,9 +628,9 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4B&amp;con
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"analysis/SGC4B/data/1-study-level/sgc4b_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
@@ -899,9 +899,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
 <span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT DATA </span></span>
 <span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC4B/data/0-study-level/sgc4b_participants.rds'</span>)</span>
@@ -1010,9 +1010,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT PARTICIPANT DATA</span></span>
 <span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb14-167"><a href="#cb14-167" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a><span class="co">#import file</span></span>
 <span id="cb14-171"><a href="#cb14-171" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"analysis/SGC4B/data/0-study-level/sgc4b_participants.rds"</span>) <span class="co">#use RDS file as it contains metadata</span></span>
@@ -1028,19 +1028,19 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using NEW webapp to useful columns</span></span>
 <span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> df_subjects <span class="sc">%&gt;%</span> </span>
-<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">score =</span> absolute_score, </span>
-<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a>         <span class="at">pretty_condition =</span> <span class="fu">recode_factor</span>(condition, <span class="st">"11111"</span> <span class="ot">=</span> <span class="st">"orthogonal-triangular"</span>, <span class="st">"113"</span> <span class="ot">=</span>  <span class="st">"triangle-inside"</span>, <span class="st">"114"</span><span class="ot">=</span><span class="st">"orthogonal-inside"</span>, <span class="st">"115"</span><span class="ot">=</span><span class="st">"orthogonal-full"</span>)</span>
-<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
-<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>( subject, condition, term, mode, </span>
-<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#demographics</span></span>
-<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a>                 gender, age, language, schoolyear, country,</span>
-<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#effort survey</span></span>
-<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a>                 effort, difficulty, confidence, enjoyment, </span>
-<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#explanations</span></span>
-<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a>                 other,disability,</span>
-<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#response characteristics</span></span>
-<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a>                 totaltime_m, absolute_score)</span>
+<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select only columns we'll be analyzing, discard others</span></span>
+<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>( subject, condition, pretty_condition, study, term, mode, </span>
+<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#demographics</span></span>
+<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a>                 gender, age, language, schoolyear, country,</span>
+<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#effort survey</span></span>
+<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a>                 effort, difficulty, confidence, enjoyment, </span>
+<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#explanations</span></span>
+<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a>                 other,disability,</span>
+<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#response characteristics</span></span>
+<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a>                 totaltime_m,</span>
+<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a>                 <span class="co">#exploratory factors</span></span>
+<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a>                 violations, browser, width, height</span>
+<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a>                 )</span>
 <span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-199"><a href="#cb14-199" aria-hidden="true" tabindex="-1"></a>effort_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"I tried my best on each question"</span>, <span class="st">"I tried my best on most questions"</span>)</span>
@@ -1067,16 +1067,16 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb14-222"><a href="#cb14-222" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-ITEMS</span></span>
 <span id="cb14-223"><a href="#cb14-223" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-224"><a href="#cb14-224" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb14-225"><a href="#cb14-225" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb14-225"><a href="#cb14-225" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb14-226"><a href="#cb14-226" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb14-228"><a href="#cb14-228" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-229"><a href="#cb14-229" aria-hidden="true" tabindex="-1"></a><span class="co">#read datafiles</span></span>
 <span id="cb14-230"><a href="#cb14-230" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"analysis/SGC4B/data/0-study-level/sgc4b_items.rds"</span>) <span class="co">#use RDS file as it contains metadata</span></span>
 <span id="cb14-231"><a href="#cb14-231" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-232"><a href="#cb14-232" aria-hidden="true" tabindex="-1"></a><span class="co">#reduce data collected using new webapp</span></span>
 <span id="cb14-233"><a href="#cb14-233" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> df_items <span class="sc">%&gt;%</span> </span>
-<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, term, mode, question, q, answer, correct, rt_s) <span class="sc">%&gt;%</span> <span class="co">#unfactor before combine</span></span>
+<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(subject, condition, study, term, mode, question, q, answer, correct, rt_s) <span class="sc">%&gt;%</span> <span class="co">#unfactor before combine</span></span>
 <span id="cb14-235"><a href="#cb14-235" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb14-236"><a href="#cb14-236" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">as.character</span>(subject),</span>
 <span id="cb14-237"><a href="#cb14-237" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">as.character</span>(condition),</span>
@@ -1115,9 +1115,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb14-274"><a href="#cb14-274" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: EXPORT-FILES</span></span>
 <span id="cb14-275"><a href="#cb14-275" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-276"><a href="#cb14-276" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
-<span id="cb14-277"><a href="#cb14-277" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb14-277"><a href="#cb14-277" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
 <span id="cb14-278"><a href="#cb14-278" aria-hidden="true" tabindex="-1"></a><span class="co"># mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb14-280"><a href="#cb14-280" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-281"><a href="#cb14-281" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
 <span id="cb14-282"><a href="#cb14-282" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"analysis/SGC4B/data/1-study-level/sgc4b_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
