@@ -23,6 +23,8 @@ font-family: "DejaVu Sans"
 mainfont: "DejaVu Sans"
 ---
 
+**TODO** INVESTIATE WHY ATTN CHECK IS FALSE? ALL TRI ARE 0?
+
 *The purpose of this file is processing the combined data files for Winter 2022 into files that contain only valid data for analysis, excluding invalid sessions and participants*
 
 ```{r SETUP, include=FALSE}
@@ -346,21 +348,23 @@ df_participants %>% group_by(attn_check) %>%
 
 Participants who answered the attention check question incorrectly should be excluded. 
 
+**NOTE THIS BLOCK IS NOT RUN UNTIL TROUBLESHOOT ATTN CHECK**
+
 ```{r handle-ATTN}
 
 #DISCARD participants who indicated they did not expend adequate effort on the study
-exclude_attn <- df_participants %>% 
-          filter(attn_check == FALSE) %>% 
-          mutate(reason="failed-attnchk")
-
-ex_participants <- rbind(ex_participants, exclude_attn)
-rm(exclude_attn)     
-
-df_participants <- df_participants %>% 
-  filter( ! subject %in% ex_participants$subject)
+# exclude_attn <- df_participants %>% 
+#           filter(attn_check == FALSE) %>% 
+#           mutate(reason="failed-attnchk")
+# 
+# ex_participants <- rbind(ex_participants, exclude_attn)
+# rm(exclude_attn)     
+# 
+# df_participants <- df_participants %>% 
+#   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Nine participants are excluded for failing the attention check question._
+_??Nine participants are excluded for failing the attention check question._
 
 
 ### Items
@@ -400,12 +404,12 @@ count(df_items)[[1]] == count(df_participants)[[1]]* n_items
 #see https://cran.r-project.org/web/packages/codebook/vignettes/codebook_tutorial.html
 
 #ADD VARIABLE METADATA
-dict <- rio::import("input/dictionary_sgc3a_participants.csv", "csv") #import data dictionary
+dict <- rio::import("input/dictionary_sgc5a_participants.csv", "csv") #import data dictionary
 var_label(df_participants) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
 
 #ADD DATASET METATDATA
-metadata(df_participants)$name <- "Experimental PARTICIPANTS for study SGC3A"
-metadata(df_participants)$description <- "Data for study SGC3A summarized at PARTICIPANT  level"
+metadata(df_participants)$name <- "Experimental PARTICIPANTS for study SGC5A"
+metadata(df_participants)$description <- "Data for study SGC5A summarized at PARTICIPANT  level"
 metadata(df_participants)$creator <- "Amy Rae Fox"
 metadata(df_participants)$contact <- "amyraefox@gmail.com"
 
@@ -435,13 +439,13 @@ codebook(df_participants, #ONLY FOR HTML KNIT
 #see https://cran.r-project.org/web/packages/codebook/vignettes/codebook_tutorial.html
 
 #ADD VARIABLE METADATA
-dict <- rio::import("input/dictionary_sgc3a_items.csv", "csv") #import data dictionary
+dict <- rio::import("input/dictionary_sgc5a_items.csv", "csv") #import data dictionary
 
 var_label(df_items) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
 
 #ADD DATASET METATDATA
-metadata(df_items)$name <- "Experimental ITEMS for study SGC3A"
-metadata(df_items)$description <- "Data for study SGC3A summarized at participant-item level"
+metadata(df_items)$name <- "Experimental ITEMS for study SGC5A"
+metadata(df_items)$description <- "Data for study SGC5A summarized at participant-item level"
 metadata(df_items)$creator <- "Amy Rae Fox"
 metadata(df_items)$contact <- "amyraefox@gmail.com"
 
@@ -471,8 +475,8 @@ For transparency, we save and identify the excluded data.
 
 ```{r save-EXCLUSIONS}
 
-write.csv(ex_participants,"output/excluded_participants_winter22_sgc3a.csv", row.names = FALSE)
-write.csv(ex_items,"output/excluded_items_winter22_sgc3a.csv", row.names = FALSE)
+write.csv(ex_participants,"output/excluded_participants_winter22_sgc5.csv", row.names = FALSE)
+write.csv(ex_items,"output/excluded_items_winter22_sgc5.csv", row.names = FALSE)
 
 ```
 
@@ -482,14 +486,13 @@ write.csv(ex_items,"output/excluded_items_winter22_sgc3a.csv", row.names = FALSE
 
 ```{r GENERATE-FILES}
 
-#save participant file
+#save csv files
+write.csv(df_participants,"output/sgc5_participants.csv", row.names = FALSE)
+write.csv(df_items,"output/sgc5_items.csv", row.names = FALSE)
 
-write.csv(df_participants,"output/winter22_sgc3a_participants.csv", row.names = FALSE)
-
-#save item file
-write.csv(df_items,"output/winter22_sgc3a_items.csv", row.names = FALSE)
-
- 
+ #export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_participants, "output/sgc5_participants.rds") # to R data structure file
+rio::export(df_items, "output/sgc5_items.rds") # to R data structure file
 
 ```
 
