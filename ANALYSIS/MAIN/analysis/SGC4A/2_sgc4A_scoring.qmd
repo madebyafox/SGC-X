@@ -6,15 +6,8 @@ subtitle: 'Study SGC4A | 2 Response Scoring'
 
 # Response Scoring {#sec-SGC4A-scoring}
 
-**TODO**
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
 
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
-
-To review the strategy for scoring MR questions in the SGC project refer to @sec-SGC3A-scoring.
-
-| Pre-Requisite |
-|---------------|
-| TBD           |
 
 ```{r}
 #| label: SETUP
@@ -33,6 +26,8 @@ library(tidyverse) #ALL THE THINGS
 
 ## SCORE SGC DATA
 
+To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring. 
+
 In SGC_4 we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
 *An overall, strict score:*\
@@ -49,629 +44,28 @@ Based on prior observational studies where we observed emergence of other altern
 
 ### Prepare Answer Keys
 
-We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
+We start by importing answer keys. 
 
 ```{r}
 #| label: IMPORT-KEYS
 #| warning: false
 #| message: false
 
-#HACK WD FOR LOCAL RUNNING?
-dir = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(dir)
+# #HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
+
+#SAVE KEYS FOR FUTURE USE
+keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
+keys_orth <-  read_csv("analysis/utils/keys/parsed_keys/keys_orth")
+keys_tri <-  read_csv("analysis/utils/keys/parsed_keys/keys_tri")
+keys_satisfice_left <-  read_csv("analysis/utils/keys/parsed_keys/keys_satisfice_left")
+keys_satisfice_right <-  read_csv("analysis/utils/keys/parsed_keys/keys_satisfice_right")
+keys_tversky_duration <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_duration")
+keys_tversky_end <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_end")
+keys_tversky_max <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_max")
+keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_start")
 
-key_111_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_111_key.csv') %>% mutate(condition = 111, phase = "scaffold")
-key_121_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_121_key.csv')%>% mutate(condition = 121, phase = "scaffold")
-cs = rep('c', 23) %>% str_c(collapse="") #create column spec 
-key_test_raw <- read_csv('analysis/utils/keys/SGCX_test_key.csv', col_types = cs)%>% mutate(condition = "", phase = "test") 
-
-keys_raw <- rbind(key_111_raw, key_121_raw, key_test_raw )
-rm(key_111_raw, key_121_raw, key_test_raw)
-
-```
-
-In order to calculate scores using the $[-1/q, +1/p]$ algorithm, we need to define the subset of all response options (set N) that should be selected (set P) and should not be selected (set Q). In order to calculate subscores for each graph interpretation (i.e. triangular, orthogonal, tversky) we must define these sets independently for each interpretation. For each question, the `keys_raw` dataframe gives us set N (all response options), and a set P (options that should be selected) for *each interpretation*. From these we must derive set Q for each interpretation.
-
--   SET $N$, all response options (superset) . This set is the same across all interpretations (a property of the question) and is given in the answer key.
-
--   SET $P$, $P \subset N$ , the subset of options that **should** be selected (rewarded as +1/p) . This set differs by interpretation, and is given in the answer key.
-
--   SET $A, A \subset N, A \sqcup P$ , the subset of options that **should not** be selected, *but if they are, aren't penalized* (i.e. these options are ignored. Not rewarded, nor penalized). These include any options referenced in the question (i.e. select shifts that start at the same time as X; don't penalize if they also select 'X'), as well as options within 0.5hr offset from the data point to accommodate reasonable visual errors. This set differs by interpretation, and is given in the answer key (columns `REF_POINT` and `_also`).
-
--   SET $Q$, the subset of options that **should not be selected** and are penalized (as -1/q). This set differs by interpretation and is not given in the answer key. We can derive set Q for each interpretation by $Q = N - (P \cup A)$
-
-The next step in scoring is preparing interpretation-specific answer keys that specify sets N, P, A and Q for each question.
-
-#### Triangular Key
-
-First we construct a key set based on the 'Triangular' interpretation (i.e. the actually correct answers).
-
-```{r}
-#| label: KEY-SET-TRI
-
-verify_tri = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT TRIANGULAR KEY SET
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_tri <- keys_raw %>% 
-  select(Q, condition, OPTIONS, TRIANGULAR, TRI_allow, REF_POINT) %>% 
-  mutate(
-    
-    #replace NAs 
-    TRI_allow = str_replace_na(TRI_allow,""),
-    REF_POINT = str_replace_na(REF_POINT,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = TRIANGULAR,
-    set_p = str_replace_na(set_p,""),#replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(TRI_allow,REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""),#replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DEFINE SETS N, P, A
-for (x in 1:nrow(keys_tri)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_tri[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_tri[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_tri[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_tri[x,'set_q'] = Q
-  keys_tri[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_tri[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_tri <- keys_tri %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-#cleanup 
-rm(N,A,P,Q,n_q,s,x,tempunion)
-  
-```
-
-This leaves us a dataframe `keys_tri` that define the sets of response options consistent with the triangular graph interpretation.
-
-To verify we have generated the correct sets, we verify that for each question, each option in N is included in either set P, A or Q (once and only once).
-
-`r verify_tri`
-
-#### Orthogonal Key
-
-Next we construct a key set based on the 'Orthogonal' interpretation.
-
-```{r}
-#| label: KEY-SET-ORTH
-
-verify_orth = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT ORTHOGONAL KEY SET
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_orth <- keys_raw %>% 
-  select(Q, condition, OPTIONS, ORTHOGONAL, ORTH_allow, REF_POINT) %>% 
-  mutate(
-    
-    #replace NAs 
-    ORTH_allow = str_replace_na(ORTH_allow,""),
-    REF_POINT = str_replace_na(REF_POINT,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = ORTHOGONAL,
-    set_p = str_replace_na(set_p,""),#replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(ORTH_allow,REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answer options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_orth)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_orth[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_orth[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_orth[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
- 
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # print(s)
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_orth[x,'set_q'] = Q
-  keys_orth[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  # print(tempunion)
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-
-  verify_orth[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-
-#cleanup
-rm(A, N, n_q, P, Q, s, tempunion, x, cs)
-```
-
-This leaves us a dataframe `keys_orth` that define the sets of response options consistent with the orthogonal graph interpretation.
-
-To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
-
-`r verify_orth`
-
-#### Tversky Keys
-
-Next we construct the key set based on a partial-understanding strategy we refer to as 'Tversky'. We use the label Tversky as shorthand for a partial interpretation of the coordinate system where subjects select a set of responses that lay along a connecting line from the referenced data point or referenced time for that item. The term is named for Barbara Tversky based on her work on graphical primitives (e.g. "lines connect, arrows direct, boxes contain").
-
-```{r}
-#| label: KEY-SETS-TVERSKY
-
-verify_max = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT TVERSKY KEY SET for TVERSKY-MAX
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_tversky_max <- keys_raw %>% 
-  select(Q, condition, OPTIONS, REF_POINT, TV_max, TV_max_allow) %>% 
-  mutate(
-  
-    #replace NAs 
-    REF_POINT = str_replace_na(REF_POINT,""),
-    TV_max = str_replace_na(TV_max,""),
-    TV_max_allow = str_replace_na(TV_max_allow,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = TV_max,
-    set_p = str_replace_na(set_p,""), #replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(TV_max_allow,REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_tversky_max)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_tversky_max[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_tversky_max[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_tversky_max[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_tversky_max[x,'set_q'] = Q
-  keys_tversky_max[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_max[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_tversky_max <- keys_tversky_max %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-verify_tversky_start = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT TVERSKY KEY SET for TVERSKY-START
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_tversky_start <- keys_raw %>% 
-  select(Q, condition, OPTIONS, REF_POINT, TV_start, TV_start_allow) %>% 
-  mutate(
-  
-    #replace NAs 
-    REF_POINT = str_replace_na(REF_POINT,""),
-    TV_start = str_replace_na(TV_start,""),
-    TV_start_allow = str_replace_na(TV_start_allow,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = TV_start,
-    set_p = str_replace_na(set_p,""), #replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(TV_start_allow,REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_tversky_start)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_tversky_start[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_tversky_start[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_tversky_start[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_tversky_start[x,'set_q'] = Q
-  keys_tversky_start[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_tversky_start[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_tversky_start <- keys_tversky_start %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-
-verify_tversky_end = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT TVERSKY KEY SET for TVERSKY-END
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_tversky_end <- keys_raw %>% 
-  select(Q, condition, OPTIONS, REF_POINT, TV_end, TV_end_allow) %>% 
-  mutate(
-  
-    #replace NAs 
-    REF_POINT = str_replace_na(REF_POINT,""),
-    TV_end = str_replace_na(TV_end,""),
-    TV_end_allow = str_replace_na(TV_end_allow,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = TV_end,
-    set_p = str_replace_na(set_p,""), #replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(TV_end_allow,REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_tversky_end)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_tversky_end[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_tversky_end[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_tversky_end[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_tversky_end[x,'set_q'] = Q
-  keys_tversky_end[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_tversky_end[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_tversky_end <- keys_tversky_end %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-verify_tversky_duration = c()
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT TVERSKY KEY SET for TVERSKY-DURATION
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_tversky_duration <- keys_raw %>% 
-  select(Q, condition, OPTIONS, REF_POINT, TV_dur, TV_dur_allow) %>% 
-  mutate(
-  
-    #replace NAs 
-    REF_POINT = str_replace_na(REF_POINT,""),
-    TV_dur = str_replace_na(TV_dur,""),
-    TV_dur_allow = str_replace_na(TV_dur_allow,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = TV_dur,
-    set_p = str_replace_na(set_p,""), #replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(TV_dur_allow,REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_tversky_duration)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_tversky_duration[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_tversky_duration[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_tversky_duration[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  
-  #save set to dataframe
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_tversky_duration[x,'set_q'] = Q
-  keys_tversky_duration[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_tversky_duration[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_tversky_duration <- keys_tversky_duration %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
-
-
-#cleanup
-rm(A, N, n_q, P, Q, s, tempunion, x)
-```
-
-This leaves us four dataframes, each corresponding to a different variant of a 'lines connecting to reference point' strategy.\
-- `keys_tversky_max` : the superset of lines connecting options - `keys_tversky_start` : lines connecting to the rightward diagonal (start time) of the reference point - `keys_tversky_end`: lines connecting to the leftward diagonal (end time) of the reference point - `keys_tversky_duration`: lines connecting to the horizontal y-intercept (duration) of the reference point
-
-To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
-
-`r verify_max`
-
-`r verify_tversky_start`
-
-`r verify_tversky_end`
-
-`r verify_tversky_duration`
-
-#### Satisficing Key
-
-Next we construct two keys based on the 'Satisficing' strategy. Satisficing involves selecting any data points within 0.5hr visual offset of the orthogonal interpretation of the graph (because no orthogonal response option is available). One key represents selecting a point slightly to the left of the orthogonal, and the other key represents selecting a point slightly to the right of the orthogonal. The "Satisficing" strategy involves the reader selecting data points *nearest* to the orthogonal projection from the reference point in the question. We observe this strategy in some readers when there is no orthogonal response available (i.e. in the impasse condition), so they select the points nearest to the projection (i.e. "close enough").
-
-```{r}
-#| label: KEY-SET-SATISFICE
-
-verify_satisfice_right = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT SATISFICE RIGHT KEY SET
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_satisfice_right <- keys_raw %>% 
-  select(Q, condition, OPTIONS, SATISFICE_right, REF_POINT) %>% 
-  mutate(
-    #replace NAs
-    REF_POINT = str_replace_na(REF_POINT,""),
-
-    #P options that SHOULD be selected (rewarded)
-    set_p = SATISFICE_right,
-    set_p = str_replace_na(set_p,""), #replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-
-    #A options that are ignored if selected
-    set_a = str_c(REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_satisfice_right)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_satisfice_right[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_satisfice_right[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_satisfice_right[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # print(s)
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  #save set to data frame
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_satisfice_right[x,'set_q'] = Q
-  keys_satisfice_right[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_satisfice_right[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_satisfice_right <- keys_satisfice_right %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
-
-
-#cleanup
-rm(A, N, n_q, P, Q, s, tempunion, x)
-
-
-
-verify_satisfice_left = c() #sanity check
-##——————————————————————————————————————————————————————————————————————
-##CONSTRUCT SATISFICE left KEY SET
-##——————————————————————————————————————————————————————————————————————
-#1. DEFINE SETS N, P, A
-keys_satisfice_left <- keys_raw %>% 
-  select(Q, condition, OPTIONS, SATISFICE_left, REF_POINT) %>% 
-  mutate(
-    
-    #replace NAs 
-    REF_POINT = str_replace_na(REF_POINT,""),
-    
-    #P options that SHOULD be selected (rewarded)
-    set_p = SATISFICE_left,
-    set_p = str_replace_na(set_p,""), #replace na if empty
-    n_p = nchar(set_p), #number of true-select options
-    
-    #A options that are ignored if selected 
-    set_a = str_c(REF_POINT, sep=""),
-    set_a = str_replace_na(set_a,""), #replace na if empty
-    n_a = nchar(set_a),
-    
-    #N store all answr options (superset)
-    set_n = OPTIONS,  
-    n_n = nchar(set_n)
-  
-) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
-
-#2. DO THE STUFF THAT'S EASIER IN A LOOP
-for (x in 1:nrow(keys_satisfice_left)) {
-  
-  #UNWIND STRINGS FOR SETDIFF
-  #n all answer options
-  N = keys_satisfice_left[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
-  #p correct-select answer options
-  P = keys_satisfice_left[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
-  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
-  A = keys_satisfice_left[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist() 
-  
-  #Q = N - (P+A)
-  #answers that are penalized (at -1/q) if selected 
-  s = union(P,A) #rewarded plus ignored 
-  s = str_replace_na(s,"")
-  # print(s)
-  # s = union(s,X) # + trapdoor 
-  Q = setdiff(N,s) # = penalized at -1/q when selected 
-  #save set to data frame
-  Q = str_c(Q, collapse="")
-  n_q = nchar(Q)
-  keys_satisfice_left[x,'set_q'] = Q
-  keys_satisfice_left[x,'n_q'] = n_q
-  
-  #verify each element in N is included in one and only one of P,A,Q
-  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
-  verify_satisfice_left[x] = setequal(tempunion,N)
-}
-
-#3. reorder cols for ease of use
-keys_satisfice_left <- keys_satisfice_left %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
-
-
-#cleanup
-rm(A, N, n_q, P, Q, s, tempunion, x)
-
-```
-
-This leaves us a dataframe `keys_satisfice` that define the sets of response options consistent with the orthogonal graph interpretation.
-
-To verify we have generated the correct sets, we verify that for each question, each response in N is included in either set P, A or Q (once and only once).
-
-`r verify_satisfice_left` `r verify_satisfice_right`
-
-```{r}
-#| label: CLEANUP-VERIFICATIONS
-#cleanup
-rm(verify_tri, verify_orth, verify_max, verify_tversky_duration, verify_tversky_end, verify_tversky_start, verify_satisfice_right, verify_satisfice_left)
 ```
 
 ### Score Items
@@ -707,19 +101,21 @@ Specifically, the following scores are calculated for each item:
 ```{r}
 #| label: IMPORT-ITEMS
 
-# setwd("/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN")
+#HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
-#backup <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds') #for troubleshooting only
-df_items <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds')
+#backup <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds') #for troubleshooting only
+df_items <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds')
 
 ```
 
 ```{r}
 #| label: IMPORT-SCORING-FUNCTIONS
 
-#HACK WD FOR LOCAL RUNNING?
-dir = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(dir)
+# #HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 source("analysis/utils/scoring.R")
 
@@ -736,34 +132,30 @@ source("analysis/utils/scoring.R")
 #ALPHEBETIZE RESPONSE
 df_items$response = pbmapply(reorder_inplace, df_items$response)
 
-#STRATEGY SUBSCORES
-df_items$score_TRI = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
-df_items$score_ORTH = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
+#STRATEGY PARTIAL-SUBSCORES
+df_items$score_TRI = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
+df_items$score_ORTH = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
+df_items$score_SAT_left = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
+df_items$score_SAT_right = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
+df_items$score_TV_max = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
+df_items$score_TV_start = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
+df_items$score_TV_end = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
+df_items$score_TV_duration = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
 
-df_items$score_SAT_left = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
-df_items$score_SAT_right = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
-
-df_items$score_TV_max = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
-df_items$score_TV_start = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
-df_items$score_TV_end = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
-df_items$score_TV_duration = pbmapply(calc_sub_score2, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
-
-#SPECIAL SUBSCORES
-df_items$score_REF = pbmapply(calc_ref_score2, df_items$q, df_items$condition, df_items$response)
-df_items$score_BOTH = pbmapply(calc_both_score2, df_items$q, df_items$condition, df_items$response)
-  
+#SPECIAL ABSOLUTE SUBSCORES
+df_items$score_REF = pbmapply(calc_refscore, df_items$q, df_items$response)
+df_items$score_BOTH = as.integer((df_items$score_TRI == 1) & (df_items$score_ORTH ==1))
 
 #ABSOLUTE SCORES
 df_items$score_ABS = as.integer(df_items$correct) 
-df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
+df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't penalize ref or ve-area
 
 ```
 
+
 ### Derive Interpretation {#sec-SGC4A-interpretation}
 
-Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.
-
-The final output is called `best`.
+Finally, we use the interpretation subscores to classify the response as a particular interpretation (or "?" if the response cannot be classified). [For details, see @sec-SGC3A-interpretation ]
 
 ```{r}
 #| label: DERIVE-INTERPRETATION
@@ -771,6 +163,8 @@ The final output is called `best`.
 
 threshold_range = 0.5 #set required variance in subscores to be discriminant
 threshold_frenzy = 4
+
+x = 1
 
 for (x in 1:nrow(df_items)) {
   
@@ -1300,8 +694,6 @@ The first five questions constitute the 'scaffold' (or learning) phase, where pa
 
 #### Question #1
 
-##### Q1. Control Condition
-
 We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
 
 ![Question 1 --- Control Condition](static/questions/Q1_111.png){#fig-Q1-111}
@@ -1410,125 +802,7 @@ Three responses were given that were not consistent with any of the identified i
 
 : {tbl-colwidths="\[30,30,30\]"}
 
-##### Q1. Impasse Condition
-
-Next we explore the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
-
-![Question 1 --- Impasse Condition](static/questions/Q1_121.png){#fig-Q1-121}
-
-```{r}
-#| label: Q1-IMPASSE-KEY
-
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==1)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q1 Impasse Condition : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
-```
-
-Notice that there **is no orthogonal answer** for this question. This is the purpose of the impasse condition, to remove the possibility of selecting the orthogonal answer, we expect learners will be more likely to restructure their understanding of the coordinate system, and arrive at a correct (triangular) interpretation.
-
-```{r}
-#| label: Q1-IMPASSE-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #1 (Impasse Condition)"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), 
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI), 
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>% 
-  arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
-         triangular, tversky, satisficing, orthogonal, scaled) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Lines-Connect", 2, 4) %>% 
-  pack_rows("Satisfice", 5, 9) %>% 
-  pack_rows("Other", 10, 10) %>% 
-  pack_rows("Unknown", 11, 12) %>% 
-  footnote(general = "n = number of responses in sample", 
-           general_title = "Note: ",footnote_as_chunk = T) 
-
-```
-
-We see that nearly all of the subjects selected a response consistent with one of the identified interpretations. Responses that do not accord with any interpretation are indicated as `?` .
-
-TODO ADJUST 'both' to select for both tri/satisfice or both tri/orth
-
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Which shifts start at 11am?                            |                                                                                                                                                                                                         |
-+========================================================+=========================================================================================================================================================================================================+
-| ![](static/interpretations/Q1_121_F.png)               | **Response: F**                                                                                                                                                                                         |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   indicates the **triangular** (correct) interpretation of the coordinate system                                                                                                                      |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following the right-diagonal gridline, identifying data point **F**.                                           |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](static/interpretations/Q1_111_CF.png){width="500"} | **Response: \[C, F\]**                                                                                                                                                                                  |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   indicates a **maximal-Tversky** strategy following connecting lines                                                                                                                                 |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Consistent with the reader identifying the reference point (11am) on the x-axis, and following *both* the right-diagonal and left-diagonal gridlines, identifying both datapoints F and C gridline. |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](static/interpretations/Q1_121_SATISFICE.png)       | **Responses: \[AOI\]**                                                                                                                                                                                  |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   indicates a **satisficing** strategy                                                                                                                                                                |
-|                                                        |                                                                                                                                                                                                         |
-|                                                        | -   Consistent with the reader identifying the datapoints nearest to the orthogonal projection from the reference point point                                                                           |
-+--------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-: {tbl-colwidths="\[25,75\]"}
-
-Two responses were given that were not consistent with any of the identified interpretations.
-
-| **\[E\],\[X\]**                           |
-|-------------------------------------------|
-| ![](static/interpretations/Q1_121_EX.png) |
-
-: {tbl-colwidths="\[30\]"}
-
-```{r}
-#| label: Q1-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q1 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q1 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
-
 #### Question #2
-
-##### Q2. Control Condition
 
 ![Q2---Control Condition](static/questions/Q2_111.png){#fig-Q2-111}
 
@@ -1632,85 +906,7 @@ Again, we see that most subjects selected a response consistent with one of the 
 
 : {tbl-colwidths="\[30,30\]"}
 
-##### Q2. Impasse Condition
-
-![Q2---Impasse Condition](static/questions/Q2_121.png){#fig-Q2-121}
-
-```{r}
-#| label: Q2-IMPASSE-KEY
-
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==2)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q2 Impasse Condition : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
-```
-
-```{r}
-#| label: Q2-IMPASSE-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #2 (Impasse Condition)"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q == 2 & condition == 121) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), 
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI), 
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>% 
-  arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
-         triangular, tversky, satisficing, orthogonal, scaled) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>%
-  pack_rows("Lines-Connect", 3, 10) %>% 
-  pack_rows("Satisfice", 11, 12) %>%
-  pack_rows("Other", 13, 16)  %>% 
-  pack_rows("Unknown", 17, 18)  %>% 
-  footnote(general = "n = number of responses in sample", 
-           general_title = "Note: ",footnote_as_chunk = T) 
-
-```
-
-```{r}
-#| label: Q2-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q2 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q2 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
-
 #### Question #3
-
-##### Q3. Control Condition
 
 ![Q3---Control Condition](static/questions/Q3_111.png){#fig-Q3-111}
 
@@ -1825,88 +1021,10 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 
 : {tbl-colwidths="\[30,30,30\]"}
 
-##### Q3. Impasse Condition
-
-![Q3---Impasse Condition](static/questions/Q3_121.png){#fig-Q3-121}
-
-```{r}
-#| label: Q3-IMPASSE-KEY
-
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==3)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q3 Impasse Condition : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
-```
-
-TODO investigate these responses 17 at O?
-
-```{r}
-#| label: Q3-IMPASSE-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #3 (Impasse Condition)"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), 
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI), 
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>% 
-  arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
-         triangular, tversky, satisficing, orthogonal, scaled) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 5) %>% 
-  pack_rows("Lines-Connect", 3, 5) %>% 
-  pack_rows("Satisfice", 6, 15) %>% 
-  pack_rows("Other", 16, 21) %>% 
-  pack_rows("Unknown", 22, 29) 
-
-
-```
-
-```{r}
-#| label: Q3-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q3 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q3 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
-
 #### Question #4
 
 \[PLACEHOLDER --- NOT YET CONSIDERED THIS QUESTION\]
 
-###### Q4. Control Condition
 
 ![Q4---Control Condition](static/questions/Q4_111.png){#fig-Q4-111}
 
@@ -1973,84 +1091,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 
 : TBL4 test {tbl-colwidths="\[50,50\]"}
 
-###### Q4. Impasse Condition
-
-![Q4---Impasse Condition](static/questions/Q4_121.png){#fig-Q4-121}
-
-```{r}
-#| label: Q4-IMPASSE-KEY
-
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==4)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q4 Impasse Condition : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
-```
-
-TODO investigate D? add to tversky or orth?
-
-```{r}
-#| label: Q4-IMPASSE-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #4 (Impasse Condition)"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q == 4 & condition == 121) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), 
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI), 
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>% 
-  arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
-         triangular, tversky, satisficing, orthogonal, scaled) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Lines-Connect", 3, 6) %>% 
-  pack_rows("Satisfice", 7, 10) %>% 
-  pack_rows("Other", 11, 12) %>% 
-  pack_rows("Unknown", 13, 19) 
-```
-
-```{r}
-#| label: Q4-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q4 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q4 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
-
 #### Question #5
-
-###### Q5. Control Condition
 
 ![Q5---Control Condition](static/questions/Q5_111.png){#fig-Q5-111}
 
@@ -2108,79 +1149,6 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
 ```
 
 TODO note the compelling cases of internal inconsistency (HJDE)
-
-##### Q5. Impasse Condition
-
-![Q5---Impasse Condition](static/questions/Q5_121.png){#fig-Q5-121}
-
-```{r}
-#| label: Q5-IMPASSE-KEY
-
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==5)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q5 Impasse Condition : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>% 
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T) 
-```
-
-```{r}
-#| label: Q5-IMPASSE-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #5 (Control Condition)"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>% 
-  dplyr::summarise( count = n(), 
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI), 
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>% 
-  arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
-         triangular, tversky, satisficing, orthogonal, scaled) %>% 
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 7) %>% 
-  pack_rows("Lines-Connect", 8, 13) %>% 
-  pack_rows("Orthogonal", 14, 16) %>% 
-  pack_rows("Other", 17, 21) %>% 
-  pack_rows("Unknown", 22, 31) 
-```
-
-```{r}
-#| label: Q5-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q5 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q5 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
 
 ### Testing Phase
 
@@ -2931,4 +1899,3 @@ rio::export(df_items, "analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds"
 ```{r}
 sessionInfo()
 ```
-
