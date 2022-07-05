@@ -1,10 +1,292 @@
 ---
-# title: 'Introduction' 
-subtitle: 'Study SGC5 | 1 Introduction'
+subtitle: 'Study SGC5 | TBD Interaction'
 ---
 
 \newpage
 
-# Introduction {#sec-SGC3A-introduction}
+# Introduction {#sec-SGC5-introduction}
 
 In Study 5 we explore ...
+
+**To try the study yourself:**
+
+-   [control condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=111&session=WEB-DEMO)
+-   [impasse condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO)
+
+```{r}
+#| label: IMPORT-DATA
+#| warning : false
+#| message : false
+
+library(tidyverse)
+library(kableExtra)
+
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+#IMPORT DATA 
+df_subjects <- read_csv('analysis/SGC5/data/0-study-level/sgc5_participants.csv') 
+
+```
+
+```{r}
+#| label : INSPECT-DATA-COLLECTION
+
+title = "Participants by Condition and Data Collection Period"
+# cols = c("Control Condition","Impasse Condition","Total for Period")
+cont <- table(df_subjects$term, df_subjects$condition)
+cont %>% addmargins() %>% kbl(caption = title) %>%  kable_classic()
+
+```
+
+### Hypotheses
+
+**Experimental Hypothesis:** 
+
+**Null Hypothesis:** 
+
+**Exploratory Questions**
+
+
+## METHODS
+
+### Design
+
+We employed a mixed design with 1 between-subjects factor with 2 levels (Scaffold: control, impasse) and 15 items (within-subjects factor).
+
+Independent Variables:
+
+-   B-S 
+-   W-S (Item x 15)
+
+Dependent Variables:
+
+-   Response Accuracy : Is the response triangular-correct?
+-   Response Interpretation : (derived) With which interpretation of the graph is the subject's response on an individual question consistent?
+-   Response Latency : Time from stimulus onset to clicking 'Submit' button: time in (s)
+
+### Materials
+
+Stimuli consisted of a series of 15 graph comprehension questions, each testing a different combination of time interval relations, to be read from a Triangular-Model graph. @fig-sample. The list of questions can be found [here](static/stimuli/sgcx_questions.csv).
+
+![Sample Question (Q=1) for Graph Comprehension Task](static/stimuli/sample_task.png){#fig-sample fig-alt="picture of multiple select question on the left, accompanied by a triangular model graph on the right" fig-align="center"}
+
+Note that across both control and impasse conditions, both the question, response options and graph structure were identical. The experimental manipulation (posing a mental impasse) was accomplished by changing the position of datapoints in the impasse-condition graph, such that for any given question, there was no available response option if the reader were to interpret the graph as cartesian (making an orthogonal rather than diagonal projection from the x-axis.)
+
+*The green line indicates the ideal-scanpath to the correct (triangular) answer to the first question, and the red line indicates the (incorrect) orthogonal interpretation. In the IMPASSE figure (at right), there are no data points that intersect the red line. We hypothesize that this presents the reader with an obstacle, at which point they are forced to confront their interpretation of the coordinate system and (ideally) develop a new strategy.*
+
+![Sample Question (Q=1) graphs for each condition](static/stimuli/3A_conditions.png){#fig-conditions fig-alt="a triangle graph at left shows the correct (diagonal) path from the x-axis to the correct answer(datapoint f) in green, and an incorrect orthogonal projection from the x-axis to incorrect datapoint A.  At right, the same graph is depicted, but datapoint A no longer intersects the orthogonal projection from the xaxis."}
+
+### Procedure
+
+Participants completed the study via a web-browser.
+
+\(1\) Upon starting, they submitted informed consent, before reading task instructions.
+
+\(2\) Participants were introduced to a scenario in which they were to play the role of a project manager, scheduling shifts for a group of employees. The schedule of the employees was presented in a TriangularModel (TM) graph, and they would be answering question about the schedule.
+
+\(3\) Then participants completed an experimental block of 15 items.
+
+(3A) The first five items in the task are defined as the SCAFFOLDING block. In the IMPASSE condition, the first five questions included an IMPASSE problem state. For participants in the CONTROL condition, the dataset was structure such that there was always an available 'orthogonal answer' for the first 5 questions.
+
+(3B) The remaining 10 items are defined as the TESTING block. In both conditions, these questions were not structured as impasse (i.e. contained an available orthogonal answer)
+
+\(4\) Following the experimental block, participants answered a free-response question about their strategy for reading the graph, followed by a demographic questionnaire and debrief.
+
+### Sample
+
+Data was collected by convenience sample ...
+
+## ANALYSIS
+
+### Data Preparation
+
+Data were collected via a custom web application and stored in a NoSQL database. The following exclusion criteria were applied during data cleaning:
+
+-   completion status : "success" ; subject must have finished all parts of the study, including demographic questionnaire
+-   session ID: \[in list\] ; subject must have been assigned to valid data collection session (discard testing and piloting data)
+-   browser interaction violations \< 3; subject must have fewer than 3 violations of non-allowed browser interactions (i.e. resizing window, leaving browser tab or leaving fullscreen mode)
+-   self-rated effort \> 2; subjects who reported, "not trying hard/rushing through questions" or "started out trying hard but giving up at some point" were excluded from analysis.
+-   attention check ==TRUE ; subjects who failed to answer a mid-study attention check question (Graph Comprehension Task Question #6) are excluded
+
+#### Wrangling {#sec-SGC4A-harmonize}
+
+| Pre-Requisite              | Followed By         |
+|----------------------------|---------------------|
+| winter2022_clean_sgc5a.Rmd | 2_sgc5_scoring.qmd |
+
+```{r}
+#| label: SETUP
+#| warning: false
+#| message : false
+
+library(tidyverse) #ALL THE THINGS
+library(codebook) #data dictionary
+
+#set some output options
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+```
+
+The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
+
+#### Participants
+
+First we import participant-level data, selecting only the columns relevant for analysis. The result is a single data frame `df_subjects` containing one row for each subject (across all periods). Note that we *are not* discarding any *response* data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.
+
+*Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. No raw data (responses and response times) are discarded, only algorithmically-derived scores for the responses.*
+
+```{r}
+#| label: IMPORT-SUBJECTS
+
+#IMPORT PARTICIPANT DATA
+
+
+# #HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+#import file
+df_subjects <- read_rds("analysis/SGC5/data/0-study-level/sgc5_participants.rds") #use RDS file as it contains metadata
+
+#SAVE METADATA FROM WINTER, but no rows 
+# df_subjects <- df_subjects_winter22 %>% filter(condition=='X') %>% select(
+#   subject,condition,term,mode,
+#   gender,age,language, schoolyear, country,
+#   effort,difficulty,confidence,enjoyment,other,
+#   totaltime_m,absolute_score
+# )
+
+#save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp
+df_q16 <- df_subjects %>% 
+  select(subject, condition, term , mode, explanation) %>% 
+  mutate(
+    q = 16,
+    response = explanation
+  ) %>% select(-explanation)
+
+#reduce data collected using NEW webapp to useful columns
+df_subjects <- df_subjects %>% 
+  mutate(score = absolute_score) %>% 
+  #select only columns we'll be analyzing, discard others
+  dplyr::select( subject, condition, term, mode, 
+                 #demographics
+                 gender, age, language, schoolyear, country,
+                 #effort survey
+                 effort, difficulty, confidence, enjoyment, 
+                 #explanations
+                 other,disability,
+                 #response characteristics
+                 totaltime_m, absolute_score)
+
+
+effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
+
+#set factors
+df_subjects <- df_subjects %>% 
+  #refactor factors
+  mutate (
+    subject = factor(subject),
+    condition = factor(condition),
+    term = factor(term),
+    mode = factor(mode),
+    gender = factor(gender),
+    schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
+  )
+
+```
+
+#### Items
+
+Next we import item-level data from each data collection period, selecting only the columns relevant for analysis. The result is a single data frame `df_items` containing one row for each *graph comprehension task question* (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we *do not* discard any *response* data. Rather, we *do* discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.
+
+```{r}
+#| label: IMPORT-ITEMS
+
+# #HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+#read datafiles
+df_items <- read_rds("analysis/SGC5/data/0-study-level/sgc5_items.rds") #use RDS file as it contains metadata
+
+#reduce data collected using new webapp
+df_items <- df_items %>% 
+  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  mutate(
+    subject = as.character(subject),
+    condition = as.character(condition),
+    term = as.character(term),
+    mode = as.character(mode),
+    q = as.integer(q),
+    correct = as.logical(correct)
+  ) %>% 
+  mutate(
+    response = str_remove_all(as.character(answer), ","),
+    num_o = str_length(response)
+  )
+
+```
+
+#### Validation
+
+Next, we validate that we have the complete number of item-level records based on the number of subject-level records
+
+```{r}
+#| label: RECONCILE
+
+#the number of items should be equal to 15 x the number of subjects
+nrow(df_items) == 15* nrow(df_subjects) #TRUE
+
+#each subject should have 15 items
+df_items %>% group_by(subject) %>% summarise(n = n()) %>% filter(n != 15) %>% nrow() == 0
+
+```
+
+#### Export
+
+Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)
+
+```{r}
+#| label: EXPORT-FILES
+
+# #HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+#SAVE FILES
+write.csv(df_subjects,"analysis/SGC5/data/1-study-level/sgc5_participants.csv", row.names = FALSE)
+write.csv(df_items,"analysis/SGC5/data/1-study-level/sgc5_items.csv", row.names = FALSE)
+write.csv(df_q16,"analysis/SGC5/data/1-study-level/sgc5_freeresponse.csv", row.names = FALSE)
+
+#SAVE R Data Structures 
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_subjects, "analysis/SGC5/data/1-study-level/sgc5_participants.rds") # to R data structure file
+rio::export(df_items, "analysis/SGC5/data/1-study-level/sgc5_items.rds") # to R data structure file
+
+```
+
+### Response Scoring
+
+Because the graph comprehension task utilizes a Multiple-Response (MR) format (rather than simple multiple choice), the raw response data (the combination of answer options selected) for each question first need to be assigned a score. Approaches to scoring MR data and score transformations are derived in [Section -@sec-SGC5-scoring].
+
+### Hypothesis Testing
+
+Experimental hypotheses are tested in [Section -@sec-SGC5-hypotesting].
+
+### Exploratory Analysis
+
+Further data analyses are documented in [Section -@sec-SGC5-exploration].
+
+## RESOURCES
+
+```{r}
+#| label: SESSION
+
+sessionInfo()
+```
