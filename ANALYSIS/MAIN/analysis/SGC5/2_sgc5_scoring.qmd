@@ -5,6 +5,7 @@ subtitle: 'Study SGC5 | 2 Response Scoring'
 \newpage
 
 **TODO** - update graph subtitles 
+- recode pretty_condition and pretty_interpretation in intro
 
 # Response Scoring {#sec-SGC5-scoring}
 
@@ -507,6 +508,7 @@ options(repr.plot.width =9, repr.plot.height =12)
 #create temp data frame for visualizations
 df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
   score_niceABS = as.factor(score_niceABS),
+  pretty_condition = recode_factor(condition, "11115" = "click-point"),
   pretty_interpretation = factor(interpretation,
     levels = c("Orthogonal", "Satisfice", 
                "frenzy","?",
@@ -630,11 +632,11 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
 
 #recode factors
 df_absolute_progress <- df_absolute_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse")
+   pretty_condition = recode_factor(condition, "11115" = "click-point")
 )
 
 df_scaled_progress <- df_scaled_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse")
+    pretty_condition = recode_factor(condition, "11115" = "click-point")
 )
 
 #VISUALIZE progress over time ABSOLUTE score 
