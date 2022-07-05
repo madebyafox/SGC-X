@@ -5,10 +5,6 @@ date: "04/07/2022"
 always_allow_html: true  
 geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm"
 output:
-  pdf_document: 
-    toc: true
-    toc_depth: 2
-    latex_engine: xelatex
   html_document:
     theme: yeti
     code_folding: hide
@@ -19,6 +15,10 @@ output:
       collapsed: yes
       smooth_scroll: yes
     toc_depth: 4
+  pdf_document: 
+    toc: true
+    toc_depth: 2
+    latex_engine: xelatex
 font-family: "DejaVu Sans"
 mainfont: "DejaVu Sans"
 ---
@@ -508,14 +508,13 @@ write.csv(ex_items,"output/excluded_items_winter22_sgc4b.csv", row.names = FALSE
 
 ```{r GENERATE-FILES}
 
-#save participant file
+#CSV files
+write.csv(df_participants,"output/sgc4b_participants.csv", row.names = FALSE)
+write.csv(df_items,"output/sgc4b_items.csv", row.names = FALSE)
 
-write.csv(df_participants,"output/winter22_sgc4b_participants.csv", row.names = FALSE)
-
-#save item file
-write.csv(df_items,"output/winter22_sgc4b_items.csv", row.names = FALSE)
-
- 
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_participants, "output/sgc4b_participants.rds") # to R data structure file
+rio::export(df_items, "output/sgc4b_items.rds") # to R data structure file
 
 ```
 
