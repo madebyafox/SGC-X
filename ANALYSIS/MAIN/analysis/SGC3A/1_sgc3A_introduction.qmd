@@ -46,6 +46,34 @@ Posing a mental impasse
 -   [control condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=111&session=WEB-DEMO)
 -   [impasse condition](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO)
 
+```{r}
+#| label: IMPORT-DATA
+#| warning : false
+#| message : false
+
+library(tidyverse)
+library(kableExtra)
+
+# dir = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+
+study_dir = "analysis/SGC3A/"
+
+#IMPORT DATA 
+df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds')
+df_subjects <- read_csv('analysis/SGC3A/data/1-study-level/sgc3a_participants.csv') 
+
+```
+
+```{r}
+#| label : INSPECT-DATA-COLLECTION
+
+title = "Participants by Condition and Data Collection Period"
+cols = c("Control Condition","Impasse Condition","Total for Period")
+cont <- table(df_subjects$term, df_subjects$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
+
+```
+
 ### Hypotheses
 
 **Experimental Hypothesis:** *Learners posed with impasse-inducing questions will be more likely to correct interpret the graph.*
@@ -128,7 +156,7 @@ Before analysis, data files from individual data collection periods are harmoniz
 #### Harmonization {#sec-SGC3A-harmonize}
 
 | Pre-Requisite                                                                                                   | Followed By         |
-|-----------------------------------------------------|-------------------|
+|--------------------------------------------------------|---------------|
 | spring17_clean_data.Rmd <br> spring18_clean_data.Rmd <br> fall21_clean_data.Rmd <br> winter2022_clean_sgc3a.Rmd | 2_sgc3A_scoring.qmd |
 
 Data for study SGC_3A were collected across four time periods, interrupted by the Covid-19 pandemic.
@@ -141,7 +169,6 @@ Data for study SGC_3A were collected across four time periods, interrupted by th
 | Winter 2022 | asynchronous, online, SONA             |
 
 Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.
-
 
 ```{r}
 #| label: SETUP
@@ -158,7 +185,6 @@ options(scipen=1, digits=3)
 
 ```
 
-
 The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
 
 #### Participants
@@ -173,10 +199,10 @@ First we import participant-level data from each data collection period, selecti
 #IMPORT PARTICIPANT DATA
 
 #set datafiles
-fall17 <- "data/0-session-level/fall17_sgc3a_participants.csv"
-spring18 <- "data/0-session-level/spring18_sgc3a_participants.csv"
-fall21 <- "data/0-session-level/fall21_sgc3a_participants.csv"
-winter22 <- "data/0-session-level/winter22_sgc3a_participants.rds"
+fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_participants.csv"
+spring18 <- "analysis/SGC3A/data/0-session-level/spring18_sgc3a_participants.csv"
+fall21 <- "analysis/SGC3A/data/0-session-level/fall21_sgc3a_participants.csv"
+winter22 <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_participants.rds"
 
 #read datafiles, set mode and term
 df_subjects_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
@@ -281,10 +307,10 @@ Next we import item-level data from each data collection period, selecting only 
 #| label: IMPORT-ITEMS
 
 #set datafiles
-fall17 <- "data/0-session-level/fall17_sgc3a_blocks.csv"
-spring18 <- "data/0-session-level/spring18_sgc3a_blocks.csv"
-fall21 <- "data/0-session-level/fall21_sgc3a_blocks.csv"
-winter22 <- "data/0-session-level/winter22_sgc3a_items.rds"
+fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_blocks.csv"
+spring18 <- "analysis/SGC3A/data/0-session-level/spring18_sgc3a_blocks.csv"
+fall21 <- "analysis/SGC3A/data/0-session-level/fall21_sgc3a_blocks.csv"
+winter22 <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_items.rds"
 
 #read datafiles, set mode and term
 df_items_fall17 <- read.csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
@@ -389,14 +415,14 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 #| label: EXPORT-FILES
 
 #SAVE FILES
-write.csv(df_subjects,"data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
-write.csv(df_items,"data/1-study-level/sgc3a_items.csv", row.names = FALSE)
-write.csv(df_freeresponse,"data/1-study-level/sgc3a_items.csv", row.names = FALSE)
+write.csv(df_subjects,"analysis/SGC3A/data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
+write.csv(df_items,"analysis/SGC3A/data/1-study-level/sgc3a_items.csv", row.names = FALSE)
+write.csv(df_freeresponse,"analysis/SGC3A/data/1-study-level/sgc3a_items.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
-rio::export(df_subjects, "data/1-study-level/sgc3a_participants.rds") # to R data structure file
-rio::export(df_items, "data/1-study-level/sgc3a_items.rds") # to R data structure file
+rio::export(df_subjects, "analysis/SGC3A/data/1-study-level/sgc3a_participants.rds") # to R data structure file
+rio::export(df_items, "analysis/SGC3A/data/1-study-level/sgc3a_items.rds") # to R data structure file
 
 ```
 
@@ -411,9 +437,6 @@ Experimental hypotheses are tested in [Section -@sec-SGC3A-hypotesting].
 ### Exploratory Analysis
 
 Further data analyses are documented in [Section -@sec-SGC3A-exploration].
-
-
-
 
 ## RESOURCES
 

@@ -441,10 +441,10 @@ We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) 
 #| warning: false
 #| message: false
 
-key_111_raw <- read_csv('data/keys/SGC3A_scaffold_111_key.csv') %>% mutate(condition = 111, phase = "scaffold")
-key_121_raw <- read_csv('data/keys/SGC3A_scaffold_121_key.csv')%>% mutate(condition = 121, phase = "scaffold")
+key_111_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_111_key.csv') %>% mutate(condition = 111, phase = "scaffold")
+key_121_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_121_key.csv')%>% mutate(condition = 121, phase = "scaffold")
 cs = rep('c', 23) %>% str_c(collapse="") #create column spec 
-key_test_raw <- read_csv('data/keys/SGC3A_test_key.csv', col_types = cs)%>% mutate(condition = "", phase = "test") 
+key_test_raw <- read_csv('analysis/utils/keys/SGCX_test_key.csv', col_types = cs)%>% mutate(condition = "", phase = "test") 
 
 keys_raw <- rbind(key_111_raw, key_121_raw, key_test_raw )
 rm(key_111_raw, key_121_raw, key_test_raw)
@@ -1088,8 +1088,8 @@ Specifically, the following scores are calculated for each item:
 ```{r}
 #| label: IMPORT-ITEMS
 
-#backup <- read_rds('data/1-study-level/sgc3a_items.rds') #for troubleshooting only
-df_items <- read_rds('data/1-study-level/sgc3a_items.rds')
+#backup <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds') #for troubleshooting only
+df_items <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds')
 
 ```
 
@@ -1513,7 +1513,7 @@ subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subj
 )%>% dplyr::select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
 
 #import subjects
-df_subjects <- read_rds('data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
 #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
 unique(subjects_summary$subject == df_subjects$subject)
@@ -3425,15 +3425,15 @@ Finally, we export the scores for each item (`df_items`) and summarized over sub
 #| label: EXPORT-SCORES
 
 #SAVE FILES
-write.csv(df_subjects,"data/2-scored-data/sgc3a_scored_participants.csv", row.names = FALSE)
-write.csv(df_items,"data/2-scored-data/sgc3a_scored_items.csv", row.names = FALSE)
-write.csv(df_absolute_progress,"data/2-scored-data/sgc3a_absolute_progress.csv", row.names = FALSE)
-write.csv(df_scaled_progress,"data/2-scored-data/sgc3a_scaled_progress.csv", row.names = FALSE)
+write.csv(df_subjects,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.csv", row.names = FALSE)
+write.csv(df_items,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.csv", row.names = FALSE)
+write.csv(df_absolute_progress,"analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress.csv", row.names = FALSE)
+write.csv(df_scaled_progress,"analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
-rio::export(df_subjects, "data/2-scored-data/sgc3a_scored_participants.rds") # to R data structure file
-rio::export(df_items, "data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
+rio::export(df_subjects, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") # to R data structure file
+rio::export(df_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
 
 ```
 
