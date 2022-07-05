@@ -4,6 +4,10 @@ subtitle: 'Study SGC4A | 2 Response Scoring'
 
 \newpage
 
+**TODO**
+- update pretty_condition
+- update graph subtitles
+
 # Response Scoring {#sec-SGC4A-scoring}
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
@@ -50,9 +54,10 @@ We start by importing answer keys.
 #| warning: false
 #| message: false
 
-# #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #SAVE KEYS FOR FUTURE USE
 keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
@@ -67,7 +72,7 @@ keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_st
 
 ```
 
-### Score Items
+### Score Items {#sec-SGC4A-scoring}
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (e.g. `keys_orth`, `keys_tri`, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item in `df_items`, and can be used to determine which graph interpretation the subject held.
 
@@ -100,21 +105,23 @@ Specifically, the following scores are calculated for each item:
 ```{r}
 #| label: IMPORT-ITEMS
 
-#HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
-#backup <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds') #for troubleshooting only
-df_items <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds')
+#backup <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds') #for troubleshooting only
+df_items <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds')
 
 ```
 
 ```{r}
 #| label: IMPORT-SCORING-FUNCTIONS
 
-# #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 source("analysis/utils/scoring.R")
 
@@ -317,6 +324,14 @@ Next, we summarize the item level scores by subject in order to calculate cummul
 ```{r}
 #| label: SUMMARIZE-BY-SUBJECT
 
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
+
+#IMPORT subjects file
+df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+
 #prep items
 df_items <- df_items %>% mutate(
   tv_type = as.factor(tv_type),
@@ -392,9 +407,6 @@ subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subj
   item_test_NABS = sum(score_niceABS),
   item_test_rt = sum(rt_s)
 )%>% dplyr::select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
-
-#import subjects
-df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
 #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
 unique(subjects_summary$subject == df_subjects$subject)
@@ -532,14 +544,14 @@ gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), 
   theme_minimal()
 
 #DISTRIBUTION ABSOLUTE SCORE BY SUBJECT
-gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = df_subjects) %>% 
-gf_facet_grid(pretty_condition ~. )+
-  labs( x = "Total Absolute Score", 
-        title = "Distribution of Total Absolute Score (by Subject)",
-        subtitle = "Impasse Condition (blue) yields higher total absolute scores",
-        y = "Proportion of Subjects") +
-  scale_fill_discrete(name = "Condition") +  
-  theme_minimal() + theme(legend.position = "blank")
+# gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = df_subjects) %>% 
+# gf_facet_grid(pretty_condition ~. )+
+#   labs( x = "Total Absolute Score", 
+#         title = "Distribution of Total Absolute Score (by Subject)",
+#         subtitle = "Impasse Condition (blue) yields higher total absolute scores",
+#         y = "Proportion of Subjects") +
+#   scale_fill_discrete(name = "Condition") +  
+#   theme_minimal() + theme(legend.position = "blank")
 
 ```
 
@@ -570,14 +582,14 @@ gf_props(~score_SCALED, fill = ~pretty_condition, position = position_dodge(), d
   theme_minimal() + theme(legend.position="blank")
 
 #DISTRIBUTION SCALED SCORE BY SUBJECT
-gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>% 
-  gf_facet_grid(pretty_condition ~. )+
-  labs( x = "Total Scaled Score", 
-        title = "Distribution of Total Scaled Score (by Subject)",
-        subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
-        y = "Number of Subjects") +
-  scale_fill_discrete(name = "Condition") +  
-  theme_minimal()
+# gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>% 
+#   gf_facet_grid(pretty_condition ~. )+
+#   labs( x = "Total Scaled Score", 
+#         title = "Distribution of Total Scaled Score (by Subject)",
+#         subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
+#         y = "Number of Subjects") +
+#   scale_fill_discrete(name = "Condition") +  
+#   theme_minimal()
 
 ```
 
@@ -699,7 +711,7 @@ We start by exploring the range of response options checked by participants on Q
 ```{r}
 #| label: Q1-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==1)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==1)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -732,7 +744,7 @@ Notice that for this Question, the *Triangular* answer is the same as the *Tvers
 title <- "Frequency of Selected Response Options for Question #1 (Control Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
-df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>% 
+df_items %>% filter(q == 1 & condition == 11111) %>% group_by(response) %>% 
   dplyr::summarise( count = n(), 
                     nice = unique(score_niceABS),
                     triangular = unique(score_TRI), 
@@ -745,14 +757,16 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Lines-Connect", 2, 2) %>% 
-  pack_rows("Orthogonal", 3, 3) %>% 
-  pack_rows("Other", 4, 4)  %>% 
-  pack_rows("Unknown", 5, 7)  %>% 
-  footnote(general = "n = number of responses in sample", 
-           general_title = "Note: ",footnote_as_chunk = T) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+  # pack_rows("Triangular", 1, 1)
+# %>% 
+#   pack_rows("Lines-Connect", 2, 2) %>% 
+#   pack_rows("Orthogonal", 3, 3) %>% 
+#   pack_rows("Other", 4, 4)  %>% 
+#   pack_rows("Unknown", 5, 7)  %>% 
+#   footnote(general = "n = number of responses in sample", 
+#            general_title = "Note: ",footnote_as_chunk = T) 
 
 ```
 
@@ -807,7 +821,7 @@ Three responses were given that were not consistent with any of the identified i
 ```{r}
 #| label: Q2-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==2)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==2)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -911,7 +925,7 @@ Again, we see that most subjects selected a response consistent with one of the 
 ```{r}
 #| label: Q3-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==3)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==3)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1028,7 +1042,7 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 ```{r}
 #| label: Q4-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==4)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==4)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1095,7 +1109,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 ```{r}
 #| label: Q5-CONTROL-KEY
 
-q <- keys_raw %>% filter(condition == 111) %>% filter(Q==5)
+q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==5)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
