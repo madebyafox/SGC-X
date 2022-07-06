@@ -48,15 +48,13 @@ options(scipen=1, digits=3)
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC4A/data/0-study-level/sgc4a_participants.rds')
  
 ```
-
-TODO UPDATE CONDITION NAMES
 
 ```{r}
 #| label : INSPECT-DATA-COLLECTION
@@ -156,8 +154,8 @@ First we import participant-level data, selecting only the columns relevant for 
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #import file
 df_subjects <- read_rds("analysis/SGC4A/data/0-study-level/sgc4a_participants.rds") #use RDS file as it contains metadata
@@ -174,7 +172,7 @@ df_q16 <- df_subjects %>%
 df_subjects <- df_subjects %>% 
   mutate(score = absolute_score) %>% 
   #select only columns we'll be analyzing, discard others
-  dplyr::select( subject, condition, term, mode, 
+  dplyr::select( subject, condition, pretty_condition, term, mode, 
                  #demographics
                  gender, age, language, schoolyear, country,
                  #effort survey
@@ -213,15 +211,15 @@ Next we import item-level data from each data collection period, selecting only 
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+#setwd(mbp)
 
 #read datafiles
 df_items <- read_rds("analysis/SGC4A/data/0-study-level/sgc4a_items.rds") #use RDS file as it contains metadata
 
 #reduce data collected using new webapp
 df_items <- df_items %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  select(subject, condition, pretty_condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
