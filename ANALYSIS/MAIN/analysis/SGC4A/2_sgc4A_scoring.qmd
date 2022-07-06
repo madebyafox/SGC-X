@@ -39,8 +39,6 @@ In SGC_4 we are fundamentally interested in understanding how a participant inte
 
 3\. **Orthogonal Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect Orthogonal) answer key.
 
-Based on prior observational studies where we observed emergence of other alternative interpretations (i.e. transitional interpretations) we also calculate subscores for these alternatives.
-
 4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
 
 ### Prepare Answer Keys
@@ -55,7 +53,7 @@ We start by importing answer keys.
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+# setwd(mbp)
 
 #SAVE KEYS FOR FUTURE USE
 keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
@@ -82,15 +80,11 @@ Specifically, the following scores are calculated for each item:
 -   `score_ORTH` How consistent is the response with the **orthogonal**interpretation?
 -   `score_SATISFICE` is calculated by taking the maximum value of :
     -   `score_SAT_left` How consistent is the response with the **(left side) Satisficing** interpretation?
-
     -   `score_SAT_right` How consistent is the response with the **(right side) Satisficing** interpretation
 -   `score_TVERSKY` is calculated by taking the maximum value of:
     -   `score_TV_max` How consistent is the response with the **(maximal) Tversky** interpretation?
-
     -   `score_TV_start` How consistent is the response with the **(start-time) Tversky** interpretation?
-
-    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky**i nterpretation?
-
+    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky** interpretation?
     -   `score_TV_duration` How consistent is the response with the **(duration) Tversky** interpretation?
 -   `score_REF` Did the response select only the **reference point**?
 -   `score_BOTH` How consistent is the response with **both** the orthogonal and triangular interpretations?
@@ -333,14 +327,12 @@ df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rd
 #prep items
 df_items <- df_items %>% mutate(
   tv_type = as.factor(tv_type),
-  top_type = as.factor(top_type),
-  pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5")
+  top_type = as.factor(top_type)
 )
 
 #summarize SCORES and TIME by subject
 subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
-  pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5"),
   s_TRI = sum(score_TRI,na.rm=TRUE),
   s_ORTH = sum(score_ORTH,na.rm=TRUE),
   s_TVERSKY = sum(score_TVERSKY,na.rm=TRUE),
