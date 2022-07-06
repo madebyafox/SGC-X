@@ -4,8 +4,6 @@ subtitle: 'Study SGC5 | 2 Response Scoring'
 
 \newpage
 
-**TODO** - update graph subtitles - recode pretty_condition and pretty_interpretation in intro
-
 # Response Scoring {#sec-SGC5-scoring}
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC5 study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
@@ -38,8 +36,6 @@ In SGC_5 we are fundamentally interested in understanding how a participant inte
 2. **Triangular Score** : using partial scoring \[-1/q, +1/p\] referencing true (Triangular) answer key.
 
 3\. **Orthogonal Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect Orthogonal) answer key.
-
-Based on prior observational studies where we observed emergence of other alternative interpretations (i.e. transitional interpretations) we also calculate subscores for these alternatives.
 
 4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
 
@@ -82,15 +78,11 @@ Specifically, the following scores are calculated for each item:
 -   `score_ORTH` How consistent is the response with the **orthogonal**interpretation?
 -   `score_SATISFICE` is calculated by taking the maximum value of :
     -   `score_SAT_left` How consistent is the response with the **(left side) Satisficing** interpretation?
-
     -   `score_SAT_right` How consistent is the response with the **(right side) Satisficing** interpretation
 -   `score_TVERSKY` is calculated by taking the maximum value of:
     -   `score_TV_max` How consistent is the response with the **(maximal) Tversky** interpretation?
-
     -   `score_TV_start` How consistent is the response with the **(start-time) Tversky** interpretation?
-
-    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky**i nterpretation?
-
+    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky** interpretation?
     -   `score_TV_duration` How consistent is the response with the **(duration) Tversky** interpretation?
 -   `score_REF` Did the response select only the **reference point**?
 -   `score_BOTH` How consistent is the response with **both** the orthogonal and triangular interpretations?
@@ -105,7 +97,7 @@ Specifically, the following scores are calculated for each item:
 
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# setwd(imac)
 
 #backup <- read_rds('analysis/SGC5/data/1-study-level/sgc5_items.rds') #for troubleshooting only
 df_items <- read_rds('analysis/SGC5/data/1-study-level/sgc5_items.rds')
@@ -331,15 +323,12 @@ df_subjects <- read_rds('analysis/SGC5/data/1-study-level/sgc5_participants.rds'
 #prep items
 df_items <- df_items %>% mutate(
   tv_type = as.factor(tv_type),
-  top_type = as.factor(top_type),
-    pretty_condition = recode_factor(condition, "11115" = "click-point")
-
+  top_type = as.factor(top_type)
 )
 
 #summarize SCORES and TIME by subject
 subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
   subject = as.character(subject),
-  pretty_condition = recode_factor(condition, "11115" = "click-point"),
   s_TRI = sum(score_TRI,na.rm=TRUE),
   s_ORTH = sum(score_ORTH,na.rm=TRUE),
   s_TVERSKY = sum(score_TVERSKY,na.rm=TRUE),
@@ -396,14 +385,16 @@ subjects_q15 <- df_items %>% filter(q == 15) %>% mutate(
 #summarize scaffold phase performance
 subjects_scaffold <- df_items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
   item_scaffold_NABS = sum(score_niceABS),
+  item_scaffold_SCALED = sum(score_SCALED),
   item_scaffold_rt = sum(rt_s)
-)%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_rt) %>% arrange(subject)
+)%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_SCALED, item_scaffold_rt) %>% arrange(subject)
 
 #summarize test phase performance
 subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
   item_test_NABS = sum(score_niceABS),
+  item_test_SCALED = sum(score_SCALED),
   item_test_rt = sum(rt_s)
-)%>% dplyr::select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
+)%>% dplyr::select(subject, item_test_NABS, item_test_SCALED, item_test_rt) %>% arrange(subject)
 
 #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
 unique(subjects_summary$subject == df_subjects$subject)
@@ -422,7 +413,7 @@ x = merge(x, subjects_q7)
 x = merge(x, subjects_q15)
 x = merge(x, subjects_scaffold)
 x = merge(x, subjects_test)
-df_subjects <- x %>% dplyr::select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
+df_subjects <- x 
 
 #cleanup
 rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)
@@ -451,7 +442,7 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% dplyr::select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% dplyr::select(subject,mode, condition ,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 df_absolute_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
@@ -507,7 +498,7 @@ options(repr.plot.width =9, repr.plot.height =12)
 #create temp data frame for visualizations
 df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
   score_niceABS = as.factor(score_niceABS),
-  pretty_condition = recode_factor(condition, "11115" = "click-point"),
+  pretty_condition = recode_factor(condition, "11115" = "point-click"),
   pretty_interpretation = factor(interpretation,
     levels = c("Orthogonal", "Satisfice", 
                "frenzy","?",
@@ -526,7 +517,7 @@ df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
 gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), data = df) +
   labs( x = "Absolute Score", 
         title = "Distribution of Absolute Score (all Items)",
-        subtitle = paste("Impasse Condition (blue) yields more correct responses across the entire task"),
+        subtitle = paste(""),
         y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
@@ -536,7 +527,7 @@ gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), 
   gf_facet_grid(pretty_condition~q) + 
   labs( x = "Absolute Score", 
         title = "Distribution of Absolute Score (by Item)",
-        subtitle = "Impasse Condition (blue) yields more correct responses on each item",
+        subtitle = "",
         y = "Proprition of Subjects") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
@@ -546,10 +537,21 @@ gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = 
 gf_facet_grid(pretty_condition ~. )+
   labs( x = "Total Absolute Score", 
         title = "Distribution of Total Absolute Score (by Subject)",
-        subtitle = "Impasse Condition (blue) yields higher total absolute scores",
+        subtitle = "",
         y = "Proportion of Subjects") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal() + theme(legend.position = "blank")
+
+
+#DISTRIBUTION ABSOLUTE SCORE TEST PHASE
+gf_histogram(~item_test_NABS, fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_condition) + 
+  labs( x = "Absolute Score in TEST Phase", 
+        title = "Distribution of TEST PHASE Absolute Score (all Items)",
+        subtitle = paste(""),
+        y = "Proportion of Items") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
 
 ```
 
@@ -586,6 +588,16 @@ gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
         title = "Distribution of Total Scaled Score (by Subject)",
         subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
         y = "Number of Subjects") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
+#DISTRIBUTION SCALED SCORE TEST PHASE
+gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_condition) + 
+  labs( x = "Scaled Score in TEST Phase", 
+        title = "Distribution of TEST PHASE Scaled Score (all Items)",
+        subtitle = paste(""),
+        y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
 
@@ -629,27 +641,18 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
 ```{r}
 #| label: VIZ-PROGRESS
 
-#recode factors
-df_absolute_progress <- df_absolute_progress %>% mutate(
-   pretty_condition = recode_factor(condition, "11115" = "click-point")
-)
-
-df_scaled_progress <- df_scaled_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "11115" = "click-point")
-)
-
 #VISUALIZE progress over time ABSOLUTE score 
-ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
- geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_wrap(~pretty_condition) + 
+ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = condition)) + 
+ geom_line(position=position_jitter(w=0.15, h=0.00), size=0.1) +
+ facet_wrap(~condition) + 
  labs (title = "Cumulative Absolute Score over sequence of task", x = "Question" , y = "Cumulative Absolute Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
 
 #VISUALIZE progress over time SCALED score 
-ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
+ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.00), size=0.1) +
- facet_wrap(~pretty_condition) + 
+ facet_wrap(~condition) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")

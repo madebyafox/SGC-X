@@ -389,14 +389,16 @@ subjects_q15 <- df_items %>% filter(q == 15) %>% mutate(
 #summarize scaffold phase performance
 subjects_scaffold <- df_items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
   item_scaffold_NABS = sum(score_niceABS),
+  item_scaffold_SCALED = sum(score_SCALED),
   item_scaffold_rt = sum(rt_s)
-)%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_rt) %>% arrange(subject)
+)%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_SCALED, item_scaffold_rt) %>% arrange(subject)
 
 #summarize test phase performance
 subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
   item_test_NABS = sum(score_niceABS),
+  item_test_SCALED = sum(score_SCALED),
   item_test_rt = sum(rt_s)
-)%>% dplyr::select(subject, item_test_NABS, item_test_rt) %>% arrange(subject)
+)%>% dplyr::select(subject, item_test_NABS, item_test_SCALED, item_test_rt) %>% arrange(subject)
 
 #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
 unique(subjects_summary$subject == df_subjects$subject)
@@ -425,7 +427,7 @@ rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subje
 #| label: SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS
 
 #filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, pretty_condition, q,score_niceABS) 
+x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject, mode, pretty_condition, q,score_niceABS) 
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
@@ -544,6 +546,16 @@ gf_facet_grid(pretty_condition ~. )+
   scale_fill_discrete(name = "Condition") +
   theme_minimal() + theme(legend.position = "blank")
 
+#DISTRIBUTION ABSOLUTE SCORE TEST PHASE
+gf_histogram(~item_test_NABS, fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_condition) + 
+  labs( x = "Absolute Score in TEST Phase", 
+        title = "Distribution of TEST PHASE Absolute Score (all Items)",
+        subtitle = paste(""),
+        y = "Proportion of Items") +
+  scale_fill_discrete(name = "Condition") +  
+  theme_minimal()
+
 ```
 
 ### Scaled Score
@@ -580,6 +592,16 @@ gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
         subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
         y = "Number of Subjects") +
   scale_fill_discrete(name = "Condition") +
+  theme_minimal()
+
+#DISTRIBUTION SCALED SCORE TEST PHASE
+gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_condition) + 
+  labs( x = "Scaled Score in TEST Phase", 
+        title = "Distribution of TEST PHASE Scaled Score (all Items)",
+        subtitle = paste(""),
+        y = "Proportion of Items") +
+  scale_fill_discrete(name = "Condition") +  
   theme_minimal()
 
 ```

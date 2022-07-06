@@ -233,6 +233,11 @@ df_items <- df_items %>%
   mutate(
     response = str_remove_all(as.character(answer), ","),
     num_o = str_length(response)
+  ) %>% 
+  # handle NA values (why are some empty responses blank and others NA?) 
+  mutate(
+    response = replace_na(response, ""),
+    num_o = replace_na(num_o, 0)
   )
 
 ```
