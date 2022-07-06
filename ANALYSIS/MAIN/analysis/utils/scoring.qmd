@@ -4,7 +4,7 @@ subtitle: 'Multiple Response Scoring Approach'
 
 \newpage
 
-# Scoring Strategy {.unnumbered #sec-scoring}
+# Scoring Strategy {#sec-scoring .unnumbered}
 
 *The purpose of this notebook is to describe the strategy for assigning a score ( a measure of accuracy) to response data for the SGC studies. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)*
 
@@ -147,7 +147,7 @@ return ((2*i - n) / n)
 }
 ```
 
-#### Partial Scoring \[-1/q, +1/p\]
+#### Partial Scoring \[-1/q, +1/p\] {#sec-partialp} 
 
 One drawback of the Partial Scoring $[-1/n, +1/n]$ approach is that treats the choice to select, and choice to not select options as equally indicative of the respondent's understanding. That is to say, incorrectly selecting one particular option is no more or less informative than incorrectly not-selecting a different item. This represents an important difference between MAMC (i.e. "select all correct options") vs MTF (i.e. "Mark each option as true or false") questions.
 
@@ -406,7 +406,7 @@ Here again we see that the Partial $[-1/q, +1/p]$ scheme allows us differentiate
 The Partial $[-1/q, +1/p]$ scheme is more appropriate for scoring the graph comprehension task than the Partial $[-1/n, +1/n]$ scheme because it allows us to differentially penalize incorrectly *selected* and incorrectly *not selected* answer options.
 :::
 
-## SCORE SGC DATA
+## SCORING SGC DATA {#sec-scoringOverview}
 
 In SGC_3A we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
@@ -420,9 +420,21 @@ In SGC_3A we are fundamentally interested in understanding how a participant int
 
 Based on prior observational studies where we observed emergence of other alternative interpretations (i.e. transitional interpretations) we also calculate subscores for these alternatives.
 
-4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
+4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key.
 
-### Prepare Answer Keys
+5\. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
+
+For each study in the SGC project, MR data will be scored by following these steps:
+
+\(1\) Preparing answer keys: For each dataset+question set combination, an answer key is that defines the 'correct' answer set under *each* interpretation of the graph (i.e. a triangular answer, an orthogonal answer, etc).
+
+\(2\) Calculate strategy scores: Using the strategy specific answer keys, an interpretation subscore is calculated for each response for each interpretation.
+
+\(3\) Interpretation classification: The interpretation subscores are compared in order to classify each response as a particular interpretation. If no classification can be made, the response is classified as '?'.
+
+\(4\) Calculate Absolute and Scaled Scores: Two final scores are calculated for each response; an Absolute score that indicates if the response was precisely correct according to the triangular interpretation, and a Scaled score that assigns a numeric value to the interpretation given by the response (ranging from -1 to +1)
+
+### 1. Prepare Answer Keys {#sec-scoring-keys}
 
 We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
 
@@ -1107,7 +1119,7 @@ write.csv(keys_tversky_max,"analysis/utils/keys/parsed_keys/keys_tversky_max", r
 write.csv(keys_tversky_start,"analysis/utils/keys/parsed_keys/keys_tversky_start", row.names = FALSE)
 ```
 
-### Score Items
+### 2. Calculate Subscores {#sec-scoring-subscores}
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (e.g. `keys_orth`, `keys_tri`, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item in `df_items`, and can be used to determine which graph interpretation the subject held.
 
@@ -1115,19 +1127,15 @@ Specifically, the following scores are calculated for each item:
 
 **Interpretation Subscores**
 
--   `score_TRI` How consistent is the response with the **triangular**interpretation?
--   `score_ORTH` How consistent is the response with the **orthogonal**interpretation?
+-   `score_TRI` How consistent is the response with the **triangular** interpretation?
+-   `score_ORTH` How consistent is the response with the **orthogonal** interpretation?
 -   `score_SATISFICE` is calculated by taking the maximum value of :
     -   `score_SAT_left` How consistent is the response with the **(left side) Satisficing** interpretation?
-
-    -   `score_SAT_right` How consistent is the response with the **(right side) Satisficing** interpretation
+    -   `score_SAT_right` How consistent is the response with the **(right side) Satisficing** interpretation?
 -   `score_TVERSKY` is calculated by taking the maximum value of:
     -   `score_TV_max` How consistent is the response with the **(maximal) Tversky** interpretation?
-
     -   `score_TV_start` How consistent is the response with the **(start-time) Tversky** interpretation?
-
-    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky**i nterpretation?
-
+    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky** interpretation?
     -   `score_TV_duration` How consistent is the response with the **(duration) Tversky** interpretation?
 -   `score_REF` Did the response select only the **reference point**?
 -   `score_BOTH` How consistent is the response with **both** the orthogonal and triangular interpretations?
@@ -1137,14 +1145,53 @@ Specifically, the following scores are calculated for each item:
 -   `score_ABS` Is the response strictly correct? (triangular interpretation)
 -   `score_niceABS` Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer *in addition to* they also select the data point referenced in the question.
 
-To faciliate scoring, we import the following helper functions:
+To facilitate scoring, we import the following helper functions in each scoring script.
 
 ```{r}
-#| label: SCORING-FUNCTIONS-mapply-friendly
+#| label: IMPORT-SCORING-FUNCTIONS
 
 # #HACK WD FOR LOCAL RUNNING?
 imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 setwd(imac)
 
 source("analysis/utils/scoring.R")
+
+print(calc_subscore)
+
+```
+
+### 3. Derive Interpretation {#sec-scoring-interpretation}
+
+Next, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.
+
+The final output is called `interpretation`.
+
+```{r}
+print(derive_interpretation)
+```
+
+### 4. Derive Scaled Score {#sec-scoring-scaledScore}
+
+The `interpretation` response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.
+
+Specifically, we assign the following values to each interpretation:
+
+-   (-1) : ORTHOGONAL, SATISFICE (satisfice represents an attempt at an orthogonal answer when none is available)
+-   (-0.5): ? (some alternative that cannot be identified; but meaningful that it is not orthogonal)
+-   (0): REFERENCE POINT, BLANK (indicates the individual thinks there is no answer, recognizes that ORTHOGONAL cannot be correct, but does not conceive of triangular)
+-   (+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they "see" a triangular response, but lack certainty and also select the ORTHOGONAL response)
+-   (+1) TRIANGULAR +1
+
+```{r}
+print(calc_scaled)
+```
+
+### 5. Summarize by Subject {#sec-scoring-summarise}
+
+The final step in the scoring procedure is to summarise the item-level scores by subject, and save certain summaries to the subject-level record. We also construct two long-format dataframes containing cummulative progress scores (the point-in-time [absolute, scaled] scores for each subject on each question).
+
+```{r}
+print(summarise_bySubject)
+print(progress_Absolute)
+print(progress_Scaled)
 ```
