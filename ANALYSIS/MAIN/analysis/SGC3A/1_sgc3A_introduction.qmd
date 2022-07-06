@@ -325,9 +325,9 @@ Next we import item-level data from each data collection period, selecting only 
 #| label: IMPORT-ITEMS
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+ # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 #mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(mbp)
+# setwd(imac)
 
 #set datafiles
 fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_blocks.csv"
@@ -383,6 +383,11 @@ df_items <- rbind(df_items, df_items_winter22,df_items_before) %>%
   mutate(
     response = str_remove_all(as.character(response), ","),
     num_o = str_length(response)
+  ) %>% 
+  # handle NA values (why are some empty responses blank and others NA?) 
+  mutate(
+    response = replace_na(response, ""),
+    num_o = replace_na(num_o, 0)
   )
 
 
