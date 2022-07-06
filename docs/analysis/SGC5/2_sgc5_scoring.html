@@ -325,8 +325,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <div style="page-break-after: always;"></div>
-<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC5 study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
-<div class="cell">
+<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC5 study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/SETUP_8a4278b8044b7ab1f86052ab5506711c">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
@@ -340,7 +340,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="score-sgc-data" class="level2">
 <h2 class="anchored" data-anchor-id="score-sgc-data">SCORE SGC DATA</h2>
-<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
 <p>In SGC_5 we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The <strong>graph comprehension task</strong> asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant’s performance, for each question (q=15) we will calculate the following scores:</p>
 <p><em>An overall, strict score:</em><br>
 1. <strong>Absolute Score</strong> : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)</p>
@@ -351,7 +351,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="prepare-answer-keys" class="level3">
 <h3 class="anchored" data-anchor-id="prepare-answer-keys">Prepare Answer Keys</h3>
 <p>We start by importing answer keys.</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/IMPORT-KEYS_03cebe3c74d7c7dbb83993ecef4e4c51">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -400,7 +400,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>score_ABS</code> Is the response strictly correct? (triangular interpretation)</li>
 <li><code>score_niceABS</code> Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer <em>in addition to</em> they also select the data point referenced in the question.</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/IMPORT-ITEMS_5975e2ec9e0d80119410c1fd8f977220">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
@@ -411,7 +411,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC5/data/1-study-level/sgc5_items.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/IMPORT-SCORING-FUNCTIONS_17d237dec0995275169fb262272952eb">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
@@ -452,7 +452,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="sec-SGC5-interpretation" class="level3">
 <h3 class="anchored" data-anchor-id="sec-SGC5-interpretation">Derive Interpretation</h3>
-<p>Finally, we use the interpretation subscores to classify the response as a particular interpretation (or “?” if the response cannot be classified). <a href="../SGC3A/2_sgc3A_scoring.html#sec-SGC3A-interpretation">For details, see&nbsp;<span>2.1.3</span></a></p>
+<p>Finally, we use the interpretation subscores to classify the response as a particular interpretation (or “?” if the response cannot be classified). <a href="#sec-SGC3A-interpretation">For details, see&nbsp;<span class="quarto-unresolved-ref">sec-SGC3A-interpretation</span></a></p>
 <div class="cell" data-hash="2_sgc5_scoring_cache/html/DERIVE-INTERPRETATION_6dfb55682a405d11a8a18e887828e2a2">
 <details>
 <summary>CODE</summary>
@@ -591,7 +591,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>(+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they “see” a triangular response, but lack certainty and also select the ORTHOGONAL response)</li>
 <li>(+1) TRIANGULAR +1</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/DISCRIMINANT-SCORE_14fd37060e171aa5e2fbda0e39db5711">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SCALED <span class="ot">&lt;-</span> <span class="fu">recode</span>(df_items<span class="sc">$</span>interpretation,</span>
@@ -611,7 +611,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="summarize-by-subject" class="level2">
 <h2 class="anchored" data-anchor-id="summarize-by-subject">SUMMARIZE BY SUBJECT</h2>
 <p>Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/SUMMARIZE-BY-SUBJECT_1d641da412cd33ecdc47fa6781f2d1f5">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -768,7 +768,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS_ea2521d45f79b19303afd2ad954a2838">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#filter for valid items</span></span>
@@ -802,7 +802,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(x,wide)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/SUMMARIZE-CUMULATIVE SCALED PROGRESS_bfa65127ecb6d5549544c437ff7d5092">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#filter for valid items</span></span>
@@ -838,7 +838,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="explore-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="explore-distributions">EXPLORE DISTRIBUTIONS</h2>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/VIS-SETUP_0114ad2938f699fd5aa21bdf73995014">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -858,7 +858,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="absolute-score" class="level3">
 <h3 class="anchored" data-anchor-id="absolute-score">Absolute Score</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/DISTR-ABSCORE_122d41013e1239a6cffbfd099a24ffdd">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE FULL </span><span class="al">TASK</span></span>
@@ -922,7 +922,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="scaled-score" class="level3">
 <h3 class="anchored" data-anchor-id="scaled-score">Scaled Score</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/DISTR-SCALEDSCORE_fdbb91a38ebcf06874cdcb2e5f1ca202">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -992,7 +992,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretations" class="level3">
 <h3 class="anchored" data-anchor-id="interpretations">Interpretations</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/DISTR-INTERPRETATIONS_a013799643e69096f029894bb66c8073">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION</span></span>
@@ -1035,7 +1035,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="progress-over-task" class="level3">
 <h3 class="anchored" data-anchor-id="progress-over-task">Progress over Task</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/VIZ-PROGRESS_c385098e69e85fe4254bfca1c2dd1287">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time ABSOLUTE score </span></span>
@@ -1066,7 +1066,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretation-subscores" class="level3">
 <h3 class="anchored" data-anchor-id="interpretation-subscores">Interpretation Subscores</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/DIST-SUBSCORES_90e2c5184ebd31f877ccbbde573895ae">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TRI, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
@@ -1126,7 +1126,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="export" class="level2">
 <h2 class="anchored" data-anchor-id="export">EXPORT</h2>
 <p>Finally, we export the scores for each item (<code>df_items</code>) and summarized over subjects (<code>df_subjects</code>), as well as cumulative progress dataframes (<code>df_absolute_progress</code>, <code>df_scaled_progress</code>)</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/EXPORT-SCORES_557bb3a8da7c238c3b60148baced8848">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -1149,7 +1149,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="resources" class="level2">
 <h2 class="anchored" data-anchor-id="resources">RESOURCES</h2>
-<div class="cell">
+<div class="cell" data-hash="2_sgc5_scoring_cache/html/unnamed-chunk-18_82e8c2728f04324fbaf56347e09d13ad">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1199,14 +1199,14 @@ loaded via a namespace (and not attached):
 [58] MASS_7.3-57         plyr_1.8.7          grid_4.2.1         
 [61] parallel_4.2.1      crayon_1.5.1        haven_2.5.0        
 [64] splines_4.2.1       hms_1.1.1           knitr_1.39         
-[67] pillar_1.7.0        reprex_2.0.1        glue_1.6.2         
-[70] evaluate_0.15       latticeExtra_0.6-29 data.table_1.14.2  
-[73] modelr_0.1.8        tzdb_0.3.0          png_0.1-7          
-[76] vctrs_0.4.1         tweenr_1.0.2        cellranger_1.1.0   
-[79] gtable_0.3.0        polyclip_1.10-0     assertthat_0.2.1   
-[82] openxlsx_4.2.5      xfun_0.31           ggforce_0.3.3      
-[85] broom_0.8.0         viridisLite_0.4.0   cluster_2.1.3      
-[88] ellipsis_0.3.2     </code></pre>
+[67] pillar_1.7.0        codetools_0.2-18    reprex_2.0.1       
+[70] glue_1.6.2          evaluate_0.15       latticeExtra_0.6-29
+[73] data.table_1.14.2   modelr_0.1.8        tzdb_0.3.0         
+[76] png_0.1-7           vctrs_0.4.1         tweenr_1.0.2       
+[79] cellranger_1.1.0    gtable_0.3.0        polyclip_1.10-0    
+[82] assertthat_0.2.1    openxlsx_4.2.5      xfun_0.31          
+[85] ggforce_0.3.3       broom_0.8.0         viridisLite_0.4.0  
+[88] cluster_2.1.3       ellipsis_0.3.2     </code></pre>
 </div>
 </div>
 

@@ -360,7 +360,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 </tr>
 </tbody>
 </table>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/SETUP_7ce22f74245f5985b94002ad1d9cf8d6">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(codebook) <span class="co">#data dictionary</span></span>
@@ -373,7 +373,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/IMPORT-DATA_ea08b82af1e377dd1a64b12d7fe7fef7">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
@@ -385,7 +385,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC4A/data/0-study-level/sgc4a_participants.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/label - INSPECT-DATA-COLLECTION_2f00eaac7e4a6c46ab18e13c33d58177">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">=</span> <span class="st">"Participants by Condition"</span></span>
@@ -520,7 +520,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 <h4 class="anchored" data-anchor-id="participants">Participants</h4>
 <p>First we import participant-level data, selecting only the columns relevant for analysis. The result is a single data frame <code>df_subjects</code> containing one row for each subject (across all periods). Note that we <em>are not</em> discarding any <em>response</em> data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.</p>
 <p><em>Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. No raw data (responses and response times) are discarded, only algorithmically-derived scores for the responses.</em></p>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/IMPORT-SUBJECTS_24deb5673e291b5ff311a567f728cf03">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#IMPORT PARTICIPANT DATA</span></span>
@@ -578,7 +578,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 <section id="items" class="level4">
 <h4 class="anchored" data-anchor-id="items">Items</h4>
 <p>Next we import item-level data from each data collection period, selecting only the columns relevant for analysis. The result is a single data frame <code>df_items</code> containing one row for each <em>graph comprehension task question</em> (qs=15) (across all periods). A second data frame <code>df_freeresponse</code> contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we <em>do not</em> discard any <em>response</em> data. Rather, we <em>do</em> discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.</p>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/IMPORT-ITEMS_0f8e8b59ef7d8932f0ce1098173bd780">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
@@ -615,7 +615,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 <section id="validation" class="level4">
 <h4 class="anchored" data-anchor-id="validation">Validation</h4>
 <p>Next, we validate that we have the complete number of item-level records based on the number of subject-level records</p>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/RECONCILE_666192566cc086319c17d52a73858306">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#the number of items should be equal to 15 x the number of subjects</span></span>
@@ -637,7 +637,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 <section id="export" class="level4">
 <h4 class="anchored" data-anchor-id="export">Export</h4>
 <p>Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS (includes metadata)</p>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/EXPORT-FILES_3716b293514ad0e26fb7e5c0dbbd014d">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">HACK</span><span class="co"> WD FOR LOCAL RUNNING?</span></span>
@@ -673,7 +673,7 @@ Demo: <a href="https://limitless-plains-85018.herokuapp.com/?study=SGC4A&amp;con
 </section>
 <section id="resources" class="level2">
 <h2 class="anchored" data-anchor-id="resources">RESOURCES</h2>
-<div class="cell">
+<div class="cell" data-hash="1_sgc4A_introduction_cache/html/SESSION_1df83e79e9a49216c2198daf9d7a2b17">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -707,15 +707,15 @@ loaded via a namespace (and not attached):
 [21] rmarkdown_2.14    webshot_0.5.3     foreign_0.8-82    htmlwidgets_1.5.4
 [25] munsell_0.5.0     broom_0.8.0       compiler_4.2.1    modelr_0.1.8     
 [29] xfun_0.31         pkgconfig_2.0.3   systemfonts_1.0.4 htmltools_0.5.2  
-[33] tidyselect_1.1.2  rio_0.5.29        fansi_1.0.3       viridisLite_0.4.0
-[37] crayon_1.5.1      tzdb_0.3.0        dbplyr_2.2.1      withr_2.5.0      
-[41] grid_4.2.1        jsonlite_1.8.0    gtable_0.3.0      lifecycle_1.0.1  
-[45] DBI_1.1.3         magrittr_2.0.3    scales_1.2.0      zip_2.2.0        
-[49] cli_3.3.0         stringi_1.7.6     fs_1.5.2          xml2_1.3.3       
-[53] ellipsis_0.3.2    generics_0.1.2    vctrs_0.4.1       openxlsx_4.2.5   
-[57] tools_4.2.1       glue_1.6.2        hms_1.1.1         fastmap_1.1.0    
-[61] yaml_2.3.5        colorspace_2.0-3  rvest_1.0.2       knitr_1.39       
-[65] haven_2.5.0      </code></pre>
+[33] tidyselect_1.1.2  rio_0.5.29        codetools_0.2-18  fansi_1.0.3      
+[37] viridisLite_0.4.0 crayon_1.5.1      tzdb_0.3.0        dbplyr_2.2.1     
+[41] withr_2.5.0       grid_4.2.1        jsonlite_1.8.0    gtable_0.3.0     
+[45] lifecycle_1.0.1   DBI_1.1.3         magrittr_2.0.3    scales_1.2.0     
+[49] zip_2.2.0         cli_3.3.0         stringi_1.7.6     fs_1.5.2         
+[53] xml2_1.3.3        ellipsis_0.3.2    generics_0.1.2    vctrs_0.4.1      
+[57] openxlsx_4.2.5    tools_4.2.1       glue_1.6.2        hms_1.1.1        
+[61] fastmap_1.1.0     yaml_2.3.5        colorspace_2.0-3  rvest_1.0.2      
+[65] knitr_1.39        haven_2.5.0      </code></pre>
 </div>
 </div>
 
