@@ -1,14 +1,14 @@
 ---
-subtitle: 'Study SGC4A | 2 Response Scoring'
+subtitle: 'Study SGC4B | 2 Response Scoring'
 ---
 
 \newpage
 
 **TODO** update graph subtitles 
 
-# Response Scoring {#sec-SGC4A-scoring}
+# Response Scoring {#sec-SGC4B-scoring}
 
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4B study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
 ```{r}
 #| label: SETUP
@@ -39,8 +39,6 @@ In SGC_4 we are fundamentally interested in understanding how a participant inte
 
 3\. **Orthogonal Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect Orthogonal) answer key.
 
-Based on prior observational studies where we observed emergence of other alternative interpretations (i.e. transitional interpretations) we also calculate subscores for these alternatives.
-
 4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
 
 ### Prepare Answer Keys
@@ -53,9 +51,9 @@ We start by importing answer keys.
 #| message: false
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#setwd(imac)
 
 #SAVE KEYS FOR FUTURE USE
 keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
@@ -82,15 +80,11 @@ Specifically, the following scores are calculated for each item:
 -   `score_ORTH` How consistent is the response with the **orthogonal**interpretation?
 -   `score_SATISFICE` is calculated by taking the maximum value of :
     -   `score_SAT_left` How consistent is the response with the **(left side) Satisficing** interpretation?
-
     -   `score_SAT_right` How consistent is the response with the **(right side) Satisficing** interpretation
 -   `score_TVERSKY` is calculated by taking the maximum value of:
     -   `score_TV_max` How consistent is the response with the **(maximal) Tversky** interpretation?
-
     -   `score_TV_start` How consistent is the response with the **(start-time) Tversky** interpretation?
-
-    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky**i nterpretation?
-
+    -   `score_TV_end` How consistent is the response with the **(end-time) Tversky** interpretation?
     -   `score_TV_duration` How consistent is the response with the **(duration) Tversky** interpretation?
 -   `score_REF` Did the response select only the **reference point**?
 -   `score_BOTH` How consistent is the response with **both** the orthogonal and triangular interpretations?
@@ -104,12 +98,12 @@ Specifically, the following scores are calculated for each item:
 #| label: IMPORT-ITEMS
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#setwd(imac)
 
-#backup <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds') #for troubleshooting only
-df_items <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds')
+#backup <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_items.rds') #for troubleshooting only
+df_items <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_items.rds')
 
 ```
 
@@ -117,9 +111,9 @@ df_items <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds')
 #| label: IMPORT-SCORING-FUNCTIONS
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#setwd(imac)
 
 source("analysis/utils/scoring.R")
 
@@ -156,7 +150,7 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't pe
 
 ```
 
-### Derive Interpretation {#sec-SGC4A-interpretation}
+### Derive Interpretation {#sec-SGC4B-interpretation}
 
 Finally, we use the interpretation subscores to classify the response as a particular interpretation (or "?" if the response cannot be classified). [For details, see @sec-SGC3A-interpretation ]
 
@@ -287,7 +281,7 @@ df_items <- df_items %>% dplyr::select(-best)
 # df_items$score_SATISFICE <- df_items$score_SATISFICE %>% as.numeric()
 ```
 
-### Derive Scaled Score {#sec-SGC4A-scaledScore}
+### Derive Scaled Score {#sec-SGC4B-scaledScore}
 
 The `interpretation` response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.
 
@@ -328,7 +322,7 @@ imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS
 setwd(imac)
 
 #IMPORT subjects file
-df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+df_subjects <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
 #prep items
 df_items <- df_items %>% mutate(
@@ -505,6 +499,7 @@ options(repr.plot.width =9, repr.plot.height =12)
 
 #create temp data frame for visualizations
 df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
+  pretty_condition = pretty_condition,
   score_niceABS = as.factor(score_niceABS),
   pretty_interpretation = factor(interpretation,
     levels = c("Orthogonal", "Satisfice", 
@@ -709,15 +704,15 @@ Finally, we export the scores for each item (`df_items`) and summarized over sub
 # setwd(imac)
 
 #SAVE FILES
-write.csv(df_subjects,"analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.csv", row.names = FALSE)
-write.csv(df_items,"analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.csv", row.names = FALSE)
-write.csv(df_absolute_progress,"analysis/SGC4A/data/2-scored-data/sgc4a_absolute_progress.csv", row.names = FALSE)
-write.csv(df_scaled_progress,"analysis/SGC4A/data/2-scored-data/sgc4a_scaled_progress.csv", row.names = FALSE)
+write.csv(df_subjects,"analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.csv", row.names = FALSE)
+write.csv(df_items,"analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.csv", row.names = FALSE)
+write.csv(df_absolute_progress,"analysis/SGC4B/data/2-scored-data/sgc4b_absolute_progress.csv", row.names = FALSE)
+write.csv(df_scaled_progress,"analysis/SGC4B/data/2-scored-data/sgc4b_scaled_progress.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
-rio::export(df_subjects, "analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") # to R data structure file
-rio::export(df_items, "analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds") # to R data structure file
+rio::export(df_subjects, "analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds") # to R data structure file
+rio::export(df_items, "analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds") # to R data structure file
 
 ```
 
