@@ -78,6 +78,7 @@ df_participants <- df_participants %>%
   mutate( #create factors and remove extraneous ""
     subject=as.character(subject),
     condition=as.character(condition),
+    pretty_condition = recode_factor(condition, "11111" = "point", "1112" =  "arrow", "1113"="cross"),
     study = factor(study),
     session = factor(session),
     exp_id = factor(exp_id),
@@ -100,6 +101,7 @@ df_participants <- df_participants %>%
     subject,
     study,
     condition,
+    pretty_condition,
     session,
     exp_id,
     sona_id,
@@ -141,7 +143,7 @@ df_participants <- df_participants %>%
 #ADD CONTROL CONDITION MOVED FROM SGC4A 
 #TODO | verify that 4bCONTROL has been copied to input folder; out of 4A output folder
 control_participants<- read.csv("input/winter22_sgc4b_CONTROL_participants.csv") %>% 
-select(-explanation, -discriminant_score, -tri_score, -orth_score, -other_score, -blank_score)  %>%
+select(-explanation)  %>%
 mutate(
   condition= as.character(condition),
   subject = as.character(subject))
@@ -163,6 +165,7 @@ df_items <- df_items %>%
   mutate(
     # subject=factor(subject),
     # condition=factor(condition),
+    pretty_condition = recode_factor(condition, "11111" = "point", "1112" =  "arrow", "1113"="cross"),
     pool=factor(pool),
     mode = factor(mode),
     # explicit=factor(explicit),
@@ -183,6 +186,8 @@ df_items <- df_items %>%
      term,
      pool,
      mode,
+     condition,
+     pretty_condition,
      block,
      explicit,
      impasse,
@@ -203,14 +208,12 @@ df_items <- df_items %>%
      # other_score,
      # blank_score,
      answer,
-     rt_s,
-     condition
+     rt_s
    )  #WE DROP ALL SCORES BC THEY ARE RESCORED IN ANALYSIS FILE
 
 
 #ADD CONTROL CONDITION MOVED FROM SGC4A 
-control_items<- read.csv("input/winter22_sgc4b_CONTROL_items.csv") %>% 
-  select( -discriminant, -tri_score, -orth_score, -other_score, -blank_score)
+control_items<- read.csv("input/winter22_sgc4b_CONTROL_items.csv") 
 
 df_items <- rbind(df_items, control_items) %>% mutate(
     subject=factor(subject),
