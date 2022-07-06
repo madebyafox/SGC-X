@@ -317,9 +317,9 @@ Next, we summarize the item level scores by subject in order to calculate cummul
 #| label: SUMMARIZE-BY-SUBJECT
 
 # HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+#setwd(imac)
 
 #IMPORT subjects file
 df_subjects <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
@@ -415,7 +415,7 @@ x = merge(x, subjects_q7)
 x = merge(x, subjects_q15)
 x = merge(x, subjects_scaffold)
 x = merge(x, subjects_test)
-df_subjects <- x %>% dplyr::select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
+df_subjects <- x 
 
 #cleanup
 rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)
@@ -425,7 +425,7 @@ rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subje
 #| label: SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS
 
 #filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, condition, q,score_niceABS) 
+x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, pretty_condition, q,score_niceABS) 
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
@@ -444,7 +444,7 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% dplyr::select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% dplyr::select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 df_absolute_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
@@ -460,7 +460,7 @@ rm(x,wide)
 #| label: SUMMARIZE-CUMULATIVE SCALED PROGRESS
 
 #filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, condition, q,score_SCALED)
+x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, pretty_condition, q,score_SCALED)
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_SCALED)
@@ -479,7 +479,7 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 df_scaled_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
@@ -563,30 +563,26 @@ gf_props(~score_SCALED, fill = ~pretty_condition, position = position_dodge(), d
   theme_minimal()
 
 #DISTRIBUTION SCALED SCORE BY ITEM
-# gf_props(~score_SCALED, fill = ~pretty_condition, position = position_dodge(), data = df)  %>% 
-#   gf_facet_grid(q~pretty_condition) + 
-#   labs( x = "Scaled Score", 
-#         title = "Distribution of Scaled Score (by Item)",
-#         subtitle = "Impasse Condition (blue) yields higher scaled scores on each item",
-#         y = "Proportion of Subjects") +
-#   scale_fill_discrete(name = "Condition") +  scale_y_continuous(breaks=c(0,0.5)) + 
-#   theme_minimal() + theme(legend.position="blank")
+gf_props(~score_SCALED, fill = ~pretty_condition, position = position_dodge(), data = df)  %>%
+  gf_facet_grid(q~pretty_condition) +
+  labs( x = "Scaled Score",
+        title = "Distribution of Scaled Score (by Item)",
+        subtitle = "Impasse Condition (blue) yields higher scaled scores on each item",
+        y = "Proportion of Subjects") +
+  scale_fill_discrete(name = "Condition") +  scale_y_continuous(breaks=c(0,0.5)) +
+  theme_minimal() + theme(legend.position="blank")
 
 #DISTRIBUTION SCALED SCORE BY SUBJECT
-# gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
-#   gf_facet_grid(pretty_condition ~. )+
-#   labs( x = "Total Scaled Score",
-#         title = "Distribution of Total Scaled Score (by Subject)",
-#         subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
-#         y = "Number of Subjects") +
-#   scale_fill_discrete(name = "Condition") +
-#   theme_minimal()
+gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
+  gf_facet_grid(pretty_condition ~. )+
+  labs( x = "Total Scaled Score",
+        title = "Distribution of Total Scaled Score (by Subject)",
+        subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
+        y = "Number of Subjects") +
+  scale_fill_discrete(name = "Condition") +
+  theme_minimal()
 
 ```
-
--   TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance
--   TODO: INVESTIGATE DISTRIBUTIONS of each subscore type
-
 ### Interpretations
 
 ```{r}
@@ -622,15 +618,6 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
 ```{r}
 #| label: VIZ-PROGRESS
 
-#recode factors
-df_absolute_progress <- df_absolute_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5")
-)
-
-df_scaled_progress <- df_scaled_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5")
-)
-
 #VISUALIZE progress over time ABSOLUTE score 
 ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
@@ -654,42 +641,37 @@ ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, 
 ```{r}
 #| label: DIST-SUBSCORES
 
-# gf_density(~ s_TRI, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Triangular Score",
-#         subtitle = "Impasse shifts density toward higher Triagular scores",
-#         x = "Item Triangular Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
-# 
-# 
-# gf_density(~ s_ORTH, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Orthogonal Score",
-#         subtitle = "Impasse shifts density toward lower Orthogonal scores",
-#         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
-# 
-# gf_density(~ s_TVERSKY, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Tversky Score",
-#         subtitle = "Impasse shifts density toward higher Tversky scores",
-#         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
-# 
-# gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Satisfice Score",
-#         subtitle = "Satisficing only occurs in impasse, when no orthogonal response is available",
-#         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
+gf_density(~ s_TRI, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Triangular Score",
+        subtitle = "Impasse shifts density toward higher Triagular scores",
+        x = "Item Triangular Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
+
+
+gf_density(~ s_ORTH, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Orthogonal Score",
+        subtitle = "Impasse shifts density toward lower Orthogonal scores",
+        x = "Item Orthogonal Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
+
+gf_density(~ s_TVERSKY, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Tversky Score",
+        subtitle = "Impasse shifts density toward higher Tversky scores",
+        x = "Item Orthogonal Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
+
+gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Satisfice Score",
+        subtitle = "Satisficing only occurs in impasse, when no orthogonal response is available",
+        x = "Item Orthogonal Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
 
 ```
 
-## EXPLORE RESPONSES
-
-In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
-
-TODO
 
 ## EXPORT
 
@@ -721,3 +703,6 @@ rio::export(df_items, "analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds"
 ```{r}
 sessionInfo()
 ```
+
+
+
