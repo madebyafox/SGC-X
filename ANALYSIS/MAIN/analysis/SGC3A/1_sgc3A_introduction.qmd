@@ -39,7 +39,7 @@ In Study 3A we explore the extent to which confronting a learner with an implici
 |                                  | Demo: [121](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO) |
 +----------------------------------+-------------------------------------------------------------------------------------------------------+
 
-: **SGC3A Study Conditions** {tbl-colwidths="[40,60]"}
+: **SGC3A Study Conditions** {tbl-colwidths="\[40,60\]"}
 
 In the context of Study 2, an impasse state was (unintentionally) induced when the combination of question + data set yielded no available answer in the incorrect (cartesian) interpretation of the graph. In Study 3A, we test this hypothesis by comparing performance between a (treatment) group receiving impasse-inducing questions followed by normal questions, and a non-impasse control.
 
@@ -75,11 +75,11 @@ options(scipen=1, digits=3)
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+# setwd(mbp)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds')
-df_subjects <- read_csv('analysis/SGC3A/data/1-study-level/sgc3a_participants.csv') 
+# df_subjects <- read_csv('analysis/SGC3A/data/1-study-level/sgc3a_participants.csv') 
 
 ```
 
@@ -203,9 +203,9 @@ First we import participant-level data from each data collection period, selecti
 #IMPORT PARTICIPANT DATA
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#setwd(mbp)
 
 #set datafiles
 fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_participants.csv"
@@ -224,7 +224,9 @@ df_subjects <- df_subjects_winter22 %>% filter(condition=='X') %>% select(
   subject,condition,term,mode,
   gender,age,language, schoolyear, country,
   effort,difficulty,confidence,enjoyment,other,
-  totaltime_m,absolute_score
+  totaltime_m, absolute_score, 
+  #exploratory factors
+  violations, browser, width, height
 )
 
 #reduce data collected using OLD webapp to useful columns
@@ -243,7 +245,11 @@ df_subjects_before <- rbind(df_subjects_fall17, df_subjects_spring18, df_subject
     confidence = "NULL",
     enjoyment = "NULL",
     other = "NULL",
-    disability = "NULL"
+    disability = "NULL",
+    violations = "NULL",
+    browser = "NULL",
+    width = "NULL",
+    height = "NULL"
   ) %>% 
   #select only columns we'll be analyzing, discard others
   dplyr::select(subject, condition, term, mode, 
@@ -254,7 +260,9 @@ df_subjects_before <- rbind(df_subjects_fall17, df_subjects_spring18, df_subject
                 #placeholder misc 
                 other, disability,
                 #response characteristics
-                totaltime_m, absolute_score)
+                totaltime_m, absolute_score,
+                #exploratory factors
+                violations, browser, width, height)
 
 #save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp
 df_winter22_q16 <- df_subjects_winter22 %>% 
@@ -276,8 +284,9 @@ df_subjects_winter22 <- df_subjects_winter22 %>%
                  #explanations
                  other,disability,
                  #response characteristics
-                 totaltime_m, absolute_score)
-
+                 totaltime_m, absolute_score,
+                 #exploratory factors 
+                 violations, browser, width, height)
 
 effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
 
@@ -317,8 +326,8 @@ Next we import item-level data from each data collection period, selecting only 
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+#setwd(mbp)
 
 #set datafiles
 fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_blocks.csv"
@@ -430,8 +439,8 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+#setwd(mbp)
 
 #SAVE FILES
 write.csv(df_subjects,"analysis/SGC3A/data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
