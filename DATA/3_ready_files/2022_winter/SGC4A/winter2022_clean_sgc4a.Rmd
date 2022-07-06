@@ -34,6 +34,7 @@ knitr::opts_knit$set(session_dir)
 
 library(jsonlite)
 library(tidyjson)
+library(ggformula)
 library(dplyr)
 
 # codebook stuff 
@@ -74,6 +75,9 @@ n_items = 15 #fifteen items is complete dataset per participant
 ex_participants = data.frame()
 ```
 
+*note* : We drop all scores calculated in the stimulus engine (except absolute score, which uses simple # strictly correct), as they are recalculate during analysis using a different MC scoring algorithm.
+
+
 ```{r PARTICIPANTS-SETUP}
 
 #create factors in PARTICIPANTS
@@ -81,6 +85,7 @@ df_participants <- df_participants %>%
   mutate( #create factors and remove extraneous ""
     subject=factor(subject),
     condition=factor(condition),
+    pretty_condition = recode_factor(condition, "11111" = "Orth-Full", "114" =  "Orth-Sparse", "115" = "Orth-Grid", "113" = "Tri-Sparse"),
     study = factor(study),
     condition = factor(condition),
     session = factor(session),
@@ -104,6 +109,7 @@ df_participants <- df_participants %>%
     subject,
     study,
     condition,
+    pretty_condition,
     session,
     exp_id,
     sona_id,
@@ -132,11 +138,11 @@ df_participants <- df_participants %>%
     term,
     violations,
     absolute_score,
-    discriminant_score,
-    tri_score,
-    orth_score,
-    other_score,
-    blank_score,
+    # discriminant_score,
+    # tri_score,
+    # orth_score,
+    # other_score,
+    # blank_score,
     totaltime_m
    )  
 
@@ -148,6 +154,7 @@ df_items <- df_items %>%
   mutate(
     subject=factor(subject),
     condition=factor(condition),
+    pretty_condition = recode_factor(condition, "11111" = "Orth-Full", "114" =  "Orth-Sparse", "115" = "Orth-Grid", "113" = "Tri-Sparse"),
     pool=factor(pool),
     mode = factor(mode),
     explicit=factor(explicit),
@@ -168,6 +175,8 @@ df_items <- df_items %>%
      term,
      pool,
      mode,
+     condition,
+     pretty_condition,
      block,
      explicit,
      impasse,
@@ -182,14 +191,14 @@ df_items <- df_items %>%
      relation,
      q,
      correct,
-     discriminant,
-     tri_score,
-     orth_score,
-     other_score,
-     blank_score,
+     # discriminant,
+     # tri_score,
+     # orth_score,
+     # other_score,
+     # blank_score,
      answer,
      rt_s,
-     condition
+     
    ) 
 ```
 
@@ -521,6 +530,37 @@ codebook(df_items,#ONLY FOR HTML EXPORT
          metadata_json = FALSE,
          survey_overview = FALSE,
          missingness_report = FALSE)
+```
+# Explore
+Exploration of the distribution of key response variables for validation purposes: 
+
+```{r}
+
+
+gf_histogram( ~absolute_score ,data = df_participants) + 
+  labs(title = "SGC$A Distribution of Absolute Score")
+
+gf_histogram( ~absolute_score ,data = df_participants) %>% 
+  gf_facet_wrap(~pretty_condition) +
+  labs(title = "SGC4A Distribution of Absolute Score (by Condition)")
+
+gf_props(~correct, data = df_items) + 
+  labs(title = "SGC4A Distribution of Item Absolute Score")
+
+gf_props(~correct, data = df_items) %>% 
+  gf_facet_wrap(~condition) + 
+  labs(title = "SGC4A Distribution of Item Absolute Score (by Condition)")
+
+gf_histogram( ~totaltime_m ,data = df_participants) + 
+  labs(title = "SGC4A Distribution of Absolute Score")
+
+gf_histogram( ~absolute_score ,data = df_participants) %>% 
+  gf_facet_wrap(~pretty_condition) +
+  labs(title = "SGC4A Distribution of Total Study Time")
+
+gf_histogram(~rt_s, data = df_items) + 
+  labs(title = "SGC4A Distribution of Item Response Time")
+
 ```
 
 # Data Export
