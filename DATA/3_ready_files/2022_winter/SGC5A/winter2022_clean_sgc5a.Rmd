@@ -31,6 +31,7 @@ mainfont: "DejaVu Sans"
 knitr::opts_chunk$set(echo = TRUE)
 library(jsonlite)
 library(tidyjson)
+library(ggformula)
 library(dplyr)
 
 # codebook stuff 
@@ -72,9 +73,11 @@ ex_participants = data.frame()
 
 #create factors in PARTICIPANTS
 df_participants <- df_participants %>%  
-  mutate( #create factors and remove extraneous ""
+  mutate( 
+    #create factors and remove extraneous ""
     subject=factor(subject),
     condition=factor(condition),
+    pretty_condition = recode_factor(condition, "11115" = "point-click"),
     study = factor(study),
     condition = factor(condition),
     session = factor(session),
@@ -98,6 +101,7 @@ df_participants <- df_participants %>%
     subject,
     study,
     condition,
+    pretty_condition,
     session,
     exp_id,
     sona_id,
@@ -126,13 +130,13 @@ df_participants <- df_participants %>%
     term,
     violations,
     absolute_score,
-    discriminant_score,
-    tri_score,
-    orth_score,
-    other_score,
-    blank_score,
+    # discriminant_score,
+    # tri_score,
+    # orth_score,
+    # other_score,
+    # blank_score,
     totaltime_m
-   )  
+   )  #drop scores because they're recalculated in analysis
 
 ```
 
@@ -142,6 +146,7 @@ df_items <- df_items %>%
   mutate(
     subject=factor(subject),
     condition=factor(condition),
+    pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
     pool=factor(pool),
     mode = factor(mode),
     explicit=factor(explicit),
@@ -162,6 +167,8 @@ df_items <- df_items %>%
      term,
      pool,
      mode,
+     condition,
+     pretty_condition,
      block,
      explicit,
      impasse,
@@ -176,14 +183,13 @@ df_items <- df_items %>%
      relation,
      q,
      correct,
-     discriminant,
-     tri_score,
-     orth_score,
-     other_score,
-     blank_score,
+     # discriminant,
+     # tri_score,
+     # orth_score,
+     # other_score,
+     # blank_score,
      answer,
-     rt_s,
-     condition
+     rt_s
    ) 
 ```
 
@@ -464,6 +470,39 @@ codebook(df_items,#ONLY FOR HTML EXPORT
          metadata_json = FALSE,
          survey_overview = FALSE,
          missingness_report = FALSE)
+```
+
+# Explore
+Exploration of the distribution of key response variables for validation purposes: 
+
+**TODO** why is absolute score 0?
+```{r}
+
+
+gf_histogram( ~absolute_score ,data = df_participants) + 
+  labs(title = "SGC5A Distribution of Absolute Score")
+
+gf_histogram( ~absolute_score ,data = df_participants) %>% 
+  gf_facet_wrap(~pretty_condition) +
+  labs(title = "SGC5A Distribution of Absolute Score (by Condition)")
+
+gf_props(~correct, data = df_items) + 
+  labs(title = "SGC5A Distribution of Item Absolute Score")
+
+gf_props(~correct, data = df_items) %>% 
+  gf_facet_wrap(~condition) + 
+  labs(title = "SGC5A Distribution of Item Absolute Score (by Condition)")
+
+gf_histogram( ~totaltime_m ,data = df_participants) + 
+  labs(title = "SGC5A Distribution of Absolute Score")
+
+gf_histogram( ~absolute_score ,data = df_participants) %>% 
+  gf_facet_wrap(~pretty_condition) +
+  labs(title = "SGC5A Distribution of Total Study Time")
+
+gf_histogram(~rt_s, data = df_items) + 
+  labs(title = "SGC5A Distribution of Item Response Time")
+
 ```
 
 # Data Export

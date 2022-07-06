@@ -8,13 +8,13 @@ subtitle: 'Study SGC5 | TBD Interaction'
 
 In Study 5 we explore ...
 
-+-------------------------------------------+-----------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/11111.png)        | **Check-box**\                                                                                            |
-|                                           | Demo: [111](https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11111&session=WEB-DEMO)   |
-+-------------------------------------------+-----------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/11115.png)        | **Point-Click**\                                                                                          |
-|                                           | Demo: [11115](https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11115&session=WEB-DEMO) |
-+-------------------------------------------+-----------------------------------------------------------------------------------------------------------+
++------------------------------------+-----------------------------------------------------------------------------------------------------------+
+| ![](/analysis/utils/img/11111.png) | **Check-box**\                                                                                            |
+|                                    | Demo: [111](https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11111&session=WEB-DEMO)   |
++------------------------------------+-----------------------------------------------------------------------------------------------------------+
+| ![](/analysis/utils/img/11115.png) | **Point-Click**\                                                                                          |
+|                                    | Demo: [11115](https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11115&session=WEB-DEMO) |
++------------------------------------+-----------------------------------------------------------------------------------------------------------+
 
 : SGC5A Study Conditions
 
@@ -149,7 +149,7 @@ First we import participant-level data, selecting only the columns relevant for 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+# setwd(mbp)
 
 #import file
 df_subjects <- read_rds("analysis/SGC5/data/0-study-level/sgc5_participants.rds") #use RDS file as it contains metadata
@@ -174,7 +174,7 @@ df_q16 <- df_subjects %>%
 df_subjects <- df_subjects %>% 
   mutate(score = absolute_score) %>% 
   #select only columns we'll be analyzing, discard others
-  dplyr::select( subject, condition, term, mode, 
+  dplyr::select( subject, condition, pretty_condition, term, mode, 
                  #demographics
                  gender, age, language, schoolyear, country,
                  #effort survey
@@ -182,7 +182,10 @@ df_subjects <- df_subjects %>%
                  #explanations
                  other,disability,
                  #response characteristics
-                 totaltime_m, absolute_score)
+                 totaltime_m, absolute_score,
+                 #exploratory factors
+                 violations, browser, width, height
+                 )
 
 
 effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
@@ -218,7 +221,7 @@ df_items <- read_rds("analysis/SGC5/data/0-study-level/sgc5_items.rds") #use RDS
 
 #reduce data collected using new webapp
 df_items <- df_items %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  select(subject, condition, pretty_condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
