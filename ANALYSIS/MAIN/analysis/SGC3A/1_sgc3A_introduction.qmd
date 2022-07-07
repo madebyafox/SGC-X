@@ -98,12 +98,12 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 **Experimental Hypothesis**   
 *Learners posed with scenario designed to evoke a mental impasse will be more likely to correct interpret the graph.*
 
--   H1A \| Learners in the impasse condition will have better cumulative accuracy (get more questions correctly overall)
--   H1B \| Learners in the impasse condition will be more likely to correctly answer the first question
--   H1C \| Learners in the impasse condition will spend more time on the first question.
+-   H1A \| Learners in the IMPASSE condition will score higher on the TEST Phase than learners in CONTROL. 
+-   H1B \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL. 
+-   H1C \| Learners in the IMPASSE condition will spend more time on the first question than learners in CONTROL.
 
 **Null Hypothesis**   
-*No significant differences in performance will exist between learners in the impasse and control conditions.*
+*No significant differences in performance will exist between learners in the IMPASSE and CONTROL conditions.*
 
 **Exploratory Questions**
 
@@ -300,6 +300,7 @@ df_subjects <- rbind(df_subjects, df_subjects_winter22, df_subjects_before) %>%
     subject = factor(subject),
     condition = factor(condition),
     pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
+    pretty_mode = recode_factor(mode, "lab-synch" = "laboratory", "asynch" =  "online-replication"),
     term = factor(term, levels= c("fall17","spring18","fall21","winter22")),
     mode = factor(mode, levels=c("lab-synch","asynch")),
     gender = factor(gender),
@@ -422,7 +423,8 @@ df_items <- df_items %>% filter (q != 16)
 
 #add back pretty condition 
 df_items <- df_items %>% mutate(
-  pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse")
+  pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
+  pretty_mode = recode_factor(mode, "lab-synch" = "laboratory", "asynch" =  "online-replication")
 )
 
 #CLEANUP

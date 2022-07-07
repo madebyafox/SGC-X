@@ -68,20 +68,31 @@ theme_clean <- function() {
 
 In SGC3A we set out to answer the following question: Does posing a mental impasse improve performance on the graph comprehension task?
 
-*Specifically, we will test the following experimental hypotheses:*
+**Experimental Hypothesis**   
+*Learners posed with scenario designed to evoke a mental impasse will be more likely to correct interpret the graph.*
 
-**Experimental Hypothesis:** *Learners posed with impasse-inducing questions will be more likely to correct interpret the graph.*
+-   H1A \| Learners in the IMPASSE condition will score higher on the TEST Phase than learners in CONTROL. 
+-   H1B \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL. 
+-   H1C \| Learners in the IMPASSE condition will spend more time on the first question than learners in CONTROL.
 
--   H1A \| Learners in the impasse condition will have better cumulative accuracy (get more questions correctly overall)
--   H1B \| Learners in impasse condition will be more likely to correctly answer the first question
--   H1C \| Learners in the impasse condition will spend more time on the first question.
+**Null Hypothesis**   
+*No significant differences in performance will exist between learners in the IMPASSE and CONTROL conditions.*
 
-The Null Hypothesis asserts that *no significant differences in performance will exist between learners in the impasse and control conditions.*
+**Exploratory Questions**
+
+-   Consistency \| How consistent are learners in their interpretation of the graph? Do they adopt an interpretation on the first question and hold constant? Or do they change interpretations from question to question? Are there any interpretations that serve as 'absorbing states' (i.e. once encountered, the learner does not exist this state).
+-   Time Course of Exploration \| What is the relationship between response accuracy (and interpretation) and time spent on each item?
+-   Can exploration strategies be derived from mouse cursor activity?
 
 ```{r}
 #| label: IMPORT-DATA
 #| warning : false
 #| message : false
+
+# HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -94,9 +105,156 @@ df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 ```
 
-## H1A \| CUMULATIVE PERFORMANCE
+## H1A \| TEST PERFORMANCE 
 
 Over the course of the entire graph comprehension task does the impasse condition affect performance on the graph comprehension task?
+
+### TEST Phase Absolute Score
+
+#### Linear Regression (# Correct)
+
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does posing a mental impasse improve performance?                                                                                                                                                                                                                                                                                                                                                                                                  |
++=======================+====================================================================================================================================================================================================================================================================================================================================================================================================================================================+
+| **Hypothesis**        | (H1A) Participants in the IMPASSE condition will have significantly higher cumulative performance than those in the CONTROL condition.                                                                                                                                                                                                                                                                                                             |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | OLS Linear Regression `s_NABS` \~ `condition`                                                                                                                                                                                                                                                                                                                                                                                                      |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Justification**     | \(0\) goal is to understand how much variance in absolute score is accounted for by condition                                                                                                                                                                                                                                                                                                                                                      |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(1\) linearity assumption **TODO**                                                                                                                                                                                                                                                                                                                                                                                                                |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(2\) homoscedasticity assumption: **TODO**                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(3\) independence assumption : observations correspond to individual participants and are thus independent                                                                                                                                                                                                                                                                                                                                        |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(2\) normality assumption : **TODO**                                                                                                                                                                                                                                                                                                                                                                                                              |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Steps**             | \(1\) Calculate regression model using `lmer`                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(2\) Interpret coefficients                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(3\) Interpret ANOVA and $R^2$ value                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       | \(4\) Model diagnostics                                                                                                                                                                                                                                                                                                                                                                                                                            |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Inference**         |        |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                       |  |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+
+```{r}
+#| label: VIS-SUBJECT-ABS-TEST
+ 
+#VISUALIZE distribution of response accuracy across SUBJECTS
+
+#HISTOGRAM
+stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(item_test_NABS))
+gf_props(~item_test_NABS, data = df_subjects) %>% 
+  gf_vline(xintercept = 4, color = "blue") %>% 
+  gf_facet_grid(condition~mode, labeller = label_both) %>% 
+  gf_lims(x = c(0, 8)) %>%
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Cumulative Absolute Score",
+       y = "proportion of subjects",
+       title = "TEST PHASE Total Absolute Score",
+       subtitle = "Score distributions are comparable across modalities and different across conditions") + 
+  theme_minimal()
+
+```
+
+##### In-Lab Data Collection
+
+```{r}
+#| label: MODEL-cumulative-score-LAB
+
+#SCORE predicted by CONDITION
+m1 <- lm(item_test_NABS ~ condition, data = df_subjects %>% filter(mode=="lab-synch"))
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+report(m1) #sanity check
+check_model(m1)
+```
+
+**For in-lab data collection** an OLS linear regression predicting test-phase absolute score by experimental condition explains a statistically significant though small 6% variance in score (F(1,124) = 7.89, p \< 0.01). The estimated beta coefficient ($\beta$ = 1.62, 95% CI \[0.48, 2.76\]) predicts that participants in the impasse condition will on average score 1.6 points (20%) higher than those in the control condition.
+
+
+##### Online Replication
+
+```{r}
+#| label: MODEL-cumulative-score-ONLINE
+
+#SCORE predicted by CONDITION
+m1 <- lm(item_test_NABS ~ condition, data = df_subjects %>% filter(mode=="asynch"))
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+#report(m1) #sanity check
+
+```
+
+**For the online replication**, an OLS linear regression model predicting TEST Phase absolute score by condition explains a statistically significant though small 5% of variance in absolute score (F(1,202) = 10.8, p \< 0.01). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 1.4 points (18%) higher on the task than those in the control condition (CI\[0.58, 2.30\]).
+
+::: callout-note
+**From these models we can reasonably conclude that the impasse condition yielded a small but reliable improvement in performance across items in the graph reading task.**
+:::
+
+##### **Model Diagnostics**
+
+```{r}
+# plot(performance_accuracy(m1, method = "boot"))
+# see::check_distribution(m1)
+```
+
+```{r}
+#| label: DIAGNOSTICS-ABSCORE-LINEAR
+#| message: true
+#| warning: false
+
+# check_model(m1)
+
+# Linearity
+# Homogeneity of Variance
+# Infuential Observations
+# Normality of Residuals
+
+# plot(check_collinearity(m1))
+# plot(check_normality(m1), type = "qq")
+# plot(check_heteroscedasticity(m1))
+# plot(result <- check_homogeneity(m1))
+
+
+
+```
+
+**TODO**
+
+##### Combined
+
+```{r}
+#| label: MODEL-SUB_ABS-combined
+
+#SCORE predicted by CONDITION
+m1 <- lm(s_ABS ~ condition, data = df_subjects)
+paste("Model")
+summary(m1)
+paste("Partition Variance")
+anova(m1)
+paste("Confidence Interval on Parameter Estimates")
+confint(m1)
+#report(m1) #sanity check
+check_model(m1)
+
+```
+
 
 ### Total Absolute Score
 
