@@ -6,13 +6,13 @@ subtitle: 'Study SGC5A | 1 Introduction'
 
 # Introduction {#sec-SGC5A-introduction}
 
-In Study 5 we explore ...
+**In Study 5A we explore the extent to which requiring mouse-cursor interaction with the graph improves interpretation of the underlying coordinate system. **
 
 +------------------------------------+-----------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/11111.png) | **Check-box**\                                                                                            |
+| ![](/analysis/utils/img/11111.png) | **CONTROL (Check-box)**\                                                                                            |
 |                                    | Demo: [111](https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11111&session=WEB-DEMO)   |
 +------------------------------------+-----------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/11115.png) | **Point-Click**\                                                                                          |
+| ![](/analysis/utils/img/11115.png) | **INTERACTION (Point-Click)**\                                                                                          |
 |                                    | Demo: [11115](https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11115&session=WEB-DEMO) |
 +------------------------------------+-----------------------------------------------------------------------------------------------------------+
 
@@ -62,8 +62,15 @@ cont %>% addmargins() %>% kbl(caption = title) %>%  kable_classic()
 ### Hypotheses
 
 **Experimental Hypothesis:**
+_We hypothesize that requiring interaction with the graph (by clicking on data points rather than checkboxes to answer the questions) will improve interpretation of the coordinate system._
 
-**Null Hypothesis:**
+-   H1 The INTERACTION condition should yield significantly better performance
+    -   H1A \| INTERACTION condition should yield higher total absolute score
+    -   H1B \| INTERACTION condition should yield higher first question score
+    -   H1C \| INTERACTION condition should yield lower response times on the first question (both overall, and specifically among participants who answer correctly)
+
+**Null Hypothesis:**  
+_A null effect will be characterized by no significant differences in performance between CONTROL and INTERACTION conditions._
 
 **Exploratory Questions**
 
@@ -104,11 +111,7 @@ Participants completed the study via a web-browser.
 
 \(2\) Participants were introduced to a scenario in which they were to play the role of a project manager, scheduling shifts for a group of employees. The schedule of the employees was presented in a TriangularModel (TM) graph, and they would be answering question about the schedule.
 
-\(3\) Then participants completed an experimental block of 15 items.
-
-(3A) The first five items in the task are defined as the SCAFFOLDING block. In the IMPASSE condition, the first five questions included an IMPASSE problem state. For participants in the CONTROL condition, the dataset was structure such that there was always an available 'orthogonal answer' for the first 5 questions.
-
-(3B) The remaining 10 items are defined as the TESTING block. In both conditions, these questions were not structured as impasse (i.e. contained an available orthogonal answer)
+\(3\) Then participants completed an experimental block of 15 items : the Graph Comprehension Task
 
 \(4\) Following the experimental block, participants answered a free-response question about their strategy for reading the graph, followed by a demographic questionnaire and debrief.
 
@@ -142,9 +145,10 @@ First we import participant-level data, selecting only the columns relevant for 
 
 ```{r}
 #| label: IMPORT-SUBJECTS
+#| message: false
+
 
 #IMPORT PARTICIPANT DATA
-
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
@@ -210,6 +214,7 @@ Next we import item-level data from each data collection period, selecting only 
 
 ```{r}
 #| label: IMPORT-ITEMS
+#| message: false
 
 # #HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
@@ -281,17 +286,6 @@ rio::export(df_items, "analysis/SGC5A/data/1-study-level/sgc5_items.rds") # to R
 
 ```
 
-### Response Scoring
-
-Because the graph comprehension task utilizes a Multiple-Response (MR) format (rather than simple multiple choice), the raw response data (the combination of answer options selected) for each question first need to be assigned a score. Approaches to scoring MR data and score transformations are derived in [Section -@sec-SGC5A-scoring].
-
-### Hypothesis Testing
-
-Experimental hypotheses are tested in [Section -@sec-SGC5A-hypotesting].
-
-### Exploratory Analysis
-
-Further data analyses are documented in [Section -@sec-SGC5A-exploration].
 
 ## RESOURCES
 

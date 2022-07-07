@@ -6,7 +6,7 @@ subtitle: 'Study SGC4B | 1 Introduction'
 
 # Introduction {#sec-SGC4B-introduction}
 
-In Study 4A we explore the extent to which **the design of the marks indicating data points** influence how a reader interprets its underlying coordinate system.
+**In Study 4B we explore the extent to which the design of the marks indicating data points influence how a reader interprets its underlying coordinate system.**
 
 +-----------------------------------+---------------------------------------------------------------------------------------------------------+
 | ![](/analysis/utils/img/111.png)  | **Point**\                                                                                              |
@@ -63,24 +63,23 @@ cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_clas
 
 ### Hypotheses
 
-**Experimental Hypothesis:** We hypothesize that the design of the MARK that represents an individual data point can also influence the interpretation of the coordinate system, even though it does not explicitly represent any aspect of the coordinate system, and that is not the function of the mark in the graphical framework. Marks can provide visual cues that direct the reader toward more appropriate interpretations
+**Experimental Hypothesis:**   
+_We hypothesize that the design of the MARK that represents an individual data point can also influence the interpretation of the coordinate system, even though it does not explicitly represent any aspect of the coordinate system, and that is not the function of the mark in the graphical framework. Marks can provide visual cues that direct the reader toward more appropriate interpretations._
 
--   H1 The Arrow condition should yield significantly better performance
-    -   H1A \| Arrow condition should yield higher total absolute score
-    -   H1B \| Arrow condition should yield higher first question score
-    -   H1C \| Arrow condition should yield lower response times on the first question (both overall, and specifically among participants who answer correctly)
--   H2 \| The Cross condition should not yield significantly better performance
-    -   H2A \| No difference in overall performance between Point and Cross
-
-    -   H2B \| No difference in first question score between Point and Cross
-
-    -   H2C \| No difference in response latency between Point and Cross
+-   H1 The ARROW condition should yield significantly better performance
+    -   H1A \| ARROW condition should yield higher total absolute score
+    -   H1B \| ARROW condition should yield higher first question score
+    -   H1C \| ARROW condition should yield lower response times on the first question (both overall, and specifically among participants who answer correctly)
+-   H2 \| The CROSS condition should not yield significantly better performance
+    -   H2A \| No difference in overall performance between POINT and CROSS
+    -   H2B \| No difference in first question score between POINT and CROSS
+    -   H2C \| No difference in response latency between POINT and CROSS
 
 ## METHODS
 
 ### Design
 
-We employed a mixed design with 1 between-subjects factor with 2 levels (Scaffold: control, impasse) and 15 items (within-subjects factor).
+We employed a mixed design with 1 between-subjects factor with 3 levels (Mark: POINT, CROSS, ARROW) and 15 items (within-subjects factor).
 
 Independent Variables:
 
@@ -107,13 +106,9 @@ Participants completed the study via a web-browser.
 
 \(1\) Upon starting, they submitted informed consent, before reading task instructions.
 
-\(2\) Participants were introduced to a scenario in which they were to play the role of a project manager, scheduling shifts for a group of employees. The schedule of the employees was presented in a TriangularModel (TM) graph, and they would be answering question about the schedule.
+\(2\) Participants were introduced to a scenario in which they were to play the role of a project manager, scheduling shifts for a group of employees. The schedule of the employees was presented in a Triangular Model (TM) graph, and they would be answering question about the schedule.
 
-\(3\) Then participants completed an experimental block of 15 items.
-
-(3A) The first five items in the task are defined as the SCAFFOLDING block. In the IMPASSE condition, the first five questions included an IMPASSE problem state. For participants in the CONTROL condition, the dataset was structure such that there was always an available 'orthogonal answer' for the first 5 questions.
-
-(3B) The remaining 10 items are defined as the TESTING block. In both conditions, these questions were not structured as impasse (i.e. contained an available orthogonal answer)
+\(3\) Then participants completed an experimental block of 15 items: The Graph Comprehension Task.
 
 \(4\) Following the experimental block, participants answered a free-response question about their strategy for reading the graph, followed by a demographic questionnaire and debrief.
 
@@ -147,6 +142,7 @@ First we import participant-level data, selecting only the columns relevant for 
 
 ```{r}
 #| label: IMPORT-SUBJECTS
+#| message: false
 
 #IMPORT PARTICIPANT DATA
 
@@ -207,6 +203,7 @@ Next we import item-level data from each data collection period, selecting only 
 
 ```{r}
 #| label: IMPORT-ITEMS
+#| message: false
 
 # HACK WD FOR LOCAL RUNNING?
 #imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
@@ -277,17 +274,6 @@ rio::export(df_items, "analysis/SGC4B/data/1-study-level/sgc4b_items.rds") # to 
 
 ```
 
-### Response Scoring
-
-Because the graph comprehension task utilizes a Multiple-Response (MR) format (rather than simple multiple choice), the raw response data (the combination of answer options selected) for each question first need to be assigned a score. Approaches to scoring MR data and score transformations are derived in [Section -@sec-SGC4B-scoring].
-
-### Hypothesis Testing
-
-Experimental hypotheses are tested in [Section -@sec-SGC4B-hypotesting].
-
-### Exploratory Analysis
-
-Further data analyses are documented in [Section -@sec-SGC4B-exploration].
 
 ## RESOURCES
 
