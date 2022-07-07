@@ -1,6 +1,7 @@
 ---
 # title: 'Introduction' 
 subtitle: 'Study SGC3A | 1 Introduction'
+description	: "1 Introduction"
 #RMD YAML
 # author: 'Amy Rae Fox'
 # header-includes:
@@ -74,8 +75,8 @@ options(scipen=1, digits=3)
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds')
@@ -203,9 +204,9 @@ First we import participant-level data from each data collection period, selecti
 #IMPORT PARTICIPANT DATA
 
 # HACK WD FOR LOCAL RUNNING?
-#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(mbp)
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #set datafiles
 fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_participants.csv"
@@ -296,6 +297,7 @@ df_subjects <- rbind(df_subjects, df_subjects_winter22, df_subjects_before) %>%
   mutate (
     subject = factor(subject),
     condition = factor(condition),
+    pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
     term = factor(term, levels= c("fall17","spring18","fall21","winter22")),
     mode = factor(mode, levels=c("lab-synch","asynch")),
     gender = factor(gender),
@@ -325,8 +327,8 @@ Next we import item-level data from each data collection period, selecting only 
 #| label: IMPORT-ITEMS
 
 # HACK WD FOR LOCAL RUNNING?
- # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+#  imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# #mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
 # setwd(imac)
 
 #set datafiles
@@ -415,6 +417,11 @@ df_freeresponse <- df_freeresponse %>% mutate(
 #remove 'free response' Q#16 from df_items
 df_items <- df_items %>% filter (q != 16)
 
+#add back pretty condition 
+df_items <- df_items %>% mutate(
+  pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse")
+)
+
 #CLEANUP
 rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22, df_items_before, df_winter22_q16)
 rm(fall17,fall21,spring18,winter22, map_relations)
@@ -444,13 +451,13 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(mbp)
+# #mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #SAVE FILES
 write.csv(df_subjects,"analysis/SGC3A/data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
 write.csv(df_items,"analysis/SGC3A/data/1-study-level/sgc3a_items.csv", row.names = FALSE)
-write.csv(df_freeresponse,"analysis/SGC3A/data/1-study-level/sgc3a_items.csv", row.names = FALSE)
+write.csv(df_freeresponse,"analysis/SGC3A/data/1-study-level/sgc3a_freeresponse.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)

@@ -4,8 +4,6 @@ subtitle: 'Study SGC4A | 2 Response Scoring'
 
 \newpage
 
-**TODO** update graph subtitles - recode pretty_condition and pretty_interpretation in intro
-
 # Response Scoring {#sec-SGC4A-scoring}
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
@@ -29,7 +27,7 @@ library(tidyverse) #ALL THE THINGS
 
 To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
-In SGC_4 we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
+In SGC  we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:
 
 *An overall, strict score:*\
 1. **Absolute Score** : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)
@@ -39,21 +37,22 @@ In SGC_4 we are fundamentally interested in understanding how a participant inte
 
 3\. **Orthogonal Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect Orthogonal) answer key.
 
+Based on prior observational studies where we observed emergence of other alternative interpretations (i.e. transitional interpretations) we also calculate subscores for these alternatives.
+
 4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
 
-### Prepare Answer Keys
+### Prepare Answer Keys {#sec-SGC4A-keys}
 
-We start by importing answer keys.
+We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
 
 ```{r}
 #| label: IMPORT-KEYS
 #| warning: false
 #| message: false
 
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+# #HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 #SAVE KEYS FOR FUTURE USE
 keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
@@ -68,7 +67,7 @@ keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_st
 
 ```
 
-### Score Items
+### Calculate Subscores {#sec-SGC4A-subscores}
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (e.g. `keys_orth`, `keys_tri`, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item in `df_items`, and can be used to determine which graph interpretation the subject held.
 
@@ -97,10 +96,9 @@ Specifically, the following scores are calculated for each item:
 ```{r}
 #| label: IMPORT-ITEMS
 
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+#HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 #backup <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds') #for troubleshooting only
 df_items <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds')
@@ -110,10 +108,9 @@ df_items <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_items.rds')
 ```{r}
 #| label: IMPORT-SCORING-FUNCTIONS
 
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+# #HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 source("analysis/utils/scoring.R")
 
@@ -152,134 +149,21 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't pe
 
 ### Derive Interpretation {#sec-SGC4A-interpretation}
 
-Finally, we use the interpretation subscores to classify the response as a particular interpretation (or "?" if the response cannot be classified). [For details, see @sec-SGC3A-interpretation ]
+Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.
+
+The final output is called `interpretation`.
 
 ```{r}
 #| label: DERIVE-INTERPRETATION
 #| cache: true
 
-threshold_range = 0.5 #set required variance in subscores to be discriminant
-threshold_frenzy = 4
+#stoopid extra copying for troubleshooting safety
+temp <- df_items 
+temp <- derive_interpretation(temp)
+df_items <- temp 
 
-x = 1
-
-for (x in 1:nrow(df_items)) {
-  
-  #CALCULATE MAX TVERSKY SUBSCORE
-  t = df_items[x,] %>% select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration) #reshape
-  t.long = gather(t,score, value, 1:4)
-  t.long[t.long == ""] = NA #replace empty scores with NA so we can ignore them
-  if(length(unique(t.long$value)) == 1 ){
-    if(is.na(unique(t.long$value))){
-      df_items[x,'score_TVERSKY'] = NA
-      df_items[x,'tv_type'] = NA   
-    }
-  } else {
-    df_items[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
-    df_items[x,'tv_type'] = t.long[which.max(t.long$value),'score']
-  }
-  
-  #CALCULATE MAX SATISFICING SUBSCORE
-  t = df_items[x,] %>% select(score_SAT_left, score_SAT_right)
-  t.long = gather(t,score, value, 1:2)
-  t.long[t.long == ""] = NA #replace empty scores
-  if(length(unique(t.long$value)) == 1 ){
-    if(is.na(unique(t.long$value))){
-      df_items[x,'score_SATISFICE'] = NA
-      df_items[x,'sat_type'] = NA   
-    }
-  } else {
-    df_items[x,'score_SATISFICE'] = as.numeric(max(t.long$value,na.rm = TRUE))
-    df_items[x,'sat_type'] = t.long[which.max(t.long$value),'score']  
-  }
-  
-  #NOW CALCULATE RANGE AMONG SUBSCORES
-  #order of this selection matters in breaking ties! 
-  t = df_items[x,] %>% select(score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
-  t.long = gather(t,score, value, 1:4)
-  t.long[t.long == ""] = NA
-  
-  df_items[x,'top_score'] = as.numeric(max(t.long$value,na.rm = TRUE))
-  df_items[x,'top_type'] = t.long[which.max(t.long$value),'score']
-  
-  #calculate the range between highest and lowest scores 
-  r = as.numeric(range(t.long$value,na.rm = TRUE))
-  r = diff(r)
-  df_items[x,'range'] = r
-  
-  #DISCRIMINANT BETWEEN SUBSCORES TO PREDICT BEST FIT INTERPRETATION
-  
-  if (r < threshold_range) {
-      #then we can't predict the interpretation, leave it as "?"
-    df_items[x,'best'] = "?"
-  } else {
-      p =  df_items[x,'top_type']
-      if (p == "score_TRI") {df_items[x,'best'] = "Triangular"
-      } else if(p == "score_ORTH") {df_items[x,'best'] = "Orthogonal"
-      } else if(p == "score_TVERSKY") {df_items[x,'best'] = "Tversky"
-      } else if(p == "score_SATISFICE") {df_items[x,'best'] = "Satisfice"}
-  }
-  
-  #CHECK SPECIAL SITUATIONS
-
-  #BOTH TRI AND ORTH?  
-  if (!is.na(df_items[x,'score_BOTH'])) { #only check if both is not null
-      if( df_items[x,'score_BOTH'] == 1) {
-        df_items[x,'best'] = "both tri + orth"}
-  }
-  
-  #IS BLANK?
-  if( df_items[x,'num_o'] == 0) {  
-    df_items[x,'best'] = "blank"
-  }
-  
-  #IS FRENZY?
-  if( df_items[x,'num_o'] > threshold_frenzy) { 
-      df_items[x,'best'] = "frenzy"
-  }
-
-  #IS REF POINT?
-  if (!is.na(df_items[x,'score_REF'])) { #only check if the score is NOT null
-      if( df_items[x,'score_REF'] == 1) {
-          df_items[x,'best'] = "reference"
-      }
-  }
-
-}#end loop
-
-#cleanup 
-rm(t, t.long, x, r,p)
-rm(threshold_frenzy, threshold_range)
-
-#set order of levels for response exploration table
-df_items$int2 <- factor(df_items$best,
-                                  levels = c("Triangular", "Tversky",
-                                             "Satisfice", "Orthogonal", "reference", "both tri + orth", "blank","frenzy","?"))
-
-#set order of levels
-df_items$interpretation <- factor(df_items$best,
-                                  levels = c("Orthogonal","Satisfice", "frenzy","?","reference","blank",
-                                               "both tri + orth", "Tversky","Triangular"))
-
-#collapsed representation of scale of interpretations
-df_items$high_interpretation <- fct_collapse(df_items$interpretation,
-  orthogonal = c("Satisfice", "Orthogonal"),
-  neg.trans = c("frenzy","?"),
-  neutral = c("reference","blank"),
-  pos.trans = c("Tversky","both tri + orth"),
-  triangular = "Triangular"
-) 
-
-#reorder levels
-df_items$high_interpretation = factor(df_items$high_interpretation, levels= c("orthogonal", "neg.trans","neutral","pos.trans","triangular"))
-
-#cleanup 
-df_items <- df_items %>% dplyr::select(-best)
-
-#recode as numeric inase they are char 
-# df_items$score_TV_duration <- df_items$score_TV_duration %>% as.numeric()
-# df_items$score_SATISFICE <- df_items$score_SATISFICE %>% as.numeric()
 ```
+
 
 ### Derive Scaled Score {#sec-SGC4A-scaledScore}
 
@@ -294,18 +178,9 @@ Specifically, we assign the following values to each interpretation:
 -   (+1) TRIANGULAR +1
 
 ```{r}
-#| label: DISCRIMINANT-SCORE
+#| label: SCALED-SCORE
 
-df_items$score_SCALED <- recode(df_items$interpretation,
-                          "Orthogonal" = -1,
-                          "Satisfice" = -1,
-                          "frenzy" = -0.5,
-                          "?" = -0.5,
-                          "reference" = 0,
-                          "blank" = 0, 
-                          "both tri + orth" = 0.5,
-                          "Tversky" = 0.5,
-                          "Triangular" = 1)
+df_items$score_SCALED <- calc_scaled(df_items$interpretation)
 
 ```
 
@@ -316,180 +191,36 @@ Next, we summarize the item level scores by subject in order to calculate cummul
 ```{r}
 #| label: SUMMARIZE-BY-SUBJECT
 
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+# #HACK WD FOR LOCAL RUNNING?
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
-#IMPORT subjects file
+#import subjects
 df_subjects <- read_rds('analysis/SGC4A/data/1-study-level/sgc4a_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
-#prep items
-df_items <- df_items %>% mutate(
-  tv_type = as.factor(tv_type),
-  top_type = as.factor(top_type)
-)
+#make temporary copies for testing safety
+s = df_subjects
+i = df_items 
 
-#summarize SCORES and TIME by subject
-subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
-  subject = as.character(subject),
-  s_TRI = sum(score_TRI,na.rm=TRUE),
-  s_ORTH = sum(score_ORTH,na.rm=TRUE),
-  s_TVERSKY = sum(score_TVERSKY,na.rm=TRUE),
-  s_SATISFICE = sum(score_SATISFICE, na.rm=TRUE),
-  s_REF = sum(score_REF,na.rm=TRUE),
-  s_ABS = sum(score_ABS,na.rm=TRUE),
-  s_NABS = sum(score_niceABS,na.rm=TRUE),
-  s_SCALED = sum(score_SCALED,na.rm=TRUE),
-  DV_percent_NABS = s_NABS/13,
-  rt_m = sum(rt_s)/60,
-  item_avg_rt = mean(rt_s),
-  item_min_rt = min(rt_s),
-  item_max_rt = max(rt_s),
-  item_n_TRI = sum(interpretation == "Triangular"),
-  item_n_ORTH = sum(interpretation == "Orthogonal"),
-  item_n_TV = sum(interpretation == "Tversky"),
-  item_n_SAT = sum(interpretation == "Satisfice"),
-  item_n_OTHER = sum(interpretation %nin% c("Triangular","Orthogonal","Tversky","Satisfice")),
-  item_n_POS = sum(high_interpretation == "pos.trans"),
-  item_n_NEG = sum(high_interpretation == "neg.trans"),
-  item_n_NEUTRAL = sum(high_interpretation == "neutral")
-) %>% arrange(subject) %>% slice(1L)
+#summarize
+test_subs <- summarise_bySubject(s,i)
+df_subjects <- test_subs
 
-#summarize first scaffold item of interest by subject
-subjects_q1 <- df_items %>% filter(q == 1) %>% mutate(
-  item_q1_NABS = score_niceABS,
-  item_q1_SCALED = score_SCALED,
-  item_q1_interpretation = interpretation,
-  item_q1_rt = rt_s,
-) %>% dplyr::select(subject, item_q1_NABS, item_q1_SCALED, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
-
-#summarize last test item of interest by subject
-subjects_q5 <- df_items %>% filter(q == 5) %>% mutate(
-  item_q5_NABS = score_niceABS,
-  item_q5_SCALED = score_SCALED,
-  item_q5_interpretation = interpretation,
-  item_q5_rt = rt_s,
-) %>% dplyr::select(subject, item_q5_NABS, item_q5_SCALED, item_q5_interpretation,item_q5_rt) %>% arrange(subject)
-
-#summarize first test item of interest by subject
-subjects_q7 <- df_items %>% filter(q == 7) %>% mutate(
-  item_q7_NABS = score_niceABS,
-  item_q7_interpretation = interpretation,
-  item_q7_rt = rt_s,
-) %>% dplyr::select(subject, item_q7_NABS, item_q7_interpretation,item_q7_rt) %>% arrange(subject)
-
-#summarize last test item of interest by subject
-subjects_q15 <- df_items %>% filter(q == 15) %>% mutate(
-  item_q15_NABS = score_niceABS,
-  item_q15_interpretation = interpretation,
-  item_q15_rt = rt_s,
-) %>% dplyr::select(subject, item_q15_NABS, item_q15_interpretation,item_q15_rt) %>% arrange(subject)
-
-#summarize scaffold phase performance
-subjects_scaffold <- df_items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
-  item_scaffold_NABS = sum(score_niceABS),
-  item_scaffold_SCALED = sum(score_SCALED),
-  item_scaffold_rt = sum(rt_s)
-)%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_SCALED, item_scaffold_rt) %>% arrange(subject)
-
-#summarize test phase performance
-subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
-  item_test_NABS = sum(score_niceABS),
-  item_test_SCALED = sum(score_SCALED),
-  item_test_rt = sum(rt_s)
-)%>% dplyr::select(subject, item_test_NABS, item_test_SCALED, item_test_rt) %>% arrange(subject)
-
-#SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
-unique(subjects_summary$subject == df_subjects$subject)
-unique(subjects_summary$subject == subjects_q1$subject)
-unique(subjects_summary$subject == subjects_q5$subject)
-unique(subjects_summary$subject == subjects_q7$subject)
-unique(subjects_summary$subject == subjects_q15$subject)
-unique(subjects_summary$subject == subjects_scaffold$subject)
-unique(subjects_summary$subject == subjects_test$subject)
-
-#CAREFULLY CHECK THIS — RELIES ON 
-x = merge(df_subjects, subjects_summary)
-x = merge(x, subjects_q1)
-x = merge(x, subjects_q5)
-x = merge(x, subjects_q7)
-x = merge(x, subjects_q15)
-x = merge(x, subjects_scaffold)
-x = merge(x, subjects_test)
-df_subjects <- x 
-
-#cleanup
-rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)
 ```
+
+We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task. 
 
 ```{r}
-#| label: SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS
+#| label: SUMMARIZE-PROGRESS
 
-#filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, condition, q,score_niceABS) 
+#GET ABSOLUTE PROGRESS 
+df_absolute_progress <- progress_Absolute(df_items)
 
-#pivot wider
-wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
-
-#calc stepwise cumulative score
-wide$c1 = wide$q_1
-wide$c2 = wide$c1 + wide$q_2
-wide$c3 = wide$c2 + wide$q_3
-wide$c4 = wide$c3 + wide$q_4
-wide$c5 = wide$c4 + wide$q_5
-wide$c6 = wide$c5 + wide$q_7
-wide$c7 = wide$c6 + wide$q_8
-wide$c8 = wide$c7 + wide$q_10
-wide$c9 = wide$c8 + wide$q_11
-wide$c10 = wide$c9 + wide$q_12
-wide$c11 = wide$c10 + wide$q_13
-wide$c12 = wide$c11 + wide$q_14
-wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% dplyr::select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
-
-#lengthen 
-df_absolute_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
-df_absolute_progress$question <- as.integer(df_absolute_progress$question)
-
-#cleanup 
-rm(x,wide)
+#GET SCALED PROGRESS
+df_scaled_progress <- progress_Scaled(df_items)
 
 ```
 
-```{r}
-#| label: SUMMARIZE-CUMULATIVE SCALED PROGRESS
-
-#filter for valid items
-x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, condition, q,score_SCALED)
-
-#pivot wider
-wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_SCALED)
-
-#calc stepwise cumulative score
-wide$c1 = wide$q_1
-wide$c2 = wide$c1 + wide$q_2
-wide$c3 = wide$c2 + wide$q_3
-wide$c4 = wide$c3 + wide$q_4
-wide$c5 = wide$c4 + wide$q_5
-wide$c6 = wide$c5 + wide$q_7
-wide$c7 = wide$c6 + wide$q_8
-wide$c8 = wide$c7 + wide$q_10
-wide$c9 = wide$c8 + wide$q_11
-wide$c10 = wide$c9 + wide$q_12
-wide$c11 = wide$c10 + wide$q_13
-wide$c12 = wide$c11 + wide$q_14
-wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
-
-#lengthen 
-df_scaled_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
-df_scaled_progress$question <- as.integer(df_scaled_progress$question)
-
-#cleanup 
-rm(x,wide)
-
-```
 
 ## EXPLORE DISTRIBUTIONS
 
@@ -520,7 +251,7 @@ df = df_items %>% filter (q %nin% c(6,9)) %>% mutate(
 gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), data = df) +
   labs( x = "Absolute Score", 
         title = "Distribution of Absolute Score (all Items)",
-        subtitle = paste("Impasse Condition (blue) yields more correct responses across the entire task"),
+        subtitle = paste(""),
         y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
@@ -530,7 +261,7 @@ gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), 
   gf_facet_grid(pretty_condition~q) +
   labs( x = "Absolute Score",
         title = "Distribution of Absolute Score (by Item)",
-        subtitle = "Impasse Condition (blue) yields more correct responses on each item",
+        subtitle = "",
         y = "Proprition of Subjects") +
   scale_fill_discrete(name = "Condition") +
   theme_minimal()
@@ -540,20 +271,10 @@ gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = 
 gf_facet_grid(pretty_condition ~. )+
   labs( x = "Total Absolute Score",
         title = "Distribution of Total Absolute Score (by Subject)",
-        subtitle = "Impasse Condition (blue) yields higher total absolute scores",
+        subtitle = "",
         y = "Proportion of Subjects") +
   scale_fill_discrete(name = "Condition") +
   theme_minimal() + theme(legend.position = "blank")
-
-#DISTRIBUTION ABSOLUTE SCORE TEST PHASE
-gf_histogram(~item_test_NABS, fill = ~pretty_condition, data = df_subjects) %>% 
-  gf_facet_wrap(~pretty_condition) + 
-  labs( x = "Absolute Score in TEST Phase", 
-        title = "Distribution of TEST PHASE Absolute Score (all Items)",
-        subtitle = paste(""),
-        y = "Proportion of Items") +
-  scale_fill_discrete(name = "Condition") +  
-  theme_minimal()
 
 ```
 
@@ -568,7 +289,7 @@ options(repr.plot.width =9, repr.plot.height =12)
 gf_props(~score_SCALED, fill = ~pretty_condition, position = position_dodge(), data = df) +
   labs( x = "Scaled Score", 
         title = "Distribution of Scaled Score (all Items)",
-        subtitle = "Impasse Condition (blue) yields higher scaled scores across the entire task",
+        subtitle = "",
         y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
@@ -578,7 +299,7 @@ gf_props(~score_SCALED, fill = ~pretty_condition, position = position_dodge(), d
   gf_facet_grid(q~pretty_condition) +
   labs( x = "Scaled Score",
         title = "Distribution of Scaled Score (by Item)",
-        subtitle = "Impasse Condition (blue) yields higher scaled scores on each item",
+        subtitle = "",
         y = "Proportion of Subjects") +
   scale_fill_discrete(name = "Condition") +  scale_y_continuous(breaks=c(0,0.5)) +
   theme_minimal() + theme(legend.position="blank")
@@ -588,19 +309,9 @@ gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
   gf_facet_grid(pretty_condition ~. )+
   labs( x = "Total Scaled Score",
         title = "Distribution of Total Scaled Score (by Subject)",
-        subtitle = "Impasse Condition (blue) yields higher cumulative scaled scores",
+        subtitle = "",
         y = "Number of Subjects") +
   scale_fill_discrete(name = "Condition") +
-  theme_minimal()
-
-#DISTRIBUTION SCALED SCORE TEST PHASE
-gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>% 
-  gf_facet_wrap(~pretty_condition) + 
-  labs( x = "Scaled Score in TEST Phase", 
-        title = "Distribution of TEST PHASE Scaled Score (all Items)",
-        subtitle = paste(""),
-        y = "Proportion of Items") +
-  scale_fill_discrete(name = "Condition") +  
   theme_minimal()
 
 ```
@@ -617,21 +328,21 @@ gf_props(~pretty_interpretation, fill = ~pretty_condition, data = df) %>%
   labs( title = "Distribution of Interpretations (across Task)",
         x = "Graph Interpretation",
         y = "Proportion of Responses",
-        subtitle = "Impasse condition (blue) yields fewer Orthogonal and more Triangular responses") + 
+        subtitle = "") + 
   theme_minimal() + theme(legend.position = "blank")
 
 #DISTRIBUTION OF INTERPRETATION ACROSS ITEMS
 gf_propsh(~ pretty_interpretation, fill = ~pretty_condition, data = df) %>% 
   gf_facet_grid( pretty_condition~q) + 
   labs( title = "Distribution of Interpretations (by Item)",
-        subtitle = "Impasse condition (blue) yields more Triangular responses on each question",
+        subtitle = "",
         y = "Interpretation", x = "Proportion of Subjects") + theme_minimal() + theme(legend.position = "blank")
 
 #DISTRIBUTION OF INTERPRETATION TYPE ACROSS ITEMS
 gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>% 
   gf_facet_grid( pretty_condition~q) + 
   labs( title = "Distribution of Interpretations (by Item)",
-        subtitle = "Impasse condition (blue) yields more positive trending responses on each question",
+        subtitle = "",
         y = "Interpretation", x = "Proportion of Subjects") + theme_minimal() + theme(legend.position = "blank")
 
 ```
@@ -641,18 +352,9 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
 ```{r}
 #| label: VIZ-PROGRESS
 
-#recode factors
-df_absolute_progress <- df_absolute_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5")
-)
-
-df_scaled_progress <- df_scaled_progress %>% mutate(
-    pretty_condition = recode_factor(condition, "11111" = "control", "113" =  "cond3", "114"="cond4", "115"="cond5")
-)
-
 #VISUALIZE progress over time ABSOLUTE score 
 ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
- geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
+ geom_line(position=position_jitter(w=0.15, h=0.05), size=0.1) +
  facet_wrap(~pretty_condition) + 
  labs (title = "Cumulative Absolute Score over sequence of task", x = "Question" , y = "Cumulative Absolute Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
@@ -660,7 +362,7 @@ ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject
 
 #VISUALIZE progress over time SCALED score 
 ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
- geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
+ geom_line(position=position_jitter(w=0.15, h=0.05), size=0.1) +
  facet_wrap(~pretty_condition) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
@@ -673,42 +375,37 @@ ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, 
 ```{r}
 #| label: DIST-SUBSCORES
 
-# gf_density(~ s_TRI, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Triangular Score",
-#         subtitle = "Impasse shifts density toward higher Triagular scores",
-#         x = "Item Triangular Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
-# 
-# 
-# gf_density(~ s_ORTH, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Orthogonal Score",
-#         subtitle = "Impasse shifts density toward lower Orthogonal scores",
-#         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
-# 
-# gf_density(~ s_TVERSKY, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Tversky Score",
-#         subtitle = "Impasse shifts density toward higher Tversky scores",
-#         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
-# 
-# gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>% 
-#   gf_facet_wrap( ~ pretty_condition) + 
-#   labs( title = "Distribution of Total Satisfice Score",
-#         subtitle = "Satisficing only occurs in impasse, when no orthogonal response is available",
-#         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
-#         theme_minimal() + theme(legend.position = "blank")
+gf_density(~ s_TRI, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Triangular Score",
+        subtitle = "Impasse shifts density toward higher Triagular scores",
+        x = "Item Triangular Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
+
+
+gf_density(~ s_ORTH, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Orthogonal Score",
+        subtitle = "Impasse shifts density toward lower Orthogonal scores",
+        x = "Item Orthogonal Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
+
+gf_density(~ s_TVERSKY, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Tversky Score",
+        subtitle = "Impasse shifts density toward higher Tversky scores",
+        x = "Item Orthogonal Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
+
+gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
+  gf_facet_wrap( ~ pretty_condition) +
+  labs( title = "Distribution of Total Satisfice Score",
+        subtitle = "Satisficing only occurs in impasse, when no orthogonal response is available",
+        x = "Item Orthogonal Score", y = "Proportion of Subjects") +
+        theme_minimal() + theme(legend.position = "blank")
 
 ```
 
-## EXPLORE RESPONSES
-
-In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
-
-TODO
 
 ## EXPORT
 
@@ -718,9 +415,9 @@ Finally, we export the scores for each item (`df_items`) and summarized over sub
 #| label: EXPORT-SCORES
 
 # #HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+setwd(imac)
 
 #SAVE FILES
 write.csv(df_subjects,"analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.csv", row.names = FALSE)

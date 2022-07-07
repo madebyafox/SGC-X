@@ -111,7 +111,7 @@ calc_refscore <- function(question, response){
 # assigns an interpretation score based on logic contained therein
 derive_interpretation <- function(df){
   
-  glimpse(df)
+  # glimpse(df)
   threshold_range = 0.5 #set required variance in subscores to be discriminant
   threshold_frenzy = 4
   
@@ -271,10 +271,12 @@ calc_scaled <- function(v){
 # returns a subject data frame 
 summarise_bySubject <- function(subjects, items){
   
+  # print("input subjects")
+  # glimpse(subjects)
+  
   #summarize SCORES and TIME by subject
   subjects_summary <- items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
     subject = as.character(subject),
-    pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
     s_TRI = sum(score_TRI,na.rm=TRUE),
     s_ORTH = sum(score_ORTH,na.rm=TRUE),
     s_TVERSKY = sum(score_TVERSKY,na.rm=TRUE),
@@ -343,27 +345,31 @@ summarise_bySubject <- function(subjects, items){
   )%>% dplyr::select(subject, item_test_NABS, item_test_SCALED, item_test_rt) %>% arrange(subject)
   
   #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
-  unique(subjects_summary$subject == subjects$subject)
-  unique(subjects_summary$subject == subjects_q1$subject)
-  unique(subjects_summary$subject == subjects_q5$subject)
-  unique(subjects_summary$subject == subjects_q7$subject)
-  unique(subjects_summary$subject == subjects_q15$subject)
-  unique(subjects_summary$subject == subjects_scaffold$subject)
-  unique(subjects_summary$subject == subjects_test$subject)
+  print(unique(subjects_summary$subject == subjects$subject))
+  print(unique(subjects_summary$subject == subjects_q1$subject))
+  print(unique(subjects_summary$subject == subjects_q5$subject))
+  print(unique(subjects_summary$subject == subjects_q7$subject))
+  print(unique(subjects_summary$subject == subjects_q15$subject))
+  print(unique(subjects_summary$subject == subjects_scaffold$subject))
+  print(unique(subjects_summary$subject == subjects_test$subject))
   
   #CAREFULLY CHECK THIS — RELIES ON 
-  x = merge(subjects, subjects_summary)
+  
+  
+  x = merge(subjects, subjects_summary, by.x = "subject", by.y = "subject")
   x = merge(x, subjects_q1)
   x = merge(x, subjects_q5)
   x = merge(x, subjects_q7)
   x = merge(x, subjects_q15)
   x = merge(x, subjects_scaffold)
   x = merge(x, subjects_test)
-  subjects <- x %>% dplyr::select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
+  subjects <- x 
   
   #cleanup
   rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)
   
+  # glimpse("FINAL")
+  # glimpse(subjects)
   
   return(subjects)
 }
