@@ -403,6 +403,27 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
 
 ```
 
+## PEEKING
+
+
+```{r}
+library(performance)
+
+sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% filter(condition == "111") %>% dplyr::select(-pretty_mode)
+
+
+comb <- rbind(sgc3a, df_subjects)  
+
+gf_histogram(~s_SCALED, data = comb) %>% 
+  gf_facet_wrap(~pretty_condition)
+  
+m1 <- lm(s_SCALED ~ pretty_condition, data = comb)
+summary(m1)
+anova(m1)
+report(m1)
+```
+
+
 ## EXPORT
 
 Finally, we export the scores for each item (`df_items`) and summarized over subjects (`df_subjects`), as well as cumulative progress dataframes (`df_absolute_progress`, `df_scaled_progress`)
