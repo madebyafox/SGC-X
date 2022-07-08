@@ -169,17 +169,14 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   theme_minimal() + theme(legend.position = "blank")
 
 
-##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
-# stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
-# gf_density(~s_ABS, data = df_subjects) %>%
-#   gf_facet_grid(condition~mode, labeller = label_both) %>%
-#   gf_lims(x = c(0, 13)) %>%
-#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-#   labs(x = "total number correct ",
-#        y = "proportion of subjects",
-#        title = "Distribution of Total Score (by Modality and Condition)",
-#        subtitle = "Score distributions are comparable across experiment modalities, but differ by conditions") +
-#   theme_minimal()
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(item_test_NABS)) + 
+  stat_ecdf(geom = "step") + 
+  facet_wrap(~pretty_condition) + 
+  labs( title = "Empirical Cumulative Density Function — Test Phase Absolute Score",
+        x = "Test Phase Absolute Score [0,8]", 
+        y = "Cumulative Probability") + theme_minimal()
+
   
 ```
 
@@ -269,17 +266,13 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   theme_minimal() + theme(legend.position = "blank")
 
 
-##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
-# stats = df_subjects %>% group_by(condition, mode) %>% dplyr::summarise(mean = mean(s_ABS))
-# gf_density(~s_ABS, data = df_subjects) %>%
-#   gf_facet_grid(condition~mode, labeller = label_both) %>%
-#   gf_lims(x = c(0, 13)) %>%
-#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-#   labs(x = "total number correct ",
-#        y = "proportion of subjects",
-#        title = "Distribution of Total Score (by Modality and Condition)",
-#        subtitle = "Score distributions are comparable across experiment modalities, but differ by conditions") +
-#   theme_minimal()
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(s_NABS)) + 
+  stat_ecdf(geom = "step") + 
+  facet_wrap(~pretty_condition) + 
+  labs( title = "Empirical Cumulative Density Function — Task Absolute Score",
+        x = "Test Phase Absolute Score [0,13]", 
+        y = "Cumulative Probability") + theme_minimal()
   
 ```
 
@@ -378,17 +371,13 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   theme_minimal() + theme(legend.position = "blank") 
 
 
-##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
-# stats = df_subjects %>% group_by(pretty_condition, mode) %>% dplyr::summarise(mean = mean(s_SCALED))
-# gf_density(~s_SCALED, data = df_subjects) %>%
-#   gf_facet_grid(pretty_condition~mode) %>%
-#   gf_lims(x = c(-13, 13)) %>%
-#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-#   labs(x = "total number correct ",
-#        y = "proportion of subjects",
-#        title = "Distribution of Scaled Score (by Modality and Condition)",
-#        subtitle = "Score distributions are similar across experiment modalities, but differ by conditions") +
-#   theme_minimal()
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(item_test_SCALED)) + 
+  stat_ecdf(geom = "step") + 
+  facet_wrap(~pretty_condition) + 
+  labs( title = "Empirical Cumulative Density Function — Test Phase Scaled Score",
+        x = "Test Phase Absolute Score [-8,8]", 
+        y = "Cumulative Probability") + theme_minimal()
 
 ```
 
@@ -459,18 +448,13 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
         x = "total scaled score", y = "number of participants") + 
   theme_minimal() + theme(legend.position = "blank") 
 
-
-##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
-# stats = df_subjects %>% group_by(pretty_condition, mode) %>% dplyr::summarise(mean = mean(s_SCALED))
-# gf_density(~s_SCALED, data = df_subjects) %>%
-#   gf_facet_grid(pretty_condition~mode) %>%
-#   gf_lims(x = c(-13, 13)) %>%
-#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-#   labs(x = "total number correct ",
-#        y = "proportion of subjects",
-#        title = "Distribution of Scaled Score (by Modality and Condition)",
-#        subtitle = "Score distributions are similar across experiment modalities, but differ by conditions") +
-#   theme_minimal()
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(s_SCALED)) + 
+  stat_ecdf(geom = "step") + 
+  facet_wrap(~pretty_condition) + 
+  labs( title = "Empirical Cumulative Density Function — Task Absolute Score",
+        x = "Test Phase Absolute Score [0,8]", 
+        y = "Cumulative Probability") + theme_minimal()
 
 ```
 

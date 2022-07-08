@@ -8,8 +8,8 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 
 **TODO**
 
--   HURDLE MODEL  
--   consider zero-inflated (poisson or neg binom) with _rt as predictor of count process and condition as predictor of excess zeros
+-   HURDLE MODEL\
+-   consider zero-inflated (poisson or neg binom) with \_rt as predictor of count process and condition as predictor of excess zeros
 -   review models already created in ARCHIVE?
 -   explore response consistency
 
@@ -40,6 +40,8 @@ library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
 library(tidyverse) #ALL THE THINGS
 library(equatiomatic) #extract model equation
+
+library(pscl) #zeroinfl / hurdle models 
 
 
 #OUTPUT OPTIONS
@@ -277,7 +279,7 @@ gf_props(~item_test_SCALED, fill = ~pretty_condition, data = df_lab) %>% gf_face
 #| label: MODEL-TEST-SCALED-LAB
 
 #SCORE predicted by CONDITION
-lab.test_scaled.lm1 <- lm(item_test_SCALED ~ condition, data = df_lab)
+lab.test_scaled.lm1 <- lm(item_test_SCALED ~ pretty_condition, data = df_lab)
 paste("Model")
 summary(lab.test_scaled.lm1)
 paste("Partition Variance")
@@ -397,7 +399,6 @@ plot(mb)
 
 #### Linear Regression (Transformed \# Correct) ??
 
-
 ## H1B \| Q1 ACCURACY
 
 The graph comprehension tasks includes 15 questions completed in sequence. But the first question the reader encounters (Q1) is the most important, as it is their *first exposure* to the unconventional triangular coordinate system.
@@ -410,27 +411,27 @@ TODO: Think about characterizing how variable the interpretations are across a p
 
 #### Chi Square \| Accuracy \~ Condition
 
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                                                                                                                                                                                                                                                                                                                              |
-+=======================+===================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
-| **Analysis Strategy** | Chi-Square test of independence on outcome `score_niceABS` by `condition` for `df_items` where `q == 1`                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Justification**     | \(0\) simplest method to examine independence of two categorical factors; logistic regression is recommended for binomial \~ continuous                                                                                                                                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|                       | \(1\) independence assumption : as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                                                                                                                                                                                                                                                                                                                                              |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|                       | \(2\) frequency size assumption : expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                                                                                                                                                                                                                                                                                                                              |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Steps**             | \(1\) Express raw data as contingency table & visualize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|                       | \(2\) Calculate Chi-Squared Statistic and p-value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|                       | \(3\) Interpret Odds-Ratio as effect size                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                                                                                                                                                                                                                                                                                                                   |
++=======================+========================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
+| **Analysis Strategy** | Chi-Square test of independence on outcome `score_niceABS` by `condition` for `df_items` where `q == 1`                                                                                                                                                                                                                                                                                                                                                                                                                                |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Justification**     | \(0\) simplest method to examine independence of two categorical factors; logistic regression is recommended for binomial \~ continuous                                                                                                                                                                                                                                                                                                                                                                                                |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                       | \(1\) independence assumption : as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                                                                                                                                                                                                                                                                                                                                   |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                       | \(2\) frequency size assumption : expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                                                                                                                                                                                                                                                                                                                   |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Steps**             | \(1\) Express raw data as contingency table & visualize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                       | \(2\) Calculate Chi-Squared Statistic and p-value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                       | \(3\) Interpret Odds-Ratio as effect size                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Inference**         | **Lab** For the (In Person) (n=126) the Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. In this particular data sample, the odds ratio (2.18, p = 0.055, 95% CI \[0.982, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition. |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|                       | **Online** For online data collection (n=204), a Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. The odds ratio (2.68, p = 0.005, 95% CI \[1.37, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition.                                              |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                       | **Online** For online data collection (n=204), a Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. The odds ratio (2.68, p = 0.005, 95% CI \[1.37, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition.                                   |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ```{r}
 #| label: VIS-Q1ACC.by.COND-bar
@@ -502,6 +503,143 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
 
 ## H1C \| Q1 LATENCY
 
++-----------------------+-------------------------------------------------+
+| Research Question     |                                                 |
++=======================+=================================================+
+| **Hypothesis**        |                                                 |
++-----------------------+-------------------------------------------------+
+| **Analysis Strategy** |                                                 |
++-----------------------+-------------------------------------------------+
+| **Alternatives**      |                                                 |
++-----------------------+-------------------------------------------------+
+| **Inference**         |                                                 |
++-----------------------+-------------------------------------------------+
+
+### Q1 Response Latency
+
+#### Linear Regression
+
+##### (In Person)
+
+###### Visualization
+
+```{r}
+#| label: VIS-TEST-Q1TIME
+ 
+#HISTOGRAM
+stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
+gf_dhistogram(~item_q1_rt, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Response Time (seconds)",
+       # y = "proportion of participants",
+       title = "(LAB) First Question Response Time",
+       subtitle = "") + 
+  theme_minimal()
+
+```
+
+###### Model
+
+```{r}
+#| label: MODEL-Q1TIME-LAB
+
+#SCORE predicted by CONDITION
+lab.q1t.lm1 <- lm(item_q1_rt ~ condition, data = df_lab)
+paste("Model")
+summary(lab.q1t.lm1)
+paste("Partition Variance")
+anova(lab.q1t.lm1)
+paste("Confidence Interval on Parameter Estimates")
+confint(lab.q1t.lm1)
+# report(lab.q1t.lm1) #sanity check
+#print model equation
+eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
+```
+
+**Model equation** `r eq`
+
+**For (In Person)** an OLS linear regression predicting response time on the first question by experimental condition explains a statistically significant though small 8% variance in accuracy (F(1,124) = 10.2, p \< 0.01). The estimated beta coefficient ($\beta$ = 14.43, 95% CI \[5.5, 23.4\]) predicts that participants in the impasse condition will spend on average 14 seconds more on the first question than those in the control condition.
+
+###### Diagnostics
+
+```{r}
+#| label: DIAG-Q1TIME-lab
+
+#model diagnostics
+check_model(lab.q1t.lm1, panel = TRUE)
+```
+
+(1) RESIDUAL DISTRIBUTION: `r check_normality(lab.testabs.lm1)`
+(2) HOMOGENEITY: `r check_homogeneity(lab.testabs.lm1)`
+(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.testabs.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(lab.testabs.lm1)`
+(5) OUTLIERS: `r check_outliers(lab.testabs.lm1)`
+
+###### Inference
+
+OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals. 
+
+
+##### (Online Replication)
+
+###### Visualization
+
+```{r}
+#| label: VIS-TEST-Q1TIME-online
+ 
+#HISTOGRAM
+stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
+gf_dhistogram(~item_q1_rt, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "Response Time (seconds)",
+       # y = "proportion of participants",
+       title = "(ONLINE) First Question Response Time",
+       subtitle = "") + 
+  theme_minimal()
+
+```
+
+###### Model
+
+```{r}
+#| label: MODEL-Q1TIME-online
+
+#SCORE predicted by CONDITION
+rep.q1t.lm1 <- lm(item_q1_rt ~ condition, data = df_online)
+paste("Model")
+summary(rep.q1t.lm1)
+paste("Partition Variance")
+anova(rep.q1t.lm1)
+paste("Confidence Interval on Parameter Estimates")
+confint(rep.q1t.lm1)
+# report(rep.q1t.lm1) #sanity check
+#print model equation
+eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
+```
+
+**Model equation** `r eq`
+
+**For (In Person)** an OLS linear regression predicting response time on the first question by experimental condition explains a statistically significant though small 5% variance in accuracy (F(1,202) = 11.1, p \< 0.001). The estimated beta coefficient ($\beta$ = 18.83, 95% CI \[7.68, 30\]) predicts that participants in the impasse condition will spend on average 19 seconds more on the first question than those in the control condition.
+
+###### Diagnostics
+
+```{r}
+#| label: DIAG-Q1TIME-online
+
+#model diagnostics
+check_model(rep.q1t.lm1, panel = TRUE)
+```
+
+(1) RESIDUAL DISTRIBUTION: `r check_normality(rep.q1t.lm1)`
+(2) HOMOGENEITY: `r check_homogeneity(rep.q1t.lm1)`
+(3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.q1t.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(rep.q1t.lm1)`
+(5) OUTLIERS: `r check_outliers(rep.q1t.lm1)`
+
+###### Inference
+
+OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals. 
+
 ## RESOURCES
 
 -   https://rpkgs.datanovia.com/ggpubr/reference/index.html
@@ -550,12 +688,11 @@ check_model(p.1)
 
 ```
 
+#### Zero Inflated Poisson
 
+https://stats.oarc.ucla.edu/r/dae/zip/\
+Poisson count process with excess zeros
 
-#### Zero Inflated Poisson 
-
-https://stats.oarc.ucla.edu/r/dae/zip/    
-Poisson count process with excess zeros 
 ```{r}
 #ZERO INFLATED POISSON
 
@@ -566,11 +703,10 @@ performance(zinfp.1)
 # check_model(zinfp.1)
 
 ```
+
 #### Negative Binomial Regression
 
-https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/
-- overdispersed count data (variance much greater than mean)
-
+https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/ - overdispersed count data (variance much greater than mean)
 
 ```{r}
 #NEGATIVE BIONOMIAL REGRESSION
@@ -605,8 +741,7 @@ The variable condition has a coefficient of 0.67, (p \< 0.005). This means that 
 
 #### Zero Inflated Negative Binomial Regression
 
-https://stats.oarc.ucla.edu/r/dae/zinb/
-count data that are overdispersed and have excess zeros
+https://stats.oarc.ucla.edu/r/dae/zinb/ count data that are overdispersed and have excess zeros
 
 Zero-inflated negative binomial regression is for modelling count variables with excessive zeros, and especially when the count data are overdispersed (mean is much larger than variance). It can help account for situations where theory suggests that excess zeros are generated by 2 separate processes, one that includes the other count values, and the other that is just the zeros, and thus that the *excess* zeros can be modelled independently.
 
@@ -639,23 +774,18 @@ In the count model, the coefficient for the condition is very small, and not sig
 
 In the zero-inflation model, the coefficient for the condition variable is -1.056 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.06 if you are in the impasse condition (exponentiate it?)
 
-**TODO come back to this and discuss further** \
-
+**TODO come back to this and discuss further**\
 
 #### HURDLE MODEL
 
-https://data.library.virginia.edu/getting-started-with-hurdle-models/
-https://en.wikipedia.org/wiki/Hurdle_model#:~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.
+https://data.library.virginia.edu/getting-started-with-hurdle-models/ https://en.wikipedia.org/wiki/Hurdle_model#:\~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.
 
-class of models for count data with both overdispersion and excess zeros;  
+class of models for count data with both overdispersion and excess zeros;\
 different from zero-inflated models where the excess zeros are theorized to arise from two different processes; in the hurdle model, there is a model for P(x=0) and a separate model for P(x!=0)
 
-The model includes: - A binary logit model to model whether the observation takes a positive count or not. 
-- a truncated Poisson or Negative binomial model that only fits positive counts 
+The model includes: - A binary logit model to model whether the observation takes a positive count or not. - a truncated Poisson or Negative binomial model that only fits positive counts
 
-This allows us to model: 
-(1) Does the student get _any_ questions right?
-(2) How many questions does the student get right?
+This allows us to model: (1) Does the student get *any* questions right? (2) How many questions does the student get right?
 
 ```{r}
 library(pscl) #zero-inf and hurdle models 
@@ -677,7 +807,6 @@ rootogram(h.1)
 performance(h.1)
 
 ```
-
 
 #### Model Comparison
 
