@@ -168,6 +168,31 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
         x = "Total Absolute Score", y = "number of subjects") +
   theme_minimal() + theme(legend.position = "blank")
 
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_online, x = "item_test_NABS",  binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE) 
+facet(p, facet.by=c("pretty_condition"), nrow = 2) +
+  # scale_x_continuous(limits= c(0,8))+
+  labs( title = "Distribution of Total Score in TEST Phase",
+        subtitle ="",
+        x = "Total Absolute Score", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_online, x = "item_test_SCALED",  binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE) 
+facet(p, facet.by=c("pretty_condition"), nrow = 2) +
+  scale_x_continuous(limits= c(-8,8))+
+  labs( title = "Distribution of Total Score in TEST Phase",
+        subtitle ="",
+        x = "Total Absolute Score", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(item_test_NABS)) + 
