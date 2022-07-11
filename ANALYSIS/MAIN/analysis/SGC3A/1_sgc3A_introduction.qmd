@@ -223,11 +223,13 @@ df_subjects_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall2
 df_subjects_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #SAVE METADATA FROM WINTER, but no rows 
-df_subjects <- df_subjects_winter22 %>% filter(condition=='X') %>% select(
+df_subjects <- df_subjects_winter22 %>% filter(condition=='X') %>% 
+  dplyr::select(
   subject,condition,term,mode,
   gender,age,language, schoolyear, country,
   effort,difficulty,confidence,enjoyment,other,
-  totaltime_m, absolute_score, 
+  totaltime_m, 
+  # absolute_score, #drop absolute score as this is re-scored [though should be the same]
   #exploratory factors
   violations, browser, width, height
 )
@@ -263,17 +265,18 @@ df_subjects_before <- rbind(df_subjects_fall17, df_subjects_spring18, df_subject
                 #placeholder misc 
                 other, disability,
                 #response characteristics
-                totaltime_m, absolute_score,
+                totaltime_m, 
+                # absolute_score, #drop absolute score as this is re-scored [though should be the same]
                 #exploratory factors
                 violations, browser, width, height)
 
 #save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp
 df_winter22_q16 <- df_subjects_winter22 %>% 
-  select(subject, condition, term , mode, explanation) %>% 
+  dplyr::select(subject, condition, term , mode, explanation) %>% 
   mutate(
     q = 16,
     response = explanation
-  ) %>% select(-explanation)
+  ) %>% dplyr::select(-explanation)
 
 #reduce data collected using NEW webapp to useful columns
 df_subjects_winter22 <- df_subjects_winter22 %>% 
@@ -287,7 +290,8 @@ df_subjects_winter22 <- df_subjects_winter22 %>%
                  #explanations
                  other,disability,
                  #response characteristics
-                 totaltime_m, absolute_score,
+                 totaltime_m, 
+                 # absolute_score, #drop absolute score as this is re-scored [though should be the same]
                  #exploratory factors 
                  violations, browser, width, height)
 
@@ -349,7 +353,6 @@ df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
 map_relations <- df_items_winter22 %>% group_by(q) %>% select(q,relation) %>% unique()
-
 
 #SAVE METADATA FROM WINTER, but no rows 
 df_items <- df_items_winter22 %>% filter(condition=='X') %>% select(
@@ -425,7 +428,7 @@ df_items <- df_items %>% filter (q != 16)
 df_items <- df_items %>% mutate(
   pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
   pretty_mode = recode_factor(mode, "lab-synch" = "laboratory", "asynch" =  "online-replication")
-)
+) 
 
 #CLEANUP
 rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_winter22, df_items_before, df_winter22_q16)
