@@ -80,12 +80,56 @@ df_all <- df_subjects
 df_subjects <- df_ospan
 
 #CLEANUP
-# rm(ospan,sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
+rm(ospan, sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
 ```
 
 
 
+### COMBINED
+```{r}
 
+df <- df_all %>% mutate(
+  pretty_condition = recode_factor(pretty_condition, "Orth-Full" = "control")
+)
+
+ggplot(df, aes(x = DV_percent_NABS, y = pretty_condition, height=stat(density))) +
+  # geom_density_ridges( stat = "density",alpha = 0.7)
+  geom_density_ridges( alpha = 0.7, stat = "binline", bins = 20,   scale = 0.75, draw_baseline = FALSE)
+  
+  
+
+ggplot(df, aes(x = DV_percent_NABS, y = pretty_condition, fill=pretty_condition)) +
+  xlim(0,1) + 
+  stat_density_ridges( scale = 0.75, stat = "density", jittered_points = TRUE, 
+        position = position_points_jitter(width = 0.05, height = 0),
+        point_shape = '|', point_size = 2, point_alpha = 1, alpha = 0.7) 
+  
+
+
+gf_boxplot(DV_percent_NABS~ pretty_condition, data = df)
+
+library(ggdist)
+
+
+## A GIANT MODEL
+m <- lm(DV_percent_NABS ~ pretty_condition, data = df)
+summary(m)
+
+
+##UNCERTAINTY ESTIMATES OF THE MODEL 
+df %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) %>%
+  ggplot(aes(y = pretty_condition)) +
+  stat_halfeye(
+    aes(xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit)), 
+    scale = .5
+  ) +
+  # we'll add the data back in too (scale = .5 above adjusts the halfeye height so
+  # that the data fit in as well)
+  geom_point(aes(x = DV_percent_NABS), data = df, pch = "|", size = 2, position = position_nudge(y = -.15))
+
+```
 
 
 ### OSPAN Participants
