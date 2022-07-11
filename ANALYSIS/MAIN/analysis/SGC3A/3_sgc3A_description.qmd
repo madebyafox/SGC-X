@@ -63,6 +63,10 @@ df_scaffold <- df_items %>% filter(q < 6)
 df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
 df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 
+#SEPARATE ITEM AND SUBJECTS BY MODALITY
+df_lab <- df_subjects %>% filter(mode == "lab-synch")
+df_online <- df_subjects %>% filter(mode == "asynch")
+
 ```
 
 ## SAMPLE
@@ -88,14 +92,14 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 
 #Describe participants
 subject.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(age) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(age) %>% unlist() %>% favstats(),
+  "lab"= df_lab %>% dplyr::select(age) %>% unlist() %>% favstats(),
+  "online" = df_online %>% filter(mode == "asynch") %>% dplyr::select(age) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(age) %>% unlist() %>% favstats()
 ) 
-subject.stats$female <- c(
-  (df_subjects %>% filter(mode == 'lab-synch') %>%  filter(gender=="Female") %>% count())$n,
-  (df_subjects %>% filter(mode == "asynch") %>% filter(gender=="Female") %>% count())$n,
-  (df_subjects %>% filter(gender=="Female") %>% count())$n
+subject.stats$percent.female <- c(
+  (df_lab %>%  filter(gender=="Female") %>% count())$n/count(df_lab) %>% unlist(),
+  (df_online %>% filter(gender=="Female") %>% count())$n/count(df_online) %>% unlist(),
+  (df_subjects %>% filter(gender=="Female") %>% count())$n/count(df_subjects) %>% unlist()
 )
 
 title = "Descriptive Statistics of Participant Age and Gender"
@@ -104,11 +108,11 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
-For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round(subject.stats["lab",]$female/subject.stats["lab",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
+For **in-person** collection, `r subject.stats["lab",]$n` participants (`r (subject.stats["lab",]$percent.female) * 100` % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-For **online replication** `r subject.stats["online",]$n` participants (`r round(subject.stats["online",]$female/subject.stats["online",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
+For **online replication** `r subject.stats["online",]$n` participants (`r  (subject.stats["online",]$percent.female) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-Combined **overall** `r subject.stats["combined",]$n` participants (`r round(subject.stats["combined",]$female/subject.stats["combined",]$n,1) * 100` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years). 
+Combined **overall** `r subject.stats["combined",]$n` participants (`r  (subject.stats["combined",]$percent.female) * 100`` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years). 
 
 ## RESPONSE ACCURACY
 
@@ -129,8 +133,8 @@ First we examine performance on the test phase (final 8 questions, appears after
 #| 
 title = "Descriptive Statistics of TEST PHASE Response Accuracy (Total Absolute Score)"
 abs.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(item_test_NABS) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(item_test_NABS) %>% unlist() %>% favstats(),
+  "lab"= df_lab %>% dplyr::select(item_test_NABS) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(item_test_NABS) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(item_test_NABS) %>% unlist() %>% favstats()
 ) 
 abs.stats %>% kbl (caption = title) %>% kable_classic() %>% 
@@ -158,7 +162,7 @@ When combined *overall*, total absolute accuracy scores in the TEST phase (n = `
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_subjects, x = "item_test_NABS", binwidth = 1,
+p <- gghistogram(df_subjects, x = "item_test_NABS", binwidth = 0.5,
    add = "mean", rug = TRUE,
    fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
    add_density = TRUE)
@@ -168,36 +172,10 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
         x = "Total Absolute Score", y = "number of subjects") +
   theme_minimal() + theme(legend.position = "blank")
 
-##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_online, x = "item_test_NABS",  binwidth = 0.5,
-   add = "mean", rug = TRUE,
-   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
-   add_density = TRUE) 
-facet(p, facet.by=c("pretty_condition"), nrow = 2) +
-  # scale_x_continuous(limits= c(0,8))+
-  labs( title = "Distribution of Total Score in TEST Phase",
-        subtitle ="",
-        x = "Total Absolute Score", y = "number of subjects") +
-  theme_minimal() + theme(legend.position = "blank")
-
-##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_online, x = "item_test_SCALED",  binwidth = 0.5,
-   add = "mean", rug = TRUE,
-   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
-   add_density = TRUE) 
-facet(p, facet.by=c("pretty_condition"), nrow = 2) +
-  scale_x_continuous(limits= c(-8,8))+
-  labs( title = "Distribution of Total Score in TEST Phase",
-        subtitle ="",
-        x = "Total Absolute Score", y = "number of subjects") +
-  theme_minimal() + theme(legend.position = "blank")
-
-
-
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(item_test_NABS)) + 
   stat_ecdf(geom = "step") + 
-  facet_wrap(~pretty_condition) + 
+  facet_grid(pretty_condition~pretty_mode) + 
   labs( title = "Empirical Cumulative Density Function — Test Phase Absolute Score",
         x = "Test Phase Absolute Score [0,8]", 
         y = "Cumulative Probability") + theme_minimal()
@@ -253,8 +231,8 @@ Interpreting the Cullen and Frey graph, it _appears_ that number percentage of c
 #| label: DESC-SUBJ-ABS
 title = "Descriptive Statistics of Response Accuracy (Total Absolute Score)"
 abs.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
+  "lab"= df_lab %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(s_NABS) %>% unlist() %>% favstats()
 ) 
 abs.stats %>% kbl (caption = title) %>% kable_classic()
@@ -294,7 +272,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(s_NABS)) + 
   stat_ecdf(geom = "step") + 
-  facet_wrap(~pretty_condition) + 
+  facet_grid(pretty_condition ~ pretty_mode) + 
   labs( title = "Empirical Cumulative Density Function — Task Absolute Score",
         x = "Test Phase Absolute Score [0,13]", 
         y = "Cumulative Probability") + theme_minimal()
@@ -358,8 +336,8 @@ First we examine performance on the test phase (final 8 questions, appears after
 
 title = "Descriptive Statistics of Response Accuracy (Total Scaled Score)"
 scaled.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(item_test_SCALED) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(item_test_SCALED) %>% unlist() %>% favstats(),
+  "lab"= df_lab %>% dplyr::select(item_test_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(item_test_SCALED) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(item_test_SCALED) %>% unlist() %>% favstats()
 ) 
 scaled.stats %>% kbl (caption = title) %>% kable_classic()
@@ -399,9 +377,9 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(item_test_SCALED)) + 
   stat_ecdf(geom = "step") + 
-  facet_wrap(~pretty_condition) + 
+  facet_grid(pretty_condition ~ pretty_mode) + 
   labs( title = "Empirical Cumulative Density Function — Test Phase Scaled Score",
-        x = "Test Phase Absolute Score [-8,8]", 
+        x = "Test Phase Scaled Score [-8,8]", 
         y = "Cumulative Probability") + theme_minimal()
 
 ```
@@ -436,8 +414,8 @@ Most importantly, the Scaled score gives us a way of quantitatively examining ho
 
 title = "Descriptive Statistics of Response Accuracy (Total Scaled Score)"
 scaled.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
+  "lab"= df_lab %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats()
 ) 
 scaled.stats %>% kbl (caption = title) %>% kable_classic()
@@ -476,9 +454,9 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(s_SCALED)) + 
   stat_ecdf(geom = "step") + 
-  facet_wrap(~pretty_condition) + 
-  labs( title = "Empirical Cumulative Density Function — Task Absolute Score",
-        x = "Test Phase Absolute Score [0,8]", 
+  facet_grid(pretty_condition ~ pretty_mode) + 
+  labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
+        x = "Task Scaled Score [-13, 13]", 
         y = "Cumulative Probability") + theme_minimal()
 
 ```
@@ -675,8 +653,9 @@ facet(p, facet.by=c("pretty_condition","mode")) +
 ```{r DESCRIBE-TOTALTIME}
 #DESCRIBE distribution of response time
 time.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
-  "online"= df_subjects %>% filter(mode == 'asynch') %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats()
+  "lab"= df_lab %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
+  "online"= df_online %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
+  "combined"= df_subjects %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats()
 )
 
 title = "Descriptive Statistics of Response Latency (Time on Study)"
