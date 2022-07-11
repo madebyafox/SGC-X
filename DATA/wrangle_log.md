@@ -1,8 +1,24 @@
 
 
-## Export Log
 
-mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out wi22_WIP-DUMP.json
+
+
+## SYNTAX 
+
+### EXPORT from database server 
+
+mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out test.json
+
+### IMPORT to local database 
+
+mongoimport -d XWINTER2022 -c entries --file test.json
+
+
+## WRANGLE LOG
+
+### CLEAN SERVER DATABASE
+- 07.10.22 Confirmed that all records currently on production are already loaded in local DB XWINTER2022
+- logged on to Atlas Mongodb productio nserver 2ypdb-s3-beh and dumped all entries in entries
 
 ### REFACTOR data wrangling scripts for consistent format 
 
