@@ -87,9 +87,9 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -160,7 +160,7 @@ gf_props(~DV_percent_test_NABS*100, fill = ~pretty_condition, data = df_lab) %>%
 #| label: MODEL-TEST-ABS-LAB
 
 #SCORE predicted by CONDITION
-lab.testabs.lm1 <- lm(DV_percent_test_NABS ~ condition, data = df_lab)
+lab.testabs.lm1 <- lm(DV_percent_test_NABS ~ pretty_condition, data = df_lab)
 paste("Model")
 summary(lab.testabs.lm1)
 paste("Partition Variance")
@@ -175,6 +175,32 @@ eq <- extract_eq(lab.testabs.lm1, use_coefs = TRUE)
 **Model equation** `r eq`
 
 **For (In Person)** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 6% variance in accuracy (F(1,124) = 7.89, p \< 0.01). The estimated beta coefficient ($\beta$ = 0.20, 95% CI \[0.05, 0.35\]) predicts that participants in the impasse condition will on average score 20% higher than those in the control condition.
+
+```{r}
+
+#MODEL ESTIMATES WITH UNCERTAINTY
+
+#setup references 
+m <- lab.testabs.lm1
+df <- df_lab 
+x <- df_lab$DV_percent_test_NABS
+
+#uncertainty model visualization
+df %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) %>%
+  ggplot(aes(y = pretty_condition)) +
+  stat_halfeye(
+    aes(xdist = dist_student_t(df = df.residual(m), 
+        mu = .fitted, sigma = .se.fit)), scale = .5) +
+  # add raw data in too (scale = .5 above adjusts the halfeye height so
+  # that the data fit in as well)
+  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
+              position =   position_nudge(y = -.15), alpha = 0.5) +  
+  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
+  theme_minimal()
+
+```
 
 ###### Diagnostics
 
@@ -217,7 +243,7 @@ gf_props(~DV_percent_test_NABS*100, fill = ~pretty_condition, data = df_online) 
 #| label: MODEL-TEST-ABS-ONLINE
 
 #SCORE predicted by CONDITION
-rep.testabs.lm1 <- lm(DV_percent_test_NABS ~ condition, data = df_online)
+rep.testabs.lm1 <- lm(DV_percent_test_NABS ~ pretty_condition, data = df_online)
 paste("Model")
 summary(rep.testabs.lm1)
 paste("Partition Variance")
@@ -232,6 +258,32 @@ eq <- extract_eq(rep.testabs.lm1)
 **Model equation** `r eq`
 
 **For online replication** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 5% variance in accuracy (F(1,202) = 10.8, p \< 0.01). The estimated beta coefficient ($\beta$ = 0.18, 95% CI \[0.07, 0.29\]) predicts that participants in the impasse condition will on average score 18% higher than those in the control condition.
+
+```{r}
+
+#MODEL ESTIMATES WITH UNCERTAINTY
+
+#setup references 
+m <- rep.testabs.lm1
+df <- df_online 
+x <- df_online$DV_percent_test_NABS
+
+#uncertainty model visualization
+df %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) %>%
+  ggplot(aes(y = pretty_condition)) +
+  stat_halfeye(
+    aes(xdist = dist_student_t(df = df.residual(m), 
+        mu = .fitted, sigma = .se.fit)), scale = .5) +
+  # add raw data in too (scale = .5 above adjusts the halfeye height so
+  # that the data fit in as well)
+  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
+              position =   position_nudge(y = -.15), alpha = 0.5) +  
+  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
+  theme_minimal()
+
+```
 
 ###### Diagnostics
 
@@ -291,9 +343,38 @@ confint(lab.test_scaled.lm1)
 eq <- extract_eq(lab.test_scaled.lm1, use_coefs = TRUE)
 ```
 
+
+
 **Model equation** `r eq`
 
 **For (In Person)** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 8% variance in accuracy (F(1,124) = 10.8, p \< 0.005). The estimated beta coefficient ($\beta$ = 3.77, 95% CI \[1.49, 6.04\]) predicts that participants in the impasse condition will on average 4 points higher than those in the control condition.
+
+
+```{r}
+
+#MODEL ESTIMATES WITH UNCERTAINTY
+
+#setup references 
+m <- lab.test_scaled.lm1
+df <- df_lab 
+x <- df_lab$item_test_SCALED
+
+#uncertainty model visualization
+df %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) %>%
+  ggplot(aes(y = pretty_condition)) +
+  stat_halfeye(
+    aes(xdist = dist_student_t(df = df.residual(m), 
+        mu = .fitted, sigma = .se.fit)), scale = .5) +
+  # add raw data in too (scale = .5 above adjusts the halfeye height so
+  # that the data fit in as well)
+  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
+              position =   position_nudge(y = -.15), alpha = 0.5) +  
+  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
+  theme_minimal()
+
+```
 
 ###### Diagnostics
 
@@ -338,7 +419,7 @@ gf_props(~item_test_SCALED, fill = ~pretty_condition, data = df_lab) %>% gf_face
 #| label: MODEL-TEST-SCALED-ONLINE
 
 #SCORE predicted by CONDITION
-rep.test_scaled.lm1 <- lm(item_test_SCALED ~ condition, data = df_online)
+rep.test_scaled.lm1 <- lm(item_test_SCALED ~ pretty_condition, data = df_online)
 paste("Model")
 summary(rep.test_scaled.lm1)
 paste("Partition Variance")
@@ -353,6 +434,33 @@ eq <- extract_eq(rep.test_scaled.lm1, use_coefs = TRUE)
 **Model equation** `r eq`
 
 **For online replication** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 7% variance in accuracy (F(1,202) = 14.3, p \< 0.001). The estimated beta coefficient ($\beta$ = 3.24, 95% CI \[1.55, 4.62\]) predicts that participants in the impasse condition will on average 3 points higher than those in the control condition.
+
+```{r}
+
+#MODEL ESTIMATES WITH UNCERTAINTY
+
+#setup references 
+m <- rep.test_scaled.lm1
+df <- df_online 
+x <- df_online$item_test_SCALED
+
+#uncertainty model visualization
+df %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) %>%
+  ggplot(aes(y = pretty_condition)) +
+  stat_halfeye(
+    aes(xdist = dist_student_t(df = df.residual(m), 
+        mu = .fitted, sigma = .se.fit)), scale = .5) +
+  # add raw data in too (scale = .5 above adjusts the halfeye height so
+  # that the data fit in as well)
+  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
+              position =   position_nudge(y = -.15), alpha = 0.5) +  
+  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
+  theme_minimal()
+
+```
+
 
 ###### Diagnostics
 
