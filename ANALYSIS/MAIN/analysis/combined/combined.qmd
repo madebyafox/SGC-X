@@ -1,0 +1,271 @@
+---
+subtitle: 'COMBINED | 3 Description'
+---
+
+\newpage
+
+# Description {#sec-combined-description}
+
+
+*The purpose of this notebook is describe the distributions of dependent the OSPAN task data.*
+
+
+```{r}
+#| label: SETUP
+#| warning : false
+#| message : false
+
+
+library(Hmisc) # %nin% operator
+library(mosaic) #simple descriptives [favstats]
+library(multimode) #test for multimodality
+library(fitdistrplus) #fitting distributions
+library(performance) #multimodality
+library(kableExtra) #printing tables 
+library(vcd) #mosaicplots
+library(ggpubr) #arrange plots
+library(tidyverse) #ALL THE THINGS
+
+#OUTPUT OPTIONS
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(ggplot2.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+```
+
+```{r}
+#| label: IMPORT-DATA
+#| warning : false
+#| message : false
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
+
+#IMPORT SUBJECTS 
+sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
+  study = "SGC3A"
+) %>% dplyr::select(-absolute_score)
+sgc4a <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") %>% mutate(
+  study = "SGC4A",
+  pretty_mode = "online-replication"
+)
+sgc4b <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds") %>% mutate(
+  pretty_mode = "online-replication"
+)
+sgc5 <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_participants.rds") %>% mutate(
+  study = "SGC5A",
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-absolute_score)
+
+#MERGE 
+df_subjects <- rbind(sgc3a, sgc4a, sgc4b, sgc5)
+
+#IMPORT OSPAN DATA 
+ospan <- read_csv("analysis/combined/data/fall21_scored_ospan.csv") %>% mutate(
+  subject = SUBJECTID
+)
+
+#MERGE OSPAN DATA WITH SGC DATA 
+df_ospan <- df_subjects %>% filter(
+  subject %in% ospan$subject
+)
+
+df_ospan <- merge(df_ospan, ospan)
+
+#RENAME for reuse
+df_all <- df_subjects
+df_subjects <- df_ospan
+
+#CLEANUP
+# rm(ospan,sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
+```
+
+
+
+
+
+
+### OSPAN Participants
+
+```{r}
+#| label: DESC-PARTICIPANTS
+
+title = "OSPAN Participants by Condition"
+cols = c("Condition","n")
+cont <- table(df_subjects$condition)
+cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_classic()
+
+```
+## OSPAN
+
+TODO OSPAN description
+
+
+```{r}
+#| label: DESC-SUBJ-OSPAN
+ 
+title = "Descriptive Statistics of OSPAN Task Accuracy"
+ospan.stats <- rbind(
+  "MATH" = df_subjects %>% dplyr::select(math_acc) %>% unlist() %>% favstats(),
+  "ORDER" = df_subjects %>%  dplyr::select(order_acc) %>% unlist() %>% favstats(),
+  "WEIGHTED" = df_subjects %>% dplyr::select(weighted) %>% unlist() %>% favstats()
+  
+) 
+ospan.stats %>% kbl (caption = title) %>% kable_classic() %>% 
+  footnote(general = "MATH = %correct of all math questions; 
+           ORDER = % correct of OSPAN ordering (out of 30); WEIGHTED = math*ospan number correct", general_title = "Note: ",footnote_as_chunk = T) 
+
+```
+For (online) OSPAN weighted scores (n = `r ospan.stats["WEIGHTED",]$n`) range from `r round(ospan.stats["WEIGHTED",]$min,2)` to `r round(ospan.stats["WEIGHTED",]$max,2)` with a mean score of (M = `r round(ospan.stats["WEIGHTED",]$mean,2)`, SD = `r round(ospan.stats["WEIGHTED",]$sd,2)`).
+
+```{r}
+#| label: VIS-SUBJ-OSPAN
+
+#GGFORMULA | DENSITY HISTOGRAM 
+  gf_dhistogram(~weighted, data = df_subjects) + 
+  labs(x = "OSPAN (weighted) score",
+       y = "% of subjects",
+       title = "Distribution of OSPAN SCORE",
+       subtitle = "") + 
+  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "weighted", binwidth = 1,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition")) +
+  labs( title = "Distribution of OSPAN Score",
+        subtitle ="The Distribution of OSPAN scores is similar across conditions",
+        x = "OSPAN (weighted) score", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(weighted)) + 
+  stat_ecdf() + 
+  facet_wrap(~pretty_condition) + 
+  labs( title = "Empirical Cumulative Density Function — OSPAN",
+        x = "OSPAN (weighted) score", 
+        y = "Cumulative Probability") + theme_minimal()
+
+```
+
+## PEEKING 
+
+```{r}
+
+
+#CONDITION ONLY MODEL
+m1 <- lm( item_test_SCALED ~ condition, data = df_subjects)
+summary(m1)
+
+#OSPAN ONLY MODEL
+m2 <- lm( item_test_SCALED ~ weighted, data = df_subjects)
+summary(m2)
+
+#STANDARDIZE OSPAN
+df_subjects$z_ospan = zscore(df_subjects$weighted)
+histogram(df_subjects$z_ospan)
+
+#OSPAN MEDIAN SPLIT
+med_ospan = median(df_subjects$weighted)
+df_subjects$low_ospan <- as.factor(df_subjects$weighted < med_ospan)
+
+#STANDARDIZED OSPAN ONLY MODEL
+m3 <- lm( item_test_SCALED ~ low_ospan, data = df_subjects)
+summary(m3)
+
+#MULTIPLE WITH STANDARDIZED OSPAN
+mr <- lm(item_test_SCALED ~ condition + low_ospan, data = df_subjects)
+summary(mr)
+anova(mr)
+
+#SINGLE WITH STANDARDIZED OSPAN
+mr2 <- lm(item_test_SCALED ~ condition + low_ospan, data = df_subjects)
+summary(mr2)
+
+gf_histogram(~item_test_SCALED, data = df_subjects) %>% 
+  gf_facet_grid(low_ospan ~ condition, labeller = label_both)
+
+
+gf_jitter(item_test_SCALED ~ weighted, color = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_condition)
+
+gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
+
+```
+
+
+**OPSAN score does NOT predict performance in the control condition. **
+```{r}
+
+control <- df_subjects %>% filter(condition == "111")
+
+gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = control) %>% 
+  gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
+
+#test performance predicted by OSPAN score
+m <- lm(item_test_NABS ~ weighted, data = control)
+summary(m)
+
+```
+
+**OPSAN score does NOT predict performance in the control condition. **
+```{r}
+
+impasse <- df_subjects %>% filter(condition == "121")
+
+gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = impasse) %>% 
+  gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
+
+#test performance predicted by OSPAN score
+m <- lm(item_test_NABS ~ low_ospan, data = impasse)
+summary(m)
+
+```
+
+
+```{r}
+
+#330 total 
+# —————————
+#126 lab 
+#204 online  
+  #  71 no ospan 
+  # 133 ospan 
+sgc3a_lab <- df_all %>% filter(mode=="lab-synch") %>% filter(study=="SGC3A")
+sgc3a_online <- df_all %>% filter(mode=="asynch") %>% filter(study=="SGC3A")
+sgc3a_online_noospan <- sgc3a_online %>% filter(subject %nin% ospan$subject)
+sgc3a_onspan <- df_subjects
+
+m <- lm( item_test_NABS ~ condition, data = sgc3a_online_noospan)
+summary(m)
+
+m2 <- lm(item_test_NABS ~ condition, data = df_subjects)
+summary(m2)
+
+
+m3 <- lm(item_test_NABS ~ low_ospan, data = df_subjects)
+summary(m3)
+
+
+
+```
+
+
+## RESOURCES
+
+-   https://rpkgs.datanovia.com/ggpubr/reference/index.html
+
+```{r}
+#| label: session
+sessionInfo()
+```
+
+
