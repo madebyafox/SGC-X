@@ -15,12 +15,16 @@
 // study= [SGC3A, SGC3B ..]
 // session= [freetext] //default blank
 // mode = "synch" || "asynch" //default asynch
-// pool = ? //default sona
-// exp_id = ? //survey code in sona for deciding which study to grant credit to 
+// pool = ? //default "sona" also allow "prolific"
+// exp_id = ? //survey code in sona for deciding which study to grant credit to ALSO PROLIFIC CODE
 // SONA STUDY 21JH01 = 2218
-// sona_id = ? //survey code from SONA for automatically granting credit [only for asynch study types]
+// sona_id = ? //survey code from SONA for automatically granting credit [only for asynch study types] //ALSO PROLIFIC ID
 // q = [1...15] //jump to question
 // condition = (min 3 digit, see below)  
+
+//PROFLIFIC SPECFIC 
+//PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
+
 
     //CONDITION
     //    [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN]
@@ -91,8 +95,15 @@ var jsPsych = initJsPsych({
         if (last_type != "browser-check"){
           //assign sona credit for SGC3A via 21JH01
           // if(exp_id == 2218) {
-            console.log("ASSIGNING CREDIT FOR STUDY: "+exp_id)
-            window.open(grant_sona[exp_id]+sona_id, '_blank'); //open in new tab
+            if (pool == "sona"){
+              console.log("ASSIGNING SONA CREDIT FOR STUDY: "+exp_id)
+              window.open(grant_sona[exp_id]+sona_id, '_blank'); //open in new tab
+            }
+
+            if (pool == "prolific"){
+              console.log("ASSIGNING PROLIFIC CREDIT FOR STUDY: "+exp_id)
+              window.open(grant_prolific, '_blank'); //open in new tab
+            }
           // }
           window.location.assign('src/debrief.html');
         }
@@ -124,6 +135,11 @@ const grant_sona = {
   2218:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2218&credit_token=9a51e0fbf8c4403bbb31ef602025647b&survey_code=", //running on 21JH01
   2217:  "https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=2217&credit_token=4da88233b56842b7b57bb7a03bdb2311&survey_code="  //running on 21JH02
 }
+
+//SET PROLIFIC REDIRECTS
+const grant_prolific = "https://app.prolific.co/submissions/complete?cc=63BEB07F";
+
+
 
 //DEFINE VALID VALUES PER DIGIT CONDITION
 const conditions = {
@@ -224,6 +240,11 @@ var satisf_answers = ["NULL"]; //index as null
     data:{block:"browser_check"},
   };
 
+   //BROWSER CHECK
+   var browserrecord = {
+    type: jsPsychBrowserCheck,
+    data:{block:"browser_record"},
+  };
   //SETUP FOR ASYNCH
   var setup_asynch = {
     type: jsPsychInstructions,
@@ -397,7 +418,7 @@ var satisf_answers = ["NULL"]; //index as null
     button_label_finish: 'Continue'
   };
   
-  //DEMOGRAPHICS SURVEY
+  //DEMOGRAPHICS SURVEY FOR SONA PARTICIPANTS
   var demographics_sona = {
     type: jsPsychSurvey,
     data:{ block:"demographics" },
@@ -434,6 +455,71 @@ var satisf_answers = ["NULL"]; //index as null
           prompt: "What is your year in school?", 
           name: 'schoolyear', 
           options: ['First', 'Second', 'Third', 'Fourth', 'Fifth','Grad Student','X-OTHER'], 
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your major area of study?", 
+          name: 'major', 
+          options: ["Math or Computer Sciences","Social Sciences (incl. CogSci)", "Biomedical & Health Sciences",
+                                "Natural Sciences","Engineering","Humanities","Fine Arts"],
+          required: true
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your gender identity?", 
+          name: 'gender', 
+          options: ['Other-Not Listed','Male','Female'], 
+          required: true
+        },
+        {
+          type:'text',
+          prompt:"Do you have any impairments or disabilities you believe may have influenced your performance on this task?",
+          name:"disability",
+          textbox_rows: 2
+        } 
+      ]
+    ],
+    button_label_finish: 'Continue'
+  };
+
+  //DEMOGRAPHICS SURVEY FOR NON-SONA
+  var demographics_general = {
+    type: jsPsychSurvey,
+    data:{ block:"demographics" },
+    pages: [
+      [ 
+        {
+          type: 'html',
+          prompt: '<h2>Please answer the following questions about yourself.</h2>',
+        },
+        {
+          type: 'text',
+          prompt: "How old are you?", 
+          name: 'age', 
+          textbox_columns: 5,
+          required: true,
+        },
+        {
+          type: 'text',
+          prompt: "In what country have you lived most of your life?", 
+          name: 'country', 
+          textbox_columns: 15,
+          required: true,
+        },
+        {
+          type: 'drop-down',
+          prompt: "What is your first language?", 
+          name: 'language', 
+          options: ['English', 'Mandarin', 'Cantonese', 'Korean', 'German','Arabic','French','Spanish','X-Other'], 
+          required: true,
+          option_reorder: "asc"
+        }, 
+        {
+          type: 'drop-down',
+          prompt: "What is your highest completed level of education? ", 
+          name: 'schoolyear', 
+          options: ['Primary School', 'Secondary School/Highschool', 'some college', 'Associates Degree', 'Bachelors Degree','Graduate Degree','X-OTHER'], 
           required: true
         }, 
         {
@@ -902,14 +988,15 @@ function buildProcedure(){
       if (mode == "synch") {timeline.push(setup_synch);}
       else {timeline.push(setup_asynch);}
       timeline.push(enter_fullscreen);
+      timeline.push(browserrecord); //NOW RECORD BROWSER AGAIN FOR SIZE IN FULLSCREEN
       timeline.push(instructions);
       timeline.push(procedure);
       timeline.push(almost_there);
       timeline.push(effort_rating);
       if (pool != "sona"){
-      //  TODO MAKE GENERAL DEMOGRAPHICS
+        timeline.push(demographics_general); //has highest education question
       } else {
-        timeline.push(demographics_sona);
+        timeline.push(demographics_sona); //has year in school question
       }    
       if (mode == "synch") {timeline.push(finish_synch);} //prompt user to DM experimenter with SID for manual sona grant
       timeline.push(exit_fullscreen);
