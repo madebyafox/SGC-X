@@ -68,3 +68,8 @@ Fourth Digit    | mark scaffold
 **DATA CHANGES**
 - previously, IMPASSE, EXPLICIT were recorded at the condition level, not the item level. So a non-scaffolded question 6 still had an impasse == 2 if the person was in condition 121. Now, the impasse attribute on each item reflects whether that iTEM had an impasse structure 
 - STRUCTURE of the stimulus is always determined by the condition, unless condition is not defined 
+
+**CHANGELOG**
+- summer 2022:
+  - added support for prolific via a prolific redirect 
+  - added additional browser_check trial AFTER going to fullscreen to record screensize on fullscreen
