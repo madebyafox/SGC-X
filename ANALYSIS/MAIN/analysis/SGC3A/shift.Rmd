@@ -1,0 +1,79 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# RESOURCES
+- software: https://dornsife.usc.edu/labs/rwilcox/software/
+- tutorial https://garstats.wordpress.com/2016/07/12/shift-function/
+- sample code https://github.com/GRousselet/blog/tree/master/shift_function
+- explaining the shift function https://garstats.wordpress.com/2017/02/04/shift-function-illustration/
+
+- ROGME package https://github.com/GRousselet/rogme
+
+# SETUP
+
+1. Install packages RR Wilcox's WRS package and dependencies
+
+```{r}
+# # first: install dependent packages
+# install.packages(c("MASS", "akima", "robustbase"))
+# 
+# # second: install suggested packages
+# install.packages(c("akima", "cobs", "robust", "mgcv", "scatterplot3d", "quantreg", "rrcov", "lars", "pwr", "trimcluster", "mc2d", "psych", "Rfit", "DepthProc", "class", "fda", "rankFD"))
+# 
+# # third: install an additional package which provides some C functions
+# # install.packages("devtools")
+# # NOTE: This seems to be stalled and not functional any more
+# # devtools::install_github("mrxiaohe/WRScpp")
+# 
+# # fourth: install WRS
+# install_github("nicebread/WRS", subdir="pkg")
+
+#INSTALL ROGME PACKAGE 1
+# devtools::install_github("GRousselet/rogme")
+library(rogme)
+library(tidyverse)
+library(ggformula)
+```
+
+```{r}
+#IMPORT SAMPLE DATA 
+
+
+#> generate data
+set.seed(21)
+g1 <- rnorm(1000) + 6
+g2 <- rnorm(1000) * 1.5 + 6
+
+#> make tibble
+df <- mkt2(g1, g2)
+
+#faceted histogram
+gf_histogram(~obs, data = df) %>% gf_facet_grid(gr ~ .) +
+  labs (title = "Sample Data")
+
+```
+
+```{r}
+#PLOT AND DISPLAY SHIFT FUNCTION
+
+#> compute shift function
+sf <- shifthd(data = df, formula = obs ~ gr, nboot = 200)
+#> sf <- shifthd_pbci(data = df, formula = obs ~ gr, nboot = 200, q = c(.1,.25,.5,.75,.9))
+
+#> plot shift function
+psf <- plot_sf(sf, plot_theme = 2)
+#> Warning: Using alpha for a discrete variable is not advised.
+
+#> Warning: Using alpha for a discrete variable is not advised.
+
+#> add labels for deciles 1 & 9
+psf <- add_sf_lab(psf, sf, 
+                  y_lab_nudge = .1, 
+                  text_size = 4)
+
+#> change axis labels
+psf[[1]] <- psf[[1]] +  labs(x = "Group 1 quantiles of scores (a.u.)",
+                             y = "Group 1 - group 2 \nquantile differences (a.u.)")
+psf[[1]]
