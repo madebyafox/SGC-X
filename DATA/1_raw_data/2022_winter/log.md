@@ -1,4 +1,13 @@
 
+
+
+## START additional data collection 
+
+### SONA 
+- 7/11/22 deploy SGCC 5A control condition on SONA 	
+21JH02 https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11111&session=su22sona&mode=asynch&pool=sona&exp_id=2217 
+
+
 ## Download complete WI22 
 
 

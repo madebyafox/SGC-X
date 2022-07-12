@@ -16,6 +16,8 @@ mongoimport -d XWINTER2022 -c entries --file test.json
 
 ## WRANGLE LOG
 
+### START DATA COLLECTION
+
 ### CLEAN SERVER DATABASE
 - 07.10.22 Confirmed that all records currently on production are already loaded in local DB XWINTER2022
 - logged on to Atlas Mongodb productio nserver 2ypdb-s3-beh and dumped all entries in entries
