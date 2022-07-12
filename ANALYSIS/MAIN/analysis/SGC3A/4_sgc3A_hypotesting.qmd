@@ -8,19 +8,18 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 
 **TODO**
 
--   HURDLE MODEL\
+-   HURDLE MODEL? (mixture model w/ 0 + count)
 -   consider zero-inflated (poisson or neg binom) with \_rt as predictor of count process and condition as predictor of excess zeros
 -   review models already created in ARCHIVE?
 -   explore response consistency
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC3A study.*
 
-+------------------------+
-| Pre-Requisite          |
-+========================+
-| 1_sgc3A_harmonize.qmd\ |
-| 2_sgc3A_scoring.qmd    |
-+------------------------+
++---------------------+
+| Pre-Requisite       |
++=====================+
+| 2_sgc3A_scoring.qmd |
++---------------------+
 
 ```{r}
 #| label: SETUP
@@ -28,21 +27,22 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 #| message : false
 
 library(Hmisc) # %nin% operator
+
 library(ggpubr) #arrange plots
 library(ggformula) #easy graphs
+library(vcd) #mosaic plots
+library(vcdExtra) #mosaic plots
+library(kableExtra) #printing tables 
+
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
 library(qqplotr) #confint on qq plot
 library(gmodels) #contingency table and CHISQR
-library(vcd) #mosaic plots
-library(vcdExtra) #mosaic plots
-library(kableExtra) #printing tables 
-library(tidyverse) #ALL THE THINGS
 library(equatiomatic) #extract model equation
-
 library(pscl) #zeroinfl / hurdle models 
 
+library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
@@ -52,15 +52,15 @@ options(scipen=1, digits=3)
 
 # Custom ggplot theme to make pretty plots
 # Get the font at https://fonts.google.com/specimen/Barlow+Semi+Condensed
-theme_clean <- function() {
-  theme_minimal(base_family = "Barlow Semi Condensed") +
-    theme(panel.grid.minor = element_blank(),
-          plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
-          axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
-          strip.text = element_text(family = "BarlowSemiCondensed-Bold",
-                                    size = rel(1), hjust = 0),
-          strip.background = element_rect(fill = "grey80", color = NA))
-}
+# theme_clean <- function() {
+#   theme_minimal(base_family = "Barlow Semi Condensed") +
+#     theme(panel.grid.minor = element_blank(),
+#           plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
+#           axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
+#           strip.text = element_text(family = "BarlowSemiCondensed-Bold",
+#                                     size = rel(1), hjust = 0),
+#           strip.background = element_rect(fill = "grey80", color = NA))
+# }
 
 # Make labels use Barlow by default
 # update_geom_defaults("label_repel", list(family = "Barlow Semi Condensed"))
@@ -88,8 +88,8 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -123,11 +123,16 @@ On the TEST Phase of the graph comprehension task (the final 8 questions, encoun
 | **Analysis Strategy** | OLS Linear Regression `DV_percent_test_NABS` \~ `condition` (absolute scoring)\                                                        |
 |                       | OLS Linear Regression `item_test_SCALED` \~ `condition` (scaled scoring)                                                               |
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| **Alternatives**      | -   Negative Binomial / Zero Inflated Negative Binom for overdispersed count?                                                          |
+| **Alternatives**      | **Exploring alternatives.**\                                                                                                           |
+|                       | *Simple linear regression models do a poor job of fitting the (bimodal) outcome distributions (both absolute and scaled scores)*       |
+|                       |                                                                                                                                        |
+|                       | -   Hurdle model (mixture model w/ binomial + count)                                                                                   |
+|                       | -   Negative Binomial / Zero Inflated Negative Binom for overdispersed count?                                                          |
 |                       | -   Beta regression?                                                                                                                   |
 |                       | -   Other way to account for the severe bimodality?                                                                                    |
+|                       | -   "shift function" way to characterize difference in bimodal distributions                                                           |
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| **Inference**         | *TODO* when done                                                                                                                       |
+| **Inference**         | ***TODO*** **when done**                                                                                                               |
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 ### Test Phase Absolute Score
@@ -184,6 +189,12 @@ eq <- extract_eq(lab.testabs.lm1, use_coefs = TRUE)
 m <- lab.testabs.lm1
 df <- df_lab 
 x <- df_lab$DV_percent_test_NABS
+
+
+library(ggdist)
+library(broom)
+library(modelr)
+library(distributional)
 
 #uncertainty model visualization
 df %>%
@@ -343,12 +354,9 @@ confint(lab.test_scaled.lm1)
 eq <- extract_eq(lab.test_scaled.lm1, use_coefs = TRUE)
 ```
 
-
-
 **Model equation** `r eq`
 
 **For (In Person)** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 8% variance in accuracy (F(1,124) = 10.8, p \< 0.005). The estimated beta coefficient ($\beta$ = 3.77, 95% CI \[1.49, 6.04\]) predicts that participants in the impasse condition will on average 4 points higher than those in the control condition.
-
 
 ```{r}
 
@@ -460,7 +468,6 @@ df %>%
   theme_minimal()
 
 ```
-
 
 ###### Diagnostics
 
@@ -611,17 +618,17 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
 
 ## H1C \| Q1 LATENCY
 
-+-----------------------+-------------------------------------------------+
-| Research Question     |                                                 |
-+=======================+=================================================+
-| **Hypothesis**        |                                                 |
-+-----------------------+-------------------------------------------------+
-| **Analysis Strategy** |                                                 |
-+-----------------------+-------------------------------------------------+
-| **Alternatives**      |                                                 |
-+-----------------------+-------------------------------------------------+
-| **Inference**         |                                                 |
-+-----------------------+-------------------------------------------------+
++-----------------------+---------------------------------------------+
+| Research Question     |                                             |
++=======================+=============================================+
+| **Hypothesis**        |                                             |
++-----------------------+---------------------------------------------+
+| **Analysis Strategy** |                                             |
++-----------------------+---------------------------------------------+
+| **Alternatives**      |                                             |
++-----------------------+---------------------------------------------+
+| **Inference**         |                                             |
++-----------------------+---------------------------------------------+
 
 ### Q1 Response Latency
 
@@ -685,8 +692,7 @@ check_model(lab.q1t.lm1, panel = TRUE)
 
 ###### Inference
 
-OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals. 
-
+OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
 
 ##### (Online Replication)
 
@@ -746,7 +752,7 @@ check_model(rep.q1t.lm1, panel = TRUE)
 
 ###### Inference
 
-OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals. 
+OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
 
 ## RESOURCES
 

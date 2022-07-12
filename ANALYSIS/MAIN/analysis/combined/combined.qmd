@@ -7,7 +7,7 @@ subtitle: 'COMBINED | 3 Description'
 # Description {#sec-combined-description}
 
 
-*The purpose of this notebook is describe the distributions of dependent the OSPAN task data.*
+**
 
 
 ```{r}
@@ -17,6 +17,7 @@ subtitle: 'COMBINED | 3 Description'
 
 
 library(Hmisc) # %nin% operator
+library(janitor) #compare df cols 
 library(mosaic) #simple descriptives [favstats]
 library(multimode) #test for multimodality
 library(fitdistrplus) #fitting distributions
@@ -24,6 +25,7 @@ library(performance) #multimodality
 library(kableExtra) #printing tables 
 library(vcd) #mosaicplots
 library(ggpubr) #arrange plots
+
 library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
@@ -40,14 +42,14 @@ options(scipen=1, digits=3)
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+setwd(imac)
 
 #IMPORT SUBJECTS 
 sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
   study = "SGC3A"
-) %>% dplyr::select(-absolute_score)
+) #%>% dplyr::select(-absolute_score)
 sgc4a <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") %>% mutate(
   study = "SGC4A",
   pretty_mode = "online-replication"
@@ -58,7 +60,11 @@ sgc4b <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.r
 sgc5 <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_participants.rds") %>% mutate(
   study = "SGC5A",
   pretty_mode = "online-replication"
-) %>% dplyr::select(-absolute_score)
+) #%>% dplyr::select(-absolute_score)
+
+#COMPARE DF COLUMNS
+janitor::compare_df_cols(sgc3a, sgc4a, sgc4b, sgc5)
+#SGC3A AND SGC5 HAVE ABSOLUTE SCORE BUT THEY SHOULDN'T 
 
 #MERGE 
 df_subjects <- rbind(sgc3a, sgc4a, sgc4b, sgc5)

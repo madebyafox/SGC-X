@@ -380,7 +380,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 </tbody>
 </table>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/SETUP_6c9a7a3874e8b3e8b0a59406cf65db18">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
@@ -406,7 +406,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="sec-SGC3A-keys" class="level3">
 <h3 class="anchored" data-anchor-id="sec-SGC3A-keys">Prepare Answer Keys</h3>
 <p>We start by importing three answer keys: (1) Q1 - Q5 [control condition], (2) Q1-Q5 [impasse condition], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e.&nbsp;the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/IMPORT-KEYS_e48b042431d2d7ef9d9867fb263a9a6d">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -454,7 +454,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>score_ABS</code> Is the response strictly correct? (triangular interpretation)</li>
 <li><code>score_niceABS</code> Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer <em>in addition to</em> they also select the data point referenced in the question.</li>
 </ul>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/IMPORT-ITEMS_7c17cc0f51b7a503f698a39b59136cbd">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#HACK WD FOR LOCAL RUNNING?</span></span>
@@ -465,7 +465,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3A/data/1-study-level/sgc3a_items.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/IMPORT-SCORING-FUNCTIONS_726a426573ed1a2b1e8d1d60833617bf">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -529,7 +529,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>(+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they “see” a triangular response, but lack certainty and also select the ORTHOGONAL response)</li>
 <li>(+1) TRIANGULAR +1</li>
 </ul>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/SCALED-SCORE_a6f33d34b9ca82752a4bbceed03040e0">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SCALED <span class="ot">&lt;-</span> <span class="fu">calc_scaled</span>(df_items<span class="sc">$</span>interpretation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -540,7 +540,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="summarize-by-subject" class="level2">
 <h2 class="anchored" data-anchor-id="summarize-by-subject">SUMMARIZE BY SUBJECT</h2>
 <p>Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/SUMMARIZE-BY-SUBJECT_033d7c282beca38faad0c39e36001314">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -576,7 +576,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 <p>We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task.</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/SUMMARIZE-PROGRESS_e7611d10fd1ac48ee8642106a9f7a368">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#GET ABSOLUTE PROGRESS </span></span>
@@ -589,7 +589,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="explore-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="explore-distributions">EXPLORE DISTRIBUTIONS</h2>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/VIS-SETUP_8ffa37621cf6d38b0ca7837ee5324dc4">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -608,7 +608,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="absolute-score" class="level3">
 <h3 class="anchored" data-anchor-id="absolute-score">Absolute Score</h3>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/DISTR-ABSCORE_b143077e5189e59149dae604a7feda71">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE FULL </span><span class="al">TASK</span></span>
@@ -672,7 +672,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="scaled-score" class="level3">
 <h3 class="anchored" data-anchor-id="scaled-score">Scaled Score</h3>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/DISTR-SCALEDSCORE_196239c9c8aee93730e2a01cd1596737">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -742,7 +742,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretations" class="level3">
 <h3 class="anchored" data-anchor-id="interpretations">Interpretations</h3>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/DISTR-INTERPRETATIONS_4de46f1c570183e7c0747996d285f3da">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION</span></span>
@@ -785,7 +785,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="progress-over-task" class="level3">
 <h3 class="anchored" data-anchor-id="progress-over-task">Progress over Task</h3>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/VIZ-PROGRESS_b6e5ffa373340e1e0d75b4bc3f982774">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time ABSOLUTE score </span></span>
@@ -816,7 +816,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretation-subscores" class="level3">
 <h3 class="anchored" data-anchor-id="interpretation-subscores">Interpretation Subscores</h3>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/DIST-SUBSCORES_cbe67d6bf2486b19f84641eea4e5b933">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TRI, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
@@ -885,7 +885,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.1: Question 1 — Control Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q1-CONTROL-KEY_d1be9d75801676b791df0fb1913b6548">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="st">"DEFAULT"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">1</span>)</span>
@@ -969,7 +969,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <p>Here we summarize the distinct response options given by participants on this item. Each letter in <code>response</code> indicates a checkbox selected by the participant (See <a href="#fig-Q1-111">Figure&nbsp;<span class="quarto-unresolved-ref">fig-Q1-111</span></a> ). <code>n</code> indicates the number of participants who gave this response, while <code>interpretation</code> indicates the <em>graph interpretation</em> most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response. NA indicates that there is no score calculated (occurs when there is no subset of response options that accord with that interpretation for this question).</p>
 <p>Notice that for this Question, the <em>Triangular</em> answer is the same as the <em>Tversky [start diagonal]</em> answer. In fact, for most questions, one of the Tversky sub-types will match the correct response.</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q1-CONTROL-RESPONSES_d3da95924db030dac960599fedac3a2a">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #1 (Control Condition)"</span></span>
@@ -1189,7 +1189,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.2: Question 1 — Impasse Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q1-IMPASSE-KEY_60b9d8513a32ecf58342f89b12f79376">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">1</span>)</span>
@@ -1272,7 +1272,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 </div>
 </div>
 <p>Notice that there <strong>is no orthogonal answer</strong> for this question. This is the purpose of the impasse condition, to remove the possibility of selecting the orthogonal answer, we expect learners will be more likely to restructure their understanding of the coordinate system, and arrive at a correct (triangular) interpretation.</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q1-IMPASSE-RESPONSES_8dbdc917e7936329dceefe096741d911">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #1 (Impasse Condition)"</span></span>
@@ -1523,7 +1523,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 </tr>
 </tbody>
 </table>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q1-distribution_cac517a339261f0bc21ddfd730a297df">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
@@ -1557,7 +1557,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.3: Q2—Control Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q2-CONTROL-KEY_9530ba843406b08d642619e31609bad5">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="st">"DEFAULT"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">2</span>)</span>
@@ -1639,7 +1639,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q2-CONTROL-RESPONSES_40ae9ea8e9533ed51ef09a6db1607004">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #2 (Control Condition)"</span></span>
@@ -1893,7 +1893,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.4: Q2—Impasse Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q2-IMPASSE-KEY_2d6b930d26be9fd02c972288b6fb41dd">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">2</span>)</span>
@@ -1975,7 +1975,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q2-IMPASSE-RESPONSES_4e9a3e4cb12325aa09cc4231f265d76f">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #2 (Impasse Condition)"</span></span>
@@ -2236,7 +2236,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q2-distribution_1d36354a40c47be2d2d11bbbb153afa8">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span><span class="dv">2</span>)) <span class="sc">%&gt;%</span> </span>
@@ -2270,7 +2270,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.5: Q3—Control Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q3-CONTROL-KEY_4b487bf2e30be25de2512cdb24ef3d4a">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="st">"DEFAULT"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">3</span>)</span>
@@ -2352,7 +2352,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q3-CONTROL-RESPONSES_e6ce4e63ec76fbca4115662a0471f111">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #3 (Control Condition)"</span></span>
@@ -2708,7 +2708,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.6: Q3—Impasse Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q3-IMPASSE-KEY_62d7eff59f5fb2657124ea45046b085a">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">3</span>)</span>
@@ -2791,7 +2791,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 </div>
 </div>
 <p>TODO investigate these responses 17 at O?</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q3-IMPASSE-RESPONSES_481cf52c48f02a75360e8b9e4f4a8b5a">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #3 (Impasse Condition)"</span></span>
@@ -3169,7 +3169,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q3-distribution_86777ed948d7f6dcd8c6771c8652908b">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span><span class="dv">3</span>)) <span class="sc">%&gt;%</span> </span>
@@ -3204,7 +3204,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.7: Q4—Control Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q4-CONTROL-KEY_2975378bfcb2ec29c59296d8b62775ca">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="st">"DEFAULT"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">4</span>)</span>
@@ -3286,7 +3286,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q4-CONTROL-RESPONSES_f4f06833903d0e798fefb004a82cdd44">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #4 (Control Condition)"</span></span>
@@ -3553,7 +3553,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.8: Q4—Impasse Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q4-IMPASSE-KEY_6f47fe564e978a4a6e23062755579aaf">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">4</span>)</span>
@@ -3636,7 +3636,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 </div>
 </div>
 <p>TODO investigate D? add to tversky or orth?</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q4-IMPASSE-RESPONSES_71c3fe0a7cf4793210bd809c671c1436">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #4 (Impasse Condition)"</span></span>
@@ -3904,7 +3904,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q4-distribution_207dae834eeb60f144448a2b194fd4ce">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span><span class="dv">4</span>)) <span class="sc">%&gt;%</span> </span>
@@ -3938,7 +3938,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.9: Q5—Control Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q5-CONTROL-KEY_2451387c292b529027cd4326745a9aa9">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="st">"DEFAULT"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">5</span>)</span>
@@ -4020,7 +4020,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q5-CONTROL-RESPONSES_e06e02651a233909324f359106b11919">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #5 (Control Condition)"</span></span>
@@ -4331,7 +4331,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.10: Q5—Impasse Condition</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q5-IMPASSE-KEY_0ec521c191f0e45c41daade3f76202ba">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(condition <span class="sc">==</span> <span class="dv">121</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">5</span>)</span>
@@ -4413,7 +4413,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q5-IMPASSE-RESPONSES_aa1dd98393a0fd6f5dc5c5219e14bd22">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #5 (Control Condition)"</span></span>
@@ -4813,7 +4813,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q5-distribution_325f45810dfe2dabd6aa552f4dede0e2">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span><span class="dv">5</span>)) <span class="sc">%&gt;%</span> </span>
@@ -4849,7 +4849,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.11: Q6-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q6-KEY_7414c70974b493dcf8f74f72cac7a239">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">6</span>)</span>
@@ -4932,7 +4932,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 </div>
 </div>
 <p>TODO discuss non discriminant</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q6-RESPONSES_7b6b847b46fcf3eae1f1fe5f4d49d8d5">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #6"</span></span>
@@ -4992,7 +4992,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q6-distribution_5ae5692882c82bdb3236e835fd7680c9">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span><span class="dv">6</span>)) <span class="sc">%&gt;%</span> </span>
@@ -5023,7 +5023,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.12: Q7-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q7-KEY_ae7e70c4b7ef3afac22620d2fe27687f">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">7</span>)</span>
@@ -5105,7 +5105,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q7-RESPONSES_b38cbad5692227fda81d7bd2a1845c11">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #7"</span></span>
@@ -5351,7 +5351,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q7-distribution_b0bfb1005cf724ab6d8b606bb50985e0">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">7</span>)) <span class="sc">%&gt;%</span> </span>
@@ -5382,7 +5382,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.13: Q8-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q8-KEY_d27fcbd0ba3e34cfedf25dde7889ed9d">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">8</span>)</span>
@@ -5464,7 +5464,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q8-RESPONSES_7050c10682f961912503c4f9f0273caa">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #8"</span></span>
@@ -6016,7 +6016,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q8-distribution_862dc34b35ffdb61add9e136121ad975">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">8</span>)) <span class="sc">%&gt;%</span> </span>
@@ -6047,7 +6047,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.14: Q9-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q9-KEY_73c766ed07c79137d73c1912bafab408">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">9</span>)</span>
@@ -6129,7 +6129,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q9-RESPONSES_f4c0883cac27416b52612ed0d9a33944">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #9"</span></span>
@@ -6391,7 +6391,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q9-distribution_33fe1cd70a10c3a25c3c99417beaf5f1">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">9</span>)) <span class="sc">%&gt;%</span> </span>
@@ -6422,7 +6422,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.15: Q10-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q10-KEY_5a8d59595bf6a4810322ae1099f0ab4f">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">10</span>)</span>
@@ -6504,7 +6504,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q10-RESPONSES_b2ae29fb77588c6c87d3221875b592fa">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #10"</span></span>
@@ -6860,7 +6860,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q10-distribution_9f150c3b6a545064f30c3c81f6f768aa">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">10</span>)) <span class="sc">%&gt;%</span> </span>
@@ -6891,7 +6891,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.16: Q11-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q11-KEY_599e601cdae3b0e37a16d7c15a846e4f">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">11</span>)</span>
@@ -6973,7 +6973,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q11-RESPONSES_c99ff596734eebdf8a1a3f77dcca8ba2">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #11"</span></span>
@@ -7217,7 +7217,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q11-distribution_4852f1920eeb22728792c6cf53ba8329">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">11</span>)) <span class="sc">%&gt;%</span> </span>
@@ -7248,7 +7248,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.17: Q12-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q12-KEY_f74dec414e5fc63631ba2e8d03c61032">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">12</span>)</span>
@@ -7330,7 +7330,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q12-RESPONSES_dd018e31af250452dbed2882b06ba069">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #12"</span></span>
@@ -7543,7 +7543,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q12-distribution_1f4cf320b83cd20f75b7385c57b8d75e">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">12</span>)) <span class="sc">%&gt;%</span> </span>
@@ -7574,7 +7574,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.18: Q13-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q13-KEY_a1d4fd28af2ccd397722d2cac6aa41f1">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">13</span>)</span>
@@ -7656,7 +7656,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q13-RESPONSES_0c0ce3db1903cb7e98e0c782c2ae86c2">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb90"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #13"</span></span>
@@ -8109,7 +8109,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q13-distribution_cb32e76b96986409ece4188d0826bcb0">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">13</span>)) <span class="sc">%&gt;%</span> </span>
@@ -8140,7 +8140,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.19: Q14-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q14-KEY_008a1ed0ddd821748482ccd7be7a53ae">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb93"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">14</span>)</span>
@@ -8222,7 +8222,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q14-RESPONSES_473b187ca25195e48248cdd03d86faaf">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb94"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #14"</span></span>
@@ -8521,7 +8521,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q14-distribution_f3567856ef013a07b757c041a4ebf7d6">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">14</span>)) <span class="sc">%&gt;%</span> </span>
@@ -8552,7 +8552,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p></p><figcaption aria-hidden="true" class="figure-caption">Figure 2.20: Q15-Question</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q15-KEY_1d1934d121f90a5243a237d24ea4a438">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> keys_raw <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Q<span class="sc">==</span><span class="dv">15</span>)</span>
@@ -8634,7 +8634,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q15-RESPONSES_8d44c8cd92dad79fa7c7426e12fdeaf1">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb98"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="st">"Frequency of Selected Response Options for Question #15"</span></span>
@@ -9177,7 +9177,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 
 </div>
 </div>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/Q15-distribution_a8b62c9c16b67873e3049e02cce05299">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb99"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_dhistogram</span>(<span class="sc">~</span> score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>condition, <span class="at">data =</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span>(q <span class="sc">==</span> <span class="dv">15</span>)) <span class="sc">%&gt;%</span> </span>
@@ -9205,7 +9205,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <section id="export" class="level2">
 <h2 class="anchored" data-anchor-id="export">EXPORT</h2>
 <p>Finally, we export the scores for each item (<code>df_items</code>) and summarized over subjects (<code>df_subjects</code>), as well as cumulative progress dataframes (<code>df_absolute_progress</code>, <code>df_scaled_progress</code>)</p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/EXPORT-SCORES_dce0737922ca21ec6577821fa29735b7">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb101"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
@@ -9230,7 +9230,7 @@ TODO find this person, did they subsequently give tri answers?</th>
 <p><a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/sets.html" class="uri">https://stat.ethz.ch/R-manual/R-devel/library/base/html/sets.html</a></p>
 <p><em>kableExtra tables</em></p>
 <p><a href="https://haozhu233.github.io/kableExtra/awesome_table_in_html.html#grouped_columns__rows" class="uri">https://haozhu233.github.io/kableExtra/awesome_table_in_html.html#grouped_columns__rows</a></p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/unnamed-chunk-72_2ada0b21c09f6e211237aa76c013b42f">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb102"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -9294,7 +9294,7 @@ loaded via a namespace (and not attached):
 <section id="archive" class="level2">
 <h2 class="anchored" data-anchor-id="archive">ARCHIVE</h2>
 <p><em>Prior versions of functions for for-loop version of scoring, not optimized to use mapply</em></p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/SCORING-FUNCTIONS-TRADITIONAL(BACKCUP)_e0434572f74f4e2b892350318c432c54">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb104"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #CALCULATE THE TRIANGULAR, ORTHOGONAL OR TVERSKIAN SUBSCORES FROM KEYFRAME</span></span>
@@ -9419,7 +9419,7 @@ loaded via a namespace (and not attached):
 </details>
 </div>
 <p><em>Looping to do the scoring (not using MAPPLY)</em></p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/CALCULATE-SCORES-FORLOOP_06e8e309cce68c6f83631c7d25cad49f">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb105"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a><span class="co">#RUN THIS OR THE CALCULATE-SCORES-MAPPLY</span></span>
@@ -9472,7 +9472,7 @@ loaded via a namespace (and not attached):
 </details>
 </div>
 <p><em>sanity check equivalence of for-loop and mapply scoring</em></p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/unnamed-chunk-75_9b95a9bba7c3c023e2c073680c0aed3a">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb106"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CHECK EQUIVALENCE OF LOOP AND MAPPLY SCORING </span></span>
@@ -9522,7 +9522,7 @@ loaded via a namespace (and not attached):
 <span id="cb106-45"><a href="#cb106-45" aria-hidden="true" tabindex="-1"></a><span class="co"># unique(alt_scored$score_niceABS == trad_scored$score_niceABS)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p><strong>Prior inline version of derive interpretation, before externalizing to a function in the scoring script</strong>. ::: {.cell hash=‘2_sgc3A_scoring_cache/html/unnamed-chunk-76_bf696e67f090e1aa4600bc72a7fe120f’}</p>
+<p><strong>Prior inline version of derive interpretation, before externalizing to a function in the scoring script</strong>. ::: {.cell}</p>
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb107"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="co"># threshold_range = 0.5 #set required variance in subscores to be discriminant</span></span>
@@ -9646,7 +9646,7 @@ loaded via a namespace (and not attached):
 <span id="cb107-119"><a href="#cb107-119" aria-hidden="true" tabindex="-1"></a><span class="co"># # df_items$score_SATISFICE &lt;- df_items$score_SATISFICE %&gt;% as.numeric()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <p>:::</p>
-<p><strong>Old inline calculation of score_SCALED before externalizing as function</strong> ::: {.cell hash=‘2_sgc3A_scoring_cache/html/unnamed-chunk-77_c6b29f964635e61613bc77d3d74e2d7a’}</p>
+<p><strong>Old inline calculation of score_SCALED before externalizing as function</strong> ::: {.cell}</p>
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb108"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a><span class="co"># df_items$score_SCALED &lt;- recode(df_items$interpretation,</span></span>
@@ -9661,7 +9661,7 @@ loaded via a namespace (and not attached):
 <span id="cb108-10"><a href="#cb108-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                           "Triangular" = 1)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <p>:::</p>
-<p><strong>Original summary by subject before externalizing as function</strong> ::: {.cell hash=‘2_sgc3A_scoring_cache/html/unnamed-chunk-78_305d043282cdbe5181a1e8e8665bbe5e’}</p>
+<p><strong>Original summary by subject before externalizing as function</strong> ::: {.cell}</p>
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb109"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #prep items</span></span>
@@ -9768,7 +9768,7 @@ loaded via a namespace (and not attached):
 </details>
 <p>:::</p>
 <p><strong>Summarize Cummulative Progress versions before functionize</strong></p>
-<div class="cell" data-hash="2_sgc3A_scoring_cache/html/unnamed-chunk-79_0e6ecbcfd7b2485634efdc81e226f89d">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb110"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS</span></span>

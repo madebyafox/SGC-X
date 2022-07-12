@@ -40,12 +40,12 @@ options(scipen=1, digits=3)
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(imac)
+# setwd(imac)
 
 #IMPORT DATA 
-df_subjects <- read_csv('analysis/SGC5A/data/0-study-level/sgc5_participants.csv') 
+df_subjects <- read_rds('analysis/SGC5A/data/0-study-level/sgc5_participants.rds') 
 
 ```
 
@@ -153,7 +153,7 @@ First we import participant-level data, selecting only the columns relevant for 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# setwd(imac)
 
 #import file
 df_subjects <- read_rds("analysis/SGC5A/data/0-study-level/sgc5_participants.rds") #use RDS file as it contains metadata
@@ -168,15 +168,15 @@ df_subjects <- read_rds("analysis/SGC5A/data/0-study-level/sgc5_participants.rds
 
 #save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp
 df_q16 <- df_subjects %>% 
-  select(subject, condition, term , mode, explanation) %>% 
+  dplyr::select(subject, condition, term , mode, explanation) %>% 
   mutate(
     q = 16,
     response = explanation
-  ) %>% select(-explanation)
+  ) %>% dplyr::select(-explanation)
 
 #reduce data collected using NEW webapp to useful columns
 df_subjects <- df_subjects %>% 
-  mutate(score = absolute_score) %>% 
+  # mutate(score = absolute_score) %>% 
   #select only columns we'll be analyzing, discard others
   dplyr::select( subject, condition, pretty_condition, term, mode, 
                  #demographics
@@ -186,7 +186,8 @@ df_subjects <- df_subjects %>%
                  #explanations
                  other,disability,
                  #response characteristics
-                 totaltime_m, absolute_score,
+                 totaltime_m, 
+                 #absolute_score,#drop absolute score as this is re-scored [though should be the same]
                  #exploratory factors
                  violations, browser, width, height
                  )
@@ -219,14 +220,14 @@ Next we import item-level data from each data collection period, selecting only 
 # #HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# setwd(imac)
 
 #read datafiles
 df_items <- read_rds("analysis/SGC5A/data/0-study-level/sgc5_items.rds") #use RDS file as it contains metadata
 
 #reduce data collected using new webapp
 df_items <- df_items %>% 
-  select(subject, condition, pretty_condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  dplyr::select(subject, condition, pretty_condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
@@ -272,7 +273,7 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 # #HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+# setwd(imac)
 
 #SAVE FILES
 write.csv(df_subjects,"analysis/SGC5A/data/1-study-level/sgc5_participants.csv", row.names = FALSE)
