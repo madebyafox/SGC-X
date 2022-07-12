@@ -86,7 +86,7 @@ df_all <- df_subjects
 df_subjects <- df_ospan
 
 #CLEANUP
-rm(ospan, sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
+# rm(ospan, sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
 ```
 
 
@@ -309,6 +309,13 @@ summary(m3)
 ```
 
 
+```{r}
+library(lpme)
+m <- modereg(Y = df_ospan$DV_percent_NABS, W= df_ospan$condition, 
+        bw = 2, nstart = 2, PLOT = TRUE)
+
+summary(m)
+```
 ## RESOURCES
 
 -   https://rpkgs.datanovia.com/ggpubr/reference/index.html
@@ -319,3 +326,146 @@ sessionInfo()
 ```
 
 
+```{r}
+gf_histogram(~s_NABS, data = sgc3a) %>% gf_facet_wrap(condition~.)
+```
+
+
+
+## ITEM
+```{r}
+#| label: IMPORT-DATA-ITEMS
+#| warning : false
+#| message : false
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
+
+#IMPORT SUBJECTS 
+sgc3a_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") %>% mutate(
+  study = "SGC3A"
+) 
+sgc4a_items <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds") %>% mutate(
+  study = "SGC4A",
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-answer)
+
+sgc4b_items <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds") %>% mutate(
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-answer)
+sgc5_items <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_items.rds") %>% mutate(
+  study = "SGC5A",
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-answer)
+
+#COMPARE COLUMNS
+janitor::compare_df_cols(sgc3a_items,sgc4a_items, sgc4b_items, sgc5_items)	
+
+#MERGE 
+df_items <- rbind(sgc3a_items, sgc4a_items, sgc4b_items, sgc5_items)
+
+#IMPORT OSPAN DATA 
+# ospan <- read_csv("analysis/combined/data/fall21_scored_ospan.csv") %>% mutate(
+  # subject = SUBJECTID
+# )
+
+#MERGE OSPAN DATA WITH SGC DATA 
+# df_ospan <- df_subjects %>% filter(
+#   subject %in% ospan$subject
+# )
+# 
+# df_ospan <- merge(df_ospan, ospan)
+# 
+# #RENAME for reuse
+# df_all <- df_subjects
+# df_subjects <- df_ospan
+
+#CLEANUP
+# rm(ospan, sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
+```
+
+```{r}
+library(lme4)
+library(lmerTest)
+library(performance)
+library(report)
+
+#LINEAR MODEL ON SUBJECT TOTAL SCORE
+m <- lm(s_NABS ~ condition, data = sgc3a)
+summary(m)
+
+#LINEAR MODEL ON SUBJECT TOTAL SCORE
+m <- glm(score_niceABS~condition, data = sgc3a_items, family = "binomial")
+summary(m)
+performance(m)
+
+#0 RANDOM INTEREPTS SUBJECT
+m.r0 <- glmer(score_niceABS ~ (1|subject), data = sgc3a_items, family = "binomial")
+summary(m.r0)
+anova(m.r0)
+performance(m.r0)
+
+#0 RANDOM SLOPE CONDITION/SUBJECT
+m.r1 <- glmer(score_niceABS ~ (0 + condition|subject), data = sgc3a_items, family = "binomial")
+summary(m.r1)
+anova(m.r1)
+performance(m.r1)
+
+#0 RANDOM SLOPES and intertercepts CONDITION/SUBJECT
+m.r2 <- glmer(score_niceABS ~ (1 + condition|subject), data = sgc3a_items, family = "binomial")
+summary(m.r2)
+anova(m.r2)
+performance(m.r2)
+
+####0 RANDOM INTERCEPTS SUBJECT RANDOM INTERCEPTS ITEM
+m.r3 <- glmer(score_niceABS ~ (1 |subject) + (1|q), data = sgc3a_items, family = "binomial")
+summary(m.r3)
+anova(m.r3)
+performance(m.r3)
+
+r3m <- glmer(score_niceABS ~ condition + (1 |subject) + (1|q), data = sgc3a_items, family = "binomial")
+summary(r3m)
+anova(r3m)
+performance(r3m)
+
+plot(r3m)
+check_model(r3m)
+report(r3m)
+
+
+
+#BAD FIT
+r4m <- glmer(score_niceABS ~ condition +  q + (1 |subject) , data = sgc3a_items, family = "binomial")
+summary(r4m)
+
+#???
+r5m <- glmer(score_niceABS ~ condition +  (1|q) + (1|subject) , data = sgc3a_items, family = "binomial")
+summary(r5m)
+
+coef(r5m)
+
+# #1. RANDOM SUBJECT + FIXED CONDITION
+# # X + (1 | SUBJECT)
+# m1 <- glmer(score_niceABS ~ condition + (1|subject), data = sgc3a_items, family = "binomial")
+# summary(m1)
+# anova(m1)
+# performance(m1)
+# 
+# #1. RANDOM condition by SUBJECT + FIXED CONDITION
+# # X + (1 + X | SUBJECT)
+# m2 <- glmer(score_niceABS ~ condition + (1+condition|subject), data = sgc3a_items, family = "binomial")
+# summary(m2)
+# lmerTest::anova(m2)
+# performance(m2)
+# 
+# #2. RANDOM SUBJECT + RANDOM Q + FIXED CONDITION 
+# m2 <- glmer(score_niceABS ~ condition + (1|subject) + (1|q) , data = sgc3a_items, family = "binomial")
+# summary(m2)
+# anova(m2)
+# performance(m2)
+
+##R SQUARED marginal is fixed effects only
+##R SQUARED condition is with random effects 
+```
