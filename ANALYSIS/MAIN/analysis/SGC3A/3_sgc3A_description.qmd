@@ -6,17 +6,11 @@ subtitle: 'Study SGC3A | 3 Description'
 
 # Description {#sec-SGC3A-description}
 
-**TODO**
-
--   finish description of latency
--   consider raincloud/boxplots/violins with ggpubr/ggdist
-
 *The purpose of this notebook is describe the distributions of dependent variables for Study SGC3A.*
 
 +------------------------+
 | Pre-Requisite          |
 +========================+
-| 1_sgc3A_harmonize.qmd\ |
 | 2_sgc3A_scoring.qmd    |
 +------------------------+
 
@@ -28,12 +22,17 @@ subtitle: 'Study SGC3A | 3 Description'
 
 library(Hmisc) # %nin% operator
 library(mosaic) #simple descriptives [favstats]
-library(multimode) #test for multimodality
-library(fitdistrplus) #fitting distributions
-library(performance) #multimodality
+
 library(kableExtra) #printing tables 
 library(vcd) #mosaicplots
 library(ggpubr) #arrange plots
+library(ggformula) #quick easy plots
+library(ggdist) # uncertainty viz
+
+library(multimode) #test for multimodality
+library(fitdistrplus) #fitting distributions
+library(performance) #multimodality
+
 library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
@@ -57,11 +56,13 @@ setwd(imac)
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds') 
+df_absolute_progress <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress.csv')
+df_scaled_progress <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress.csv')
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
-df_scaffold <- df_items %>% filter(q < 6)
-df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
-df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
+# df_scaffold <- df_items %>% filter(q < 6)
+# df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
+# df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 
 #SEPARATE ITEM AND SUBJECTS BY MODALITY
 df_lab <- df_subjects %>% filter(mode == "lab-synch")
@@ -108,25 +109,21 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
-For **in-person** collection, `r subject.stats["lab",]$n` participants (`r (subject.stats["lab",]$percent.female) * 100` % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
+For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round((subject.stats["lab",]$percent.female),2) * 100` % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-For **online replication** `r subject.stats["online",]$n` participants (`r  (subject.stats["online",]$percent.female) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
+For **online replication** `r subject.stats["online",]$n` participants (`r  round((subject.stats["online",]$percent.female),2) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-Combined **overall** `r subject.stats["combined",]$n` participants (`r  (subject.stats["combined",]$percent.female) * 100`` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years). 
+Combined **overall** `r subject.stats["combined",]$n` participants (`r  round((subject.stats["combined",]$percent.female),2) * 100` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years).
 
 ## RESPONSE ACCURACY
 
-### Total Scores
+### Subject Level Scores
 
-Total scores indicate the response accuracy by a particular participant across all discriminant items (n=13) in the graph comprehension task. (Although there were 15 questions in the graph comprehension task, questions 6 and 9 were non-discriminant (the correct response was the same for both triangular and orthogonal interpretations). We do not include these questions in our hypothesis testing analysis of performance, but evaluate them separately in our exploratory analysis.)
+Subject level scores summarize the the response accuracy by a particular participant across all discriminant items in the graph comprehension task.
 
-#### Total Absolute Score
+#### Test Phase Absolute Score
 
-Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) `s_NABS` indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of discriminant items, the cumulative absolute score for an individual subject ranges from \[0,13\].
-
-##### Test Phase 
-
-First we examine performance on the test phase (final 8 questions, appears after scaffolding phase). This tells us how the participants perform _after_ exposure to the 5 scaffolding questions (in the impasse condition). 
+Recall from [Section -@sec-absolute-scoring] that the absolute score (following the dichotomous scoring approach) `s_NABS` indicates if the subject's response for a particular item was *perfectly* correct: whether they selected all correct answer options and no others (excluding certain allowed exceptions, such as also selecting the data point referenced in the question). The absolute score for an individual item is either 0 or 1. When summarized across the entire set of discriminant items, the total absolute score for an individual subject ranges from \[0,13\]. When summarized across just the test phase (final items following scaffolding phase) scores for an individual subject range from \[0,8\]. First we examine performance on the test phase (final 8 questions, appears after scaffolding phase). This tells us how the participants perform *after* exposure to the 5 scaffolding questions (in the impasse condition).
 
 ```{r}
 #| label: DESC-SUBJ-ABS-TEST
@@ -154,9 +151,9 @@ When combined *overall*, total absolute accuracy scores in the TEST phase (n = `
 
 #GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL ABSOLUTE
   gf_props(~item_test_NABS, data = df_subjects) + 
-  labs(x = "number of correct responses",
+  labs(x = "number of correct responses (test phase)",
        y = "% of subjects",
-       title = "Distribution of Subject Total Absolute Score — TEST Phase",
+       title = "Distribution of TEST Absolute Score ",
        subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
   theme_minimal()
 
@@ -167,17 +164,42 @@ p <- gghistogram(df_subjects, x = "item_test_NABS", binwidth = 0.5,
    fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
    add_density = TRUE)
 facet(p, facet.by=c("pretty_condition","pretty_mode")) +
-  labs( title = "Distribution of Total Absolute Score in TEST Phase",
-        subtitle ="Pattern of response is the same across data collection modes but differs by condition",
-        x = "Total Absolute Score", y = "number of subjects") +
+  labs( title = "Distribution of TEST Absolute Score",
+        subtitle ="Pattern of response is similar across data collection modes but differs by condition",
+        x = "Total Absolute Score (Test Phase)", y = "number of subjects") +
   theme_minimal() + theme(legend.position = "blank")
+
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    justification = -.3, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + labs(
+    title = "Distribution of TEST Absolute Score ",
+    x = "Condition", y = "Total Absolute Score (Test Phase)"
+  ) + theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(item_test_NABS)) + 
   stat_ecdf(geom = "step") + 
   facet_grid(pretty_condition~pretty_mode) + 
-  labs( title = "Empirical Cumulative Density Function — Test Phase Absolute Score",
-        x = "Test Phase Absolute Score [0,8]", 
+  labs( title = "Empirical Cumulative Density Function — TEST Absolute Score ",
+        x = "Total Absolute Score (Test Phase) [0,8]", 
         y = "Cumulative Probability") + theme_minimal()
 
   
@@ -195,141 +217,15 @@ l_modes = multimode::locmodes(df_subjects$item_test_NABS,mod0 =  n_modes, displa
 
 The excess mass test for multimodality suggests the distribution is infact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
 
-But what kind of distribution is this data? Next, we use the `fitdistrplus` package to compare the distribution of this variable to a variety of probability distribution families. First, we transform the \# correct items to % correct items by dividing it by the total number of items (n = 13).
-
-```{r}
-#| label: FIT-DIST-TOTAL-ABS-TEST
-
-#describe the distribution
-descdist(data = df_subjects$item_test_NABS/8, discrete = FALSE, boot = 1000)
-
-print("FIT A NORMAL DISTRIBUTION")
-normal_ = fitdist(df_subjects$item_test_NABS/8,"norm")
-plot(normal_)
-
-print("FIT A BETA DISTRIBUTION")
-beta_ = fitdist(df_subjects$item_test_NABS/8,"beta", method="mme" )
-plot(beta_)
-summary(beta_)
-
-```
-
-Interpreting the Cullen and Frey graph, it _appears_ that number percentage of correct responses per subject may follow a beta distribution (u-shape tpe). If we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]`. The beta distribution is a flexible distribution insofar as it can model a wide range of shapes with its two parameters. TODO: HOW might this be applied to the total score data? 
-
-**Analysis Notes**
-- This distribution is very bimodal, so OLS linear regression estimating means may not be informative, as the mean actually falls near the location of the anitmode (least common value)
-- Should investigate log transform to see if residuals of LM will be normal
-- Should investigate beta regression 
-
 ::: callout-note
 **Condition appears (through visual inspection) to yield a positive influence on Total Absolute Score in the TEST Phase, across data collection modalities.**
 :::
 
-
-##### Entire Task 
-```{r}
-#| label: DESC-SUBJ-ABS
-title = "Descriptive Statistics of Response Accuracy (Total Absolute Score)"
-abs.stats <- rbind(
-  "lab"= df_lab %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
-  "online" = df_online %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
-  "combined" = df_subjects %>% dplyr::select(s_NABS) %>% unlist() %>% favstats()
-) 
-abs.stats %>% kbl (caption = title) %>% kable_classic()
-
-```
-
-For *in person* collection, total absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
-
-For *online replication*, (online) total absolute accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
-
-When combined *overall*, total absolute accuracy scores (n = `r abs.stats["combined",]$n`) range from `r round(abs.stats["combined",]$min,2)` to `r round(abs.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["combined",]$mean,2)`, SD = `r round(abs.stats["combined",]$sd,2)`).
-
-```{r}
-#| label: VIS-SUBJ-ABS
-
-#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL ABSOLUTE
-  gf_props(~s_NABS, data = df_subjects) + 
-  labs(x = "number of correct responses",
-       y = "% of subjects",
-       title = "Distribution of Subject Total Absolute Score",
-       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
-  theme_minimal()
-
-
-##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_subjects, x = "s_NABS", binwidth = 1,
-   add = "mean", rug = TRUE,
-   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
-   add_density = TRUE)
-facet(p, facet.by=c("pretty_condition","pretty_mode")) +
-  labs( title = "Distribution of Total Absolute Score (by Mode and Condition)",
-        subtitle ="Pattern of response is the same across data collection modes but differs by condition",
-        x = "Total Absolute Score", y = "number of subjects") +
-  theme_minimal() + theme(legend.position = "blank")
-
-
-#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(s_NABS)) + 
-  stat_ecdf(geom = "step") + 
-  facet_grid(pretty_condition ~ pretty_mode) + 
-  labs( title = "Empirical Cumulative Density Function — Task Absolute Score",
-        x = "Test Phase Absolute Score [0,13]", 
-        y = "Cumulative Probability") + theme_minimal()
-  
-```
-
-Visual inspection of this distribution suggests it is not normal, and likely bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). TODO REFERENCE
-
-```{r}
-#| label: CHECK-SUBJ-ABS
-
-multimode::modetest(df_subjects$s_NABS)
-n_modes = multimode::nmodes(df_subjects$s_NABS, bw=2) #bw = 2questions/15 = 0.15%
-l_modes = multimode::locmodes(df_subjects$s_NABS,mod0 =  n_modes, display = TRUE)
-```
-
-The excess mass test for multimodality suggests the distribution is infact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
-
-But what kind of distribution is this data? Next, we use the `fitdistrplus` package to compare the distribution of this variable to a variety of probability distribution families. First, we transform the \# correct items to % correct items by dividing it by the total number of items (n = 13).
-
-```{r}
-#| label: FIT-DIST-TOTAL-ABS
-
-#describe the distribution
-descdist(data = df_subjects$DV_percent_NABS, discrete = FALSE, boot = 1000)
-
-print("FIT A NORMAL DISTRIBUTION")
-normal_ = fitdist(df_subjects$DV_percent_NABS,"norm")
-plot(normal_)
-
-print("FIT A BETA DISTRIBUTION")
-beta_ = fitdist(df_subjects$DV_percent_NABS,"beta", method="mme" )
-plot(beta_)
-summary(beta_)
-
-```
-
-Interpreting the Cullen and Frey graph, it _appears_ that number percentage of correct responses per subject may follow a beta distribution (u-shape tpe). If we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]`. The beta distribution is a flexible distribution insofar as it can model a wide range of shapes with its two parameters. TODO: HOW might this be applied to the total score data? 
-
-**Analysis Notes**
-- This distribution is very bimodal, so OLS linear regression estimating means may not be informative, as the mean actually falls near the location of the anitmode (least common value)
-- Should investigate log transform to see if residuals of LM will be normal
-- Should investigate beta regression 
-
-::: callout-note
-**Condition appears (through visual inspection) to yield a positive influence on Total Absolute Score across data collection modalities.**
-:::
-
-#### Total Scaled Scores
+#### Test Phase Scaled Scores
 
 The total scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject. This score ranges from from -13 (all orthogonal) to 13 (all triangular). Recall that the `s_SCALED` score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1 (see [Section -@sec-SGC3A-scaledScore])
 
 Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score.
-
-##### Test Phase
-
-First we examine performance on the test phase (final 8 questions, appears after scaffolding phase). This tells us how the participants perform _after_ exposure to the 5 scaffolding questions (in the impasse condition). 
 
 ```{r}
 #| label: DESC-SUBJ-SCALED-TEST
@@ -355,9 +251,9 @@ When combined **overall**, TEST phase scaled scores (n = `r scaled.stats["combin
 
 #GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL SCALED
 gf_props(~item_test_SCALED, data = df_subjects) +
-  labs(x = "total scaled score",
+  labs(x = "total scaled score (test phase)",
        y = "% of subjects",
-       title = "Distribution of Subject Total Scaled Score — TEST Phase",
+       title = "Distribution of TEST Scaled Score ",
        subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
   theme_minimal()
 
@@ -368,10 +264,34 @@ p <- gghistogram(df_subjects, x = "item_test_SCALED",binwidth=1,
    fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
    add_density = TRUE) 
 facet(p, facet.by=c("pretty_condition","pretty_mode")) + 
-  labs( title = "Distribution of Total Scaled Score — TEST Phase",
+  labs( title = "Distribution of TEST Scaled Score",
         subtitle ="Pattern of response is similar across data collection modes but differs by condition",
-        x = "total scaled score", y = "number of participants") + 
+        x = "total scaled score (test phase)", y = "number of participants") + 
   theme_minimal() + theme(legend.position = "blank") 
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = item_test_SCALED, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    justification = -.3, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + labs(
+    title = "Distribution of TEST Scaled Score ",
+    x = "Condition", y = "Total Scaled Score (Test Phase)"
+  ) + theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
 
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
@@ -396,153 +316,21 @@ l_modes = multimode::locmodes(df_subjects$item_test_SCALED,mod0 =  n_modes, disp
 
 The excess mass test for multimodality suggests the distribution is in fact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
 
-**Analysis Notes**
-- As with absolute score, the distribution of scaled score is very bimodal
-- Same need to investigate transformations and alternative distributions for regression
-
-::: callout-note
-**Condition appears (through visual inspection) to yield a positive influence on TEST Phase Scaled Score across data collection modalities.**
-:::
-
-##### Entire Task
-The total scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject. This score ranges from from -13 (all orthogonal) to 13 (all triangular). Recall that the `s_SCALED` score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1 (see [Section -@sec-SGC3A-scaledScore])
-
-Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score.
-
-```{r}
-#| label: DESC-SUBJ-SCALED
-
-title = "Descriptive Statistics of Response Accuracy (Total Scaled Score)"
-scaled.stats <- rbind(
-  "lab"= df_lab %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
-  "online" = df_online %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
-  "combined" = df_subjects %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats()
-) 
-scaled.stats %>% kbl (caption = title) %>% kable_classic()
-
-```
-
-For **in person collection**, total scaled scores (n = `r scaled.stats["lab",]$n`) range from `r round(scaled.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(scaled.stats["lab",]$mean,2)`, SD = `r round(scaled.stats["lab",]$sd,2)`).
-
-For **online replication**, total scaled scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
-
-When combined **overall**, total scaled scores (n = `r scaled.stats["combined",]$n`) range from `r round(scaled.stats["combined",]$min,2)` to `r round(scaled.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["combined",]$mean,2)`, SD = `r round(scaled.stats["combined",]$sd,2)`).
-
-```{r}
-#| label: VIS-SUBJ-SCALED
-
-#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL SCALED
-gf_props(~s_SCALED, data = df_subjects) +
-  labs(x = "total scaled score",
-       y = "% of subjects",
-       title = "Distribution of Subject Total Scaled Score",
-       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
-  theme_minimal()
-
-
-##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_subjects, x = "s_SCALED",binwidth=1,
-   add = "mean", rug = TRUE,
-   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
-   add_density = TRUE) 
-facet(p, facet.by=c("pretty_condition","pretty_mode")) + 
-  labs( title = "Distribution of Total Scaled Score (by Condition and Mode)",
-        subtitle ="Pattern of response is similar across data collection modes but differs by condition",
-        x = "total scaled score", y = "number of participants") + 
-  theme_minimal() + theme(legend.position = "blank") 
-
-#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(s_SCALED)) + 
-  stat_ecdf(geom = "step") + 
-  facet_grid(pretty_condition ~ pretty_mode) + 
-  labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
-        x = "Task Scaled Score [-13, 13]", 
-        y = "Cumulative Probability") + theme_minimal()
-
-```
-
-Visual inspection of this distribution suggests it is not normal, and perhaps perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018).
-
-```{r}
-#| label: CHECK-SUBJ-SCALED
-
-multimode::modetest(df_subjects$s_SCALED)
-n_modes = multimode::nmodes(df_subjects$s_SCALED, bw=2) #bw = 2questions/15 = 0.15%
-l_modes = multimode::locmodes(df_subjects$s_SCALED,mod0 =  n_modes, display = TRUE)
-```
-
-The excess mass test for multimodality suggests the distribution is in fact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
-
-**Analysis Notes**
-- As with absolute score, the distribution of scaled score is very bimodal
-- Same need to investigate transformations and alternative distributions for regression
-
-::: callout-note
-**Condition appears (through visual inspection) to yield a positive influence on Total Scaled Score across data collection modalities.**
-:::
-
-#### Total Interpretations
-
-Next we consider the the interpretations assigned to each response.
-
-```{r}
-#| label: DESC-TOTAL-INTEPRETATIONS
-
-title = "Proportion of Interpretations Across Items Items By Condition (Lab)"
-item.contingency <- df_items %>% filter(mode == "lab-synch") %>% dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
-
-title = "Proportion of Interpretations Across Items Items By Condition (Online)"
-item.contingency <- df_items %>% filter(mode == "asynch") %>% dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
-
-
-title = "Proportion of Interpretations Across Items Items By Condition (Combined)"
-item.contingency <- df_items %>%  dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
-
-
-```
-
-```{r}
-#| label: VIS-ITEM-INTERPRETATION
-
-
-#PROPORTIONAL BAR CHART
-gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>% 
-  gf_facet_grid(mode~pretty_condition, labeller = label_both) +
-  labs(x = "% of items",
-       title = "Proportion of Interpretations Across Items",
-       subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
-  theme_minimal()+ theme(legend.position = "none")
-
-
-#MOSAIC PLOT
-vcd::mosaic(main="Proportion of Interpretations across Conditions",
-            data = df_items, pretty_condition ~ interpretation, rot_labels=c(0,90,0,0), 
-            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
-            spacing = spacing_dimequal(unit(1:2, "lines"))) 
-
-
-```
-
 ### First Item Scores
 
 Next we consider the response accuracy on *just* the first question of the graph comprehension task: a subject's first exposure to the TM graph.
 
 #### First Item Absolute Score
 
-Next we consider the absolute score assigned the first response.
-
 ```{r}
 #| label: DESC-FIRST-ABSOLUTE
 
 title = "Proportion of Correct Response on First Item (Lab)"
-item.contingency <- df_subjects %>% filter(mode == "lab-synch") %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency <- df_lab %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 title = "Proportion of Correct Response on First Item (Online)"
-item.contingency <- df_subjects %>% filter(mode == "asynch") %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency <- df_online  %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 title = "Proportion of Correct Response on First Item (Combined)"
@@ -551,6 +339,8 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 
 ```
+
+Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (78%) than correct answers (22%). Accuracy is somewhat improved in the IMPASSE condition, with roughly 15% of all IMPASSE-condition questions answered correctly, compared to only 7% in the CONTROL condition.
 
 ```{r}
 #| label: VIS-FIRST-ABSOLUTE
@@ -561,15 +351,15 @@ gf_props(~item_q1_NABS, data = df_subjects) +
        y = "% subjects",
        title = "Proportion of Correct Responses on First Item",
        subtitle="")+
-  theme_minimal()+ theme(legend.position = "none")
+  theme_minimal()+ theme(legend.position = "none")+theme_ggdist()
 
 #PROPORTIONAL BAR CHART
 gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>% 
-  gf_facet_grid(mode~pretty_condition, labeller = label_both) +
-  labs(x = "% of items",
+  gf_facet_grid(pretty_condition~pretty_mode) +
+  labs(x = "response accuracy",
        title = "Proportion of Correct Responses on First Item (by Modality and Condition)",
        subtitle="")+
-  theme_minimal()+ theme(legend.position = "none")
+  theme_minimal()+ theme(legend.position = "none") 
 
 
 #MOSAIC PLOT
@@ -589,8 +379,8 @@ At the item level, the scaled score gives us a numeric measure of correctness of
 #| label: DESC-FIRST-SCALED
 title = "Descriptive Statistics of Response Accuracy (First Item Scaled Score)"
 firstscaled.stats <- rbind(
-  "lab"= df_subjects %>% filter(mode == 'lab-synch') %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats(),
-  "online" = df_subjects %>% filter(mode == "asynch") %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats(),
+  "lab"= df_lab %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(item_q1_SCALED) %>% unlist() %>% favstats()
 ) 
 firstscaled.stats %>% kbl (caption = title) %>% kable_classic()
@@ -620,9 +410,9 @@ p <- gghistogram(df_subjects, x = "item_q1_SCALED", binwidth = 0.5,
    add = "mean", rug = TRUE,
    fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
    add_density = TRUE) 
-facet(p, facet.by=c("pretty_condition","mode")) + 
+facet(p, facet.by=c("pretty_condition","pretty_mode")) + 
   labs( title = "Distribution of First Item Scaled Score (by Mode and Condition)",
-        subtitle ="Pattern of response is the same across data collection modes but differs by condition",
+        subtitle ="Impasse condition yields more intermediate scores (indicating uncertainty)",
         x = "scaled score (firt item) ", y = "number of participants") + 
   theme_minimal() + theme(legend.position = "blank") 
 
@@ -640,13 +430,428 @@ facet(p, facet.by=c("pretty_condition","mode")) +
   
 ```
 
+### Interpretation Scores
+
+Next we consider the the interpretations assigned to each response. For each response given by a participant to a question, we assign an interpretation label based on the interpretation the response most closely matches (see @sec-scoring-interpretation).
+
+```{r}
+#| label: DESC-TOTAL-INTEPRETATIONS
+
+title = "Proportion of Interpretations Across Items Items By Condition (Lab)"
+item.contingency <- df_items %>% filter(mode == "lab-synch") %>% dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+title = "Proportion of Interpretations Across Items Items By Condition (Online)"
+item.contingency <- df_items %>% filter(mode == "asynch") %>% dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+title = "Proportion of Interpretations Across Items Items By Condition (Combined)"
+item.contingency <- df_items %>%  dplyr::select(interpretation, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency %>% kbl (caption = title) %>% kable_classic()
+
+
+```
+
+```{r}
+#| label: VIS-ITEM-INTERPRETATION
+
+
+#PROPORTIONAL BAR CHART
+gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>% 
+  gf_facet_grid(pretty_condition~pretty_mode) +
+  labs(x = "% of items",
+       title = "Proportion of Interpretations Across Items",
+       subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
+  theme_minimal()+ theme(legend.position = "none")
+
+
+#MOSAIC PLOT
+# vcd::mosaic(main="Proportion of Interpretations across Conditions",
+#             data = df_items, pretty_condition ~ interpretation, rot_labels=c(0,90,0,0), 
+#             offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
+#             spacing = spacing_dimequal(unit(1:2, "lines"))) 
+
+
+```
+
+
+### Cumulative Task Performance
+
+```{r}
+#| label: VIZ-PROGRESS
+
+#VISUALIZE progress over time ABSOLUTE score 
+ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
+ geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
+ facet_wrap(~pretty_condition) + 
+ labs (title = "Cumulative Absolute Score over sequence of task", x = "Question" , y = "Cumulative Absolute Score") + 
+ scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
+ theme_minimal() + theme(legend.position = "blank")
+
+#VISUALIZE progress over time SCALED score 
+ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
+ geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
+ facet_wrap(~pretty_condition) + 
+ labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
+ scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
+ theme_minimal() + theme(legend.position = "blank")
+
+```
+
+
 ## RESPONSE LATENCY
 
 -   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
-
 -   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
-
 -   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
+
+
+### Time on First Item 
+
+Here we consider the time spent on just the first individual item (first exposure to graph).
+
+```{r DESCRIBE-FIRSTTIME}
+#DESCRIBE distribution of response time
+time.stats <- rbind(
+  "lab"= df_lab%>% dplyr::select(item_q1_rt) %>% unlist()  %>%  favstats(),
+  "online"= df_online %>% dplyr::select(item_q1_rt) %>% unlist() %>% favstats(),
+  "combined"= df_subjects %>% dplyr::select(item_q1_rt) %>% unlist() %>% favstats()
+)
+
+title = "Descriptive Statistics of First Response Time (seconds)"
+time.stats %>% kbl(caption = title) %>% kable_classic()
+```
+
+Response time _on the first item_  for *in person* subjects (n = `r time.stats["lab",]$n`) ranged from `r round(time.stats["lab",]$min,2)` to `r round(time.stats["lab",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["lab",]$mean,2)`, SD = `r round(time.stats["lab",]$sd,2)`).
+
+Response time _on the first item_ for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
+
+Response time _on the first item_ for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+
+```{r}
+#| label : VIS-FIRSTTIME
+#| message : false
+#| warning : false
+
+
+#HISTOGRAM
+gf_dhistogram(~item_q1_rt, data = df_subjects) %>%
+  gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
+  gf_fitdistr(dist="gamma", color="red")+
+  labs(title="Distribution of First Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "First Item Response Time (seconds)", y = "% items") +  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "item_q1_rt", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of First Item Response Time (seconds)",
+        subtitle ="",
+        x = "First Item Response Time (seconds)", y = "number of items") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
+
+#recode as boolean correct
+df_subjects <- df_subjects %>% mutate(
+  item_q1_NABS = as.logical(item_q1_NABS)
+)
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = item_q1_rt, color = item_q1_NABS) ) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.2, 
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter( 
+      seed = 1, width = .1
+  )) + 
+  labs( title = "Distribution of First Item Response Time (seconds)",
+        subtitle ="",
+        y = "First Item Response Time (s)", x = "Condition") +
+  theme_ggdist() 
+# + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+                
+```
+
+### Time on Item 
+
+Here we consider the time spent on an individual item (across all items).
+
+```{r DESCRIBE-ITEMTIME}
+#DESCRIBE distribution of response time
+time.stats <- rbind(
+  "lab"= df_items %>% filter(mode == "lab-synch") %>% dplyr::select(rt_s) %>% unlist()  %>%  favstats(),
+  "online"= df_items %>% filter(mode == "lab-synch") %>% dplyr::select(rt_s) %>% unlist() %>% favstats(),
+  "combined"= df_items %>%   dplyr::select(rt_s) %>% unlist() %>% favstats()
+)
+
+title = "Descriptive Statistics of Item Response Latency (seconds)"
+time.stats %>% kbl(caption = title) %>% kable_classic()
+```
+
+Time on an individual item for *in person* subjects (n = `r time.stats["lab",]$n`) ranged from `r round(time.stats["lab",]$min,2)` to `r round(time.stats["lab",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["lab",]$mean,2)`, SD = `r round(time.stats["lab",]$sd,2)`).
+
+Time on an individual item  for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
+
+Time on an individual item for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+
+```{r}
+#| label : VIS-ITEMTIME
+#| message : false
+#| warning : false
+
+
+#HISTOGRAM
+gf_dhistogram(~rt_s, data = df_items) %>%
+  gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
+  gf_fitdistr(dist="gamma", color="red")+
+  labs(title="Distribution of Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "Item Response Time (seconds)", y = "% items") +  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_items, x = "rt_s", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of Item Response Time (seconds)",
+        subtitle ="",
+        x = "Item Response Time (seconds)", y = "number of items") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
+#recode as boolean correct
+df_items <- df_items %>% mutate(
+  score_niceABS = as.logical(score_niceABS)
+)
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_items, aes(x = pretty_condition, y = rt_s, color = score_niceABS) ) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.2, 
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter( 
+      seed = 1, width = .1
+  )) + 
+  labs( title = "Distribution of Item Response Time (seconds)",
+        subtitle ="",
+        y = "Item Response Time (s)", x = "Condition") +
+  theme_ggdist() 
+# + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+                
+```
+
+
+
+
+
+
+
+**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
+
+
+
+
+
+
+
+### Time on SCAFFOLD Phase
+
+Here we consider _just_ the time spent on the first five items of the task (the scaffold phase).
+
+```{r DESCRIBE-SCAFFOLDTIME}
+#DESCRIBE distribution of response time
+time.stats <- rbind(
+  "lab"= df_lab %>% dplyr::select(item_scaffold_rt) %>% unlist()  %>%  favstats(),
+  "online"= df_online %>% dplyr::select(item_scaffold_rt) %>% unlist() %>% favstats(),
+  "combined"= df_subjects %>% dplyr::select(item_scaffold_rt) %>% unlist() %>% favstats()
+)
+
+title = "Descriptive Statistics of SCAFFOLD Phase Response Latency (minutes)"
+time.stats %>% kbl(caption = title) %>% kable_classic()
+```
+
+Total time on SCAFFOLD phase for *in person* subjects (n = `r time.stats["lab",]$n`) ranged from `r round(time.stats["lab",]$min,2)` to `r round(time.stats["lab",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["lab",]$mean,2)`, SD = `r round(time.stats["lab",]$sd,2)`).
+
+Total time on SCAFFOLD phase for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
+
+Total time on SCAFFOLD phase for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+
+```{r}
+#| label : VIS-SCAFFOLDTIME
+#| message : false
+#| warning : false
+
+
+#HISTOGRAM
+gf_dhistogram(~item_scaffold_rt, data = df_subjects) %>%
+  gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
+  gf_fitdistr(dist="gamma", color="red")+
+  labs(title="Distribution of SCAFFOLD Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Scaffold Phase Time (minutes)", y = "% subjects") +  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "item_scaffold_rt", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of SCAFFOLD Phase Response Time (minutes)",
+        subtitle ="",
+        x = "Scaffold Phase Time (minutes)", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = item_scaffold_rt, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.2, 
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+  )) + 
+  labs( title = "Distribution of SCAFFOLD Phase Response Time (minutes)",
+        subtitle ="",
+        y = "Total Study Time (minutes)", x = "Condition") +
+  theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+                
+```
+
+
+
+
+
+
+
+**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
+
+
+
+
+### Time on TEST Phase
+
+Here we consider _just_ the time spent on the remaining eight discriminant items of the task (the test phase).
+
+```{r DESCRIBE-TESTTIME}
+#DESCRIBE distribution of response time
+time.stats <- rbind(
+  "lab"= df_lab %>% dplyr::select(item_test_rt) %>% unlist()  %>%  favstats(),
+  "online"= df_online %>% dplyr::select(item_test_rt) %>% unlist() %>% favstats(),
+  "combined"= df_subjects %>% dplyr::select(item_test_rt) %>% unlist() %>% favstats()
+)
+
+title = "Descriptive Statistics of TEST Phase Response Latency (minutes)"
+time.stats %>% kbl(caption = title) %>% kable_classic()
+```
+
+Total time on TEST phase for *in person* subjects (n = `r time.stats["lab",]$n`) ranged from `r round(time.stats["lab",]$min,2)` to `r round(time.stats["lab",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["lab",]$mean,2)`, SD = `r round(time.stats["lab",]$sd,2)`).
+
+Total time on TEST phase for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
+
+Total time on TEST phase for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+
+```{r}
+#| label : VIS-TESTTIME
+#| message : false
+#| warning : false
+
+
+#HISTOGRAM
+gf_dhistogram(~item_test_rt, data = df_subjects) %>%
+  gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
+  gf_fitdistr(dist="gamma", color="red")+
+  labs(title="Distribution of TEST Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Test Phase Time (minutes)", y = "% subjects") +  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "item_test_rt", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of TEST Phase Response Time (minutes)",
+        subtitle ="",
+        x = "Test Phase Time (minutes)", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = item_test_rt, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.2, 
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+  )) + 
+  labs( title = "Distribution of TEST Phase Response Time (minutes)",
+        subtitle ="",
+        y = "Test Phase Time (minutes)", x = "Condition") +
+  theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+                
+```
+
+
+
+
+
+
+
+**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
+
+
+
+
+
 
 ### Time on Study
 
@@ -658,7 +863,7 @@ time.stats <- rbind(
   "combined"= df_subjects %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats()
 )
 
-title = "Descriptive Statistics of Response Latency (Time on Study)"
+title = "Descriptive Statistics of Response Latency (Total Minutes on Study)"
 time.stats %>% kbl(caption = title) %>% kable_classic()
 ```
 
@@ -666,35 +871,126 @@ Total time on study for *in person* subjects (n = `r time.stats["lab",]$n`) rang
 
 Total time on study for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
 
+Total time on study for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+
 ```{r}
 #| label : VIS-TOTALTIME
 #| message : false
 #| warning : false
 
-#VISUALIZE distribution of response time
-plab <- gf_dhistogram(~totaltime_m, data = df_subjects) %>%
+
+#HISTOGRAM
+gf_dhistogram(~totaltime_m, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Lab", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of Total Time on Study (in minutes)", subtitle = "fit by gamma distribution", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
 
-ponline <- gf_dhistogram(~totaltime_m, data = df_subjects) %>%
-  gf_vline(xintercept = ~time.stats["online",]$mean, color = "black") %>% 
-  gf_fitdistr(dist = "gamma", color="red")+
-  labs(title="Online", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
+#HISTOGRAM by CONDITION and MODE
+gf_dhistogram(~totaltime_m, data = df_subjects) %>%
+  gf_facet_grid(pretty_condition ~ pretty_mode) + 
+  labs(title="Distribution of Total Time on Study ( minutes)", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
 
-plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
 
-annotate_figure(plot, 
-                top = text_grob("Total Time by Study Mode",color = "black", face = "bold", size = 14),
-                bottom = text_grob("fit by Gamma distribution", face = "italic", size = 10))
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "totaltime_m", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of Total Time on Study (minutes)",
+        subtitle ="",
+        x = "Total Study Time (minutes)", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+# GGPUBR ARRANGE EXAMPLE WITH CUSTOM DIST FITTING
+# plab <- gf_dhistogram(~totaltime_m, data = df_subjects) %>%
+#   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
+#   gf_facet_grid(pretty_condition ~ .) + 
+#   labs(title="Lab", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
+# 
+# ponline <- gf_dhistogram(~totaltime_m, data = df_subjects) %>%
+#   gf_vline(xintercept = ~time.stats["online",]$mean, color = "black") %>% 
+#   gf_facet_grid(pretty_condition ~ .) + 
+#   labs(title="Online", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
+# 
+# plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
+# 
+# annotate_figure(plot, 
+#                 top = text_grob("Total Time by Study Mode",color = "black", face = "bold", size = 14),
+#                 bottom = text_grob("fit by Gamma distribution", face = "italic", size = 10))
+
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = totaltime_m, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.2, 
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+  )) + 
+  labs( title = "Distribution of Total Time on Study (minutes)",
+        subtitle ="",
+        y = "Total Study Time (minutes)", x = "Condition") +
+  theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
                 
 ```
 
 **TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
 
-### Time on Question
 
-**TODO time on question**
+
+
+
+# WIP EXPLORING
+
+**TODO** Cumulative speed?
+
+```{r}
+
+gf_line(rt_s ~ q, group = ~subject, data = df_items %>% filter(q %nin% c(6,9)) %>% filter(mode=="asynch"), color = ~score_niceABS, alpha = 0.2) %>% 
+  gf_facet_grid( pretty_condition ~ score_niceABS) +
+  labs(title = " ONLINE response time BY item and accuracy")
+
+
+gf_boxplot( item_avg_rt ~ pretty_condition,  data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_mode) +
+  labs(title = "Average item response time by mode and condition")
+
+
+gf_boxplot( item_scaffold_rt ~ pretty_condition,  data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_mode) +
+  labs(title = "Average SCAFFOLD response time by mode and condition")
+
+gf_boxplot( item_test_rt ~ pretty_condition,  data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_mode) +
+  labs(title = "Average TEST response time by mode and condition")
+
+gf_boxplot( totaltime_m ~ pretty_condition,  data = df_subjects) %>% 
+  gf_facet_wrap(~pretty_mode) +
+  labs(title = "Average TOTAL response time by mode and condition")
+
+gf_boxplot( item_q1_rt ~ pretty_condition,  data = df_subjects) %>% 
+  gf_jitter(width=0.2, alpha = 0.5, size = 0.75, color = ~item_q1_NABS) %>% 
+  gf_facet_wrap(~pretty_mode) +
+  labs(title = "Average FIRST ITEM response time by mode and condition")
+
+```
+
+
+
+
 
 ## REPLICATION CHECK
 
@@ -777,7 +1073,230 @@ Sample ridgeplot code
 
 ```
 
-**Item Absolute Score**
+### What Kind of Distribution is Total Score?
+
+What kind of distribution is the Total Absolute Score (TEST Phase) data? We use the `fitdistrplus` package to compare the distribution of this variable to a variety of probability distribution families. First, we transform the \# correct items to % correct items by dividing it by the total number of items (n = 8).
+
+```{r}
+#| label: FIT-DIST-TOTAL-ABS-TEST
+
+#describe the distribution
+descdist(data = df_subjects$item_test_NABS/8, discrete = FALSE, boot = 1000)
+
+print("FIT A NORMAL DISTRIBUTION")
+normal_ = fitdist(df_subjects$item_test_NABS/8,"norm")
+plot(normal_)
+
+print("FIT A BETA DISTRIBUTION")
+beta_ = fitdist(df_subjects$item_test_NABS/8,"beta", method="mme" )
+plot(beta_)
+summary(beta_)
+
+```
+
+Interpreting the Cullen and Frey graph, it *appears* that number percentage of correct responses per subject may follow a beta distribution (u-shape tpe). If we fit this variable using both a normal and beta distribution (using method of moments), it appears that the beta distribution provides a much better fit. The parameter estimates for the beta distribution are: shape1 = `r beta_$estimate[1]`, shape2 = `r beta_$estimate[2]`. The beta distribution is a flexible distribution insofar as it can model a wide range of shapes with its two parameters. TODO: HOW might this be applied to the total score data?
+
+**Analysis Notes** - This distribution is very bimodal, so OLS linear regression estimating means may not be informative, as the mean actually falls near the location of the anitmode (least common value) - Should investigate log transform to see if residuals of LM will be normal (no) - Should investigate beta regression
+
+### Whole Task Scores
+
+##### Absolute Score
+
+Total Scores that include *both* Scaffolding Phase as well as Test Phase performance.
+
+```{r}
+#| label: DESC-SUBJ-ABS
+title = "Descriptive Statistics of Response Accuracy (Total Absolute Score)"
+abs.stats <- rbind(
+  "lab"= df_lab %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(s_NABS) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(s_NABS) %>% unlist() %>% favstats()
+) 
+abs.stats %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+For *in person* collection, total absolute scores (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
+
+For *online replication*, (online) total absolute accuracy scores (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
+
+When combined *overall*, total absolute accuracy scores (n = `r abs.stats["combined",]$n`) range from `r round(abs.stats["combined",]$min,2)` to `r round(abs.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["combined",]$mean,2)`, SD = `r round(abs.stats["combined",]$sd,2)`).
+
+```{r}
+#| label: VIS-SUBJ-ABS
+
+#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL ABSOLUTE
+  gf_props(~s_NABS, data = df_subjects) + 
+  labs(x = "number of correct responses",
+       y = "% of subjects",
+       title = "Distribution of Task Absolute Score",
+       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
+  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "s_NABS", binwidth = 1,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of Task Absolute Score (by Mode and Condition)",
+        subtitle ="Pattern of response is the same across data collection modes but differs by condition",
+        x = "Total Absolute Score", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = s_NABS, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    justification = -.3, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + labs(
+    title = "Distribution of Task Absolute Score",
+    x = "Condition", y = "Total Absolute Score"
+  ) + theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+
+
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(s_NABS)) + 
+  stat_ecdf(geom = "step") + 
+  facet_grid(pretty_condition ~ pretty_mode) + 
+  labs( title = "Empirical Cumulative Density Function — Task Absolute Score",
+        x = "Task Absolute Score [0,13]", 
+        y = "Cumulative Probability") + theme_minimal()
+  
+```
+
+Visual inspection of this distribution suggests it is not normal, and likely bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). TODO REFERENCE
+
+```{r}
+#| label: CHECK-SUBJ-ABS
+
+multimode::modetest(df_subjects$s_NABS)
+n_modes = multimode::nmodes(df_subjects$s_NABS, bw=2) #bw = 2questions/15 = 0.15%
+l_modes = multimode::locmodes(df_subjects$s_NABS,mod0 =  n_modes, display = TRUE)
+```
+
+The excess mass test for multimodality suggests the distribution is infact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
+
+::: callout-note
+**Condition appears (through visual inspection) to yield a positive influence on Total Absolute Score (across the entire task), across data collection modalities.**
+:::
+
+##### Scaled Score
+
+```{r}
+#| label: DESC-SUBJ-SCALED
+
+title = "Descriptive Statistics of Response Accuracy (Total Scaled Score)"
+scaled.stats <- rbind(
+  "lab"= df_lab %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(s_SCALED) %>% unlist() %>% favstats()
+) 
+scaled.stats %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+For **in person collection**, total scaled scores (n = `r scaled.stats["lab",]$n`) range from `r round(scaled.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(scaled.stats["lab",]$mean,2)`, SD = `r round(scaled.stats["lab",]$sd,2)`).
+
+For **online replication**, total scaled scores (n = `r scaled.stats["online",]$n`) range from `r round(scaled.stats["online",]$min,2)` to `r round(scaled.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["online",]$mean,2)`, SD = `r round(scaled.stats["online",]$sd,2)`).
+
+When combined **overall**, total scaled scores (n = `r scaled.stats["combined",]$n`) range from `r round(scaled.stats["combined",]$min,2)` to `r round(scaled.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(scaled.stats["combined",]$mean,2)`, SD = `r round(scaled.stats["combined",]$sd,2)`).
+
+```{r}
+#| label: VIS-SUBJ-SCALED
+
+#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL SCALED
+gf_props(~s_SCALED, data = df_subjects) +
+  labs(x = "total scaled score",
+       y = "% of subjects",
+       title = "Distribution of Total Scaled Score",
+       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") + 
+  theme_minimal()
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "s_SCALED",binwidth=1,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE) 
+facet(p, facet.by=c("pretty_condition","pretty_mode")) + 
+  labs( title = "Distribution of Total Scaled Score (by Condition and Mode)",
+        subtitle ="Pattern of response is similar across data collection modes but differs by condition",
+        x = "total scaled score", y = "number of participants") + 
+  theme_minimal() + theme(legend.position = "blank") 
+
+##RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = s_SCALED, fill = pretty_condition)) + 
+  ggdist::stat_halfeye(
+    adjust = .5, 
+    width = .6, 
+    .width = 0, 
+    justification = -.3, 
+    point_colour = NA) + 
+  geom_boxplot(
+    width = .15, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + labs(
+    title = "Distribution of Task Scaled Score ",
+    x = "Condition", y = "Total Scaled Score"
+  ) + theme_ggdist() + theme(legend.position = "blank")
+# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(s_SCALED)) + 
+  stat_ecdf(geom = "step") + 
+  facet_grid(pretty_condition ~ pretty_mode) + 
+  labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
+        x = "Task Scaled Score [-13, 13]", 
+        y = "Cumulative Probability") + theme_minimal()
+
+```
+
+Visual inspection of this distribution suggests it is not normal, and perhaps perhaps bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018).
+
+```{r}
+#| label: CHECK-SUBJ-SCALED
+
+multimode::modetest(df_subjects$s_SCALED)
+n_modes = multimode::nmodes(df_subjects$s_SCALED, bw=2) #bw = 2questions/15 = 0.15%
+l_modes = multimode::locmodes(df_subjects$s_SCALED,mod0 =  n_modes, display = TRUE)
+```
+
+The excess mass test for multimodality suggests the distribution is in fact multimodal (m = 0.1, p \< 0.001), with two identifiable modes at `r l_modes$location[1]` and `r l_modes$location[3]`, and an antimode at `r l_modes$location[2]`.
+
+**Analysis Notes** - As with absolute score, the distribution of scaled score is very bimodal - Same need to investigate transformations and alternative distributions for regression
+
+::: callout-note
+**Condition appears (through visual inspection) to yield a positive influence on Total Scaled Score across data collection modalities.**
+:::
+
+### Item Level Scores
+
+#### Item Absolute Score
+
+Whote Task Accuracy summarized over items rather than subjects
 
 ```{r}
 
@@ -809,7 +1328,7 @@ gf_props(~score_niceABS, data = df_items) %>%
 
 ```
 
-**Item Scaled Score**
+#### Item Scaled Score
 
 At the item level, the scaled score gives us a numeric measure of correctness of interpretation, ranging from -1 to 1.
 
