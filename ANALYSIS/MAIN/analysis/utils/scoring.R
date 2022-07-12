@@ -334,14 +334,14 @@ summarise_bySubject <- function(subjects, items){
   subjects_scaffold <- items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
     item_scaffold_NABS = sum(score_niceABS),
     item_scaffold_SCALED = sum(score_SCALED),
-    item_scaffold_rt = sum(rt_s)
+    item_scaffold_rt = sum(rt_s)/60 #put in minutes
   )%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_SCALED, item_scaffold_rt) %>% arrange(subject)
   
   #summarize test phase performance
   subjects_test <- items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
     item_test_NABS = sum(score_niceABS),
     item_test_SCALED = sum(score_SCALED),
-    item_test_rt = sum(rt_s)
+    item_test_rt = sum(rt_s)/60 #put in minutes
   )%>% dplyr::select(subject, item_test_NABS, item_test_SCALED, item_test_rt) %>% arrange(subject)
   
   #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
