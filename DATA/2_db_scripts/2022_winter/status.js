@@ -23,11 +23,10 @@ db.entries.aggregate([
                 },
 //              n: { $count: {} } //stopped working?
                 n: { $sum: 1 },
-                av_discriminant: { $avg: "$discriminant_score" },
-                sd_discriminant: { $stdDevSamp: "$discriminant_score" },
-                min_discriminant: { $min: "$discriminant_score" },
-                max_discriminant: { $max: "$discriminant_score" },
-                av_absolute: { $avg: "$absolute_score" },    
+                avg_absolute: { $avg: "$absolute_score" },
+                sd_absolute: { $stdDevSamp: "$absolute_score" },
+                min_absolute: { $min: "$absolute_score" },
+                max_absolute: { $max: "$absolute_score" },
                 av_tri: { $avg: "$tri_score" },    
                 av_orth: { $avg: "$orth_score" },    
                 av_other: { $avg: "$other_score" }    
@@ -35,11 +34,10 @@ db.entries.aggregate([
         {$project: {
              _id : {$concat:["$_id.study","—","$_id.condition","-",{$toString:"$n"}]},
             n: 1,
-            av_discriminant: 1,
-            sd_discriminant: 1,
-            min_discriminant: 1,
-            max_discriminant: 1,
-            av_absolute: 1,
+            avg_absolute: 1,
+            sd_absolute: 1,
+            min_absolute: 1,
+            max_absolute: 1,
             av_tri: 1,
             av_orth: 1,
             av_other: 1
