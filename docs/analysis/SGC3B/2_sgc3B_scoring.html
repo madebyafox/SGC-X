@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.328">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>SGC-X - 7&nbsp; Response Scoring</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<link href="../../analysis/SGC4A/1_sgc4A_introduction.html" rel="next">
+<link href="../../analysis/SGC3B/1_sgc3B_introduction.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link id="quarto-text-highlighting-styles" href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Response Scoring</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">SGC-X</a> 
+    </div>
+      </div>
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a href="../../index.html" class="sidebar-item-text sidebar-link">MAIN</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/utils/scoring.html" class="sidebar-item-text sidebar-link">Scoring Strategy</a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">SGC3A</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/1_sgc3A_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/2_sgc3A_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/3_sgc3A_description.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Description</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/4_sgc3A_hypotesting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Hypothesis Testing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/5_sgc3A_exploration.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Exploratory Analyses</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">SGC3B</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3B/1_sgc3B_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3B/2_sgc3B_scoring.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">SGC4A</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC4A/1_sgc4A_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC4A/2_sgc4A_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">SGC4B</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC4B/1_sgc4B_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC4B/2_sgc4B_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">SGC5A</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC5A/1_sgc5A_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC5A/2_sgc5A_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#score-sgc-data" id="toc-score-sgc-data" class="nav-link active" data-scroll-target="#score-sgc-data">SCORE SGC DATA</a>
+  <ul class="collapse">
+  <li><a href="#sec-SGC3B-keys" id="toc-sec-SGC3B-keys" class="nav-link" data-scroll-target="#sec-SGC3B-keys">Prepare Answer Keys</a></li>
+  <li><a href="#sec-SGC3B-subscores" id="toc-sec-SGC3B-subscores" class="nav-link" data-scroll-target="#sec-SGC3B-subscores">Calculate Subscores</a></li>
+  <li><a href="#sec-SGC3B-interpretation" id="toc-sec-SGC3B-interpretation" class="nav-link" data-scroll-target="#sec-SGC3B-interpretation">Derive Interpretation</a></li>
+  <li><a href="#sec-SGC3B-scaledScore" id="toc-sec-SGC3B-scaledScore" class="nav-link" data-scroll-target="#sec-SGC3B-scaledScore">Derive Scaled Score</a></li>
+  </ul></li>
+  <li><a href="#summarize-by-subject" id="toc-summarize-by-subject" class="nav-link" data-scroll-target="#summarize-by-subject">SUMMARIZE BY SUBJECT</a></li>
+  <li><a href="#explore-distributions" id="toc-explore-distributions" class="nav-link" data-scroll-target="#explore-distributions">EXPLORE DISTRIBUTIONS</a>
+  <ul class="collapse">
+  <li><a href="#absolute-score" id="toc-absolute-score" class="nav-link" data-scroll-target="#absolute-score">Absolute Score</a></li>
+  <li><a href="#scaled-score" id="toc-scaled-score" class="nav-link" data-scroll-target="#scaled-score">Scaled Score</a></li>
+  <li><a href="#interpretations" id="toc-interpretations" class="nav-link" data-scroll-target="#interpretations">Interpretations</a></li>
+  <li><a href="#progress-over-task" id="toc-progress-over-task" class="nav-link" data-scroll-target="#progress-over-task">Progress over Task</a></li>
+  <li><a href="#interpretation-subscores" id="toc-interpretation-subscores" class="nav-link" data-scroll-target="#interpretation-subscores">Interpretation Subscores</a></li>
+  </ul></li>
+  <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export">EXPORT</a></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources">RESOURCES</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-SGC3B-scoring" class="quarto-section-identifier d-none d-lg-block"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Response Scoring</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Study SGC3B | 2 Response Scoring</p>
+</div>
+
+
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<div style="page-break-after: always;"></div>
+<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#printing tables </span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggformula) <span class="co">#quick graphs</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pbapply) <span class="co">#progress bar and time estimate for *apply fns</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc) <span class="co"># %nin% operator</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="score-sgc-data" class="level2">
+<h2 class="anchored" data-anchor-id="score-sgc-data">SCORE SGC DATA</h2>
+<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<p>In SGC we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The <strong>graph comprehension task</strong> asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant’s performance, for each question (q=15) we will calculate the following scores:</p>
+<p><em>An overall, strict score:</em><br>
+1. <strong>Absolute Score</strong> : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)</p>
+<p><em>Sub-scores, for each alternative graph interpretation</em><br>
+2. <strong>Triangular Score</strong> : using partial scoring [-1/q, +1/p] referencing true (Triangular) answer key.</p>
+<p>3. <strong>Orthogonal Score</strong> : using partial scoring [-1/q, +1/p] referencing (incorrect Orthogonal) answer key.</p>
+<p>Based on prior observational studies where we observed emergence of other alternative interpretations (i.e.&nbsp;transitional interpretations) we also calculate subscores for these alternatives.</p>
+<p>4. <strong>Tversky Score</strong> : using partial scoring [-1/q, +1/p] referencing (incorrect connecting-lines strategy) answer key. 5. <strong>Satisficing Score</strong> : using partial scoring [-1/q, +1/p] referencing (incorrect satisficing strategy) answer key.</p>
+<section id="sec-SGC3B-keys" class="level3">
+<h3 class="anchored" data-anchor-id="sec-SGC3B-keys">Prepare Answer Keys</h3>
+<p>We start by importing three answer keys: (1) Q1 - Q5 [control condition], (2) Q1-Q5 [impasse condition], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e.&nbsp;the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE KEYS FOR FUTURE USE</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>keys_raw <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_raw"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>keys_orth <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_orth"</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>keys_tri <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tri"</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>keys_satisfice_left <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_satisfice_left"</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>keys_satisfice_right <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_satisfice_right"</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>keys_tversky_duration <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_duration"</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>keys_tversky_end <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_end"</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>keys_tversky_max <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_max"</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>keys_tversky_start <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_start"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="sec-SGC3B-subscores" class="level3">
+<h3 class="anchored" data-anchor-id="sec-SGC3B-subscores">Calculate Subscores</h3>
+<p>Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response <code>df_items$response</code> with the answer keys in each interpretation (e.g.&nbsp;<code>keys_orth</code>, <code>keys_tri</code>, etc…), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial[-1/q, +1/p] scores for each interpretation. The resulting scores are then stored on each item in <code>df_items</code>, and can be used to determine which graph interpretation the subject held.</p>
+<p>Specifically, the following scores are calculated for each item:</p>
+<p><strong>Interpretation Subscores</strong></p>
+<ul>
+<li><code>score_TRI</code> How consistent is the response with the <strong>triangular</strong>interpretation?</li>
+<li><code>score_ORTH</code> How consistent is the response with the <strong>orthogonal</strong>interpretation?</li>
+<li><code>score_SATISFICE</code> is calculated by taking the maximum value of :
+<ul>
+<li><code>score_SAT_left</code> How consistent is the response with the <strong>(left side) Satisficing</strong> interpretation?</li>
+<li><code>score_SAT_right</code> How consistent is the response with the <strong>(right side) Satisficing</strong> interpretation</li>
+</ul></li>
+<li><code>score_TVERSKY</code> is calculated by taking the maximum value of:
+<ul>
+<li><code>score_TV_max</code> How consistent is the response with the <strong>(maximal) Tversky</strong> interpretation?</li>
+<li><code>score_TV_start</code> How consistent is the response with the <strong>(start-time) Tversky</strong> interpretation?</li>
+<li><code>score_TV_end</code> How consistent is the response with the <strong>(end-time) Tversky</strong> interpretation?</li>
+<li><code>score_TV_duration</code> How consistent is the response with the <strong>(duration) Tversky</strong> interpretation?</li>
+</ul></li>
+<li><code>score_REF</code> Did the response select only the <strong>reference point</strong>?</li>
+<li><code>score_BOTH</code> How consistent is the response with <strong>both</strong> the orthogonal and triangular interpretations?</li>
+</ul>
+<p><strong>Absolute Scores</strong></p>
+<ul>
+<li><code>score_ABS</code> Is the response strictly correct? (triangular interpretation)</li>
+<li><code>score_niceABS</code> Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer <em>in addition to</em> they also select the data point referenced in the question.</li>
+</ul>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># backup &lt;- read_rds('analysis/SGC3B/data/1-study-level/sgc3b_items.rds') #for troubleshooting only</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_items.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"analysis/utils/scoring.R"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p><em>note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records</em></p>
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/CALCULATE-SCORES-MAPPLY_5313e3bd9d9630a7d047096f4caca0f9">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#RUN THIS &lt;OR&gt; THE CALCULATE-SCORES-FORLOOP [not both]</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#ALPHEBETIZE RESPONSE</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>response <span class="ot">=</span> <span class="fu">pbmapply</span>(reorder_inplace, df_items<span class="sc">$</span>response)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#STRATEGY PARTIAL-SUBSCORES</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TRI <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tri))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_ORTH <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_orth))</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SAT_left <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_satisfice_left))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SAT_right <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_satisfice_right))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_max <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_max))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_start <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_start))</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_end <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_end))</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_duration <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_duration))</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">#SPECIAL ABSOLUTE SUBSCORES</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_REF <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_refscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>response)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_BOTH <span class="ot">=</span> <span class="fu">as.integer</span>((df_items<span class="sc">$</span>score_TRI <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">&amp;</span> (df_items<span class="sc">$</span>score_ORTH <span class="sc">==</span><span class="dv">1</span>))</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">#ABSOLUTE SCORES</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_ABS <span class="ot">=</span> <span class="fu">as.integer</span>(df_items<span class="sc">$</span>correct) </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_niceABS  <span class="ot">&lt;-</span> <span class="fu">as.integer</span>((df_items<span class="sc">$</span>score_TRI <span class="sc">==</span> <span class="dv">1</span>)) <span class="co">#tri doesn't penalize ref or ve-area</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="sec-SGC3B-interpretation" class="level3">
+<h3 class="anchored" data-anchor-id="sec-SGC3B-interpretation">Derive Interpretation</h3>
+<p>Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more ‘special’ situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn’t match a special situation, it compares the individual subscores, and subscores and decides if they are <em>discriminant</em> (i.e.&nbsp;are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as “?”, indicating it cannot be classified, and is of an unknown interpretation.</p>
+<p>The final output is called <code>interpretation</code>.</p>
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/DERIVE-INTERPRETATION_eec1c13791795ebc6172f2c5a2b6d4aa">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#stoopid extra copying for troubleshooting safety</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> df_items </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> <span class="fu">derive_interpretation</span>(temp)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> temp </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="sec-SGC3B-scaledScore" class="level3">
+<h3 class="anchored" data-anchor-id="sec-SGC3B-scaledScore">Derive Scaled Score</h3>
+<p>The <code>interpretation</code> response variable gives us the finest grain indication of the reader’s understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a <em>scaled_score</em> that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.</p>
+<p>Specifically, we assign the following values to each interpretation:</p>
+<ul>
+<li>(-1) : ORTHOGONAL, SATISFICE (satisfice represents an attempt at an orthogonal answer when none is available)</li>
+<li>(-0.5): ? (some alternative that cannot be identified; but meaningful that it is not orthogonal)</li>
+<li>(0): REFERENCE POINT, BLANK (indicates the individual thinks there is no answer, recognizes that ORTHOGONAL cannot be correct, but does not conceive of triangular)</li>
+<li>(+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they “see” a triangular response, but lack certainty and also select the ORTHOGONAL response)</li>
+<li>(+1) TRIANGULAR +1</li>
+</ul>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SCALED <span class="ot">&lt;-</span> <span class="fu">calc_scaled</span>(df_items<span class="sc">$</span>interpretation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="summarize-by-subject" class="level2">
+<h2 class="anchored" data-anchor-id="summarize-by-subject">SUMMARIZE BY SUBJECT</h2>
+<p>Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#import subjects</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_participants.rds'</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">subject =</span> <span class="fu">as.character</span>(subject)) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(subject)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#make temporary copies for testing safety</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>s <span class="ot">=</span> df_subjects</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>i <span class="ot">=</span> df_items </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">#summarize</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>test_subs <span class="ot">&lt;-</span> <span class="fu">summarise_bySubject</span>(s,i)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'subject'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE
+[1] TRUE
+[1] TRUE
+[1] TRUE
+[1] TRUE
+[1] TRUE
+[1] TRUE</code></pre>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> test_subs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task.</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#GET ABSOLUTE PROGRESS </span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>df_absolute_progress <span class="ot">&lt;-</span> <span class="fu">progress_Absolute</span>(df_items)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#GET SCALED PROGRESS</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>df_scaled_progress <span class="ot">&lt;-</span> <span class="fu">progress_Scaled</span>(df_items)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="explore-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="explore-distributions">EXPLORE DISTRIBUTIONS</h2>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#create temp data frame for visualizations</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%nin%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">score_niceABS =</span> <span class="fu">as.factor</span>(score_niceABS),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">pretty_interpretation =</span> <span class="fu">factor</span>(interpretation,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Orthogonal"</span>, <span class="st">"Satisfice"</span>, </span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>               <span class="st">"frenzy"</span>,<span class="st">"?"</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">"reference"</span>,<span class="st">"blank"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Tversky"</span>, <span class="st">"both tri + orth"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Triangular"</span> ))</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="absolute-score" class="level3">
+<h3 class="anchored" data-anchor-id="absolute-score">Absolute Score</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE FULL </span><span class="al">TASK</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df) <span class="sc">+</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score"</span>, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Absolute Score (all Items)"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"Impasse Condition (blue) yields more correct responses across the entire task"</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-ABSCORE-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE BY ITEM</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df)  <span class="sc">%&gt;%</span> </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(pretty_condition<span class="sc">~</span>q) <span class="sc">+</span> </span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score"</span>, </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Absolute Score (by Item)"</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields more correct responses on each item"</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proprition of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-ABSCORE-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE BY SUBJECT</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>s_NABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_facet_grid</span>(pretty_condition <span class="sc">~</span>. )<span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Total Absolute Score"</span>, </span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Total Absolute Score (by Subject)"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher total absolute scores"</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-ABSCORE-3.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE </span><span class="al">TEST</span><span class="co"> PHASE</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>item_test_NABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score in TEST Phase"</span>, </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of TEST PHASE Absolute Score (all Items)"</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">""</span>),</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-ABSCORE-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="scaled-score" class="level3">
+<h3 class="anchored" data-anchor-id="scaled-score">Scaled Score</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE FULL </span><span class="al">TASK</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score"</span>, </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Scaled Score (all Items)"</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher scaled scores across the entire task"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-SCALEDSCORE-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE BY ITEM</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df)  <span class="sc">%&gt;%</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(q<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score"</span>, </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Scaled Score (by Item)"</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher scaled scores on each item"</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.5</span>)) <span class="sc">+</span> </span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-SCALEDSCORE-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE BY SUBJECT</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>s_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects)  <span class="sc">%&gt;%</span> </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(pretty_condition <span class="sc">~</span>. )<span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Total Scaled Score"</span>, </span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Total Scaled Score (by Subject)"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher cumulative scaled scores"</span>,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Number of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-SCALEDSCORE-3.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE </span><span class="al">TEST</span><span class="co"> PHASE</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>item_test_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score in TEST Phase"</span>, </span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of TEST PHASE Scaled Score (all Items)"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">""</span>),</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-SCALEDSCORE-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ul>
+<li>TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance</li>
+<li>TODO: INVESTIGATE DISTRIBUTIONS of each subscore type</li>
+</ul>
+</section>
+<section id="interpretations" class="level3">
+<h3 class="anchored" data-anchor-id="interpretations">Interpretations</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>pretty_interpretation, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>( pretty_condition <span class="sc">~</span> ., <span class="at">labeller =</span> label_both) <span class="sc">+</span> </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Interpretations (across Task)"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Graph Interpretation"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Responses"</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse condition (blue) yields fewer Orthogonal and more Triangular responses"</span>) <span class="sc">+</span> </span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-INTERPRETATIONS-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION ACROSS ITEMS</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_propsh</span>(<span class="sc">~</span> pretty_interpretation, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>( pretty_condition<span class="sc">~</span>q) <span class="sc">+</span> </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Interpretations (by Item)"</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse condition (blue) yields more Triangular responses on each question"</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Interpretation"</span>, <span class="at">x =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-INTERPRETATIONS-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION TYPE ACROSS ITEMS</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_propsh</span>(<span class="sc">~</span> high_interpretation, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>( pretty_condition<span class="sc">~</span>q) <span class="sc">+</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Interpretations (by Item)"</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse condition (blue) yields more positive trending responses on each question"</span>,</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Interpretation"</span>, <span class="at">x =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DISTR-INTERPRETATIONS-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="progress-over-task" class="level3">
+<h3 class="anchored" data-anchor-id="progress-over-task">Progress over Task</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time ABSOLUTE score </span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_absolute_progress, <span class="fu">aes</span>(<span class="at">x =</span> question, <span class="at">y =</span> score, <span class="at">group =</span> subject, <span class="at">alpha =</span> <span class="fl">0.01</span>, <span class="at">color =</span> pretty_condition)) <span class="sc">+</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_line</span>(<span class="at">position=</span><span class="fu">position_jitter</span>(<span class="at">w=</span><span class="fl">0.15</span>, <span class="at">h=</span><span class="fl">0.15</span>), <span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span> (<span class="at">title =</span> <span class="st">"Cumulative Absolute Score over sequence of task"</span>, <span class="at">x =</span> <span class="st">"Question"</span> , <span class="at">y =</span> <span class="st">"Cumulative Absolute Score"</span>) <span class="sc">+</span> </span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">12</span>,<span class="dv">13</span>)) <span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/VIZ-PROGRESS-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time SCALED score </span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_scaled_progress, <span class="fu">aes</span>(<span class="at">x =</span> question, <span class="at">y =</span> score, <span class="at">group =</span> subject, <span class="at">alpha =</span> <span class="fl">0.01</span>, <span class="at">color =</span> pretty_condition)) <span class="sc">+</span> </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_line</span>(<span class="at">position=</span><span class="fu">position_jitter</span>(<span class="at">w=</span><span class="fl">0.15</span>, <span class="at">h=</span><span class="fl">0.15</span>), <span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span> (<span class="at">title =</span> <span class="st">"Cumulative Scaled Score over sequence of task"</span>, <span class="at">x =</span> <span class="st">"Question"</span> , <span class="at">y =</span> <span class="st">"Cumulative Scaled Score"</span>) <span class="sc">+</span> </span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">12</span>,<span class="dv">13</span>)) <span class="sc">+</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/VIZ-PROGRESS-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="interpretation-subscores" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-subscores">Interpretation Subscores</h3>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TRI, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Triangular Score"</span>,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse shifts density toward higher Triagular scores"</span>,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Triangular Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DIST-SUBSCORES-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_ORTH, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Orthogonal Score"</span>,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse shifts density toward lower Orthogonal scores"</span>,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Orthogonal Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DIST-SUBSCORES-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TVERSKY, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Tversky Score"</span>,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse shifts density toward higher Tversky scores"</span>,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Orthogonal Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DIST-SUBSCORES-3.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span> s_SATISFICE, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Satisfice Score"</span>,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Satisficing only occurs in impasse, when no orthogonal response is available"</span>,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Orthogonal Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="2_sgc3B_scoring_files/figure-html/DIST-SUBSCORES-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="export" class="level2">
+<h2 class="anchored" data-anchor-id="export">EXPORT</h2>
+<p>Finally, we export the scores for each item (<code>df_items</code>) and summarized over subjects (<code>df_subjects</code>), as well as cumulative progress dataframes (<code>df_absolute_progress</code>, <code>df_scaled_progress</code>)</p>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_items,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_absolute_progress,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_absolute_progress.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_scaled_progress,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scaled_progress.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE R Data Structures</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="co">#export R DATA STRUCTURES (include codebook metadata)</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_subjects, <span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.rds"</span>) <span class="co"># to R data structure file</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_items, <span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.rds"</span>) <span class="co"># to R data structure file</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="resources" class="level2">
+<h2 class="anchored" data-anchor-id="resources">RESOURCES</h2>
+<div class="cell">
+<details>
+<summary>CODE</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.2.1 (2022-06-23)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Big Sur ... 10.16
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] forcats_0.5.1    stringr_1.4.0    dplyr_1.0.9      purrr_0.3.4     
+ [5] readr_2.1.2      tidyr_1.2.0      tibble_3.1.7     tidyverse_1.3.1 
+ [9] Hmisc_4.7-0      Formula_1.2-4    survival_3.3-1   lattice_0.20-45 
+[13] pbapply_1.5-0    ggformula_0.10.1 ggridges_0.5.3   scales_1.2.0    
+[17] ggstance_0.3.5   ggplot2_3.3.6    kableExtra_1.3.4
+
+loaded via a namespace (and not attached):
+ [1] fs_1.5.2            bit64_4.0.5         lubridate_1.8.0    
+ [4] webshot_0.5.3       RColorBrewer_1.1-3  httr_1.4.3         
+ [7] tools_4.2.1         backports_1.4.1     utf8_1.2.2         
+[10] R6_2.5.1            rpart_4.1.16        DBI_1.1.3          
+[13] colorspace_2.0-3    nnet_7.3-17         withr_2.5.0        
+[16] tidyselect_1.1.2    gridExtra_2.3       curl_4.3.2         
+[19] bit_4.0.4           compiler_4.2.1      cli_3.3.0          
+[22] rvest_1.0.2         htmlTable_2.4.0     xml2_1.3.3         
+[25] labeling_0.4.2      mosaicCore_0.9.0    checkmate_2.1.0    
+[28] systemfonts_1.0.4   digest_0.6.29       foreign_0.8-82     
+[31] rmarkdown_2.14      svglite_2.1.0       rio_0.5.29         
+[34] base64enc_0.1-3     jpeg_0.1-9          pkgconfig_2.0.3    
+[37] htmltools_0.5.2     labelled_2.9.1      dbplyr_2.2.1       
+[40] fastmap_1.1.0       readxl_1.4.0        htmlwidgets_1.5.4  
+[43] rlang_1.0.3         rstudioapi_0.13     farver_2.1.0       
+[46] generics_0.1.2      jsonlite_1.8.0      vroom_1.5.7        
+[49] zip_2.2.0           magrittr_2.0.3      Matrix_1.4-1       
+[52] Rcpp_1.0.8.3        munsell_0.5.0       fansi_1.0.3        
+[55] lifecycle_1.0.1     stringi_1.7.6       yaml_2.3.5         
+[58] MASS_7.3-57         plyr_1.8.7          grid_4.2.1         
+[61] parallel_4.2.1      crayon_1.5.1        haven_2.5.0        
+[64] splines_4.2.1       hms_1.1.1           knitr_1.39         
+[67] pillar_1.7.0        codetools_0.2-18    reprex_2.0.1       
+[70] glue_1.6.2          evaluate_0.15       latticeExtra_0.6-29
+[73] data.table_1.14.2   modelr_0.1.8        tzdb_0.3.0         
+[76] png_0.1-7           vctrs_0.4.1         tweenr_1.0.2       
+[79] cellranger_1.1.0    gtable_0.3.0        polyclip_1.10-0    
+[82] assertthat_0.2.1    openxlsx_4.2.5      xfun_0.31          
+[85] ggforce_0.3.3       broom_0.8.0         viridisLite_0.4.0  
+[88] cluster_2.1.3       ellipsis_0.3.2     </code></pre>
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../analysis/SGC3B/1_sgc3B_introduction.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Introduction</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../analysis/SGC4A/1_sgc4A_introduction.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Introduction</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb34" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> 'Study SGC3B | 2 Response Scoring'</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>\newpage</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="fu"># Response Scoring {#sec-SGC3B-scoring}</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3B study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SETUP</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning : false</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="co">#| message : false</span></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra) <span class="co">#printing tables </span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggformula) <span class="co">#quick graphs</span></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pbapply) <span class="co">#progress bar and time estimate for *apply fns</span></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc) <span class="co"># %nin% operator</span></span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co">#ALL THE THINGS</span></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a><span class="fu">## SCORE SGC DATA </span></span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.</span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>In SGC we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The **graph comprehension task** asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant's performance, for each question (q=15) we will calculate the following scores:</span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a>*An overall, strict score:*\</span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Absolute Score** : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)</span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a>*Sub-scores, for each alternative graph interpretation*\</span>
+<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Triangular Score** : using partial scoring <span class="sc">\[</span>-1/q, +1/p<span class="sc">\]</span> referencing true (Triangular) answer key.</span>
+<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a>3<span class="sc">\.</span> **Orthogonal Score** : using partial scoring <span class="sc">\[</span>-1/q, +1/p<span class="sc">\]</span> referencing (incorrect Orthogonal) answer key.</span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a>Based on prior observational studies where we observed emergence of other alternative interpretations (i.e. transitional interpretations) we also calculate subscores for these alternatives.</span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a>4<span class="sc">\.</span> **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring <span class="sc">\[</span>-1/q, +1/p<span class="sc">\]</span> referencing (incorrect satisficing strategy) answer key.</span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prepare Answer Keys {#sec-SGC3B-keys}</span></span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a>We start by importing three answer keys: (1) Q1 - Q5 <span class="sc">\[</span>control condition<span class="sc">\]</span>, (2) Q1-Q5 <span class="sc">\[</span>impasse condition<span class="sc">\]</span>, (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.</span>
+<span id="cb34-49"><a href="#cb34-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-52"><a href="#cb34-52" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-53"><a href="#cb34-53" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-KEYS</span></span>
+<span id="cb34-54"><a href="#cb34-54" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb34-55"><a href="#cb34-55" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb34-56"><a href="#cb34-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-57"><a href="#cb34-57" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-60"><a href="#cb34-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-61"><a href="#cb34-61" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE KEYS FOR FUTURE USE</span></span>
+<span id="cb34-62"><a href="#cb34-62" aria-hidden="true" tabindex="-1"></a>keys_raw <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_raw"</span>)</span>
+<span id="cb34-63"><a href="#cb34-63" aria-hidden="true" tabindex="-1"></a>keys_orth <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_orth"</span>)</span>
+<span id="cb34-64"><a href="#cb34-64" aria-hidden="true" tabindex="-1"></a>keys_tri <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tri"</span>)</span>
+<span id="cb34-65"><a href="#cb34-65" aria-hidden="true" tabindex="-1"></a>keys_satisfice_left <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_satisfice_left"</span>)</span>
+<span id="cb34-66"><a href="#cb34-66" aria-hidden="true" tabindex="-1"></a>keys_satisfice_right <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_satisfice_right"</span>)</span>
+<span id="cb34-67"><a href="#cb34-67" aria-hidden="true" tabindex="-1"></a>keys_tversky_duration <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_duration"</span>)</span>
+<span id="cb34-68"><a href="#cb34-68" aria-hidden="true" tabindex="-1"></a>keys_tversky_end <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_end"</span>)</span>
+<span id="cb34-69"><a href="#cb34-69" aria-hidden="true" tabindex="-1"></a>keys_tversky_max <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_max"</span>)</span>
+<span id="cb34-70"><a href="#cb34-70" aria-hidden="true" tabindex="-1"></a>keys_tversky_start <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_tversky_start"</span>)</span>
+<span id="cb34-71"><a href="#cb34-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-72"><a href="#cb34-72" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-73"><a href="#cb34-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-74"><a href="#cb34-74" aria-hidden="true" tabindex="-1"></a><span class="fu">### Calculate Subscores {#sec-SGC3B-subscores}</span></span>
+<span id="cb34-75"><a href="#cb34-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-76"><a href="#cb34-76" aria-hidden="true" tabindex="-1"></a>Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response <span class="in">`df_items$response`</span> with the answer keys in each interpretation (e.g. <span class="in">`keys_orth`</span>, <span class="in">`keys_tri`</span>, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial<span class="sc">\[</span>-1/q, +1/p<span class="sc">\]</span> scores for each interpretation. The resulting scores are then stored on each item in <span class="in">`df_items`</span>, and can be used to determine which graph interpretation the subject held.</span>
+<span id="cb34-77"><a href="#cb34-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-78"><a href="#cb34-78" aria-hidden="true" tabindex="-1"></a>Specifically, the following scores are calculated for each item:</span>
+<span id="cb34-79"><a href="#cb34-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-80"><a href="#cb34-80" aria-hidden="true" tabindex="-1"></a>**Interpretation Subscores**</span>
+<span id="cb34-81"><a href="#cb34-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-82"><a href="#cb34-82" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_TRI`</span> How consistent is the response with the **triangular**interpretation?</span>
+<span id="cb34-83"><a href="#cb34-83" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_ORTH`</span> How consistent is the response with the **orthogonal**interpretation?</span>
+<span id="cb34-84"><a href="#cb34-84" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_SATISFICE`</span> is calculated by taking the maximum value of :</span>
+<span id="cb34-85"><a href="#cb34-85" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`score_SAT_left`</span> How consistent is the response with the **(left side) Satisficing** interpretation?</span>
+<span id="cb34-86"><a href="#cb34-86" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`score_SAT_right`</span> How consistent is the response with the **(right side) Satisficing** interpretation</span>
+<span id="cb34-87"><a href="#cb34-87" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_TVERSKY`</span> is calculated by taking the maximum value of:</span>
+<span id="cb34-88"><a href="#cb34-88" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`score_TV_max`</span> How consistent is the response with the **(maximal) Tversky** interpretation?</span>
+<span id="cb34-89"><a href="#cb34-89" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`score_TV_start`</span> How consistent is the response with the **(start-time) Tversky** interpretation?</span>
+<span id="cb34-90"><a href="#cb34-90" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`score_TV_end`</span> How consistent is the response with the **(end-time) Tversky** interpretation?</span>
+<span id="cb34-91"><a href="#cb34-91" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`score_TV_duration`</span> How consistent is the response with the **(duration) Tversky** interpretation?</span>
+<span id="cb34-92"><a href="#cb34-92" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_REF`</span> Did the response select only the **reference point**?</span>
+<span id="cb34-93"><a href="#cb34-93" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_BOTH`</span> How consistent is the response with **both** the orthogonal and triangular interpretations?</span>
+<span id="cb34-94"><a href="#cb34-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-95"><a href="#cb34-95" aria-hidden="true" tabindex="-1"></a>**Absolute Scores**</span>
+<span id="cb34-96"><a href="#cb34-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-97"><a href="#cb34-97" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_ABS`</span> Is the response strictly correct? (triangular interpretation)</span>
+<span id="cb34-98"><a href="#cb34-98" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`score_niceABS`</span> Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer *in addition to* they also select the data point referenced in the question.</span>
+<span id="cb34-99"><a href="#cb34-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-102"><a href="#cb34-102" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-103"><a href="#cb34-103" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-ITEMS</span></span>
+<span id="cb34-104"><a href="#cb34-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-105"><a href="#cb34-105" aria-hidden="true" tabindex="-1"></a><span class="co">#HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb34-106"><a href="#cb34-106" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-107"><a href="#cb34-107" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-108"><a href="#cb34-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-109"><a href="#cb34-109" aria-hidden="true" tabindex="-1"></a><span class="co"># backup &lt;- read_rds('analysis/SGC3B/data/1-study-level/sgc3b_items.rds') #for troubleshooting only</span></span>
+<span id="cb34-110"><a href="#cb34-110" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_items.rds'</span>)</span>
+<span id="cb34-111"><a href="#cb34-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-112"><a href="#cb34-112" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-113"><a href="#cb34-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-116"><a href="#cb34-116" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-117"><a href="#cb34-117" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-SCORING-FUNCTIONS</span></span>
+<span id="cb34-118"><a href="#cb34-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-119"><a href="#cb34-119" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb34-120"><a href="#cb34-120" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-121"><a href="#cb34-121" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-122"><a href="#cb34-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-123"><a href="#cb34-123" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"analysis/utils/scoring.R"</span>)</span>
+<span id="cb34-124"><a href="#cb34-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-125"><a href="#cb34-125" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-126"><a href="#cb34-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-127"><a href="#cb34-127" aria-hidden="true" tabindex="-1"></a>*note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records*</span>
+<span id="cb34-128"><a href="#cb34-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-131"><a href="#cb34-131" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-132"><a href="#cb34-132" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: CALCULATE-SCORES-MAPPLY</span></span>
+<span id="cb34-133"><a href="#cb34-133" aria-hidden="true" tabindex="-1"></a><span class="co">#| cache: true</span></span>
+<span id="cb34-134"><a href="#cb34-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-135"><a href="#cb34-135" aria-hidden="true" tabindex="-1"></a><span class="co">#RUN THIS &lt;OR&gt; THE CALCULATE-SCORES-FORLOOP [not both]</span></span>
+<span id="cb34-136"><a href="#cb34-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-137"><a href="#cb34-137" aria-hidden="true" tabindex="-1"></a><span class="co">#ALPHEBETIZE RESPONSE</span></span>
+<span id="cb34-138"><a href="#cb34-138" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>response <span class="ot">=</span> <span class="fu">pbmapply</span>(reorder_inplace, df_items<span class="sc">$</span>response)</span>
+<span id="cb34-139"><a href="#cb34-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-140"><a href="#cb34-140" aria-hidden="true" tabindex="-1"></a><span class="co">#STRATEGY PARTIAL-SUBSCORES</span></span>
+<span id="cb34-141"><a href="#cb34-141" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TRI <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tri))</span>
+<span id="cb34-142"><a href="#cb34-142" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_ORTH <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_orth))</span>
+<span id="cb34-143"><a href="#cb34-143" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SAT_left <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_satisfice_left))</span>
+<span id="cb34-144"><a href="#cb34-144" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SAT_right <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_satisfice_right))</span>
+<span id="cb34-145"><a href="#cb34-145" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_max <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_max))</span>
+<span id="cb34-146"><a href="#cb34-146" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_start <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_start))</span>
+<span id="cb34-147"><a href="#cb34-147" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_end <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_end))</span>
+<span id="cb34-148"><a href="#cb34-148" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_TV_duration <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_subscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>condition, df_items<span class="sc">$</span>response, <span class="at">MoreArgs =</span> <span class="fu">list</span>(<span class="at">keyframe =</span> keys_tversky_duration))</span>
+<span id="cb34-149"><a href="#cb34-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-150"><a href="#cb34-150" aria-hidden="true" tabindex="-1"></a><span class="co">#SPECIAL ABSOLUTE SUBSCORES</span></span>
+<span id="cb34-151"><a href="#cb34-151" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_REF <span class="ot">=</span> <span class="fu">pbmapply</span>(calc_refscore, df_items<span class="sc">$</span>q, df_items<span class="sc">$</span>response)</span>
+<span id="cb34-152"><a href="#cb34-152" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_BOTH <span class="ot">=</span> <span class="fu">as.integer</span>((df_items<span class="sc">$</span>score_TRI <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">&amp;</span> (df_items<span class="sc">$</span>score_ORTH <span class="sc">==</span><span class="dv">1</span>))</span>
+<span id="cb34-153"><a href="#cb34-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-154"><a href="#cb34-154" aria-hidden="true" tabindex="-1"></a><span class="co">#ABSOLUTE SCORES</span></span>
+<span id="cb34-155"><a href="#cb34-155" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_ABS <span class="ot">=</span> <span class="fu">as.integer</span>(df_items<span class="sc">$</span>correct) </span>
+<span id="cb34-156"><a href="#cb34-156" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_niceABS  <span class="ot">&lt;-</span> <span class="fu">as.integer</span>((df_items<span class="sc">$</span>score_TRI <span class="sc">==</span> <span class="dv">1</span>)) <span class="co">#tri doesn't penalize ref or ve-area</span></span>
+<span id="cb34-157"><a href="#cb34-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-158"><a href="#cb34-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-159"><a href="#cb34-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-160"><a href="#cb34-160" aria-hidden="true" tabindex="-1"></a><span class="fu">### Derive Interpretation {#sec-SGC3B-interpretation}</span></span>
+<span id="cb34-161"><a href="#cb34-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-162"><a href="#cb34-162" aria-hidden="true" tabindex="-1"></a>Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.</span>
+<span id="cb34-163"><a href="#cb34-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-164"><a href="#cb34-164" aria-hidden="true" tabindex="-1"></a>The final output is called <span class="in">`interpretation`</span>.</span>
+<span id="cb34-165"><a href="#cb34-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-168"><a href="#cb34-168" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-169"><a href="#cb34-169" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: DERIVE-INTERPRETATION</span></span>
+<span id="cb34-170"><a href="#cb34-170" aria-hidden="true" tabindex="-1"></a><span class="co">#| cache: true</span></span>
+<span id="cb34-171"><a href="#cb34-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-172"><a href="#cb34-172" aria-hidden="true" tabindex="-1"></a><span class="co">#stoopid extra copying for troubleshooting safety</span></span>
+<span id="cb34-173"><a href="#cb34-173" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> df_items </span>
+<span id="cb34-174"><a href="#cb34-174" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> <span class="fu">derive_interpretation</span>(temp)</span>
+<span id="cb34-175"><a href="#cb34-175" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> temp </span>
+<span id="cb34-176"><a href="#cb34-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-177"><a href="#cb34-177" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-178"><a href="#cb34-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-179"><a href="#cb34-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-180"><a href="#cb34-180" aria-hidden="true" tabindex="-1"></a><span class="fu">### Derive Scaled Score {#sec-SGC3B-scaledScore}</span></span>
+<span id="cb34-181"><a href="#cb34-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-182"><a href="#cb34-182" aria-hidden="true" tabindex="-1"></a>The <span class="in">`interpretation`</span> response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.</span>
+<span id="cb34-183"><a href="#cb34-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-184"><a href="#cb34-184" aria-hidden="true" tabindex="-1"></a>Specifically, we assign the following values to each interpretation:</span>
+<span id="cb34-185"><a href="#cb34-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-186"><a href="#cb34-186" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>(-1) : ORTHOGONAL, SATISFICE (satisfice represents an attempt at an orthogonal answer when none is available)</span>
+<span id="cb34-187"><a href="#cb34-187" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>(-0.5): ? (some alternative that cannot be identified; but meaningful that it is not orthogonal)</span>
+<span id="cb34-188"><a href="#cb34-188" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>(0): REFERENCE POINT, BLANK (indicates the individual thinks there is no answer, recognizes that ORTHOGONAL cannot be correct, but does not conceive of triangular)</span>
+<span id="cb34-189"><a href="#cb34-189" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>(+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they "see" a triangular response, but lack certainty and also select the ORTHOGONAL response)</span>
+<span id="cb34-190"><a href="#cb34-190" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>(+1) TRIANGULAR +1</span>
+<span id="cb34-191"><a href="#cb34-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-194"><a href="#cb34-194" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-195"><a href="#cb34-195" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SCALED-SCORE</span></span>
+<span id="cb34-196"><a href="#cb34-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-197"><a href="#cb34-197" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SCALED <span class="ot">&lt;-</span> <span class="fu">calc_scaled</span>(df_items<span class="sc">$</span>interpretation)</span>
+<span id="cb34-198"><a href="#cb34-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-199"><a href="#cb34-199" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-200"><a href="#cb34-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-201"><a href="#cb34-201" aria-hidden="true" tabindex="-1"></a><span class="fu">## SUMMARIZE BY SUBJECT</span></span>
+<span id="cb34-202"><a href="#cb34-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-203"><a href="#cb34-203" aria-hidden="true" tabindex="-1"></a>Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.</span>
+<span id="cb34-204"><a href="#cb34-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-207"><a href="#cb34-207" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-208"><a href="#cb34-208" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SUMMARIZE-BY-SUBJECT</span></span>
+<span id="cb34-209"><a href="#cb34-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-210"><a href="#cb34-210" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
+<span id="cb34-211"><a href="#cb34-211" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-212"><a href="#cb34-212" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-213"><a href="#cb34-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-214"><a href="#cb34-214" aria-hidden="true" tabindex="-1"></a><span class="co">#import subjects</span></span>
+<span id="cb34-215"><a href="#cb34-215" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_participants.rds'</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">subject =</span> <span class="fu">as.character</span>(subject)) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(subject)</span>
+<span id="cb34-216"><a href="#cb34-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-217"><a href="#cb34-217" aria-hidden="true" tabindex="-1"></a><span class="co">#make temporary copies for testing safety</span></span>
+<span id="cb34-218"><a href="#cb34-218" aria-hidden="true" tabindex="-1"></a>s <span class="ot">=</span> df_subjects</span>
+<span id="cb34-219"><a href="#cb34-219" aria-hidden="true" tabindex="-1"></a>i <span class="ot">=</span> df_items </span>
+<span id="cb34-220"><a href="#cb34-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-221"><a href="#cb34-221" aria-hidden="true" tabindex="-1"></a><span class="co">#summarize</span></span>
+<span id="cb34-222"><a href="#cb34-222" aria-hidden="true" tabindex="-1"></a>test_subs <span class="ot">&lt;-</span> <span class="fu">summarise_bySubject</span>(s,i)</span>
+<span id="cb34-223"><a href="#cb34-223" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> test_subs</span>
+<span id="cb34-224"><a href="#cb34-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-225"><a href="#cb34-225" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-226"><a href="#cb34-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-227"><a href="#cb34-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-228"><a href="#cb34-228" aria-hidden="true" tabindex="-1"></a>We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task. </span>
+<span id="cb34-229"><a href="#cb34-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-232"><a href="#cb34-232" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-233"><a href="#cb34-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SUMMARIZE-PROGRESS</span></span>
+<span id="cb34-234"><a href="#cb34-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-235"><a href="#cb34-235" aria-hidden="true" tabindex="-1"></a><span class="co">#GET ABSOLUTE PROGRESS </span></span>
+<span id="cb34-236"><a href="#cb34-236" aria-hidden="true" tabindex="-1"></a>df_absolute_progress <span class="ot">&lt;-</span> <span class="fu">progress_Absolute</span>(df_items)</span>
+<span id="cb34-237"><a href="#cb34-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-238"><a href="#cb34-238" aria-hidden="true" tabindex="-1"></a><span class="co">#GET SCALED PROGRESS</span></span>
+<span id="cb34-239"><a href="#cb34-239" aria-hidden="true" tabindex="-1"></a>df_scaled_progress <span class="ot">&lt;-</span> <span class="fu">progress_Scaled</span>(df_items)</span>
+<span id="cb34-240"><a href="#cb34-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-241"><a href="#cb34-241" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-242"><a href="#cb34-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-243"><a href="#cb34-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-244"><a href="#cb34-244" aria-hidden="true" tabindex="-1"></a><span class="fu">## EXPLORE DISTRIBUTIONS</span></span>
+<span id="cb34-245"><a href="#cb34-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-248"><a href="#cb34-248" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-249"><a href="#cb34-249" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIS-SETUP</span></span>
+<span id="cb34-250"><a href="#cb34-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-251"><a href="#cb34-251" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
+<span id="cb34-252"><a href="#cb34-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-253"><a href="#cb34-253" aria-hidden="true" tabindex="-1"></a><span class="co">#create temp data frame for visualizations</span></span>
+<span id="cb34-254"><a href="#cb34-254" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df_items <span class="sc">%&gt;%</span> <span class="fu">filter</span> (q <span class="sc">%nin%</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">9</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb34-255"><a href="#cb34-255" aria-hidden="true" tabindex="-1"></a>  <span class="at">score_niceABS =</span> <span class="fu">as.factor</span>(score_niceABS),</span>
+<span id="cb34-256"><a href="#cb34-256" aria-hidden="true" tabindex="-1"></a>  <span class="at">pretty_interpretation =</span> <span class="fu">factor</span>(interpretation,</span>
+<span id="cb34-257"><a href="#cb34-257" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Orthogonal"</span>, <span class="st">"Satisfice"</span>, </span>
+<span id="cb34-258"><a href="#cb34-258" aria-hidden="true" tabindex="-1"></a>               <span class="st">"frenzy"</span>,<span class="st">"?"</span>,</span>
+<span id="cb34-259"><a href="#cb34-259" aria-hidden="true" tabindex="-1"></a>                <span class="st">"reference"</span>,<span class="st">"blank"</span>,</span>
+<span id="cb34-260"><a href="#cb34-260" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Tversky"</span>, <span class="st">"both tri + orth"</span>,</span>
+<span id="cb34-261"><a href="#cb34-261" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Triangular"</span> ))</span>
+<span id="cb34-262"><a href="#cb34-262" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-263"><a href="#cb34-263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-264"><a href="#cb34-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-265"><a href="#cb34-265" aria-hidden="true" tabindex="-1"></a><span class="fu">### Absolute Score</span></span>
+<span id="cb34-266"><a href="#cb34-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-269"><a href="#cb34-269" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-270"><a href="#cb34-270" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: DISTR-ABSCORE</span></span>
+<span id="cb34-271"><a href="#cb34-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-272"><a href="#cb34-272" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE FULL </span><span class="al">TASK</span></span>
+<span id="cb34-273"><a href="#cb34-273" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df) <span class="sc">+</span></span>
+<span id="cb34-274"><a href="#cb34-274" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score"</span>, </span>
+<span id="cb34-275"><a href="#cb34-275" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Absolute Score (all Items)"</span>,</span>
+<span id="cb34-276"><a href="#cb34-276" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"Impasse Condition (blue) yields more correct responses across the entire task"</span>),</span>
+<span id="cb34-277"><a href="#cb34-277" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb34-278"><a href="#cb34-278" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-279"><a href="#cb34-279" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-280"><a href="#cb34-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-281"><a href="#cb34-281" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE BY ITEM</span></span>
+<span id="cb34-282"><a href="#cb34-282" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_niceABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df)  <span class="sc">%&gt;%</span> </span>
+<span id="cb34-283"><a href="#cb34-283" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(pretty_condition<span class="sc">~</span>q) <span class="sc">+</span> </span>
+<span id="cb34-284"><a href="#cb34-284" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score"</span>, </span>
+<span id="cb34-285"><a href="#cb34-285" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Absolute Score (by Item)"</span>,</span>
+<span id="cb34-286"><a href="#cb34-286" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields more correct responses on each item"</span>,</span>
+<span id="cb34-287"><a href="#cb34-287" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proprition of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb34-288"><a href="#cb34-288" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-289"><a href="#cb34-289" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-290"><a href="#cb34-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-291"><a href="#cb34-291" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE BY SUBJECT</span></span>
+<span id="cb34-292"><a href="#cb34-292" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>s_NABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-293"><a href="#cb34-293" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_facet_grid</span>(pretty_condition <span class="sc">~</span>. )<span class="sc">+</span></span>
+<span id="cb34-294"><a href="#cb34-294" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Total Absolute Score"</span>, </span>
+<span id="cb34-295"><a href="#cb34-295" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Total Absolute Score (by Subject)"</span>,</span>
+<span id="cb34-296"><a href="#cb34-296" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher total absolute scores"</span>,</span>
+<span id="cb34-297"><a href="#cb34-297" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb34-298"><a href="#cb34-298" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-299"><a href="#cb34-299" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-300"><a href="#cb34-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-301"><a href="#cb34-301" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE </span><span class="al">TEST</span><span class="co"> PHASE</span></span>
+<span id="cb34-302"><a href="#cb34-302" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>item_test_NABS, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-303"><a href="#cb34-303" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-304"><a href="#cb34-304" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Absolute Score in TEST Phase"</span>, </span>
+<span id="cb34-305"><a href="#cb34-305" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of TEST PHASE Absolute Score (all Items)"</span>,</span>
+<span id="cb34-306"><a href="#cb34-306" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">""</span>),</span>
+<span id="cb34-307"><a href="#cb34-307" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb34-308"><a href="#cb34-308" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-309"><a href="#cb34-309" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-310"><a href="#cb34-310" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-311"><a href="#cb34-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-312"><a href="#cb34-312" aria-hidden="true" tabindex="-1"></a><span class="fu">### Scaled Score</span></span>
+<span id="cb34-313"><a href="#cb34-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-316"><a href="#cb34-316" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-317"><a href="#cb34-317" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: DISTR-SCALEDSCORE</span></span>
+<span id="cb34-318"><a href="#cb34-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-319"><a href="#cb34-319" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
+<span id="cb34-320"><a href="#cb34-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-321"><a href="#cb34-321" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE FULL </span><span class="al">TASK</span></span>
+<span id="cb34-322"><a href="#cb34-322" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df) <span class="sc">+</span></span>
+<span id="cb34-323"><a href="#cb34-323" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score"</span>, </span>
+<span id="cb34-324"><a href="#cb34-324" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Scaled Score (all Items)"</span>,</span>
+<span id="cb34-325"><a href="#cb34-325" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher scaled scores across the entire task"</span>,</span>
+<span id="cb34-326"><a href="#cb34-326" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb34-327"><a href="#cb34-327" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-328"><a href="#cb34-328" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-329"><a href="#cb34-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-330"><a href="#cb34-330" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE BY ITEM</span></span>
+<span id="cb34-331"><a href="#cb34-331" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>score_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">position =</span> <span class="fu">position_dodge</span>(), <span class="at">data =</span> df)  <span class="sc">%&gt;%</span> </span>
+<span id="cb34-332"><a href="#cb34-332" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(q<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-333"><a href="#cb34-333" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score"</span>, </span>
+<span id="cb34-334"><a href="#cb34-334" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Scaled Score (by Item)"</span>,</span>
+<span id="cb34-335"><a href="#cb34-335" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher scaled scores on each item"</span>,</span>
+<span id="cb34-336"><a href="#cb34-336" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb34-337"><a href="#cb34-337" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.5</span>)) <span class="sc">+</span> </span>
+<span id="cb34-338"><a href="#cb34-338" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"blank"</span>)</span>
+<span id="cb34-339"><a href="#cb34-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-340"><a href="#cb34-340" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE BY SUBJECT</span></span>
+<span id="cb34-341"><a href="#cb34-341" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>s_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects)  <span class="sc">%&gt;%</span> </span>
+<span id="cb34-342"><a href="#cb34-342" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>(pretty_condition <span class="sc">~</span>. )<span class="sc">+</span></span>
+<span id="cb34-343"><a href="#cb34-343" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Total Scaled Score"</span>, </span>
+<span id="cb34-344"><a href="#cb34-344" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of Total Scaled Score (by Subject)"</span>,</span>
+<span id="cb34-345"><a href="#cb34-345" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse Condition (blue) yields higher cumulative scaled scores"</span>,</span>
+<span id="cb34-346"><a href="#cb34-346" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Number of Subjects"</span>) <span class="sc">+</span></span>
+<span id="cb34-347"><a href="#cb34-347" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-348"><a href="#cb34-348" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-349"><a href="#cb34-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-350"><a href="#cb34-350" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION SCALED SCORE </span><span class="al">TEST</span><span class="co"> PHASE</span></span>
+<span id="cb34-351"><a href="#cb34-351" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span>item_test_SCALED, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-352"><a href="#cb34-352" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-353"><a href="#cb34-353" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">x =</span> <span class="st">"Scaled Score in TEST Phase"</span>, </span>
+<span id="cb34-354"><a href="#cb34-354" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Distribution of TEST PHASE Scaled Score (all Items)"</span>,</span>
+<span id="cb34-355"><a href="#cb34-355" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">""</span>),</span>
+<span id="cb34-356"><a href="#cb34-356" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Items"</span>) <span class="sc">+</span></span>
+<span id="cb34-357"><a href="#cb34-357" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_discrete</span>(<span class="at">name =</span> <span class="st">"Condition"</span>) <span class="sc">+</span>  </span>
+<span id="cb34-358"><a href="#cb34-358" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb34-359"><a href="#cb34-359" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-360"><a href="#cb34-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-361"><a href="#cb34-361" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance</span>
+<span id="cb34-362"><a href="#cb34-362" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>TODO: INVESTIGATE DISTRIBUTIONS of each subscore type</span>
+<span id="cb34-363"><a href="#cb34-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-364"><a href="#cb34-364" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretations</span></span>
+<span id="cb34-365"><a href="#cb34-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-368"><a href="#cb34-368" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-369"><a href="#cb34-369" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: DISTR-INTERPRETATIONS</span></span>
+<span id="cb34-370"><a href="#cb34-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-371"><a href="#cb34-371" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION</span></span>
+<span id="cb34-372"><a href="#cb34-372" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_props</span>(<span class="sc">~</span>pretty_interpretation, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-373"><a href="#cb34-373" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>( pretty_condition <span class="sc">~</span> ., <span class="at">labeller =</span> label_both) <span class="sc">+</span> </span>
+<span id="cb34-374"><a href="#cb34-374" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Interpretations (across Task)"</span>,</span>
+<span id="cb34-375"><a href="#cb34-375" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Graph Interpretation"</span>,</span>
+<span id="cb34-376"><a href="#cb34-376" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Proportion of Responses"</span>,</span>
+<span id="cb34-377"><a href="#cb34-377" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse condition (blue) yields fewer Orthogonal and more Triangular responses"</span>) <span class="sc">+</span> </span>
+<span id="cb34-378"><a href="#cb34-378" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-379"><a href="#cb34-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-380"><a href="#cb34-380" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION ACROSS ITEMS</span></span>
+<span id="cb34-381"><a href="#cb34-381" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_propsh</span>(<span class="sc">~</span> pretty_interpretation, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-382"><a href="#cb34-382" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>( pretty_condition<span class="sc">~</span>q) <span class="sc">+</span> </span>
+<span id="cb34-383"><a href="#cb34-383" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Interpretations (by Item)"</span>,</span>
+<span id="cb34-384"><a href="#cb34-384" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse condition (blue) yields more Triangular responses on each question"</span>,</span>
+<span id="cb34-385"><a href="#cb34-385" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Interpretation"</span>, <span class="at">x =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-386"><a href="#cb34-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-387"><a href="#cb34-387" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION TYPE ACROSS ITEMS</span></span>
+<span id="cb34-388"><a href="#cb34-388" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_propsh</span>(<span class="sc">~</span> high_interpretation, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-389"><a href="#cb34-389" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_grid</span>( pretty_condition<span class="sc">~</span>q) <span class="sc">+</span> </span>
+<span id="cb34-390"><a href="#cb34-390" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Interpretations (by Item)"</span>,</span>
+<span id="cb34-391"><a href="#cb34-391" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse condition (blue) yields more positive trending responses on each question"</span>,</span>
+<span id="cb34-392"><a href="#cb34-392" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Interpretation"</span>, <span class="at">x =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-393"><a href="#cb34-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-394"><a href="#cb34-394" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-395"><a href="#cb34-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-396"><a href="#cb34-396" aria-hidden="true" tabindex="-1"></a><span class="fu">### Progress over Task</span></span>
+<span id="cb34-397"><a href="#cb34-397" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-400"><a href="#cb34-400" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-401"><a href="#cb34-401" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: VIZ-PROGRESS</span></span>
+<span id="cb34-402"><a href="#cb34-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-403"><a href="#cb34-403" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time ABSOLUTE score </span></span>
+<span id="cb34-404"><a href="#cb34-404" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_absolute_progress, <span class="fu">aes</span>(<span class="at">x =</span> question, <span class="at">y =</span> score, <span class="at">group =</span> subject, <span class="at">alpha =</span> <span class="fl">0.01</span>, <span class="at">color =</span> pretty_condition)) <span class="sc">+</span> </span>
+<span id="cb34-405"><a href="#cb34-405" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_line</span>(<span class="at">position=</span><span class="fu">position_jitter</span>(<span class="at">w=</span><span class="fl">0.15</span>, <span class="at">h=</span><span class="fl">0.15</span>), <span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb34-406"><a href="#cb34-406" aria-hidden="true" tabindex="-1"></a> <span class="fu">facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-407"><a href="#cb34-407" aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span> (<span class="at">title =</span> <span class="st">"Cumulative Absolute Score over sequence of task"</span>, <span class="at">x =</span> <span class="st">"Question"</span> , <span class="at">y =</span> <span class="st">"Cumulative Absolute Score"</span>) <span class="sc">+</span> </span>
+<span id="cb34-408"><a href="#cb34-408" aria-hidden="true" tabindex="-1"></a> <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">12</span>,<span class="dv">13</span>)) <span class="sc">+</span></span>
+<span id="cb34-409"><a href="#cb34-409" aria-hidden="true" tabindex="-1"></a> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-410"><a href="#cb34-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-411"><a href="#cb34-411" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time SCALED score </span></span>
+<span id="cb34-412"><a href="#cb34-412" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_scaled_progress, <span class="fu">aes</span>(<span class="at">x =</span> question, <span class="at">y =</span> score, <span class="at">group =</span> subject, <span class="at">alpha =</span> <span class="fl">0.01</span>, <span class="at">color =</span> pretty_condition)) <span class="sc">+</span> </span>
+<span id="cb34-413"><a href="#cb34-413" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_line</span>(<span class="at">position=</span><span class="fu">position_jitter</span>(<span class="at">w=</span><span class="fl">0.15</span>, <span class="at">h=</span><span class="fl">0.15</span>), <span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb34-414"><a href="#cb34-414" aria-hidden="true" tabindex="-1"></a> <span class="fu">facet_wrap</span>(<span class="sc">~</span>pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-415"><a href="#cb34-415" aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span> (<span class="at">title =</span> <span class="st">"Cumulative Scaled Score over sequence of task"</span>, <span class="at">x =</span> <span class="st">"Question"</span> , <span class="at">y =</span> <span class="st">"Cumulative Scaled Score"</span>) <span class="sc">+</span> </span>
+<span id="cb34-416"><a href="#cb34-416" aria-hidden="true" tabindex="-1"></a> <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">12</span>,<span class="dv">13</span>)) <span class="sc">+</span></span>
+<span id="cb34-417"><a href="#cb34-417" aria-hidden="true" tabindex="-1"></a> <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-418"><a href="#cb34-418" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-419"><a href="#cb34-419" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-420"><a href="#cb34-420" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-421"><a href="#cb34-421" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretation Subscores</span></span>
+<span id="cb34-422"><a href="#cb34-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-425"><a href="#cb34-425" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-426"><a href="#cb34-426" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: DIST-SUBSCORES</span></span>
+<span id="cb34-427"><a href="#cb34-427" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-428"><a href="#cb34-428" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TRI, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-429"><a href="#cb34-429" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-430"><a href="#cb34-430" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Triangular Score"</span>,</span>
+<span id="cb34-431"><a href="#cb34-431" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse shifts density toward higher Triagular scores"</span>,</span>
+<span id="cb34-432"><a href="#cb34-432" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Triangular Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb34-433"><a href="#cb34-433" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-434"><a href="#cb34-434" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-435"><a href="#cb34-435" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-436"><a href="#cb34-436" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_ORTH, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-437"><a href="#cb34-437" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-438"><a href="#cb34-438" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Orthogonal Score"</span>,</span>
+<span id="cb34-439"><a href="#cb34-439" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse shifts density toward lower Orthogonal scores"</span>,</span>
+<span id="cb34-440"><a href="#cb34-440" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Orthogonal Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb34-441"><a href="#cb34-441" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-442"><a href="#cb34-442" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-443"><a href="#cb34-443" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TVERSKY, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-444"><a href="#cb34-444" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-445"><a href="#cb34-445" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Tversky Score"</span>,</span>
+<span id="cb34-446"><a href="#cb34-446" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Impasse shifts density toward higher Tversky scores"</span>,</span>
+<span id="cb34-447"><a href="#cb34-447" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Orthogonal Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb34-448"><a href="#cb34-448" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-449"><a href="#cb34-449" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-450"><a href="#cb34-450" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_histogram</span>(<span class="sc">~</span> s_SATISFICE, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-451"><a href="#cb34-451" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gf_facet_wrap</span>( <span class="sc">~</span> pretty_condition) <span class="sc">+</span> </span>
+<span id="cb34-452"><a href="#cb34-452" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>( <span class="at">title =</span> <span class="st">"Distribution of Total Satisfice Score"</span>,</span>
+<span id="cb34-453"><a href="#cb34-453" aria-hidden="true" tabindex="-1"></a>        <span class="at">subtitle =</span> <span class="st">"Satisficing only occurs in impasse, when no orthogonal response is available"</span>,</span>
+<span id="cb34-454"><a href="#cb34-454" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"Item Orthogonal Score"</span>, <span class="at">y =</span> <span class="st">"Proportion of Subjects"</span>) <span class="sc">+</span> </span>
+<span id="cb34-455"><a href="#cb34-455" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_minimal</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"blank"</span>)</span>
+<span id="cb34-456"><a href="#cb34-456" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-457"><a href="#cb34-457" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-458"><a href="#cb34-458" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-459"><a href="#cb34-459" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-460"><a href="#cb34-460" aria-hidden="true" tabindex="-1"></a><span class="fu">## EXPORT</span></span>
+<span id="cb34-461"><a href="#cb34-461" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-462"><a href="#cb34-462" aria-hidden="true" tabindex="-1"></a>Finally, we export the scores for each item (<span class="in">`df_items`</span>) and summarized over subjects (<span class="in">`df_subjects`</span>), as well as cumulative progress dataframes (<span class="in">`df_absolute_progress`</span>, <span class="in">`df_scaled_progress`</span>)</span>
+<span id="cb34-463"><a href="#cb34-463" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-466"><a href="#cb34-466" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-467"><a href="#cb34-467" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: EXPORT-SCORES</span></span>
+<span id="cb34-468"><a href="#cb34-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-469"><a href="#cb34-469" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-470"><a href="#cb34-470" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-471"><a href="#cb34-471" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-472"><a href="#cb34-472" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
+<span id="cb34-473"><a href="#cb34-473" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-474"><a href="#cb34-474" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_items,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-475"><a href="#cb34-475" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_absolute_progress,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_absolute_progress.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-476"><a href="#cb34-476" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_scaled_progress,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scaled_progress.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb34-477"><a href="#cb34-477" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-478"><a href="#cb34-478" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE R Data Structures</span></span>
+<span id="cb34-479"><a href="#cb34-479" aria-hidden="true" tabindex="-1"></a><span class="co">#export R DATA STRUCTURES (include codebook metadata)</span></span>
+<span id="cb34-480"><a href="#cb34-480" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_subjects, <span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.rds"</span>) <span class="co"># to R data structure file</span></span>
+<span id="cb34-481"><a href="#cb34-481" aria-hidden="true" tabindex="-1"></a>rio<span class="sc">::</span><span class="fu">export</span>(df_items, <span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.rds"</span>) <span class="co"># to R data structure file</span></span>
+<span id="cb34-482"><a href="#cb34-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-483"><a href="#cb34-483" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-484"><a href="#cb34-484" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-485"><a href="#cb34-485" aria-hidden="true" tabindex="-1"></a><span class="fu">## RESOURCES</span></span>
+<span id="cb34-486"><a href="#cb34-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-487"><a href="#cb34-487" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-490"><a href="#cb34-490" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-491"><a href="#cb34-491" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb34-492"><a href="#cb34-492" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-493"><a href="#cb34-493" aria-hidden="true" tabindex="-1"></a></span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>
