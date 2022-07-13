@@ -40,6 +40,9 @@ options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
+#GRAPH THEMEING
+theme_set(theme_minimal())
+
 ```
 
 ```{r}
@@ -48,9 +51,9 @@ options(scipen=1, digits=3)
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -167,7 +170,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   labs( title = "Distribution of TEST Absolute Score",
         subtitle ="Pattern of response is similar across data collection modes but differs by condition",
         x = "Total Absolute Score (Test Phase)", y = "number of subjects") +
-   theme_sgc() + theme(legend.position = "blank")
+  theme_minimal() + theme(legend.position = "blank")
 
 ##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
@@ -269,7 +272,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   labs( title = "Distribution of TEST Scaled Score",
         subtitle ="Pattern of response is similar across data collection modes but differs by condition",
         x = "total scaled score (test phase)", y = "number of participants") + 
-  theme_sgc() + theme(legend.position = "blank") 
+ theme_minimal() + theme(legend.position = "blank") 
 
 
 ##VERTICAL RAINCLOUD USING GGDISTR
@@ -358,7 +361,7 @@ gf_props(~item_q1_NABS, data = df_subjects) +
        y = "% subjects",
        title = "Proportion of Correct Responses on First Item",
        subtitle="")+
-  theme_minimal()+ theme(legend.position = "none")+theme_ggdist()
+  theme(legend.position = "none")+theme_ggdist()
 
 #PROPORTIONAL BAR CHART
 gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>% 
@@ -366,7 +369,7 @@ gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>%
   labs(x = "response accuracy",
        title = "Proportion of Correct Responses on First Item (by Modality and Condition)",
        subtitle="")+
-  theme_minimal()+ theme(legend.position = "none") 
+  theme(legend.position = "none") 
 
 
 #MOSAIC PLOT
@@ -408,8 +411,7 @@ gf_props(~item_q1_SCALED, data = df_subjects) +
   labs(x = "scaled score (first item)",
        y = "% of subjects",
        title = "Distribution of First Item Scaled Score",
-       subtitle = "") + 
-  theme_minimal()
+       subtitle = "") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -469,7 +471,7 @@ gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>%
   labs(x = "% of items",
        title = "Proportion of Interpretations Across Items",
        subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
-  theme_minimal()+ theme(legend.position = "none")
+  theme(legend.position = "none")
 
 
 #MOSAIC PLOT
@@ -545,7 +547,7 @@ Response time _on the first item_ for *combined* subjects (n = `r time.stats["co
 gf_dhistogram(~item_q1_rt, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of First Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "First Item Response Time (seconds)", y = "% items") +  theme_minimal()
+  labs(title="Distribution of First Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "First Item Response Time (seconds)", y = "% items")
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -626,7 +628,7 @@ Time on an individual item for *combined* subjects (n = `r time.stats["combined"
 gf_dhistogram(~rt_s, data = df_items) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "Item Response Time (seconds)", y = "% items") +  theme_minimal()
+  labs(title="Distribution of Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "Item Response Time (seconds)", y = "% items") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -650,21 +652,25 @@ df_items <- df_items %>% mutate(
 ggplot(df_items, aes(x = pretty_condition, y = rt_s, color = score_niceABS) ) + 
   ggdist::stat_halfeye(
     side = "left",
-    justification = 1.2, 
-    adjust = .5, 
-    width = .6, 
+    # position = position_dodgejust(),
+    justification = 1.5, 
+    # adjust = .5, 
+    width = .5, 
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
     width = .15, 
-    outlier.shape = NA
+    outlier.shape = NA,
+    position = position_dodge2()
   ) +
   geom_point(
     size = 1.3,
     alpha = .3,
-    position = position_jitter( 
-      seed = 1, width = .1
-  )) + 
+    position = position_jitterdodge(
+      # seed = 1,
+      dodge.width = 0.5,
+      jitter.width = 0.075
+  )) +
   labs( title = "Distribution of Item Response Time (seconds)",
         subtitle ="",
         y = "Item Response Time (s)", x = "Condition") +
@@ -720,7 +726,7 @@ Total time on SCAFFOLD phase for *combined* subjects (n = `r time.stats["combine
 gf_dhistogram(~item_scaffold_rt, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of SCAFFOLD Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Scaffold Phase Time (minutes)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of SCAFFOLD Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Scaffold Phase Time (minutes)", y = "% subjects") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -734,8 +740,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
         x = "Scaffold Phase Time (minutes)", y = "number of subjects") +
   theme_minimal() + theme(legend.position = "blank")
 
-
-##RAINCLOUD USING GGDISTR
+##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = item_scaffold_rt, fill = pretty_condition)) + 
   ggdist::stat_halfeye(
     side = "left",
@@ -745,20 +750,23 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_scaffold_rt, fill = prett
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_scaffold_rt),
     width = .15, 
     outlier.shape = NA
-  ) +
+  ) + 
   geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_scaffold_rt, color = pretty_condition),
     size = 1.3,
     alpha = .3,
-    position = position_jitter(
-      seed = 1, width = .1
-  )) + 
-  labs( title = "Distribution of SCAFFOLD Phase Response Time (minutes)",
+    position = position_jitter( 
+      seed = 1, width = .05
+  ))+ labs( title = "Distribution of SCAFFOLD Phase Response Time (minutes)",
         subtitle ="",
         y = "Total Study Time (minutes)", x = "Condition") +
-  theme_ggdist() + theme(legend.position = "blank")
-# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+  theme_ggdist() + theme(legend.position = "blank") #+
+  # coord_cartesian(xlim = c(0.5, NA), clip = "off")
                 
 ```
 
@@ -805,7 +813,7 @@ Total time on TEST phase for *combined* subjects (n = `r time.stats["combined",]
 gf_dhistogram(~item_test_rt, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of TEST Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Test Phase Time (minutes)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of TEST Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Test Phase Time (minutes)", y = "% subjects") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -820,7 +828,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   theme_minimal() + theme(legend.position = "blank")
 
 
-##RAINCLOUD USING GGDISTR
+##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = item_test_rt, fill = pretty_condition)) + 
   ggdist::stat_halfeye(
     side = "left",
@@ -830,20 +838,24 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_rt, fill = pretty_co
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_test_rt),
     width = .15, 
     outlier.shape = NA
-  ) +
+  ) + 
   geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_test_rt, color = pretty_condition),
     size = 1.3,
     alpha = .3,
-    position = position_jitter(
-      seed = 1, width = .1
-  )) + 
+    position = position_jitter( 
+      seed = 1, width = .05
+  ))+ 
   labs( title = "Distribution of TEST Phase Response Time (minutes)",
         subtitle ="",
-        y = "Test Phase Time (minutes)", x = "Condition") +
-  theme_ggdist() + theme(legend.position = "blank")
-# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+        y = "Total Study Time (minutes)", x = "Condition") +
+  theme_ggdist() + theme(legend.position = "blank") #+
+  # coord_cartesian(xlim = c(0.5, NA), clip = "off")
                 
 ```
 
@@ -890,12 +902,12 @@ Total time on study for *combined* subjects (n = `r time.stats["combined",]$n`) 
 gf_dhistogram(~totaltime_m, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of Total Time on Study (in minutes)", subtitle = "fit by gamma distribution", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of Total Time on Study (in minutes)", subtitle = "fit by gamma distribution", x = "Total Time (mins)", y = "% subjects") 
 
 #HISTOGRAM by CONDITION and MODE
 gf_dhistogram(~totaltime_m, data = df_subjects) %>%
   gf_facet_grid(pretty_condition ~ pretty_mode) + 
-  labs(title="Distribution of Total Time on Study ( minutes)", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of Total Time on Study ( minutes)", x = "Total Time (mins)", y = "% subjects") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -927,7 +939,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
 #                 bottom = text_grob("fit by Gamma distribution", face = "italic", size = 10))
 
 
-##RAINCLOUD USING GGDISTR
+##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = totaltime_m, fill = pretty_condition)) + 
   ggdist::stat_halfeye(
     side = "left",
@@ -937,21 +949,24 @@ ggplot(df_subjects, aes(x = pretty_condition, y = totaltime_m, fill = pretty_con
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = totaltime_m),
     width = .15, 
     outlier.shape = NA
-  ) +
+  ) + 
   geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = totaltime_m, color = pretty_condition),
     size = 1.3,
     alpha = .3,
-    position = position_jitter(
-      seed = 1, width = .1
-  )) + 
+    position = position_jitter( 
+      seed = 1, width = .05
+  ))+ 
   labs( title = "Distribution of Total Time on Study (minutes)",
         subtitle ="",
         y = "Total Study Time (minutes)", x = "Condition") +
-  theme_ggdist() + theme(legend.position = "blank")
-# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
-                
+  theme_ggdist() + theme(legend.position = "blank") #+
+  # coord_cartesian(xlim = c(0.5, NA), clip = "off")
 ```
 
 **TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
