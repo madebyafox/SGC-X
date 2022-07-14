@@ -15,6 +15,19 @@ n_rows <- df_ospan %>% nrow
 headers <- df_ospan %>% head(2) 
 df_ospan <- df_ospan %>% tail(n_rows - 2)
 
+duration <- df_ospan %>% dplyr::select(`Duration (in seconds)`) %>% 
+  mutate(
+    seconds = as.integer(`Duration (in seconds)`),
+    minutes = seconds/60
+  ) %>% dplyr::select(-`Duration (in seconds)`)
+
+print("Range Task Time")
+range(duration$minutes)
+print("Average Task Time")
+mean(duration$minutes)
+print("Median Task Time")
+median(duration$minutes)
+
 #FILTER OUT BAD SUBJECTS [task preview, no subject id, etc]
 rejects <- df_ospan %>% filter(
   str_length(SUBJECTID) != 5 
