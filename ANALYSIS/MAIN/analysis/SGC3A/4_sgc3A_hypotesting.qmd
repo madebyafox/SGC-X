@@ -29,6 +29,7 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 library(Hmisc) # %nin% operator
 
 library(ggpubr) #arrange plots
+library(cowplot) #arrange shift function plots
 library(ggformula) #easy graphs
 library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
@@ -42,6 +43,11 @@ library(gmodels) #contingency table and CHISQR
 library(equatiomatic) #extract model equation
 library(pscl) #zeroinfl / hurdle models 
 
+library(ggdist)
+library(broom)
+library(modelr)
+library(distributional)
+
 library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
@@ -50,20 +56,8 @@ options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
-# Custom ggplot theme to make pretty plots
-# Get the font at https://fonts.google.com/specimen/Barlow+Semi+Condensed
-# theme_clean <- function() {
-#   theme_minimal(base_family = "Barlow Semi Condensed") +
-#     theme(panel.grid.minor = element_blank(),
-#           plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
-#           axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
-#           strip.text = element_text(family = "BarlowSemiCondensed-Bold",
-#                                     size = rel(1), hjust = 0),
-#           strip.background = element_rect(fill = "grey80", color = NA))
-# }
-
-# Make labels use Barlow by default
-# update_geom_defaults("label_repel", list(family = "Barlow Semi Condensed"))
+#SET GGPLOT THEME
+theme_set(theme_minimal())
 
 ```
 
@@ -88,8 +82,14 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
+
+#LOAD SHIFT FUNCTION RESOURCES
+source("analysis/utils/shift_function/Rallfun-v30.txt")
+source("analysis/utils/shift_function/wilcox_modified.txt")
+source("analysis/utils/shift_function/rgar_visualisation.txt")
+source("analysis/utils/shift_function/rgar_utils.txt")
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -98,7 +98,7 @@ df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_particip
 #TRANSFORMATIONS 
 #1. test phase absolute score as percentage
 df_subjects <- df_subjects %>% mutate(
-  DV_percent_test_NABS = item_test_NABS/8 #for 8 Qs in test phase
+  DV_percent_test_NABS = (item_test_NABS/8) * 100 #for 8 Qs in test phase
 )
 
 #SEPARATE ITEM DATA BY QUESTION TYPE
@@ -137,27 +137,150 @@ On the TEST Phase of the graph comprehension task (the final 8 questions, encoun
 
 ### Test Phase Absolute Score
 
-#### Linear Regression
-
-##### (In Person)
-
-###### Visualization
+#### Shift in Modal Mass
 
 ```{r}
-#| label: VIS-TEST-ABS-LAB
+#| label: VIS-TEST-ABS
  
 #HISTOGRAM
-stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(DV_percent_test_NABS)*100)
-gmean = df_lab %>% dplyr::summarise(mean = mean(DV_percent_test_NABS)*100)
-gf_props(~DV_percent_test_NABS*100, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
+stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(DV_percent_test_NABS))
+gf_props(~DV_percent_test_NABS, 
+         fill = ~pretty_condition, data = df_subjects) %>% gf_facet_grid(~pretty_condition) %>% 
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
   labs(x = "% Correct",
        y = "proportion of subjects",
-       title = "(LAB) TEST Phase Absolute Score (% Correct)",
-       subtitle = "") + 
-  theme_minimal()
+       title = "Test Phase Absolute Score (% Correct)",
+       subtitle = "") + theme(legend.position = "blank")
 
 ```
+
+The Effect of Condition on Total Absolute Test Score can be described as a 'shift' in mass between the two modes of each distribution.
+
+*FIRST, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
+
+```{r}
+#| label: COMPARE-DIST-NABS
+
+#(requires shift function files loaded)
+
+#PREP DATA 
+df <- df_subjects %>% dplyr::select(DV_percent_test_NABS, pretty_condition) %>% 
+  mutate(
+    data = as.numeric(DV_percent_test_NABS),
+    #flip order levels to correctly orient graph
+    # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
+    gr = as.character(pretty_condition)
+  ) %>% dplyr::select(data,gr)
+
+g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
+g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
+
+
+#COMPARE DISTRIBUTIONS WITH ROBUST TESTS
+
+#What do common tests say about the difference?
+
+# Kolmogorov-Smirnov test
+#If y is numeric, a two-sample (Smirnov) test of the null hypothesis that x and y 
+#were drawn from the same continuous distribution is performed. Alternatively, y ...
+
+#null is X is drawn from CDF EQUAL TO Y
+ks.test(g1,g2) 
+print("SUGGESTS that impasse and control come from different population distributions")
+
+# #null is X is NOT LESS THAN Y
+ks.test(g1,g2, alternative = "greater") 
+print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consistent with higher probability of low scores]")
+
+#REGULAR T-TEST
+t.test(g1,g2) # regular Welsh t-test
+
+
+```
+
+```{r}
+#| label: SHIFT-FN-SCALED
+
+
+#IF THIS ERRORS, consider loadling plyr (older than dplyr)
+# kernel density estimate + rug plot + superimposed deciles
+kde <- plot.kde_rug_dec2(df)
+# kde
+
+# compute shift function
+out <- shifthd( g1, g2, nboot=200)
+
+# plot shift function
+sf <- plot.sf(data=out) # function from rgar_visualisation.txt
+# sf
+
+# combine KDE + SF
+cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
+
+```
+
+
+#### TODO \| Ordinal Regression on ITEM-Interpretation
+#### WIP \| Mixed Logistic Regression ITEM-ABS
+
+```{r}
+library(lme4)
+
+df <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9))
+df$q = as.factor(df$q)
+
+# SUBJECT INTERCEPT + FIXED CONDITION
+mm1 <- glmer(score_niceABS ~ condition + (1|subject), data = df,family = "binomial")
+summary(mm1)
+report(mm1) 
+
+# CONDITION SLOPE per SUBJECT INTERCEPT + FIXED CONDITION
+mm2 <- glmer(score_niceABS ~ condition + (1|subject) + (1 | q) , data = df, family = "binomial")
+summary(mm2)
+report(mm2)
+# check_model(mm2)
+
+# SUBJECT INTERCEPT + Q  INTERCEPT +  FIXED CONDITION
+# DOESN'T CONVERGE
+# mm3 <- glmer(score_niceABS ~ condition + q + (1 | subject), data = df, family = "binomial")
+# summary(mm3)
+# report(mm3)
+
+#RANDOM ONLY
+mm.r0 <- glmer(score_niceABS ~  (1 | subject), data = df, family = "binomial")
+summary(mm.r0)
+report(mm.r0)
+
+#RANDOM ONLY
+mm.r1 <- glmer(score_niceABS ~  (1 | subject) + (1 | q), data = df, family = "binomial")
+summary(mm.r1)
+report(mm.r1)
+
+#COMPARE PERFORMANCE
+compare_performance(mm.r0, mm.r1, mm1,mm2)
+
+
+
+#SJ PLOTS
+#table of effects
+sjPlot:: tab_model(mm2)
+sjPlot::plot_model(mm2)
+sjPlot::plot_model(mm2, transform = "plogis")
+sjPlot::plot_model(mm2, type = "pred")
+
+
+library(lattice)
+randoms <- ranef(mm2)
+dotplot(randoms)
+
+library(lmerTest)
+# ranova(mm1,mm2)
+```
+
+
+#### Linear Regression
+
+##### (In Person)
 
 ###### Model
 
@@ -172,44 +295,37 @@ paste("Partition Variance")
 anova(lab.testabs.lm1)
 paste("Confidence Interval on Parameter Estimates")
 confint(lab.testabs.lm1)
-# report(m1) #sanity check
+report(lab.testabs.lm1) #sanity check
 #print model equation
 eq <- extract_eq(lab.testabs.lm1, use_coefs = TRUE)
 ```
 
-**Model equation** `r eq`
-
-**For (In Person)** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 6% variance in accuracy (F(1,124) = 7.89, p \< 0.01). The estimated beta coefficient ($\beta$ = 0.20, 95% CI \[0.05, 0.35\]) predicts that participants in the impasse condition will on average score 20% higher than those in the control condition.
-
 ```{r}
+#| label: VISMODEL-TEST-ABS-LAB
 
 #MODEL ESTIMATES WITH UNCERTAINTY
 
 #setup references 
 m <- lab.testabs.lm1
 df <- df_lab 
-x <- df_lab$DV_percent_test_NABS
+call <- m$call %>% as.character()
 
-
-library(ggdist)
-library(broom)
-library(modelr)
-library(distributional)
-
-#uncertainty model visualization
-df %>%
+# uncertainty model visualization
+df  %>%
   data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>%
-  ggplot(aes(y = pretty_condition)) +
-  stat_halfeye(
-    aes(xdist = dist_student_t(df = df.residual(m), 
-        mu = .fitted, sigma = .se.fit)), scale = .5) +
-  # add raw data in too (scale = .5 above adjusts the halfeye height so
-  # that the data fit in as well)
-  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
-              position =   position_nudge(y = -.15), alpha = 0.5) +  
-  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
-  theme_minimal()
+  augment(m, newdata = ., se_fit = TRUE) %>% 
+  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+  stat_halfeye( scale = .5,
+      aes(
+        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+        fill = stat(cut_cdf_qi(cdf, 
+                .width = c(.90, .95),
+                labels = scales::percent_format())))) +
+  scale_fill_brewer(direction = -1) + 
+  labs (title = "(LAB) Test Phase Accuracy ~ Condition", 
+        x = "model predicted mean (% correct)", y = "Condition", fill = "Interval",
+        subtitle = paste("lm(",call[2],")")
+  ) + theme(legend.position = "blank")
 
 ```
 
@@ -222,7 +338,9 @@ df %>%
 check_model(lab.testabs.lm1, panel = TRUE)
 ```
 
-\(1\) RESIDUAL DISTRIBUTION: `r check_normality(lab.testabs.lm1)` (2) HOMOGENEITY: `r check_homogeneity(lab.testabs.lm1)` (3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.testabs.lm1)` (4) AUTOCORRELATION: `r check_autocorrelation(lab.testabs.lm1)` (5) OUTLIERS: `r check_outliers(lab.testabs.lm1)`
+\(1\) RESIDUAL DISTRIBUTION: `r check_normality(lab.testabs.lm1)`\
+(2) HOMOGENEITY: `r check_homogeneity(lab.testabs.lm1)` \
+(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.testabs.lm1)` (4) AUTOCORRELATION: `r check_autocorrelation(lab.testabs.lm1)`
 
 ###### Inference
 
@@ -271,28 +389,31 @@ eq <- extract_eq(rep.testabs.lm1)
 **For online replication** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 5% variance in accuracy (F(1,202) = 10.8, p \< 0.01). The estimated beta coefficient ($\beta$ = 0.18, 95% CI \[0.07, 0.29\]) predicts that participants in the impasse condition will on average score 18% higher than those in the control condition.
 
 ```{r}
+#| label: VISMODEL-TEST-ABS-ONLINE
 
 #MODEL ESTIMATES WITH UNCERTAINTY
 
 #setup references 
 m <- rep.testabs.lm1
 df <- df_online 
-x <- df_online$DV_percent_test_NABS
+call <- m$call %>% as.character()
 
-#uncertainty model visualization
-df %>%
+# uncertainty model visualization
+df  %>%
   data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>%
-  ggplot(aes(y = pretty_condition)) +
-  stat_halfeye(
-    aes(xdist = dist_student_t(df = df.residual(m), 
-        mu = .fitted, sigma = .se.fit)), scale = .5) +
-  # add raw data in too (scale = .5 above adjusts the halfeye height so
-  # that the data fit in as well)
-  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
-              position =   position_nudge(y = -.15), alpha = 0.5) +  
-  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
-  theme_minimal()
+  augment(m, newdata = ., se_fit = TRUE) %>% 
+  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+  stat_halfeye( scale = .5,
+      aes(
+        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+        fill = stat(cut_cdf_qi(cdf, 
+                .width = c(.90, .95),
+                labels = scales::percent_format())))) +
+  scale_fill_brewer(direction = -1) + 
+  labs (title = "(ONLINE) Test Phase Accuracy ~ Condition", 
+        x = "model predicted mean (% correct)", y = "Condition", fill = "Interval",
+        subtitle = paste("lm(",call[2],")")
+  ) + theme(legend.position = "blank")
 
 ```
 
@@ -314,6 +435,89 @@ check_model(rep.testabs.lm1, panel = TRUE)
 ### Test Phase Scaled Score
 
 While Absolute Score (as \# or % correct) gives an indication of accuracy, it does not differentiate between different kinds of incorrect answers. The Scaled score includes this extra information see @sec-scoring-scaledScore
+
+#### Shift in Modal Mass
+
+```{r}
+#| label: VIS-TEST-SCALED
+ 
+#HISTOGRAM
+stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_SCALED))
+gf_props(~item_test_SCALED, 
+         fill = ~pretty_condition, data = df_subjects) %>% gf_facet_grid(~pretty_condition) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "% Correct",
+       y = "proportion of subjects",
+       title = "Test Phase Scaled Score",
+       subtitle = "") + theme(legend.position = "blank")
+
+```
+
+The Effect of Condition on Test Phase Scaled Score can be described as a 'shift' in mass between the two modes of each distribution.
+
+*FIRST, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
+
+```{r}
+#| label: COMPARE-DIST-SCALED
+
+#(requires shift function files loaded)
+
+
+#PREP DATA 
+df <- df_subjects %>% dplyr::select(item_test_SCALED, pretty_condition) %>% 
+  mutate(
+    data = as.numeric(item_test_SCALED),
+    #flip order levels to correctly orient graph
+    # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
+    gr = as.character(pretty_condition)
+  ) %>% dplyr::select(data,gr)
+
+g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
+g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
+
+
+#COMPARE DISTRIBUTIONS WITH ROBUST TESTS
+
+#What do common tests say about the difference?
+
+# Kolmogorov-Smirnov test
+#If y is numeric, a two-sample (Smirnov) test of the null hypothesis that x and y 
+#were drawn from the same continuous distribution is performed. Alternatively, y ...
+
+#null is X is drawn from CDF EQUAL TO Y
+ks.test(g1,g2) 
+print("SUGGESTS that impasse and control come from different population distributions")
+
+# #null is X is NOT LESS THAN Y
+ks.test(g1,g2, alternative = "greater") 
+print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consistent with higher probability of low scores]")
+
+#REGULAR T-TEST
+t.test(g1,g2) # regular Welsh t-test
+
+
+```
+
+```{r}
+#| label: SHIFT-FN-NABS
+
+
+#IF THIS ERRORS, consider loadling plyr (older than dplyr)
+# kernel density estimate + rug plot + superimposed deciles
+kde <- plot.kde_rug_dec2(df)
+# kde
+
+# compute shift function
+out <- shifthd( g1, g2, nboot=200)
+
+# plot shift function
+sf <- plot.sf(data=out) # function from rgar_visualisation.txt
+# sf
+
+# combine KDE + SF
+plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
+
+```
 
 #### Linear Regression
 
@@ -359,28 +563,31 @@ eq <- extract_eq(lab.test_scaled.lm1, use_coefs = TRUE)
 **For (In Person)** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 8% variance in accuracy (F(1,124) = 10.8, p \< 0.005). The estimated beta coefficient ($\beta$ = 3.77, 95% CI \[1.49, 6.04\]) predicts that participants in the impasse condition will on average 4 points higher than those in the control condition.
 
 ```{r}
+#| label: VISMODEL-TEST-SCALED-LAB
 
 #MODEL ESTIMATES WITH UNCERTAINTY
 
 #setup references 
 m <- lab.test_scaled.lm1
 df <- df_lab 
-x <- df_lab$item_test_SCALED
+call <- m$call %>% as.character()
 
-#uncertainty model visualization
-df %>%
+# uncertainty model visualization
+df  %>%
   data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>%
-  ggplot(aes(y = pretty_condition)) +
-  stat_halfeye(
-    aes(xdist = dist_student_t(df = df.residual(m), 
-        mu = .fitted, sigma = .se.fit)), scale = .5) +
-  # add raw data in too (scale = .5 above adjusts the halfeye height so
-  # that the data fit in as well)
-  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
-              position =   position_nudge(y = -.15), alpha = 0.5) +  
-  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
-  theme_minimal()
+  augment(m, newdata = ., se_fit = TRUE) %>% 
+  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+  stat_halfeye( scale = .5,
+      aes(
+        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+        fill = stat(cut_cdf_qi(cdf, 
+                .width = c(.90, .95),
+                labels = scales::percent_format())))) +
+  scale_fill_brewer(direction = -1) + 
+  labs (title = "(LAB) Test Phase Scaled Score ~ Condition", 
+        x = "model predicted mean", y = "Condition", fill = "Interval",
+        subtitle = paste("lm(",call[2],")")
+  ) + theme(legend.position = "blank")
 
 ```
 
@@ -396,7 +603,7 @@ check_model(lab.test_scaled.lm1, panel = TRUE)
 \(1\) RESIDUAL DISTRIBUTION: `r check_normality(lab.test_scaled.lm1)`\
 (2) HOMOGENEITY: `r check_homogeneity(lab.test_scaled.lm1)`\
 (3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.test_scaled.lm1)`\
-(4) AUTOCORRELATION: `r check_autocorrelation(lab.test_scaled.lm1)` (5) OUTLIERS: `r check_outliers(lab.test_scaled.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(lab.test_scaled.lm1)`
 
 ###### Inference
 
@@ -444,28 +651,31 @@ eq <- extract_eq(rep.test_scaled.lm1, use_coefs = TRUE)
 **For online replication** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 7% variance in accuracy (F(1,202) = 14.3, p \< 0.001). The estimated beta coefficient ($\beta$ = 3.24, 95% CI \[1.55, 4.62\]) predicts that participants in the impasse condition will on average 3 points higher than those in the control condition.
 
 ```{r}
+#| label: VISMODEL-TEST-SCALED-ONLINE
 
 #MODEL ESTIMATES WITH UNCERTAINTY
 
 #setup references 
 m <- rep.test_scaled.lm1
 df <- df_online 
-x <- df_online$item_test_SCALED
+call <- m$call %>% as.character()
 
-#uncertainty model visualization
-df %>%
+# uncertainty model visualization
+df  %>%
   data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>%
-  ggplot(aes(y = pretty_condition)) +
-  stat_halfeye(
-    aes(xdist = dist_student_t(df = df.residual(m), 
-        mu = .fitted, sigma = .se.fit)), scale = .5) +
-  # add raw data in too (scale = .5 above adjusts the halfeye height so
-  # that the data fit in as well)
-  geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
-              position =   position_nudge(y = -.15), alpha = 0.5) +  
-  labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
-  theme_minimal()
+  augment(m, newdata = ., se_fit = TRUE) %>% 
+  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+  stat_halfeye( scale = .5,
+      aes(
+        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+        fill = stat(cut_cdf_qi(cdf, 
+                .width = c(.90, .95),
+                labels = scales::percent_format())))) +
+  scale_fill_brewer(direction = -1) + 
+  labs (title = "(LAB) Test Phase Scaled Score ~ Condition", 
+        x = "model predicted mean (scaled score)", y = "Condition", fill = "Interval",
+        subtitle = paste("lm(",call[2],")")
+  ) + theme(legend.position = "blank")
 
 ```
 
@@ -481,38 +691,13 @@ check_model(rep.test_scaled.lm1, panel = TRUE)
 \(1\) RESIDUAL DISTRIBUTION: `r check_normality(rep.test_scaled.lm1)`\
 (2) HOMOGENEITY: `r check_homogeneity(rep.test_scaled.lm1)`\
 (3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.test_scaled.lm1)`\
-(4) AUTOCORRELATION: `r check_autocorrelation(rep.test_scaled.lm1)` (5) OUTLIERS: `r check_outliers(rep.test_scaled.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(rep.test_scaled.lm1)`
 
 ###### Inference
 
 **For online replication** an OLS Linear Regression on SCALED SCORE in the TEST PHASE shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model is a poor fit to the data: (1) the model predictions for each group are closer to the anitimode of each of distribution than the group modes, and (2) the distribution of residuals is not normal. (Assumptions of homogenity of variance across groups, and homogeneity of variance in residuals are met)
 
-## TODO ROBUST ALTERNATIVE
 
-### WIP EXPLORING
-
-#### Beta Regression (% Correct)
-
-Beta regression on % correct (with standard transformation for including \[0,1\])
-
-```{r}
-
-library(betareg)
-
-sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS)
-n = nrow(sub) %>% unlist()
-sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
-
-histogram(sub$dv_transformed)
-histogram(df_subjects$DV_percent_NABS)
-mb <- betareg(dv_transformed ~ condition, data = sub)
-
-summary(mb)
-plot(mb)
-
-```
-
-#### Linear Regression (Transformed \# Correct) ??
 
 ## H1B \| Q1 ACCURACY
 
@@ -616,6 +801,8 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
 
 **Combining data across both sessions** (n=330), a Pearson's Chi-squared test suggests a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi_2$ (1) = 10.3, p = 0.001. The sample odds ratio (2.46, p = 0.001, 95% CI \[1.37, 4.53\]) indicates that the odds of providing a correct response to the first question are 2.46 higher for subjects in the impasse condition than those in the control condition.
 
+#### TODO \| (multiple) Logistic Regression Model \| What predicts Q1 Accuracy?
+
 ## H1C \| Q1 LATENCY
 
 ## RESPONSE LATENCY
@@ -624,21 +811,21 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
 -   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
 -   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
 
-+-----------------------+---------------------------------------------+
-| Research Question     |                                             |
-+=======================+=============================================+
-| **Hypothesis**        |                                             |
-+-----------------------+---------------------------------------------+
-| **Analysis Strategy** |                                             |
-+-----------------------+---------------------------------------------+
-| **Alternatives**      |                                             |
-+-----------------------+---------------------------------------------+
-| **Inference**         |                                             |
-+-----------------------+---------------------------------------------+
++-----------------------+--------------------------------------------+
+| Research Question     |                                            |
++=======================+============================================+
+| **Hypothesis**        |                                            |
++-----------------------+--------------------------------------------+
+| **Analysis Strategy** |                                            |
++-----------------------+--------------------------------------------+
+| **Alternatives**      |                                            |
++-----------------------+--------------------------------------------+
+| **Inference**         |                                            |
++-----------------------+--------------------------------------------+
 
 ### Q1 Response Latency
 
-#### Linear Regression
+#### Linear Regression (Log Transform)
 
 ##### (In Person)
 
@@ -649,11 +836,11 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
  
 #HISTOGRAM
 stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
-gf_dhistogram(~item_q1_rt, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Response Time (seconds)",
+gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
+  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(title = "(LAB) First Question Response Time",,
+       # x = "Response Time (seconds)",
        # y = "proportion of participants",
-       title = "(LAB) First Question Response Time",
        subtitle = "") + 
   theme_minimal()
 
@@ -665,21 +852,53 @@ gf_dhistogram(~item_q1_rt, fill = ~pretty_condition, data = df_lab) %>% gf_facet
 #| label: MODEL-Q1TIME-LAB
 
 #SCORE predicted by CONDITION
-lab.q1t.lm1 <- lm(item_q1_rt ~ condition, data = df_lab)
+lab.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_lab)
 paste("Model")
 summary(lab.q1t.lm1)
 paste("Partition Variance")
 anova(lab.q1t.lm1)
 paste("Confidence Interval on Parameter Estimates")
 confint(lab.q1t.lm1)
-# report(lab.q1t.lm1) #sanity check
+report(lab.q1t.lm1) #sanity check
 #print model equation
 eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
 ```
 
-**Model equation** `r eq`
+```{r}
+#| label: VISMODEL-Q1-LATENCY-LAB
 
-**For (In Person)** an OLS linear regression predicting response time on the first question by experimental condition explains a statistically significant though small 8% variance in accuracy (F(1,124) = 10.2, p \< 0.01). The estimated beta coefficient ($\beta$ = 14.43, 95% CI \[5.5, 23.4\]) predicts that participants in the impasse condition will spend on average 14 seconds more on the first question than those in the control condition.
+#MODEL ESTIMATES WITH UNCERTAINTY
+
+#setup references 
+#lab.q1t.lm1 <- lm(log(item_q1_rt) ~ condition, data = df_lab)
+m <- lab.q1t.lm1
+df <- df_lab 
+call <- m$call %>% as.character()
+
+# uncertainty model visualization
+df <- df  %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) 
+
+#transform log
+df$.fitted <- exp(df$.fitted)
+df$.se.fit <- exp(df$.se.fit)
+
+df %>% 
+  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+  stat_halfeye( scale = .5,
+      aes(
+        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+        fill = stat(cut_cdf_qi(cdf, 
+                .width = c(.90, .95),
+                labels = scales::percent_format())))) +
+  scale_fill_brewer(direction = -1) + 
+  labs (title = "(LAB) Q1 Response Latency ~ Condition", 
+        x = "model predicted mean (seconds)", y = "Condition", fill = "Interval",
+        subtitle = paste("lm(",call[2],")"),
+        caption = "note: model log(predictions) have exponentiated to original scale") + theme(legend.position = "blank")
+
+```
 
 ###### Diagnostics
 
@@ -690,11 +909,11 @@ eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
 check_model(lab.q1t.lm1, panel = TRUE)
 ```
 
-(1) RESIDUAL DISTRIBUTION: `r check_normality(lab.testabs.lm1)`
-(2) HOMOGENEITY: `r check_homogeneity(lab.testabs.lm1)`
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.testabs.lm1)`
-(4) AUTOCORRELATION: `r check_autocorrelation(lab.testabs.lm1)`
-(5) OUTLIERS: `r check_outliers(lab.testabs.lm1)`
+(1) RESIDUAL DISTRIBUTION: `r check_normality(lab.q1t.lm1)`
+(2) HOMOGENEITY: `r check_homogeneity(lab.q1t.lm1)`
+(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.q1t.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(lab.q1t.lm1)`
+(5) OUTLIERS: `r check_outliers(lab.q1t.lm1)`
 
 ###### Inference
 
@@ -709,11 +928,11 @@ OLS Linear Regression on Q1 response time shows that condition explains a small 
  
 #HISTOGRAM
 stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
-gf_dhistogram(~item_q1_rt, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Response Time (seconds)",
+gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
+  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(title = "(ONLINE) First Question Response Time",
+       # x = "Response Time (seconds)",
        # y = "proportion of participants",
-       title = "(ONLINE) First Question Response Time",
        subtitle = "") + 
   theme_minimal()
 
@@ -725,21 +944,53 @@ gf_dhistogram(~item_q1_rt, fill = ~pretty_condition, data = df_lab) %>% gf_facet
 #| label: MODEL-Q1TIME-online
 
 #SCORE predicted by CONDITION
-rep.q1t.lm1 <- lm(item_q1_rt ~ condition, data = df_online)
+rep.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_online)
 paste("Model")
 summary(rep.q1t.lm1)
 paste("Partition Variance")
 anova(rep.q1t.lm1)
 paste("Confidence Interval on Parameter Estimates")
 confint(rep.q1t.lm1)
-# report(rep.q1t.lm1) #sanity check
+report(rep.q1t.lm1) #sanity check
 #print model equation
 eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
 ```
 
-**Model equation** `r eq`
+```{r}
+#| label: VISMODEL-Q1-LATENCY-ONLINE
 
-**For (In Person)** an OLS linear regression predicting response time on the first question by experimental condition explains a statistically significant though small 5% variance in accuracy (F(1,202) = 11.1, p \< 0.001). The estimated beta coefficient ($\beta$ = 18.83, 95% CI \[7.68, 30\]) predicts that participants in the impasse condition will spend on average 19 seconds more on the first question than those in the control condition.
+#MODEL ESTIMATES WITH UNCERTAINTY
+
+#setup references 
+# rep.q1t.lm1 <- lm(log(item_q1_rt) ~ condition, data = df_online)
+m <- rep.q1t.lm1
+df <- df_online 
+call <- m$call %>% as.character()
+
+# uncertainty model visualization
+df <- df  %>%
+  data_grid(pretty_condition) %>%
+  augment(m, newdata = ., se_fit = TRUE) 
+
+#transform log
+df$.fitted <- exp(df$.fitted)
+df$.se.fit <- exp(df$.se.fit)
+
+df %>% 
+  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+  stat_halfeye( scale = .5,
+      aes(
+        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+        fill = stat(cut_cdf_qi(cdf, 
+                .width = c(.90, .95),
+                labels = scales::percent_format())))) +
+  scale_fill_brewer(direction = -1) + 
+  labs (title = "(ONLINE) Q1 Response Latency ~ Condition", 
+        x = "model predicted mean (seconds)", y = "Condition", fill = "Interval",
+        subtitle = paste("lm(",call[2],")"),
+        caption = "note: model log(predictions) have exponentiated to original scale") + theme(legend.position = "blank")
+
+```
 
 ###### Diagnostics
 
@@ -764,7 +1015,7 @@ OLS Linear Regression on Q1 response time shows that condition explains a small 
 
 -   https://rpkgs.datanovia.com/ggpubr/reference/index.html
 
-## ARCHIVE
+## WIP EXPLORING
 
 ### Test Phase Absolute Score (# questions)
 
@@ -875,12 +1126,16 @@ The model includes: - A logistic model to model which of the two processes the z
 library(pscl) #  for zeroinfl negbinomial
 
 #ZERO INFLATED NEGATIVE BINOMIAL
-zinb.1 <- zeroinfl(item_test_NABS ~ condition | condition , data = df_subjects, dist = "negbin")
+zinb.1 <- zeroinfl(s_NABS ~ condition | condition , data = df_subjects, dist = "negbin")
 #before the | is the count part, after the | is the logit model
 paste("Model")
 summary(zinb.1)
 report(zinb.1)
 performance(zinb.1)
+
+# rootogram(zinb.1)
+
+
 
 # #EXPONENTIATE PARAMETER ESTIMATES
 # est <- cbind(Estimate = coef(zinb.1), confint(zinb.1))
@@ -896,9 +1151,38 @@ In the zero-inflation model, the coefficient for the condition variable is -1.05
 
 **TODO come back to this and discuss further**\
 
-#### HURDLE MODEL
 
-https://data.library.virginia.edu/getting-started-with-hurdle-models/ https://en.wikipedia.org/wiki/Hurdle_model#:\~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.
+
+#### Model Comparison
+
+```{r}
+compare_performance(lm.1, p.1, nb.1, zinb.1)
+```
+
+For modelling test phase absolute score (# items correct) it seems that the zero inflated negative binomial model is the best fit according to R2 and AIC, however, I am not clear on the implications of the interpretation (non significant in count process, significant on logit process), and also not clear if \# items correct is truly a count process.
+
+```{r}
+#uncertainty model visualization
+# df %>%
+  # data_grid(pretty_condition) %>%
+  # augment(m, newdata = ., se_fit = TRUE) %>%
+  # ggplot(aes(y = pretty_condition)) +
+  # stat_halfeye(
+  #   aes(xdist = dist_student_t(df = df.residual(m), 
+  #       mu = .fitted, sigma = .se.fit)), scale = .5) +
+  # # add raw data in too (scale = .5 above adjusts the halfeye height so
+  # # that the data fit in as well)
+  # geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
+  #             position =   position_nudge(y = -.15), alpha = 0.5) +  
+  # labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
+  # theme_minimal()
+
+```
+
+#### WIP \| HURDLE MODEL
+
+- https://data.library.virginia.edu/getting-started-with-hurdle-models/  
+- https://en.wikipedia.org/wiki/Hurdle_model#:\~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.
 
 class of models for count data with both overdispersion and excess zeros;\
 different from zero-inflated models where the excess zeros are theorized to arise from two different processes; in the hurdle model, there is a model for P(x=0) and a separate model for P(x!=0)
@@ -910,28 +1194,43 @@ This allows us to model: (1) Does the student get *any* questions right? (2) How
 ```{r}
 library(pscl) #zero-inf and hurdle models 
 library(countreg) #rootogram
+#install.packages("countreg", repos="http://R-Forge.R-project.org")
 
-h.1 <- hurdle(s_NABS ~ condition | condition , data = df_subjects,
-              zero.dist = "binomial", dist = "poisson")
+#SYNTAX OUTCOME ~ count model predictor | hurdle predictor
+
+h.1 <- pscl::hurdle(item_test_NABS ~ condition | condition , data = df_subjects,
+              zero.dist = "binomial", dist = "poisson", size = 8)
+
+h.2 <- pscl::hurdle(item_test_NABS ~ condition | condition , data = df_subjects,
+              zero.dist = "binomial", dist = "negbin", size = 8)
 
 summary(h.1)
-
-# h.2 <- hurdle(item_test_NABS ~ condition, data = df_subjects,
-#               zero.dist = "binomial", dist = "negbin")
-# 
-# summary(h.2)
-
+summary(h.2)
 
 
 rootogram(h.1)
-performance(h.1)
+rootogram(h.2)
+compare_performance(h.1,h.2)
+
 
 ```
+#### Beta Regression (% Correct)
 
-#### Model Comparison
+Beta regression on % correct (with standard transformation for including \[0,1\]) https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression
 
 ```{r}
-compare_performance(lm.1, p.1, nb.1, zinb.1)
-```
 
-For modelling test phase absolute score (# items correct) it seems that the zero inflated negative binomial model is the best fit according to R2 and AIC, however, I am not clear on the implications of the interpretation (non significant in count process, significant on logit process), and also not clear if \# items correct is truly a count process.
+library(betareg)
+
+sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS)
+n = nrow(sub) %>% unlist()
+sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
+
+histogram(sub$dv_transformed)
+histogram(df_subjects$DV_percent_NABS)
+mb <- betareg(dv_transformed ~ condition, data = sub)
+
+summary(mb)
+plot(mb)
+
+```
