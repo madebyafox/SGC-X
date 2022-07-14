@@ -8,6 +8,9 @@
 21JH02 https://limitless-plains-85018.herokuapp.com/?study=SGC5A&condition=11111&session=su22sona&mode=asynch&pool=sona&exp_id=2217 
 
 
+- 7/11/22 preparing to deploy updates to limitless plains in order to run participants on SONA
+- https://limitless-plains-85018.herokuapp.com/?study=SGC4A&condition=113&sona_id={{%PROLIFIC_PID%}}&exp_id={{%STUDY_ID%}}&session={{%SESSION_ID%}}
+
 ## Download complete WI22 
 
 

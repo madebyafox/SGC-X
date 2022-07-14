@@ -40,6 +40,9 @@ options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
+#GRAPH THEMEING
+theme_set(theme_minimal()) 
+
 ```
 
 ```{r}
@@ -48,9 +51,9 @@ options(scipen=1, digits=3)
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(imac)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -58,14 +61,12 @@ df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_particip
 df_absolute_progress <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress.csv')
 df_scaled_progress <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress.csv')
 
-#SEPARATE ITEM DATA BY QUESTION TYPE
-# df_scaffold <- df_items %>% filter(q < 6)
-# df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
-# df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
-
 #SEPARATE ITEM AND SUBJECTS BY MODALITY
 df_lab <- df_subjects %>% filter(mode == "lab-synch")
 df_online <- df_subjects %>% filter(mode == "asynch")
+
+#TREAT QS AS FACTORS
+df_items$q = as.factor(df_items$q)
 
 ```
 
@@ -146,176 +147,6 @@ For *online replication*, (online) total absolute scores in the TEST phase (n = 
 When combined *overall*, total absolute accuracy scores in the TEST phase (n = `r abs.stats["combined",]$n`) range from `r round(abs.stats["combined",]$min,2)` to `r round(abs.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["combined",]$mean,2)`, SD = `r round(abs.stats["combined",]$sd,2)`).
 
 
-```{r}
-
-# theme_custom <- function (base_size = 12, base_family = "Roboto Condensed") {
-#   half_line <- base_size/2
-#   theme(
-
-#     line = element_line(color = "black", size = .5,
-#                         linetype = 1, lineend = "butt"),
-#     rect = element_rect(fill = "white", color = "black",
-#                         size = .5, linetype = 1),
-#     text = element_text(family = base_family, face = "plain",
-#                         color = "black", size = base_size,
-#                         lineheight = .9, hjust = .5, vjust = .5,
-#                         angle = 0, margin = margin(), debug = FALSE),
-
-#     axis.line = element_blank(),
-#     axis.line.x = NULL,
-#     axis.line.y = NULL,
-
-#     axis.text = element_text(size = base_size * 1.1, color = "gray30"),
-#     axis.text.x = element_text(margin = margin(t = .8 * half_line/2),
-#                                vjust = 1),
-#     axis.text.x.top = element_text(margin = margin(b = .8 * half_line/2),
-#                                    vjust = 0),
-#     axis.text.y = element_text(margin = margin(r = .8 * half_line/2),
-#                                hjust = 1),
-#     axis.text.y.right = element_text(margin = margin(l = .8 * half_line/2),
-#                                      hjust = 0),
-
-#     axis.ticks = element_line(color = "gray30", size = .7),
-#     axis.ticks.length = unit(half_line / 1.5, "pt"),
-#     axis.ticks.length.x = NULL,
-#     axis.ticks.length.x.top = NULL,
-#     axis.ticks.length.x.bottom = NULL,
-#     axis.ticks.length.y = NULL,
-#     axis.ticks.length.y.left = NULL,
-#     axis.ticks.length.y.right = NULL,
-
-
-#     axis.title.x = element_text(margin = margin(t = half_line),
-#                                 vjust = 1, size = base_size * 1.3,
-#                                 face = "bold"),
-#     axis.title.x.top = element_text(margin = margin(b = half_line),
-#                                     vjust = 0),
-#     axis.title.y = element_text(angle = 90, vjust = 1,
-#                                 margin = margin(r = half_line),
-#                                 size = base_size * 1.3, face = "bold"),
-#     axis.title.y.right = element_text(angle = -90, vjust = 0,
-#                                       margin = margin(l = half_line)),
-#  
-
-
-#     legend.background = element_rect(color = NA),
-#     legend.spacing = unit(.4, "cm"),
-#     legend.spacing.x = NULL,
-#     legend.spacing.y = NULL,
-#     legend.margin = margin(.2, .2, .2, .2, "cm"),
-#     legend.key = element_rect(fill = "gray95", color = "white"),
-#     legend.key.size = unit(1.2, "lines"),
-#     legend.key.height = NULL,
-#     legend.key.width = NULL,
-#     legend.text = element_text(size = rel(.8)),
-#     legend.text.align = NULL,
-#     legend.title = element_text(hjust = 0),
-#     legend.title.align = NULL,
-#     legend.position = "right",
-#     legend.direction = NULL,
-#     legend.justification = "center",
-#     legend.box = NULL,
-#     legend.box.margin = margin(0, 0, 0, 0, "cm"),
-#     legend.box.background = element_blank(),
-#     legend.box.spacing = unit(.4, "cm"),
-
-
-#     panel.background = element_rect(fill = "white", color = NA),
-#     panel.border = element_rect(color = "gray30",
-#                                 fill = NA, size = .7),
-#     panel.grid.major = element_line(color = "gray90", size = 1),
-#     panel.grid.minor = element_line(color = "gray90", size = .5,
-#                                     linetype = "dashed"),
-#     panel.spacing = unit(base_size, "pt"),
-#     panel.spacing.x = NULL,
-#     panel.spacing.y = NULL,
-#     panel.ontop = FALSE,
-
-
-#     strip.background = element_rect(fill = "white", color = "gray30"),
-#     strip.text = element_text(color = "black", size = base_size),
-#     strip.text.x = element_text(margin = margin(t = half_line,
-#                                                 b = half_line)),
-#     strip.text.y = element_text(angle = -90,
-#                                 margin = margin(l = half_line,
-#                                                 r = half_line)),
-#     strip.text.y.left = element_text(angle = 90),
-#     strip.placement = "inside",
-#     strip.placement.x = NULL,
-#     strip.placement.y = NULL,
-#     strip.switch.pad.grid = unit(0.1, "cm"),
-#     strip.switch.pad.wrap = unit(0.1, "cm"),
-
-
-#     plot.background = element_rect(color = NA),
-#     plot.title = element_text(size = base_size * 1.8, hjust = .5,
-#                               vjust = 1, face = "bold",
-#                               margin = margin(b = half_line * 1.2)),
-#     plot.title.position = "panel",
-#     plot.subtitle = element_text(size = base_size * 1.3,
-#                                  hjust = .5, vjust = 1,
-#                                  margin = margin(b = half_line * .9)),
-#     plot.caption = element_text(size = rel(0.9), hjust = 1, vjust = 1,
-#                                 margin = margin(t = half_line * .9)),
-#     plot.caption.position = "plot",
-#     plot.tag = element_text(size = rel(1.2), hjust = .5, vjust = .5),
-#     plot.tag.position = "topleft",
-#     plot.margin = margin(base_size, base_size, base_size, base_size),
-#     complete = TRUE
-#   )
-# }
-library(hrbrthemes)
-theme_sgc <- function (base_size = 12, base_family = "Roboto Condensed")
-{
-  
-  theme_minimal()
-    # half_line <- base_size/2
-    # coord_cartesian(clip = "off", expand = FALSE)
-    # # theme_ipsum() +
-    # theme(
-    #   
-    #   # plot.margin = margin(25, 25, 10, 0),
-    #   axis.line = element_line(size = 0.5, colour = "gray10"),
-    # 
-    #   #TITLES
-    #   plot.title.position = "panel",
-    #   plot.caption.position = "panel",
-    #   plot.title = element_text(size = base_size * 1.5, 
-    #                           hjust = 0, vjust = 1, face = "bold",
-    #                           margin = margin(b = half_line )),
-    #   plot.subtitle = element_text(size = base_size ,
-    #                              hjust = 0, vjust = 1,
-    #                              margin = margin(b = half_line * .9)),
-    #   plot.caption = element_text(size = rel(0.9), hjust = 1, vjust = 0,
-    #                             margin = margin(t = half_line * .9)),
-    #   
-    #   #PANEL
-    #   panel.background = element_rect(fill = NA, color = NA),
-    #   panel.grid.major = element_line(color = "gray90", size = 0),
-    #   panel.grid.minor = element_line(color = "gray90", size = 0),
-    #   
-    #   #AXES      
-    #   axis.text.x = element_text(hjust = 0.5),
-    #   axis.title.x = element_text(vjust = 0, hjust = 0.5, 
-    #                               size = base_size, face = "plain"),
-    #   axis.title.y = element_text(vjust = 2, hjust = 0.5, 
-    #                               size = base_size, face = "plain"),
-    #   
-    #   #FACETS
-    #   strip.background = element_blank(),
-    #   # strip.placement = "outside", 
-    #   # strip.text = element_text(color = "black", size = base_size),
-    #   strip.text.x = element_text(hjust=0.5),
-    #   strip.text.y = element_text(hjust = 0.5, angle = -90),
-    # 
-    #   complete = FALSE
-    # )
-}
-
-theme_set(theme_sgc())
-
-```
-
 
 ```{r}
 #| label: VIS-SUBJ-ABS-TEST
@@ -337,7 +168,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   labs( title = "Distribution of TEST Absolute Score",
         subtitle ="Pattern of response is similar across data collection modes but differs by condition",
         x = "Total Absolute Score (Test Phase)", y = "number of subjects") +
-   theme_sgc() + theme(legend.position = "blank")
+  theme_minimal() + theme(legend.position = "blank")
 
 ##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
@@ -439,7 +270,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   labs( title = "Distribution of TEST Scaled Score",
         subtitle ="Pattern of response is similar across data collection modes but differs by condition",
         x = "total scaled score (test phase)", y = "number of participants") + 
-  theme_sgc() + theme(legend.position = "blank") 
+ theme_minimal() + theme(legend.position = "blank") 
 
 
 ##VERTICAL RAINCLOUD USING GGDISTR
@@ -528,7 +359,7 @@ gf_props(~item_q1_NABS, data = df_subjects) +
        y = "% subjects",
        title = "Proportion of Correct Responses on First Item",
        subtitle="")+
-  theme_minimal()+ theme(legend.position = "none")+theme_ggdist()
+  theme(legend.position = "none")+theme_ggdist()
 
 #PROPORTIONAL BAR CHART
 gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>% 
@@ -536,7 +367,7 @@ gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>%
   labs(x = "response accuracy",
        title = "Proportion of Correct Responses on First Item (by Modality and Condition)",
        subtitle="")+
-  theme_minimal()+ theme(legend.position = "none") 
+  theme(legend.position = "none") 
 
 
 #MOSAIC PLOT
@@ -578,8 +409,7 @@ gf_props(~item_q1_SCALED, data = df_subjects) +
   labs(x = "scaled score (first item)",
        y = "% of subjects",
        title = "Distribution of First Item Scaled Score",
-       subtitle = "") + 
-  theme_minimal()
+       subtitle = "") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -639,7 +469,7 @@ gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>%
   labs(x = "% of items",
        title = "Proportion of Interpretations Across Items",
        subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
-  theme_minimal()+ theme(legend.position = "none")
+  theme(legend.position = "none")
 
 
 #MOSAIC PLOT
@@ -678,11 +508,6 @@ ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, 
 
 ## RESPONSE LATENCY
 
--   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
--   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
--   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
-
-
 ### Time on First Item 
 
 Here we consider the time spent on just the first individual item (first exposure to graph).
@@ -715,7 +540,7 @@ Response time _on the first item_ for *combined* subjects (n = `r time.stats["co
 gf_dhistogram(~item_q1_rt, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of First Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "First Item Response Time (seconds)", y = "% items") +  theme_minimal()
+  labs(title="Distribution of First Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "First Item Response Time (seconds)", y = "% items")
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -796,7 +621,8 @@ Time on an individual item for *combined* subjects (n = `r time.stats["combined"
 gf_dhistogram(~rt_s, data = df_items) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of Item Response Time (seconds)", subtitle = "fit by gamma distribution", x = "Item Response Time (seconds)", y = "% items") +  theme_minimal()
+  labs(title="Distribution of Item Response Time (seconds)", 
+       subtitle = "fit by gamma distribution", x = "Item Response Time (seconds)", y = "% items") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -820,21 +646,25 @@ df_items <- df_items %>% mutate(
 ggplot(df_items, aes(x = pretty_condition, y = rt_s, color = score_niceABS) ) + 
   ggdist::stat_halfeye(
     side = "left",
-    justification = 1.2, 
-    adjust = .5, 
-    width = .6, 
+    # position = position_dodgejust(),
+    justification = 1.5, 
+    # adjust = .5, 
+    width = .5, 
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
     width = .15, 
-    outlier.shape = NA
+    outlier.shape = NA,
+    position = position_dodge2()
   ) +
   geom_point(
     size = 1.3,
     alpha = .3,
-    position = position_jitter( 
-      seed = 1, width = .1
-  )) + 
+    position = position_jitterdodge(
+      # seed = 1,
+      dodge.width = 0.5,
+      jitter.width = 0.075
+  )) +
   labs( title = "Distribution of Item Response Time (seconds)",
         subtitle ="",
         y = "Item Response Time (s)", x = "Condition") +
@@ -843,20 +673,6 @@ ggplot(df_items, aes(x = pretty_condition, y = rt_s, color = score_niceABS) ) +
 # + coord_cartesian(xlim = c(1.2, NA), clip = "off")
                 
 ```
-
-
-
-
-
-
-
-**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
-
-
-
-
-
-
 
 ### Time on SCAFFOLD Phase
 
@@ -890,7 +706,7 @@ Total time on SCAFFOLD phase for *combined* subjects (n = `r time.stats["combine
 gf_dhistogram(~item_scaffold_rt, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of SCAFFOLD Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Scaffold Phase Time (minutes)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of SCAFFOLD Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Scaffold Phase Time (minutes)", y = "% subjects") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -904,8 +720,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
         x = "Scaffold Phase Time (minutes)", y = "number of subjects") +
   theme_minimal() + theme(legend.position = "blank")
 
-
-##RAINCLOUD USING GGDISTR
+##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = item_scaffold_rt, fill = pretty_condition)) + 
   ggdist::stat_halfeye(
     side = "left",
@@ -915,33 +730,25 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_scaffold_rt, fill = prett
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_scaffold_rt),
     width = .15, 
     outlier.shape = NA
-  ) +
+  ) + 
   geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_scaffold_rt, color = pretty_condition),
     size = 1.3,
     alpha = .3,
-    position = position_jitter(
-      seed = 1, width = .1
-  )) + 
-  labs( title = "Distribution of SCAFFOLD Phase Response Time (minutes)",
+    position = position_jitter( 
+      seed = 1, width = .05
+  ))+ labs( title = "Distribution of SCAFFOLD Phase Response Time (minutes)",
         subtitle ="",
         y = "Total Study Time (minutes)", x = "Condition") +
-  theme_ggdist() + theme(legend.position = "blank")
-# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+  theme_ggdist() + theme(legend.position = "blank") #+
+  # coord_cartesian(xlim = c(0.5, NA), clip = "off")
                 
 ```
-
-
-
-
-
-
-
-**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
-
-
-
 
 ### Time on TEST Phase
 
@@ -975,7 +782,7 @@ Total time on TEST phase for *combined* subjects (n = `r time.stats["combined",]
 gf_dhistogram(~item_test_rt, data = df_subjects) %>%
   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
   gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of TEST Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Test Phase Time (minutes)", y = "% subjects") +  theme_minimal()
+  labs(title="Distribution of TEST Phase Response Time (minutes)", subtitle = "fit by gamma distribution", x = "Test Phase Time (minutes)", y = "% subjects") 
 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
@@ -990,7 +797,7 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
   theme_minimal() + theme(legend.position = "blank")
 
 
-##RAINCLOUD USING GGDISTR
+##VERTICAL RAINCLOUD USING GGDISTR
 ggplot(df_subjects, aes(x = pretty_condition, y = item_test_rt, fill = pretty_condition)) + 
   ggdist::stat_halfeye(
     side = "left",
@@ -1000,168 +807,157 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_rt, fill = pretty_co
     .width = 0, 
     point_colour = NA) + 
   geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_test_rt),
     width = .15, 
     outlier.shape = NA
-  ) +
+  ) + 
   geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = item_test_rt, color = pretty_condition),
     size = 1.3,
     alpha = .3,
-    position = position_jitter(
-      seed = 1, width = .1
-  )) + 
+    position = position_jitter( 
+      seed = 1, width = .05
+  ))+ 
   labs( title = "Distribution of TEST Phase Response Time (minutes)",
         subtitle ="",
-        y = "Test Phase Time (minutes)", x = "Condition") +
-  theme_ggdist() + theme(legend.position = "blank")
-# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
+        y = "Total Study Time (minutes)", x = "Condition") +
+  theme_ggdist() + theme(legend.position = "blank") #+
+  # coord_cartesian(xlim = c(0.5, NA), clip = "off")
                 
 ```
 
+## EXPLORING RELATIONSHIPS
+
+### ACCURACY (VS) LATENCY
 
 
+#### Total Task 
+```{r}
+
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( s_SCALED ~ rt_m, data = df_subjects, alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "Total (Scaled) Score by TOTAL Item Response Time",
+    subtitle = "", 
+    x = "Total Item Response Time (minutes)", y = "Total Scaled Score "
+  ) + theme(legend.position = "blank")
 
 
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( s_SCALED ~ item_avg_rt, data = df_subjects, alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "Total (Scaled) Score by MEAN Item Response Time",
+    subtitle = "", 
+    x = "Average Item Response Time (seconds)", y = "Total Scaled Score"
+  ) + theme(legend.position = "blank")
 
 
-**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( s_SCALED ~ item_max_rt, data = df_subjects %>% filter(item_max_rt < 400), alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "Total (Scaled) Score by MAX Item Response Time",
+    subtitle = "", 
+    x = "MAX Item Response Time (s)", y = "Total Scaled Score "
+  ) + theme(legend.position = "blank")
 
+#NOTE: LOG transforms of the RT do not yield linear relationships
 
+```
 
+#### Phase Specific
 
+```{r}
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( s_SCALED ~ item_scaffold_rt, data = df_subjects, alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "Total (Scaled) Score by SCAFFOLD PHASE Item Response Time",
+    subtitle = "", 
+    x = "SCAFFOLD PHASE Item Response Time (minutes)", y = "TOTAL Scaled Score "
+  ) + theme(legend.position = "blank")
 
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( item_scaffold_NABS ~ item_scaffold_rt, data = df_subjects, alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "SCAFFOLD (Scaled) Score by SCAFFOLD PHASE Item Response Time",
+    subtitle = "", 
+    x = "SCAFFOLD PHASE Item Response Time (minutes)", y = "SCAFFOLD Scaled Score "
+  ) + theme(legend.position = "blank")
 
-### Time on Study
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( item_test_NABS ~ item_scaffold_rt, data = df_subjects, alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "TEST (Scaled) Score by SCAFFOLD PHASE Item Response Time",
+    subtitle = "", 
+    x = "SCAFFOLD PHASE Item Response Time (minutes)", y = "TEST Scaled Score "
+  ) + theme(legend.position = "blank")
 
-```{r DESCRIBE-TOTALTIME}
-#DESCRIBE distribution of response time
-time.stats <- rbind(
-  "lab"= df_lab %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
-  "online"= df_online %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
-  "combined"= df_subjects %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats()
+#SCATTERPLOT [SCORE X ITEM RESPONSE TIME]
+gf_jitter( item_test_NABS ~ item_avg_rt, data = df_subjects, alpha = 0.5, color=~pretty_condition) %>% 
+  gf_facet_wrap(~pretty_condition) + labs(
+    title = "TEST (Scaled) Score by SCAFFOLD PHASE Item Response Time",
+    subtitle = "", 
+    x = "AVERAGE Item Response Time (minutes)", y = "TEST Scaled Score "
+  ) + theme(legend.position = "blank")
+
+#NOTE: LOG transforms of the RT do not yield linear relationships
+```
+#### Average Item RT by Accuracy
+
+```{r}
+
+q.stats <- df_items %>% filter(q != 6) %>% dplyr::group_by(q, pretty_condition, score_niceABS) %>% summarise(
+  m = mean(rt_s),
+  sd = sd(rt_s),
+  sd = replace_na(sd,0),
+  lo = m-sd/2,
+  hi = m+sd/2,
+  group = paste(pretty_condition,"-",score_niceABS)
 )
 
-title = "Descriptive Statistics of Response Latency (Total Minutes on Study)"
-time.stats %>% kbl(caption = title) %>% kable_classic()
+gf_line( m ~ q, group = ~group,  color = ~as.factor(score_niceABS),data = q.stats) %>% 
+  gf_point() %>% 
+  gf_ribbon(lo+hi~q) %>% 
+  gf_facet_wrap(~pretty_condition) + scale_color_manual(values=c("red","green")) + 
+  labs(title = "Average Item Response Time by Absolute Score",
+       subtitle = "Correct responses are generally faster [computational efficiency] except on Q1 [learning]",
+       x = "Question", y = "Averate Item Response Time", color="Correct Response")
+
+
+#GGDIST LINERIBBON
+# df_items %>%
+#   ggplot(aes(y = rt_s, x = q,  fill = pretty_condition)) +
+#   stat_lineribbon(alpha = 1/4, point_interval = "mean_qi") + facet_wrap(~pretty_condition)
 ```
 
-Total time on study for *in person* subjects (n = `r time.stats["lab",]$n`) ranged from `r round(time.stats["lab",]$min,2)` to `r round(time.stats["lab",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["lab",]$mean,2)`, SD = `r round(time.stats["lab",]$sd,2)`).
-
-Total time on study for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
-
-Total time on study for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
-
-```{r}
-#| label : VIS-TOTALTIME
-#| message : false
-#| warning : false
-
-
-#HISTOGRAM
-gf_dhistogram(~totaltime_m, data = df_subjects) %>%
-  gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
-  gf_fitdistr(dist="gamma", color="red")+
-  labs(title="Distribution of Total Time on Study (in minutes)", subtitle = "fit by gamma distribution", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
-
-#HISTOGRAM by CONDITION and MODE
-gf_dhistogram(~totaltime_m, data = df_subjects) %>%
-  gf_facet_grid(pretty_condition ~ pretty_mode) + 
-  labs(title="Distribution of Total Time on Study ( minutes)", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
-
-
-##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_subjects, x = "totaltime_m", binwidth = 0.5,
-   add = "mean", rug = TRUE,
-   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
-   add_density = TRUE)
-facet(p, facet.by=c("pretty_condition","pretty_mode")) +
-  labs( title = "Distribution of Total Time on Study (minutes)",
-        subtitle ="",
-        x = "Total Study Time (minutes)", y = "number of subjects") +
-  theme_minimal() + theme(legend.position = "blank")
-
-# GGPUBR ARRANGE EXAMPLE WITH CUSTOM DIST FITTING
-# plab <- gf_dhistogram(~totaltime_m, data = df_subjects) %>%
-#   gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
-#   gf_facet_grid(pretty_condition ~ .) + 
-#   labs(title="Lab", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
-# 
-# ponline <- gf_dhistogram(~totaltime_m, data = df_subjects) %>%
-#   gf_vline(xintercept = ~time.stats["online",]$mean, color = "black") %>% 
-#   gf_facet_grid(pretty_condition ~ .) + 
-#   labs(title="Online", x = "Total Time (mins)", y = "% subjects") +  theme_minimal()
-# 
-# plot <-ggarrange(plab, ponline, common.legend = TRUE, nrow = 1, ncol =2)
-# 
-# annotate_figure(plot, 
-#                 top = text_grob("Total Time by Study Mode",color = "black", face = "bold", size = 14),
-#                 bottom = text_grob("fit by Gamma distribution", face = "italic", size = 10))
-
-
-##RAINCLOUD USING GGDISTR
-ggplot(df_subjects, aes(x = pretty_condition, y = totaltime_m, fill = pretty_condition)) + 
-  ggdist::stat_halfeye(
-    side = "left",
-    justification = 1.2, 
-    adjust = .5, 
-    width = .6, 
-    .width = 0, 
-    point_colour = NA) + 
-  geom_boxplot(
-    width = .15, 
-    outlier.shape = NA
-  ) +
-  geom_point(
-    size = 1.3,
-    alpha = .3,
-    position = position_jitter(
-      seed = 1, width = .1
-  )) + 
-  labs( title = "Distribution of Total Time on Study (minutes)",
-        subtitle ="",
-        y = "Total Study Time (minutes)", x = "Condition") +
-  theme_ggdist() + theme(legend.position = "blank")
-# + coord_cartesian(xlim = c(1.2, NA), clip = "off")
-                
-```
-
-**TODO consider log transform of response latency data** *see* archive sgc3A_participants.Rmd
-
-
-
-
-
-# WIP EXPLORING
-
-**TODO** Cumulative speed?
 
 ```{r}
 
-gf_line(rt_s ~ q, group = ~subject, data = df_items %>% filter(q %nin% c(6,9)) %>% filter(mode=="asynch"), color = ~score_niceABS, alpha = 0.2) %>% 
-  gf_facet_grid( pretty_condition ~ score_niceABS) +
-  labs(title = " ONLINE response time BY item and accuracy")
+q.stats <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::group_by(q, pretty_condition, interpretation) %>% summarise(
+  m = mean(rt_s),
+  sd = sd(rt_s),
+  sd = replace_na(sd,0),
+  lo = m-sd/2,
+  hi = m+sd/2,
+  group = paste(pretty_condition,"-",score_SCALED)
+)
 
+gf_line( m ~ as.factor(q), group = ~group,  color = ~interpretation,data = q.stats) %>% 
+  gf_point() %>% 
+  gf_ribbon(lo+hi~as.factor(q)) %>% 
+  gf_facet_grid(interpretation~pretty_condition) + #+ scale_color_manual(values=c("red","green")) + 
+  labs(title = "Average Item Response Time by Interpretation",
+       subtitle = "Correct responses are generally faster [computational efficiency] except on Q1 [learning]",
+       caption="NOTE: Points with no ribbon indicate singular response",
+       x = "Question", y = "Averate Item Response Time", color="Interpretation")
 
-gf_boxplot( item_avg_rt ~ pretty_condition,  data = df_subjects) %>% 
-  gf_facet_wrap(~pretty_mode) +
-  labs(title = "Average item response time by mode and condition")
-
-
-gf_boxplot( item_scaffold_rt ~ pretty_condition,  data = df_subjects) %>% 
-  gf_facet_wrap(~pretty_mode) +
-  labs(title = "Average SCAFFOLD response time by mode and condition")
-
-gf_boxplot( item_test_rt ~ pretty_condition,  data = df_subjects) %>% 
-  gf_facet_wrap(~pretty_mode) +
-  labs(title = "Average TEST response time by mode and condition")
-
-gf_boxplot( totaltime_m ~ pretty_condition,  data = df_subjects) %>% 
-  gf_facet_wrap(~pretty_mode) +
-  labs(title = "Average TOTAL response time by mode and condition")
-
-gf_boxplot( item_q1_rt ~ pretty_condition,  data = df_subjects) %>% 
-  gf_jitter(width=0.2, alpha = 0.5, size = 0.75, color = ~item_q1_NABS) %>% 
-  gf_facet_wrap(~pretty_mode) +
-  labs(title = "Average FIRST ITEM response time by mode and condition")
+#GGDIST LINERIBBON
+df_items %>% filter(q %nin% c(6,9)) %>% mutate( interpretation = recode(interpretation, "reference" = "blank", "frenzy" = "?")) %>% 
+  ggplot(aes(y = rt_s, x = q,  fill = interpretation)) +
+  stat_lineribbon(alpha = 1/4, point_interval = "mean_qi") + 
+  facet_grid(interpretation ~ pretty_condition) + 
+  labs( title = "Average Response Time by Question Interpretation", x = "Question", y="Averate Item Response Time (s)")
 
 ```
 
@@ -1223,14 +1019,7 @@ Both t-tests are non-significant with 95% confidence intervals including 0. Furt
 **It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
 :::
 
-## RESOURCES
 
--   https://rpkgs.datanovia.com/ggpubr/reference/index.html
-
-```{r}
-#| label: session
-sessionInfo()
-```
 
 ## ARCHIVE
 
@@ -1539,9 +1328,10 @@ gf_props(~score_SCALED, data = df_items) %>%
 
 
 
+
 ### GRAPH CODE
 
-####  HORIZONTAL RAINCLOUD USING GGDISTR
+####  Horizontal Raincloud
 ```{r}
 ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
                         fill = pretty_condition) ) + 
@@ -1572,4 +1362,17 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
     x = "Condition", y = "Total Absolute Score (Test Phase)") +
   theme(legend.position = "blank") + coord_flip()
   # coord_cartesian(xlim = c(0.5, NA), clip = "off")
+```
+
+## RESOURCES
+
+-   https://rpkgs.datanovia.com/ggpubr/reference/index.html
+-   Appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
+-   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
+
+
+
+```{r}
+#| label: session
+sessionInfo()
 ```
