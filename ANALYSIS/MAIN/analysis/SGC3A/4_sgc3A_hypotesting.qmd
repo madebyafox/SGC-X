@@ -220,12 +220,61 @@ cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights 
 ```
 
 
-#### TODO \| Ordinal Regression on ITEM-Interpretation
 #### WIP \| Mixed Logistic Regression ITEM-ABS
 
-```{r}
-library(lme4)
+Nesting Structure: 
+FACTORS:
 
+
+Item
+Condition (2 levels: control, impasse)  
+subjects are in 1 condition (between - subjectss)
+
+SUBJECTS are nested within CONDITION
+SUBJECT completes [8,13] items in CONDITION
+item crossed with condition; subjected nested in condition
+-- each subject belongs to 1 condition
+-- each subject completes each item (x 8 or x 13) 
+
+Example 2: A large HMO wants to know what patient and physician factors are most related to whether a patient’s lung cancer goes into remission after treatment as part of a larger study of treatment outcomes and quality of life in patients with lunger cancer.
+
+Below we use the glmer command to estimate a mixed effects logistic regression model with Il6, CRP, and LengthofStay as patient level continuous predictors, CancerStage as a patient level categorical predictor (I, II, III, or IV), Experience as a doctor level continuous predictor, and a random intercept by DID, doctor ID.
+
+glmer( remission ~ cancerstage)
+
+outcome: remission
+factors: patient nested in doctor nested in hospital
+
+outcome : score
+factors : subject in condition; item
+
+
+1. STEP 1 | Graph continuous predictor variables 
+//ggpairs(hdp[, c("IL6", "CRP", "LengthofStay", "Experience")])
+
+
+```{r}
+library(lme4) #mixed effects models 
+
+#TODO FILTER only for test data 
+df <- df_items %>% mutate(accuracy = score_niceABS)
+#Model accuracy BY condition with random intercept for question
+
+m <- glmer( accuracy ~ condition + (1|q) , data = df, family = "binomial")
+m
+```
+Output tells us # of observations [ITEMS] = 4590, and number of groups (QUESTIONS = [15]).
+
+In a logistic model, the outcome is commonly on one of three scales:
+
+- Log odds (also called logits), which is the linearized scale  
+- Odds ratios (exponentiated log odds), which are not on a linear scale  
+- Probabilities, which are also not on a linear scale
+
+In ordinary logistic regression, you could just hold all predictors constant, only varying your predictor of interest. However, in mixed effects logistic models, the random effects also bear on the results. Thus, if you hold everything constant, the change in probability of the outcome over different values of your predictor of interest are only true when all covariates are held constant and you are in the same group, or a group with the same random effect. The effects are conditional on other predictors and group membership, which is quite narrowing. An attractive alternative is to get the average marginal probability. That is, across all the groups in our sample (which is hopefully representative of your population of interest), graph the average change in probability of the outcome across the range of some predictor of interest.
+
+
+ ```{r}
 df <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9))
 df$q = as.factor(df$q)
 
@@ -277,6 +326,9 @@ library(lmerTest)
 # ranova(mm1,mm2)
 ```
 
+
+
+#### TODO \| Ordinal Regression on ITEM-Interpretation
 
 #### Linear Regression
 
@@ -801,7 +853,378 @@ CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, e
 
 **Combining data across both sessions** (n=330), a Pearson's Chi-squared test suggests a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi_2$ (1) = 10.3, p = 0.001. The sample odds ratio (2.46, p = 0.001, 95% CI \[1.37, 4.53\]) indicates that the odds of providing a correct response to the first question are 2.46 higher for subjects in the impasse condition than those in the control condition.
 
-#### TODO \| (multiple) Logistic Regression Model \| What predicts Q1 Accuracy?
+
+#### Logistic Regression
+
+##### Effect of Condition on Q1 Accuracy
+```{r}
+
+library(sjPlot)
+
+#CREATE DATAFRAME OF Q1
+df <- df_items %>% filter(q == 1) %>% mutate( accuracy = as.factor(score_niceABS))
+
+#FREQUENCY TABLE
+#my.table <- table(df$accuracy, df$condition)
+#addmargins(my.table)
+
+
+#:::::::::::::::::::::::::::::::::::::::
+#EMPTY MODEL
+m0 <- glm( accuracy ~ 1, data = df, family = "binomial")
+summary(m0)
+
+# library(sjPlot)
+
+#MODEL ESTIMATES | ODDS RATIO
+plot_model(m0, vline.color = "red", 
+           show.values = TRUE,
+           show.intercept = TRUE) + 
+  labs(title = "Empty Model [Q1 Accuracy]",
+       subtitle = "marginal odds of correct answer across sample")
+
+#MODEL ESTIMATES | MARGINAL PROBABILITY
+plot_model(m0,vline.color = "red", 
+           show.values = TRUE,
+           show.intercept = TRUE,
+           value.offset = .3,
+           transform = "plogis") +  #ONLY USE PLOGIS ON EMPTY
+  labs(title = "Empty Model [Q1 Accuracy]",
+       subtitle = "marginal probability of correct answer across sample")
+
+
+#:::::::::::::::::::::::::::::::::::::::
+#CONDITION MODEL
+m <- glm( accuracy ~ condition, data = df, family = "binomial")
+summary(m)
+confint(m)
+performance(m)
+report(m)
+
+#exponentiate coefficients and CIs 
+e <- cbind( exp(coef(m)), exp(confint(m)))
+e
+
+# Retrieve predictions as probabilities 
+# (for each level of the predictor)
+p.control <- predict(m,data.frame(condition="111"),type="response")
+paste("Probability of success in control,", p.control)
+p.impasse <- predict(m,data.frame(condition="121"),type="response")
+paste("Probability of success in impasse,", p.impasse)
+
+
+#TO PLOT ALL EFFECTS
+library(effects)
+plot(allEffects(m))
+
+#SJPLOT
+# library(sjPlot)
+
+#MODEL ESTIMATES | ODDS RATIO
+plot_model(m, type="std2", vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE) +  
+  labs(title = "Model Predicted Probabilities",
+       subtitle = "Model Predicted Odds Ratio",
+       x = "Condition")
+
+#PREDICTED PROBABILITIES
+plot_model(m, type="pred",
+           show.intercept = TRUE, 
+           show.values = TRUE) 
+# +  #TITLE DOESNT WORK
+#   labs(title = "Model Predicted Probabilities",
+#        subtitle = "Model Predicted Odds Ratio",
+#        x = "Condition")
+
+
+
+```
+
+```{r}
+library(sjPlot)
+library(sjlabelled)
+library(sjmisc)
+library(ggplot2)
+data(efc)
+
+# create binary response
+y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
+
+# create data frame for fitting model
+ex <- data.frame(
+  y = to_factor(y),
+  sex = to_factor(efc$c161sex),
+  dep = to_factor(efc$e42dep),
+  barthel = efc$barthtot,
+  education = to_factor(efc$c172code)
+)
+
+# set variable label for response
+set_label(ex$y) <- "High Negative Impact"
+
+# fit model
+m1 <- glm(y ~ sex, data = ex, family = binomial(link = "logit"))
+
+m1
+
+#in LOG ODDS
+plot_model(m1, show.intercept = TRUE, show.values = TRUE, value.offset = .3,
+           transform = NULL)
+
+#in ODDS RATIO
+plot_model(m1, show.intercept = TRUE, show.values = TRUE, value.offset = .3 )
+
+#in PROBABILITY
+plot_model(m1, show.intercept = TRUE, show.values = TRUE, value.offset = .3,
+           transform = "plogis")
+
+
+p.male <- predict(m1,data.frame(sex="1"),type="response")
+p.female <- predict(m1,data.frame(sex="2"),type="response")
+
+plot_model(m1, show.intercept = TRUE, 
+           show.values = TRUE, 
+           value.offset = .3,
+           type="pred")
+
+```
+
+**empty model**
+- The intercept of an empty model (glm(accuracy ~ 1) is equal to log(p/(1-p)), where p = the overall probability of a correct response (df$accuracy ==1 ).  In SGC3A Q1 accuracy this = 71 correct / 330 = 0.215 -> log(0.215 / (1-0.215)) = -1.29.  
+- In other words, the intercept from the model with no predictor variables is the estimated log odds of being in honors class for the whole population of interest.  
+- We can also transform the log of the odds back to a probability: p = exp(-1.29)/(1+exp(-1.29)) = 0.215, if we like.
+
+**dichotomous predictor**
+
+ln(odds of +) = -1.822 + 0.9(x1) ; x1 = 0 for control, 1 for impasse
+
+
+- intercept: log odds of (+ response) in control condition 
+- LN(+ for control): -1.822 + 0.9(0) = -1.822
+- odds  of (+ for control) = exp(-1.822) = 0.162
+odds = p(+) / (1-p(+))
+odds = p / (1-p)
+odds * (1-p) = p
+odds - p(odds) = p
+odds = p - p(odds)
+o/1-o = p
+p = 0.162 / (1-0.162) = 0.193
+probability of (+) for control
+
+--------------------------------
+MARGINAL
+total = 330
+success : 71, failure : 259
+p(+) = 71 / 330 = 0.215 = 22%
+odds(+)  = 71 / 259 = 0.274
+
+CONTROL
+total = 158
+success = 22; failure = 136
+p(success) = 22/158 = 0.139 = 14%
+odds(success) = 22/136 = 0.162
+
+IMPASSE
+total = 172
+success = 49; failure = 123
+p(success) = 49/172 = 0.285 = 29%
+odds(success) = 49/123 = 0.398
+--------------------------------
+
+
+- coeff: DIFFERENCE in log odds of (+) in impasse vs. control
+- LN(+ for impasse): -1.822 + 0.9 =  -0.922
+- odds  of (+ for impasse) = exp(-0.922) = 0.398
+
+- the DIFFERENCE in logs odds is also called the ODDS RATIO
+(slope of logit model = difference in log odds = log odds ratio)
+b = 0.9 is log odds ratio of (+) in impasse vs control
+exp(b) = exp(0.9) = 2.46 = odds ratio of (+) in impasse vs control
+odds of (+) in impasse are 2.46 times higher than in control
+
+
+
+_The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable_
+
+_The logistic regression coefficients give the change in the log odds of the outcome for a one unit increase in the predictor variable._  
+
+Beta Coeff 0.901 indicates the model predicts being in the impasse condition yields an increase in log odds of 0.901 over control; the log odds of a correct answer in the impasse condition are 0.9. (Exponentiated) this is equivalent to an increase in odds of a correct response in the impasse condition of 2.46. Being in the impasse condition (versus control) increases the log odds of a correct answer by 0.9 (95% CI [0.35, 1.48]).  In terms of odds ratios (rather than log odds) this equates to being in the impasse condition yields an increase in odds of a correct response of 2.4 [1.42, 4.37]. 
+
+This model predicts the probability of a correct response in the control condition is 14% and probability of a correct response in the impasse condition is 29% (NOTE: Just as the predictions made in linear regression are based on the mean of the sample data at each level of the categorical predictor, the predictions (as probabilities) of the logit model are equivalent to the % success (%1s instead of 0s) at each level of the categorical predictor.)
+
+##### Condition + RT on Q1 Accuracy
+```{r}
+
+#MODEL
+m2 <- glm( accuracy ~ rt_s, data = df, family = "binomial")
+summary(m2)
+confint(m2)
+performance(m2)
+report(m2)
+
+plot(allEffects(m2))
+
+
+m3 <- glm( accuracy ~ condition + rt_s, data = df, family = "binomial")
+summary(m3)
+confint(m3)
+performance(m3)
+report(m3)
+
+plot(allEffects(m3))
+
+compare_performance(m,m2,m3)
+```
+
+
+
+
+
+```{r}
+#evaluate model using kfold CV
+# https://www.statology.org/k-fold-cross-validation-in-r/
+
+#specify the cross-validation method
+ctrl <- trainControl(method = "cv", number = 5)
+#fit a regression model and use k-fold CV to evaluate performance
+mk <- train( accuracy ~ condition, data = df, method = "glm", trControl = ctrl, family = "binomial")
+print(mk)
+
+
+
+```
+
+
+
+
+
+
+#### ORDINAL Q1 
+
+https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/
+https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+
+```{r}
+#CREATE DATAFRAME OF Q1
+df <- df_items %>% filter(q ==1) %>% mutate(scaled = as.factor(score_SCALED))
+
+#MODEL
+m <- polr(scaled ~ condition , data = df, Hess=TRUE)
+summary(m)
+confint(m)
+performance(m)
+report(m)
+
+#exponentiate coefficients and CIs 
+ci <- confint(m)
+ci
+e <- coef(m)
+e
+# exp(cbind(e,ci))
+
+# Retrieve predictions as probabilities 
+# (for each level of the predictor)
+# p.control <- predict(m,data.frame(condition="111"),type="response")
+# paste("Probability of success in control,", p.control)
+# p.impasse <- predict(m,data.frame(condition="121"),type="response")
+# paste("Probability of success in impasse,", p.impasse)
+
+# Plot Predicted data and original data points
+# ggplot(df, aes(x=condition, y=accuracy)) + 
+#   geom_point() +
+#   stat_smooth(method="glm", color="green", se=FALSE,
+#                 method.args = list(family=binomial))
+  
+#TO PLOT ALL EFFECTS
+library(effects)
+plot(allEffects(m))
+
+#SJPLOT
+library(sjPlot)
+plot_model(m, )
+
+
+#CONVERT TO PROBABILITIES
+newdat <- data.frame(condition=c("111","121"))
+prob <- (phat <- predict(object = m, newdat, type="p"))
+prob
+
+
+```
+#### Cummulative Ordinal (Bayesian)
+https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+```{r}
+# library(brms)
+
+
+# #DEFINE DATA 
+# df <- df_items %>% mutate(
+#   scaled = factor(score_SCALED, ordered = TRUE,  #ordered factor
+#                     levels = c("-1", "-0.5", "0", "0.5","1"))
+# )
+# 
+# ord_cum <- brm( formula = scaled ~ condition,
+#                data = df,
+#                family = cumulative("probit"),
+#                file = "analysis/SGC3A/models/m_items_ord.cum.rds" # cache model (can be removed)  
+# 
+# )
+# 
+# summary(ord_cum)
+# conditional_effects(ord_cum, "condition", categorical = TRUE)
+# 
+# #SJPLOT
+# library(sjPlot)
+# plot_model(ord_cum)
+# 
+# # m %>%
+# #   spread_draws(b_Intercept, r_condition[condition,]) %>%
+# #   mutate(condition_mean = b_Intercept + r_condition) %>%
+# #   ggplot(aes(y = condition, x = condition_mean)) +
+# #   stat_halfeye()
+# 
+# # performance(ord_cum)
+# # plot(ord_cum)
+```
+
+#### Adjacent-Category Ordinal (Bayesian)
+
+
+
+```{r}
+# 
+# #DEFINE DATA 
+# df <- df_items %>% mutate(
+#   scaled = factor(score_SCALED, ordered = TRUE,  #ordered factor
+#                     levels = c("-1", "-0.5", "0", "0.5","1"))
+# )
+# 
+# 
+# # To specify an adjacent-category model, we use family = acat() instead of family = cumulative() as an argument to the brm() function. Then, to model condition with possible category-specific effects, we wrap this variable in cs() in the model’s formula:
+# 
+# ord_acat <- brm( formula = scaled ~ cs(condition),
+#                data = df,
+#                family = acat("probit"),
+#                file = "analysis/SGC3A/models/m_items_ord.acat.rds" # cache model (can be removed)  
+# )
+# 
+# summary(ord_acat)
+# conditional_effects(ord_cum, "condition", categorical = TRUE)
+# conditional_effects(ord_acat, "condition", categorical = TRUE)
+# 
+# #TIDYBAYES VISUALIZATION
+# library(tidybayes)
+# ord_acat %>%
+#   spread_draws(b_Intercept, r_condition[condition,]) %>%
+#   mutate(condition_mean = b_Intercept + r_condition) %>%
+#   ggplot(aes(y = condition, x = condition_mean)) +
+#   stat_halfeye()
+# 
+
+
+```
+
 
 ## H1C \| Q1 LATENCY
 
@@ -1133,7 +1556,7 @@ summary(zinb.1)
 report(zinb.1)
 performance(zinb.1)
 
-# rootogram(zinb.1)
+#   rootogram(zinb.1)
 
 
 
@@ -1179,6 +1602,44 @@ For modelling test phase absolute score (# items correct) it seems that the zero
 
 ```
 
+#### Beta Regression (% Correct)
+
+Beta regression on % correct (with standard transformation for including \[0,1\]) https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression
+
+```{r}
+
+library(betareg)
+
+sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS)
+n = nrow(sub) %>% unlist()
+sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
+
+histogram(sub$dv_transformed)
+histogram(df_subjects$DV_percent_NABS)
+mb <- betareg(dv_transformed ~ condition, data = sub)
+
+summary(mb)
+plot(mb)
+
+```
+
+#### TOBIT Regression
+https://stats.oarc.ucla.edu/r/dae/tobit-models/
+
+```{r}
+
+#set up data 
+df <- df_subjects %>% mutate(
+  accuracy = s_NABS
+)
+
+library(VGAM)
+t <- vglm(accuracy ~ condition, tobit(Upper = 13), data = df)
+summary(t)
+plot(t)
+```
+
+
 #### WIP \| HURDLE MODEL
 
 - https://data.library.virginia.edu/getting-started-with-hurdle-models/  
@@ -1212,25 +1673,5 @@ rootogram(h.1)
 rootogram(h.2)
 compare_performance(h.1,h.2)
 
-
-```
-#### Beta Regression (% Correct)
-
-Beta regression on % correct (with standard transformation for including \[0,1\]) https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression
-
-```{r}
-
-library(betareg)
-
-sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS)
-n = nrow(sub) %>% unlist()
-sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
-
-histogram(sub$dv_transformed)
-histogram(df_subjects$DV_percent_NABS)
-mb <- betareg(dv_transformed ~ condition, data = sub)
-
-summary(mb)
-plot(mb)
 
 ```
