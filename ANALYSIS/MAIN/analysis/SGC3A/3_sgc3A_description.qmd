@@ -51,9 +51,9 @@ theme_set(theme_minimal())
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -198,14 +198,23 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
   theme(legend.position = "blank") + 
   coord_cartesian(xlim = c(0.5, NA), clip = "off")
 
+# set seed
+set.seed(1234)
+  
+# create a random data frame 
+sample_data <- data.frame(x = round(rnorm(700, mean=800, 
+                                          sd=450)))
+  
+
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(item_test_NABS)) + 
-  stat_ecdf(geom = "step") + 
+  stat_ecdf(geom = "step") +
   facet_grid(pretty_condition~pretty_mode) + 
   labs( title = "Empirical Cumulative Density Function — TEST Absolute Score ",
         x = "Total Absolute Score (Test Phase) [0,8]", 
         y = "Cumulative Probability")
 
+#NOTE this is clobbered by the shift function imports; so I load those later
   
 ```
 
@@ -907,10 +916,10 @@ gf_jitter( item_test_NABS ~ item_avg_rt, data = df_subjects, alpha = 0.5, color=
 
 ```{r}
 
-q.stats <- df_items %>% filter(q != 6) %>% dplyr::group_by(q, pretty_condition, score_niceABS) %>% summarise(
+q.stats <- df_items %>% filter(q != 6) %>% dplyr::group_by(q, pretty_condition, score_niceABS) %>% dplyr::summarise(
   m = mean(rt_s),
   sd = sd(rt_s),
-  sd = replace_na(sd,0),
+  sd = tidyr::replace_na(sd,0),
   lo = m-sd/2,
   hi = m+sd/2,
   group = paste(pretty_condition,"-",score_niceABS)
@@ -934,10 +943,10 @@ gf_line( m ~ q, group = ~group,  color = ~as.factor(score_niceABS),data = q.stat
 
 ```{r}
 
-q.stats <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::group_by(q, pretty_condition, interpretation) %>% summarise(
+q.stats <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::group_by(q, pretty_condition, interpretation) %>% dplyr::summarise(
   m = mean(rt_s),
   sd = sd(rt_s),
-  sd = replace_na(sd,0),
+  sd = tidyr::replace_na(sd,0),
   lo = m-sd/2,
   hi = m+sd/2,
   group = paste(pretty_condition,"-",score_SCALED)
