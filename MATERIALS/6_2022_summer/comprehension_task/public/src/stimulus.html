@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <style>
+    input.checkbox-grid {
+     display:none;
+  }
+  </style>
+ </head>
+
+<body>
+  <div class = "container">
+    
+    <div class = "left" id="leftDiv">
+      
+      <!-- hidden response element -->
+      <div id="answer" style="display:none"></div> 
+      
+      <!-- question -->
+      <p class="question" id="question"></p>
+  
+      <!-- scaffolding/hints -->
+      <div class = "legend"   >
+         <p id="hint-interactive" style="display:none" >Hint: Hover your mouse over the data points in the graph</p>
+         <p id="hint-graph-click" style="display:none" >(Click on the data points to answer.)</p>
+      </div> <!-- end legend -->
+  
+      <!-- response indicators -->
+      <p class = "response" id="graph-response" style="display:none">Your answer : </p>
+      <ul class="checkbox-grid" id="answer-grid"></ul>
+      <textarea style = "display: none" id="freeResponse" rows="5" cols="50"></textarea>
+      <!-- submit buttons -->
+  
+      <div class="fixbottom">  
+        <button type="button" id="testingButton" class='btn' style="display:none" onclick=recordAnswer()>SUBMIT</button>  
+      </div>
+      
+    </div> <!--END LEFT-->
+
+    <div class = "right" id="rightDiv">
+      <div class = "stimulus"></div>
+    </div> <!--END RIGHT-->
+  
+    <p class = "userid" id="userid"></p>
+  </div> <!--END container-->
+
+  
+</body>
+<script>
+
+
+  //DECLARE VARIABLES ——————————————————————————
+  var selectColor = "#3ea5ed";
+  // var clicked = ["answer","clicked"]; //populate first row of clicked array with headers
+  var hovered = ""; //string for sequence of data points that have been hovered over
+  var graphClicked = []
+  var clicks = 0; //number of clicks on the page
+  var mousesvg = []; //hold mouse movement in svg coord
+  // let svg, graph, explicit, grid, datafile, colorClick;
+
+  //---------SET PROPERTIES OF THE GRAPH -------------//
+  // set the dimensions and margins of the graph
+  var margin = {top: 20, right: 20, bottom: 50, left: 50};
+  var width, height; 
+  var intersects = false; //default value for intersects scaffold
+  var xAxisTitle, yAxisTitle;
+
+  // SETUP PAGES 
+  $(document).ready(function() {
+   
+    //count clicks 
+    $(".control").click(function(e) {
+      e.stopImmediatePropagation();
+      clicks = clicks + 1;
+      // console.log("clicks: "+clicks);
+    });
+
+    //GET STIM PARAMETERS FROM HTML ELEMENT DATA
+    data =JSON.parse(document.getElementById("jspsych-data").getAttribute("data"));
+    console.log(data); 
+
+    //UPDATE DISPLAY BASED ON DATA 
+    $('.userid').html(data.sid); //print subject ID
+    $('#question').html(data.question); //display question
+
+    //CHANGE checkboxes IF free response questions
+    if(isNaN(data.q)){
+      //suppress checkboxes
+      $('#answer-grid').attr("style","display:none");
+      $('#graph-response').attr("style","display:none");
+      //enter free response box 
+      $('#freeResponse').attr("style","display:block");
+    }
+    
+    //SET ANSWER MODE
+    if (data.colorClick == true) {// remove checkboxes
+      $('#answer-grid').attr("style","display:none");
+      $('#hint-graph-click').attr("style","display:block");
+      $('#graph-response').attr("style","display:block");
+    }
+    // //SET HINTS
+    if (data.explicit == 2) { //static scaffold
+      $(".static-scaffold").css("display","block");
+    }
+    else if (data.explicit == 3) { //ixn scaffold
+      $("#hint-interactive").css("display","block");
+      $(".leaders").css("display","block");
+    }
+    
+    //SET STIM PARAMETERS FROM HTML ELEMENT DATA
+    graph = data.graph; 
+    explicit = data.explicit; 
+    grid = data.grid; 
+    mark = data.mark;
+    rotation = data.rotation;
+    console.log("MARK IS: "+mark);
+    datafile = "src/data/data/"+data.datafile+".csv";
+    colorClick = data.colorClick; 
+    width = parseInt(data.gwidth);
+    height = parseInt(data.gheight);
+
+  
+  //---------CREATE THE SVG  ------------------------//
+  svg = d3.select(".stimulus").append("svg")
+    .attr("id","theGraph")
+    .attr("class","theGraph")
+    .attr("xmlns","http://www.w3.org/2000/svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform",  "translate(" + margin.left + "," + margin.top + ")")
+    .on('mousemove', function() {
+        // console.log( d3.mouse(this));
+        mousesvg.push(d3.mouse(this));
+    }); // log the mouse x,y position in svg coords
+
+  //---------HACK AXIS 4  ------------------------//  
+  // NOTE THIS IS A TEMPORARY HACK
+  if(data.rotation == 2){
+    
+    console.log("ROTATE THE GRAPH!");
+
+    d3.select("g")
+      .attr("transform-origin",  "center")
+      .attr("transform",  "rotate(45) scale(0.75, 0.75)")
+      
+  }
+    // FOR TRIANGULAR AXES
+    // transform: translate(100, -20) rotate(45deg) scale(0.75, 0.75);
+    // transform-origin: center center;
+
+    // FOR ORTHOGONAL AXES
+    // transform: translate(400, 0) rotate(45deg) scale(0.75, 0.75);
+  
+  //---------DRAW THE GRAPH  ------------------------//
+  switch(graph){
+    case "triangular":
+      xAxisTitle = "Start and End Time (time of day)";
+      yAxisTitle = "Duration (in hours)";
+      // console.log("passing scaffold: "+explicit);
+      drawTriangleModel(datafile,grid,explicit, mark);
+      $('#testingButton').attr("style","display:block");
+
+    break;
+    
+    case "linear":
+      xAxisTitle = "Start and End Time (time of day)";
+      if (scenario =="longmire"){yAxisTitle = "CONFERENCE ROOM";}
+      if (scenario =="axis"){yAxisTitle = "TASK"}
+      drawLinearModel(datafile,grid,explicit);
+    break;
+    
+    default:
+    $(".stimulus").remove();
+    break;
+  }
+
+});//END document ready
+
+  
+</script>
+
+<script>
+
+    //MOUSE LOGGING SCRIPT
+    var mouseLog = []
+    var xwidth = $(document).width();
+    var xheight = $(document).width();
+    mouseLog.push("{x:"+xwidth+",y:"+xheight+",t:"+"0};")
+    
+    document.onmousemove = function(e){
+      var pageCoords = "{x:" + e.pageX + ",y:"+ e.pageY +",t:"+ Date.now()+ "};" ;
+      mouseLog.push(pageCoords);
+      // console.log(pageCoords);
+    };
+
+</script>
