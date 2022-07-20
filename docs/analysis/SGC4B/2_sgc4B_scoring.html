@@ -164,6 +164,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <a href="../../analysis/utils/scoring.html" class="sidebar-item-text sidebar-link">Scoring Strategy</a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/x_learning.html" class="sidebar-item-text sidebar-link">Modelling Reference</a>
+  </div>
+</li>
     </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -281,6 +286,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
     </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">COMBINED</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/combined/combined.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Description</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../references.html" class="sidebar-item-text sidebar-link">References</a>
@@ -340,8 +360,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <div style="page-break-after: always;"></div>
-<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/SETUP_39be7007b09ab10ba2f4d55e4e524c81">
+<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
@@ -355,7 +375,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="score-sgc-data" class="level2">
 <h2 class="anchored" data-anchor-id="score-sgc-data">SCORE SGC DATA</h2>
-<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
 <p>In SGC we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The <strong>graph comprehension task</strong> asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant’s performance, for each question (q=15) we will calculate the following scores:</p>
 <p><em>An overall, strict score:</em><br>
 1. <strong>Absolute Score</strong> : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)</p>
@@ -367,7 +387,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="sec-SGC4B-keys" class="level3">
 <h3 class="anchored" data-anchor-id="sec-SGC4B-keys">Prepare Answer Keys</h3>
 <p>We start by importing three answer keys: (1) Q1 - Q5 [control condition], (2) Q1-Q5 [impasse condition], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e.&nbsp;the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.</p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/IMPORT-KEYS_e6533b0b328d6af6fce73acc0507de97">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -415,7 +435,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>score_ABS</code> Is the response strictly correct? (triangular interpretation)</li>
 <li><code>score_niceABS</code> Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer <em>in addition to</em> they also select the data point referenced in the question.</li>
 </ul>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/IMPORT-ITEMS_6722061abd1ec24cd779307a953904e9">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#HACK WD FOR LOCAL RUNNING?</span></span>
@@ -426,7 +446,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC4B/data/1-study-level/sgc4b_items.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/IMPORT-SCORING-FUNCTIONS_f2a1989d94070aa7b665cde42490ab9a">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -490,7 +510,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>(+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they “see” a triangular response, but lack certainty and also select the ORTHOGONAL response)</li>
 <li>(+1) TRIANGULAR +1</li>
 </ul>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/SCALED-SCORE_d1f3addfa286be87dfd393f1ff08dfd7">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SCALED <span class="ot">&lt;-</span> <span class="fu">calc_scaled</span>(df_items<span class="sc">$</span>interpretation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -501,7 +521,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="summarize-by-subject" class="level2">
 <h2 class="anchored" data-anchor-id="summarize-by-subject">SUMMARIZE BY SUBJECT</h2>
 <p>Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.</p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/SUMMARIZE-BY-SUBJECT_2f514424867363fad0ba1b4c53429b4d">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -537,7 +557,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 <p>We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task.</p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/SUMMARIZE-PROGRESS_fbe63d8ca1853292887fd00ab80a21cc">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#GET ABSOLUTE PROGRESS </span></span>
@@ -550,7 +570,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="explore-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="explore-distributions">EXPLORE DISTRIBUTIONS</h2>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/VIS-SETUP_40fb5693adcccbfcf98bc9e1c24ba3a7">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -570,7 +590,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="absolute-score" class="level3">
 <h3 class="anchored" data-anchor-id="absolute-score">Absolute Score</h3>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/DISTR-ABSCORE_e7564883698c082c4b75cd47a6381b69">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE FULL </span><span class="al">TASK</span></span>
@@ -619,7 +639,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="scaled-score" class="level3">
 <h3 class="anchored" data-anchor-id="scaled-score">Scaled Score</h3>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/DISTR-SCALEDSCORE_73d0c5bcd58eb1389078dfe6b053ecbc">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -670,7 +690,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretations" class="level3">
 <h3 class="anchored" data-anchor-id="interpretations">Interpretations</h3>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/DISTR-INTERPRETATIONS_97233547f44aa53f793c481c6aaf3897">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION</span></span>
@@ -713,7 +733,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="progress-over-task" class="level3">
 <h3 class="anchored" data-anchor-id="progress-over-task">Progress over Task</h3>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/VIZ-PROGRESS_c4988339cc832febd738f93550623ffc">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time ABSOLUTE score </span></span>
@@ -744,7 +764,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretation-subscores" class="level3">
 <h3 class="anchored" data-anchor-id="interpretation-subscores">Interpretation Subscores</h3>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/DIST-SUBSCORES_b1b7f1414d0551b88ef78ef1d8ab1f15">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TRI, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span></span>
@@ -798,7 +818,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="peeking" class="level2">
 <h2 class="anchored" data-anchor-id="peeking">PEEKING</h2>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/unnamed-chunk-16_07324e8800657eea6c029df3e6e7d09c">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(performance)</span>
@@ -868,7 +888,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <section id="export" class="level2">
 <h2 class="anchored" data-anchor-id="export">EXPORT</h2>
 <p>Finally, we export the scores for each item (<code>df_items</code>) and summarized over subjects (<code>df_subjects</code>), as well as cumulative progress dataframes (<code>df_absolute_progress</code>, <code>df_scaled_progress</code>)</p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/EXPORT-SCORES_ff51367618ac647acfcd0a44f1d83431">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
@@ -891,7 +911,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </section>
 <section id="resources" class="level2">
 <h2 class="anchored" data-anchor-id="resources">RESOURCES</h2>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/unnamed-chunk-18_4c908ff364d3082ea2e88f84350b61e0">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -920,38 +940,41 @@ other attached packages:
 [21] kableExtra_1.3.4 
 
 loaded via a namespace (and not attached):
- [1] colorspace_2.0-3    ellipsis_0.3.2      rio_0.5.29         
- [4] htmlTable_2.4.0     parameters_0.18.1   base64enc_0.1-3    
- [7] fs_1.5.2            rstudioapi_0.13     farver_2.1.0       
-[10] bit64_4.0.5         fansi_1.0.3         lubridate_1.8.0    
-[13] xml2_1.3.3          codetools_0.2-18    splines_4.2.1      
-[16] knitr_1.39          polyclip_1.10-0     jsonlite_1.8.0     
-[19] broom_0.8.0         cluster_2.1.3       dbplyr_2.2.1       
-[22] png_0.1-7           ggforce_0.3.3       effectsize_0.7.0   
-[25] compiler_4.2.1      httr_1.4.3          backports_1.4.1    
-[28] assertthat_0.2.1    Matrix_1.4-1        fastmap_1.1.0      
-[31] cli_3.3.0           tweenr_1.0.2        htmltools_0.5.2    
-[34] tools_4.2.1         gtable_0.3.0        glue_1.6.2         
-[37] Rcpp_1.0.8.3        cellranger_1.1.0    vctrs_0.4.1        
-[40] svglite_2.1.0       insight_0.17.1      xfun_0.31          
-[43] openxlsx_4.2.5      rvest_1.0.2         lifecycle_1.0.1    
-[46] mosaicCore_0.9.0    MASS_7.3-57         vroom_1.5.7        
-[49] hms_1.1.1           parallel_4.2.1      RColorBrewer_1.1-3 
-[52] yaml_2.3.5          curl_4.3.2          gridExtra_2.3      
-[55] labelled_2.9.1      rpart_4.1.16        latticeExtra_0.6-29
-[58] stringi_1.7.6       bayestestR_0.12.1   checkmate_2.1.0    
-[61] zip_2.2.0           rlang_1.0.3         pkgconfig_2.0.3    
-[64] systemfonts_1.0.4   evaluate_0.15       htmlwidgets_1.5.4  
-[67] labeling_0.4.2      bit_4.0.4           tidyselect_1.1.2   
-[70] plyr_1.8.7          magrittr_2.0.3      R6_2.5.1           
-[73] generics_0.1.2      DBI_1.1.3           pillar_1.7.0       
-[76] haven_2.5.0         foreign_0.8-82      withr_2.5.0        
-[79] datawizard_0.4.1    nnet_7.3-17         modelr_0.1.8       
-[82] crayon_1.5.1        utf8_1.2.2          tzdb_0.3.0         
-[85] rmarkdown_2.14      jpeg_0.1-9          grid_4.2.1         
-[88] readxl_1.4.0        data.table_1.14.2   reprex_2.0.1       
-[91] digest_0.6.29       webshot_0.5.3       munsell_0.5.0      
-[94] viridisLite_0.4.0  </code></pre>
+  [1] TH.data_1.1-1       colorspace_2.0-3    rio_0.5.29         
+  [4] ellipsis_0.3.2      estimability_1.4    htmlTable_2.4.0    
+  [7] parameters_0.18.1   base64enc_0.1-3     fs_1.5.2           
+ [10] rstudioapi_0.13     farver_2.1.0        bit64_4.0.5        
+ [13] fansi_1.0.3         mvtnorm_1.1-3       lubridate_1.8.0    
+ [16] xml2_1.3.3          codetools_0.2-18    splines_4.2.1      
+ [19] knitr_1.39          polyclip_1.10-0     jsonlite_1.8.0     
+ [22] broom_0.8.0         cluster_2.1.3       dbplyr_2.2.1       
+ [25] png_0.1-7           effectsize_0.7.0    ggforce_0.3.3      
+ [28] compiler_4.2.1      httr_1.4.3          emmeans_1.7.5      
+ [31] backports_1.4.1     assertthat_0.2.1    Matrix_1.4-1       
+ [34] fastmap_1.1.0       cli_3.3.0           tweenr_1.0.2       
+ [37] htmltools_0.5.2     tools_4.2.1         coda_0.19-4        
+ [40] gtable_0.3.0        glue_1.6.2          Rcpp_1.0.8.3       
+ [43] cellranger_1.1.0    vctrs_0.4.1         svglite_2.1.0      
+ [46] insight_0.17.1      xfun_0.31           openxlsx_4.2.5     
+ [49] rvest_1.0.2         lifecycle_1.0.1     mosaicCore_0.9.0   
+ [52] zoo_1.8-10          MASS_7.3-57         vroom_1.5.7        
+ [55] hms_1.1.1           sandwich_3.0-2      parallel_4.2.1     
+ [58] RColorBrewer_1.1-3  curl_4.3.2          yaml_2.3.5         
+ [61] gridExtra_2.3       labelled_2.9.1      rpart_4.1.16       
+ [64] latticeExtra_0.6-29 stringi_1.7.6       bayestestR_0.12.1  
+ [67] checkmate_2.1.0     zip_2.2.0           rlang_1.0.3        
+ [70] pkgconfig_2.0.3     systemfonts_1.0.4   evaluate_0.15      
+ [73] htmlwidgets_1.5.4   labeling_0.4.2      bit_4.0.4          
+ [76] tidyselect_1.1.2    plyr_1.8.7          magrittr_2.0.3     
+ [79] R6_2.5.1            generics_0.1.2      multcomp_1.4-19    
+ [82] DBI_1.1.3           pillar_1.7.0        haven_2.5.0        
+ [85] foreign_0.8-82      withr_2.5.0         datawizard_0.4.1   
+ [88] nnet_7.3-17         modelr_0.1.8        crayon_1.5.1       
+ [91] utf8_1.2.2          tzdb_0.3.0          rmarkdown_2.14     
+ [94] jpeg_0.1-9          grid_4.2.1          readxl_1.4.0       
+ [97] data.table_1.14.2   reprex_2.0.1        digest_0.6.29      
+[100] webshot_0.5.3       xtable_1.8-4        munsell_0.5.0      
+[103] viridisLite_0.4.0  </code></pre>
 </div>
 </div>
 

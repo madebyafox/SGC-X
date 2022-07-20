@@ -164,6 +164,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <a href="../../analysis/utils/scoring.html" class="sidebar-item-text sidebar-link">Scoring Strategy</a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC3A/x_learning.html" class="sidebar-item-text sidebar-link">Modelling Reference</a>
+  </div>
+</li>
     </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -281,6 +286,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
     </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+    <div class="sidebar-item-container"> 
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">COMBINED</a>
+      <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+        <i class="bi bi-chevron-right ms-2"></i>
+      </a>
+    </div>
+    <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/combined/combined.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Description</span></a>
+  </div>
+</li>
+    </ul>
+  </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../references.html" class="sidebar-item-text sidebar-link">References</a>
@@ -339,8 +359,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <div style="page-break-after: always;"></div>
-<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
-<div class="cell">
+<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/SETUP_77aa484533711cb089d388492ead9d1d">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen=</span><span class="dv">1</span>, <span class="at">digits=</span><span class="dv">3</span>)</span>
@@ -354,7 +374,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="score-sgc-data" class="level2">
 <h2 class="anchored" data-anchor-id="score-sgc-data">SCORE SGC DATA</h2>
-<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
 <p>In SGC we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The <strong>graph comprehension task</strong> asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant’s performance, for each question (q=15) we will calculate the following scores:</p>
 <p><em>An overall, strict score:</em><br>
 1. <strong>Absolute Score</strong> : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)</p>
@@ -366,12 +386,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="sec-SGC3B-keys" class="level3">
 <h3 class="anchored" data-anchor-id="sec-SGC3B-keys">Prepare Answer Keys</h3>
 <p>We start by importing three answer keys: (1) Q1 - Q5 [control condition], (2) Q1-Q5 [impasse condition], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e.&nbsp;the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/IMPORT-KEYS_8e0c18d5e15fa9633ef180f802d09f6c">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE KEYS FOR FUTURE USE</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>keys_raw <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_raw"</span>)</span>
@@ -414,23 +434,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>score_ABS</code> Is the response strictly correct? (triangular interpretation)</li>
 <li><code>score_niceABS</code> Is the response strictly correct? (triangular interpretation, not penalizing ref points). This is a more generous version of the Absolute score that does not penalize the participant if in addition to the correct answer <em>in addition to</em> they also select the data point referenced in the question.</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/IMPORT-ITEMS_02ed9a3e409efe1bff406bfe62390128">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># backup &lt;- read_rds('analysis/SGC3B/data/1-study-level/sgc3b_items.rds') #for troubleshooting only</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_items.rds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/IMPORT-SCORING-FUNCTIONS_5eb4176d76da21b7a86239b98c8a2aa5">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"analysis/utils/scoring.R"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -489,7 +509,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>(+0.5) TVERSKY, BOTH TRI + ORTH (indicates that they “see” a triangular response, but lack certainty and also select the ORTHOGONAL response)</li>
 <li>(+1) TRIANGULAR +1</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/SCALED-SCORE_539238e45a0cd117ec92457a19b35edb">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_items<span class="sc">$</span>score_SCALED <span class="ot">&lt;-</span> <span class="fu">calc_scaled</span>(df_items<span class="sc">$</span>interpretation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -500,12 +520,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="summarize-by-subject" class="level2">
 <h2 class="anchored" data-anchor-id="summarize-by-subject">SUMMARIZE BY SUBJECT</h2>
 <p>Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/SUMMARIZE-BY-SUBJECT_34f2cdf7340f2efc962d9a69e170dbad">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#import subjects</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_participants.rds'</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">subject =</span> <span class="fu">as.character</span>(subject)) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(subject)</span>
@@ -536,7 +556,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 <p>We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task.</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/SUMMARIZE-PROGRESS_842452233b8b5982cb15130737ca54e6">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#GET ABSOLUTE PROGRESS </span></span>
@@ -549,7 +569,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="explore-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="explore-distributions">EXPLORE DISTRIBUTIONS</h2>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/VIS-SETUP_494a7f129c8e503d90a4a5318e45e937">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -568,7 +588,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="absolute-score" class="level3">
 <h3 class="anchored" data-anchor-id="absolute-score">Absolute Score</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/DISTR-ABSCORE_0d4d22e62b537376ef4cdcb116579717">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION ABSOLUTE SCORE FULL </span><span class="al">TASK</span></span>
@@ -632,7 +652,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="scaled-score" class="level3">
 <h3 class="anchored" data-anchor-id="scaled-score">Scaled Score</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/DISTR-SCALEDSCORE_6679fc719a7bcead1a69a0d74b05b6b7">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repr.plot.width =</span><span class="dv">9</span>, <span class="at">repr.plot.height =</span><span class="dv">12</span>)</span>
@@ -702,7 +722,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretations" class="level3">
 <h3 class="anchored" data-anchor-id="interpretations">Interpretations</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/DISTR-INTERPRETATIONS_c654ed4627b207f1b001b85a183bf48a">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#DISTRIBUTION OF INTERPRETATION</span></span>
@@ -745,7 +765,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="progress-over-task" class="level3">
 <h3 class="anchored" data-anchor-id="progress-over-task">Progress over Task</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/VIZ-PROGRESS_6c82939ad2c729d5d60cd99e65a2d2f1">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#VISUALIZE progress over time ABSOLUTE score </span></span>
@@ -776,7 +796,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="interpretation-subscores" class="level3">
 <h3 class="anchored" data-anchor-id="interpretation-subscores">Interpretation Subscores</h3>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/DIST-SUBSCORES_02915af0835a71aa5f6bb16151465164">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gf_density</span>(<span class="sc">~</span> s_TRI, <span class="at">fill =</span> <span class="sc">~</span>pretty_condition, <span class="at">data =</span> df_subjects) <span class="sc">%&gt;%</span> </span>
@@ -831,11 +851,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="export" class="level2">
 <h2 class="anchored" data-anchor-id="export">EXPORT</h2>
 <p>Finally, we export the scores for each item (<code>df_items</code>) and summarized over subjects (<code>df_subjects</code>), as well as cumulative progress dataframes (<code>df_absolute_progress</code>, <code>df_scaled_progress</code>)</p>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/EXPORT-SCORES_c667d451d65de62a09956adf839180e9">
 <details>
 <summary>CODE</summary>
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
 <span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
@@ -852,7 +872,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="resources" class="level2">
 <h2 class="anchored" data-anchor-id="resources">RESOURCES</h2>
-<div class="cell">
+<div class="cell" data-hash="2_sgc3B_scoring_cache/html/unnamed-chunk-17_03e07e64478c78060f79176c5adebe04">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1114,8 +1134,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb34-55"><a href="#cb34-55" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
 <span id="cb34-56"><a href="#cb34-56" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-57"><a href="#cb34-57" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb34-60"><a href="#cb34-60" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-61"><a href="#cb34-61" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE KEYS FOR FUTURE USE</span></span>
 <span id="cb34-62"><a href="#cb34-62" aria-hidden="true" tabindex="-1"></a>keys_raw <span class="ot">&lt;-</span>  <span class="fu">read_csv</span>(<span class="st">"analysis/utils/keys/parsed_keys/keys_raw"</span>)</span>
@@ -1160,8 +1180,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb34-103"><a href="#cb34-103" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-ITEMS</span></span>
 <span id="cb34-104"><a href="#cb34-104" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-105"><a href="#cb34-105" aria-hidden="true" tabindex="-1"></a><span class="co">#HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb34-106"><a href="#cb34-106" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb34-107"><a href="#cb34-107" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-106"><a href="#cb34-106" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-107"><a href="#cb34-107" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb34-108"><a href="#cb34-108" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-109"><a href="#cb34-109" aria-hidden="true" tabindex="-1"></a><span class="co"># backup &lt;- read_rds('analysis/SGC3B/data/1-study-level/sgc3b_items.rds') #for troubleshooting only</span></span>
 <span id="cb34-110"><a href="#cb34-110" aria-hidden="true" tabindex="-1"></a>df_items <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_items.rds'</span>)</span>
@@ -1172,8 +1192,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb34-117"><a href="#cb34-117" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: IMPORT-SCORING-FUNCTIONS</span></span>
 <span id="cb34-118"><a href="#cb34-118" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-119"><a href="#cb34-119" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb34-120"><a href="#cb34-120" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb34-121"><a href="#cb34-121" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-120"><a href="#cb34-120" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-121"><a href="#cb34-121" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb34-122"><a href="#cb34-122" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-123"><a href="#cb34-123" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"analysis/utils/scoring.R"</span>)</span>
 <span id="cb34-124"><a href="#cb34-124" aria-hidden="true" tabindex="-1"></a></span>
@@ -1255,8 +1275,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb34-208"><a href="#cb34-208" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: SUMMARIZE-BY-SUBJECT</span></span>
 <span id="cb34-209"><a href="#cb34-209" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-210"><a href="#cb34-210" aria-hidden="true" tabindex="-1"></a><span class="co"># #HACK WD FOR LOCAL RUNNING?</span></span>
-<span id="cb34-211"><a href="#cb34-211" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb34-212"><a href="#cb34-212" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-211"><a href="#cb34-211" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-212"><a href="#cb34-212" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb34-213"><a href="#cb34-213" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-214"><a href="#cb34-214" aria-hidden="true" tabindex="-1"></a><span class="co">#import subjects</span></span>
 <span id="cb34-215"><a href="#cb34-215" aria-hidden="true" tabindex="-1"></a>df_subjects <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">'analysis/SGC3B/data/1-study-level/sgc3b_participants.rds'</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">subject =</span> <span class="fu">as.character</span>(subject)) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(subject)</span>
@@ -1497,8 +1517,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb34-466"><a href="#cb34-466" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb34-467"><a href="#cb34-467" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: EXPORT-SCORES</span></span>
 <span id="cb34-468"><a href="#cb34-468" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-469"><a href="#cb34-469" aria-hidden="true" tabindex="-1"></a>imac <span class="ot">=</span> <span class="st">"/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
-<span id="cb34-470"><a href="#cb34-470" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(imac)</span>
+<span id="cb34-469"><a href="#cb34-469" aria-hidden="true" tabindex="-1"></a><span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span></span>
+<span id="cb34-470"><a href="#cb34-470" aria-hidden="true" tabindex="-1"></a><span class="co"># setwd(imac)</span></span>
 <span id="cb34-471"><a href="#cb34-471" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-472"><a href="#cb34-472" aria-hidden="true" tabindex="-1"></a><span class="co">#SAVE FILES</span></span>
 <span id="cb34-473"><a href="#cb34-473" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df_subjects,<span class="st">"analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
