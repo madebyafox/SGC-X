@@ -10,6 +10,7 @@ subtitle: 'Study SGC3A | 5 Exploratory Analyses'
 - response consistency - clarify core questions being asked\
 - review models already created in ARCHIVE?\
 - explore response consistency - fix references
+- what predicts consistency?
 
 *The purpose of this notebook is exploratory analyses of data collected for study SGC3A.*
 
@@ -37,6 +38,7 @@ library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
 library(tidyverse) #ALL THE THINGS
+library(equatiomatic) #equation printing
 
 
 #OUTPUT OPTIONS
@@ -73,6 +75,60 @@ Can exploration strategies be derived from mouse cursor activity?
 
 -   does response time predict interpretation vs. non interpretation?
 
+TODO: - does impasse yield different exploration behavior? (characterize mouse) - does impasse yield more time on task? (characterize response time ? number of answers then de-selected?)
+
+TODO: Think about characterizing how variable the interpretations are across a participant. Do they form an interpretation and hold it constant? Or do they change question to question.
+
+
+
+## Q1 ACCURACY 
+
+**What explains Q1 Accuracy?**
+
+##### Multiple Logistic Regression [Q1 Absolute]
+
+```{r}
+# #CREATE DATAFRAME OF Q1
+# df <- df_items %>% filter(q == 1) %>% mutate( accuracy = as.factor(score_niceABS))
+# 
+# #MODEL
+# m2 <- glm( accuracy ~ rt_s, data = df, family = "binomial")
+# summary(m2)
+# confint(m2)
+# performance(m2)
+# report(m2)
+# 
+# library(effects)
+# plot(allEffects(m2))
+# 
+# 
+# m3 <- glm( accuracy ~ condition + rt_s, data = df, family = "binomial")
+# summary(m3)
+# confint(m3)
+# performance(m3)
+# report(m3)
+# 
+# plot(allEffects(m3))
+# 
+# compare_performance(m,m2,m3)
+```
+
+```{r}
+#evaluate model using kfold CV
+# https://www.statology.org/k-fold-cross-validation-in-r/
+
+# #specify the cross-validation method
+# ctrl <- trainControl(method = "cv", number = 5)
+# #fit a regression model and use k-fold CV to evaluate performance
+# mk <- train( accuracy ~ condition, data = df, method = "glm", trControl = ctrl, family = "binomial")
+# print(mk)
+# 
+
+
+```
+
+
+
 #### Mass Movement
 
 "movement of mass" from one mode to another
@@ -97,233 +153,218 @@ multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
 
 ```
 
-## RESPONSE CONSISTENCY
 
-**TODO**
+## RESPONSE LATENCY
 
-## XYZ
+-   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
+-   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
+-   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
 
-### XYZ
++-----------------------+----------------------------------------+
+| Research Question     |                                        |
++=======================+========================================+
+| **Hypothesis**        |                                        |
++-----------------------+----------------------------------------+
+| **Analysis Strategy** |                                        |
++-----------------------+----------------------------------------+
+| **Alternatives**      |                                        |
++-----------------------+----------------------------------------+
+| **Inference**         |                                        |
++-----------------------+----------------------------------------+
 
-#### XYZ
+### Q1 Response Latency
 
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-+=======================+=======================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
-| **Analysis Strategy** | Chi-Square test of independence on outcome `score_niceABS` by `condition` for `df_items` where `q == 1`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Justification**     | \(0\) simplest method to examine independence of two categorical factors; logistic regression is recommended for binomial \~ continuous                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                       | \(1\) independence assumption : as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                       | \(2\) frequency size assumption : expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Steps**             | \(1\) Express raw data as contingency table & visualize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                       | \(2\) Calculate Chi-Squared Statistic and p-value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                       | \(3\) Interpret Odds-Ratio as effect size                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Inference**         | **Lab** A Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. In this particular data sample, the sample odds ratio 2.18 indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than if the control condition (Odds Ratio = 2.18, p = 0.055, 95% CI \[0.982, +Inf\]). |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|                       | **Online** A Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. The sample odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI \[1.37, +Inf\]).                                         |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+#### Linear Regression (Log Transform)
+
+##### (In Person)
+
+###### Visualization
 
 ```{r}
-#| label: VIS-LR-Q1.tri.by.Cond
+#| label: VIS-TEST-Q1TIME
 
-#FITER THE DATASET
-df = df_items %>% filter(q==1) 
-
-#PROPORTIONAL BAR CHART
-gf_props(~score_niceABS, data = df, fill = ~mode) %>% 
-  gf_facet_grid(mode~condition, labeller = label_both) +
-  labs(x = "Correct Response on Q 1",
-       title = "Accuracy on First Question by Condition (Both Modalities)",
-       subtitle="Impasse Condition yields a greater proportion of correct responses than control ")+
-  theme_minimal()+ theme(legend.position = "none")
-
-
-#MOSAIC PLOT
-vcd::mosaic(main="Accuracy on First Question by Condition (Both Modalities)",
-            data = df, score_niceABS ~ condition, rot_labels=c(0,90,0,0),
-            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
-            spacing = spacing_dimequal(unit(1:2, "lines")))
-
-
-
-#PRINT CONTINGENCY TABLE
-title = "Proportion of Correct Responses On First Item (Both Modalities)"
-item.contingency <-  df %>% dplyr::select(condition, score_niceABS) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
-```
-
-```{r}
-#| label : TBL-Q1.TRI.by.COND-LAB
-
-df = df_items %>% filter(q==1) %>% filter(mode == "lab-synch")
-CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
+df_lab <- df_subjects %>% filter(mode == "lab-synch")
+ 
+#HISTOGRAM
+stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
+gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
+  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(title = "(LAB) First Question Response Time",,
+       # x = "Response Time (seconds)",
+       # y = "proportion of participants",
+       subtitle = "") + 
+  theme_minimal()
 
 ```
 
-Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, 'Expected N'. The model predicts more than 5 observations in each cell.) The Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. In this particular data sample, the odds ratio 2.18 indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.18, p = 0.055, 95% CI \[0.982, +Inf\]).
+###### Model
 
 ```{r}
-#| label : TBL-Q1.TRI.by.COND-ONLINE
-
-df = df_items %>% filter(q==1) %>% filter(mode == "asynch")
-CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
-```
-
-Inspecting the output of the Chi-Squared test, we first see that we meet the assumption of expected frequency in each cell (indicated by the second row in each box, 'Expected N'. The model predicts more than 5 observations in each cell.) The Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is not equal to 1. The odds ratio = 2.68 indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition (Odds Ratio = 2.68, p = 0.005, 95% CI \[1.37, +Inf\]).
-
-## COPIED FROM 3
-
-**Does the IMPASSE condition more accurate interpretation?**
-
-To address this question we assess how much variance in cumulative (absolute) score is explained by experimental condition.
-
-```{r}
-#| label: MODEL-scaled-score-LAB
+#| label: MODEL-Q1TIME-LAB
 
 #SCORE predicted by CONDITION
-m1 <- lm(s_SCALED ~ condition, data = df_subjects %>% filter(mode=="lab-synch"))
+lab.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_lab)
 paste("Model")
-summary(m1)
+summary(lab.q1t.lm1)
 paste("Partition Variance")
-anova(m1)
+anova(lab.q1t.lm1)
 paste("Confidence Interval on Parameter Estimates")
-confint(m1)
-# report(m1) #sanity check
+confint(lab.q1t.lm1)
+report(lab.q1t.lm1) #sanity check
+#print model equation
+eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
+```
+
+```{r}
+# #| label: VISMODEL-Q1-LATENCY-LAB
+# 
+# #MODEL ESTIMATES WITH UNCERTAINTY
+# 
+# #setup references 
+# #lab.q1t.lm1 <- lm(log(item_q1_rt) ~ condition, data = df_lab)
+# m <- lab.q1t.lm1
+# df <- df_lab 
+# call <- m$call %>% as.character()
+# 
+# # uncertainty model visualization
+# df <- df  %>%
+#   data_grid(pretty_condition) %>%
+#   augment(m, newdata = ., se_fit = TRUE) 
+# 
+# #transform log
+# df$.fitted <- exp(df$.fitted)
+# df$.se.fit <- exp(df$.se.fit)
+# 
+# df %>% 
+#   ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+#   stat_halfeye( scale = .5,
+#       aes(
+#         xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+#         fill = stat(cut_cdf_qi(cdf, 
+#                 .width = c(.90, .95),
+#                 labels = scales::percent_format())))) +
+#   scale_fill_brewer(direction = -1) + 
+#   labs (title = "(LAB) Q1 Response Latency ~ Condition", 
+#         x = "model predicted mean (seconds)", y = "Condition", fill = "Interval",
+#         subtitle = paste("lm(",call[2],")"),
+#         caption = "note: model log(predictions) have exponentiated to original scale") + theme(legend.position = "blank")
 
 ```
 
-**For in-lab data collection** an OLS linear regression predicting scaled score by experimental condition explains a statistically significant and moderate 15% variance in score (F(1,124) = 22.7, p \< 0.001). The estimated beta coefficient ($/beta$ = 7.88, 95% CI \[4.61, 11.2\]) predicts that participants in the impasse condition will on average score around 8 points (31%) higher than those in the control condition.
+###### Diagnostics
 
 ```{r}
-#| label: MODEL-scaled-score-ONLINE
+#| label: DIAG-Q1TIME-lab
+
+#model diagnostics
+check_model(lab.q1t.lm1, panel = TRUE)
+```
+
+(1) RESIDUAL DISTRIBUTION: `r check_normality(lab.q1t.lm1)`
+(2) HOMOGENEITY: `r check_homogeneity(lab.q1t.lm1)`
+(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.q1t.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(lab.q1t.lm1)`
+(5) OUTLIERS: `r check_outliers(lab.q1t.lm1)`
+
+###### Inference
+
+OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
+
+##### (Online Replication)
+
+###### Visualization
+
+```{r}
+#| label: VIS-TEST-Q1TIME-online
+
+df_online <- df_subjects %>% filter(mode == "asynch")
+ 
+#HISTOGRAM
+stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
+gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
+  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(title = "(ONLINE) First Question Response Time",
+       # x = "Response Time (seconds)",
+       # y = "proportion of participants",
+       subtitle = "") + 
+  theme_minimal()
+
+```
+
+###### Model
+
+```{r}
+#| label: MODEL-Q1TIME-online
 
 #SCORE predicted by CONDITION
-m1 <- lm(s_SCALED ~ condition, data = df_subjects %>% filter(mode=="asynch"))
+rep.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_online)
 paste("Model")
-summary(m1)
+summary(rep.q1t.lm1)
 paste("Partition Variance")
-anova(m1)
+anova(rep.q1t.lm1)
 paste("Confidence Interval on Parameter Estimates")
-confint(m1)
-#report(m1) #sanity check
-
-```
-
-**For the online replication**, an OLS linear regression model predicting scaled score by condition explains a statistically significant and moderate 14% of variance in absolute score (F(1,202) = 32.4, p \< 0.001). The beta coefficient for condition indicates that on average, participants in the IMPASSE group scored 6.8 points higher on the task than those in the control condition (CI\[4.43, 9.12\]).
-
-::: callout-note
-**From these models we can reasonably conclude that the impasse condition yields a reliable, moderate sized effect of improved interpretation on the graph reading tasks.**
-:::
-
-## Item-Level Performance
-
-Individual differences with a mixed model.
-
-## Model Peeking
-
-TODO
-
--   multiple regression with condition and response time
-
-```{r}
-library(supernova)
-library(report)
-library(lmerTest)
-library(lme4)
-m1 <- lm( s_SCALED ~ condition, data = df_subjects %>% filter(mode=='asynch'))
-m1
-summary(m1)
-anova(m1)
-superanova(m1)
-plot(m1)
-gf_histogram(~s_SCALED, data = df_subjects)
-gf_histogram(~m1$residuals)
-
-
-#Assess assumption of independence of errors
-#DW statistic should be close to 2
-library(car)
-durbinWatsonTest(m1)
-
-#Test for equality of variance
-#H0 is equality; p > 0.05 infer you can't reject null
-leveneTest(m1)
-```
-
-A simple linear regression model predicting cumulative scaled score (at subject level) by condition explains 13% of the total variance, F(1,329) = 47.8, p \< 0.001. The model predicts that participants in the impasse condition will score on average 6.38 points higher than those in the control condition, 95% CI \[4.56, 8.19\].
-
-```{r}
-t.test(s_SCALED ~ condition, data = df_subjects)
-#%>% report()
+confint(rep.q1t.lm1)
+report(rep.q1t.lm1) #sanity check
+#print model equation
+eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
 ```
 
 ```{r}
+#| label: VISMODEL-Q1-LATENCY-ONLINE
 
-# report_participants(df_subjects)
-m1 %>% report()
-anova(m1) %>% report()
-#significant intercept means that group is significantly different than zero
+#MODEL ESTIMATES WITH UNCERTAINTY
+# 
+# #setup references 
+# # rep.q1t.lm1 <- lm(log(item_q1_rt) ~ condition, data = df_online)
+# m <- rep.q1t.lm1
+# df <- df_online 
+# call <- m$call %>% as.character()
+# 
+# # uncertainty model visualization
+# df <- df  %>%
+#   data_grid(pretty_condition) %>%
+#   augment(m, newdata = ., se_fit = TRUE) 
+# 
+# #transform log
+# df$.fitted <- exp(df$.fitted)
+# df$.se.fit <- exp(df$.se.fit)
+# 
+# df %>% 
+#   ggplot(aes(y = pretty_condition, color = pretty_condition)) +
+#   stat_halfeye( scale = .5,
+#       aes(
+#         xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
+#         fill = stat(cut_cdf_qi(cdf, 
+#                 .width = c(.90, .95),
+#                 labels = scales::percent_format())))) +
+#   scale_fill_brewer(direction = -1) + 
+#   labs (title = "(ONLINE) Q1 Response Latency ~ Condition", 
+#         x = "model predicted mean (seconds)", y = "Condition", fill = "Interval",
+#         subtitle = paste("lm(",call[2],")"),
+#         caption = "note: model log(predictions) have exponentiated to original scale") + theme(legend.position = "blank")
+
 ```
+
+###### Diagnostics
 
 ```{r}
-#logistic regression on on scaled df_subjects because residuals not normal in lm?
-mlog <- glm(s_SCALED ~ condition , data = df_subjects, family = gaussian)
-summary(mlog)
-report(mlog)
+#| label: DIAG-Q1TIME-online
+
+#model diagnostics
+check_model(rep.q1t.lm1, panel = TRUE)
 ```
 
-```{r}
-#logistic regression on niceABS by condition
-#pretends that questions are independent and not from same subjects INVALID
-mlog <- glm(score_niceABS ~ condition , data = df_items %>% filter(q<6), family = binomial())
-summary(mlog)
-report(mlog)
-```
+(1) RESIDUAL DISTRIBUTION: `r check_normality(rep.q1t.lm1)`
+(2) HOMOGENEITY: `r check_homogeneity(rep.q1t.lm1)`
+(3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.q1t.lm1)`
+(4) AUTOCORRELATION: `r check_autocorrelation(rep.q1t.lm1)`
+(5) OUTLIERS: `r check_outliers(rep.q1t.lm1)`
 
-```{r}
-m2 <- lm( s_NABS ~ condition, data = df_subjects)
-m2
-summary(m2)
-anova(m2)
-supernova(m2)
+###### Inference
 
-```
+OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
 
-A simple linear regression model predicting cumulative absolute score by condition explains 5% of variance, F(1,328) = 16.36, p \< 0.001. The model predicts that subjects in the impasse condition will score on average 2 points higher than those in the control condition (Beta = 2.02, 95% CI \[1.04, 3.00\])
 
-```{r}
-report(m2)
-```
 
-```{r}
-m.m1 <- lmer( score_SCALED ~ (1 + condition|subject), data = df_items)
-m.m1
-summary(m.m1)
-report(m.m1)
-```
+## TODO RESPONSE CONSISTENCY
 
-```{r}
-m.m2 <- lmer( score_SCALED ~ (1+ condition|q), data = df_items)
-m.m2
-summary(m.m2)
-report(m.m2)
-```
-
-```{r}
-m.m3 <- lmer( score_SCALED ~ (1+ condition|q) + (1+condition|subject), data = df_items)
-m.m3 %>% summary() 
-m.m3 %>% report()
-```
-
-```{r}
-anova(m.m1, m.m2, m.m3)
-```
-
-## RESOURCES
