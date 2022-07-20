@@ -383,7 +383,7 @@ summarise_bySubject <- function(subjects, items){
 progress_Absolute <- function(items){
   
   #filter for valid items
-  x <- items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, pretty_condition, q,score_niceABS) 
+  x <- items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, condition, q,score_niceABS) 
   
   #pivot wider
   wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
@@ -402,7 +402,7 @@ progress_Absolute <- function(items){
   wide$c11 = wide$c10 + wide$q_13
   wide$c12 = wide$c11 + wide$q_14
   wide$c13 = wide$c12 + wide$q_15
-  wide <- wide %>% dplyr::select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+  wide <- wide %>% dplyr::select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
   
   #lengthen 
   df_absolute_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
@@ -424,7 +424,7 @@ progress_Absolute <- function(items){
 progress_Scaled <- function(items){
   
 #filter for valid items
-x <- items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, pretty_condition, q,score_SCALED)
+x <- items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, condition, q,score_SCALED)
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_SCALED)
@@ -443,7 +443,7 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% select(subject,mode, condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 df_scaled_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")

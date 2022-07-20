@@ -277,17 +277,18 @@ gf_props(~score_niceABS, fill = ~pretty_condition, position = position_dodge(), 
   theme_minimal()
 
 #DISTRIBUTION ABSOLUTE SCORE BY SUBJECT
-gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = df_subjects) %>% 
-gf_facet_grid(pretty_condition ~. )+
-  labs( x = "Total Absolute Score", 
+gf_props(~s_NABS, fill = ~pretty_condition, position = position_dodge(), data = df_subjects) %>%
+gf_facet_wrap(~pretty_condition)+
+  labs( x = "Total Absolute Score",
         title = "Distribution of Total Absolute Score (by Subject)",
         subtitle = "Impasse Condition (blue) yields higher total absolute scores",
         y = "Proportion of Subjects") +
-  scale_fill_discrete(name = "Condition") +  
+  scale_fill_discrete(name = "Condition") +
   theme_minimal() + theme(legend.position = "blank")
 
 #DISTRIBUTION ABSOLUTE SCORE TEST PHASE
-gf_histogram(~item_test_NABS, fill = ~pretty_condition, data = df_subjects) %>% 
+gf_histogram(~item_test_NABS, fill = ~pretty_condition, 
+             data = df_subjects) %>% 
   gf_facet_wrap(~pretty_condition) + 
   labs( x = "Absolute Score in TEST Phase", 
         title = "Distribution of TEST PHASE Absolute Score (all Items)",
