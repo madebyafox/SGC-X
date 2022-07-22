@@ -61,7 +61,6 @@ theme_set(theme_minimal())
 
 ```
 
-
 ```{r}
 #| label: IMPORT-DATA
 #| warning : false
@@ -69,8 +68,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -81,7 +80,6 @@ df_lab <- df_subjects %>% filter(pretty_mode == "laboratory")
 df_online <- df_subjects %>% filter(pretty_mode == "online-replication")
 
 ```
-
 
 ## SINGLE ITEM LEVEL
 
@@ -121,7 +119,6 @@ df_q1 %>%
        subtitle="Impasse Condition yields a greater proportion of correct responses")
 
 ```
-
 
 ### CHI SQUARE
 
@@ -322,10 +319,7 @@ natural log (odds of +) = -1.822 + 0.901(x1) ; x1 = 0 for control, 1 for impasse
 | odds(+) = 49/123 = 0.398                                              |
 +-----------------------------------------------------------------------+
 
-
-
 #### Visualize
-
 
 ```{r}
 print("MODEL PERFORMANCE")
@@ -396,7 +390,6 @@ We fit a logistic regression model to analyze the effect of experimental conditi
 tab_model(m1)
 ```
 
-
 ### TODO ORDINAL REGRESSION
 
 *Fit an ordinal logistic regression (at the subject level), predicting Q1 interpretation by condition.*
@@ -452,16 +445,6 @@ tab_model(m1)
 # 
 
 ```
-
-
-
-
-
-
-
-
-
-
 
 ## REPEATED ITEM LEVEL
 
@@ -574,11 +557,7 @@ We fit a mixed-effect binomial logistic regression model with random intercepts 
 tab_model(mm.CrS)
 ```
 
-
 #### TODO Mixed Ordinal Regression
-
-
-
 
 ## SUBJECT-LEVEL
 
@@ -632,6 +611,88 @@ gf_props(~item_test_NABS,
 
 ```
 
+#### Independent Samples T-Test
+
+*Compare mean ABS score for Ss in control vs. impasse condition.*
+
+-   The bimodal distribution of the subject-level score data do not meet the requirements for t-tests. However, a non-parametric alternative is available (Wilcoxon rank sum test / Man-Whitney test)
+-   Additional corrections are available for data with 'floor' and/or 'ceiling' effects via the 'DACR' package
+-   https://link.springer.com/article/10.3758/s13428-020-01407-2#Sec14 see also https://qmliu.shinyapps.io/DACFE/
+
+```{r}
+library(mosaic)
+favstats(df_subjects$item_test_NABS ~ df_subjects$pretty_condition)
+
+library(ggeasy) #easy adjustmenet to ggplots plots 
+gf_boxplot(item_test_NABS ~ pretty_condition, data = df_subjects, width = 0.25) %>% 
+  gf_jitter( width = 0.08, alpha = 0.5, color = ~pretty_condition) + 
+  labs (title = "Distribution of Task Accuracy by Condition",
+        y = "Task Accuracy (# correct)", x = "Condition") +
+  easy_remove_legend()
+```
+
+For comparison we run a standard Welch Two-sample T test, for which we do not meet the normal distribution requirement, followed by a Wilcoxon rank-sum (Mann-Whitney) test that is a nonparametric alternative for non-normally distributed data.
+
+```{r}
+#WELCH TWO SAMPLE T TEST
+writeLines("\n --------------DATA DON'T MEET NORMALITY REQS FOR WELCH---------")
+t <- t.test(df_subjects$item_test_NABS ~ df_subjects$pretty_condition)
+report(t)
+
+#WILCOXON RANK BASED TEST
+# The Wilcoxon rank sum test is a non-parametric alternative to the independent two samples t-test for comparing two independent groups of samples, in the situation where the data are not normally distributed.
+#Synonymous: Mann-Whitney test, Mann-Whitney U test, Wilcoxon-Mann-Whitney test and two-sample Wilcoxon test.
+
+print("\n \n --------------ROBUST ALTERNATIVE --------------")
+t <- wilcox.test(df_subjects$item_test_NABS ~ df_subjects$pretty_condition)
+report(t)
+```
+
+Next, we calculate the t-test and ANOVA (F-test) based on a series of corrections provided for data with floor and/or ceiling effects.
+
+-   https://link.springer.com/article/10.3758/s13428-020-01407-2#Sec14
+
+Using properties from truncated normal distributions, the authors propose an easy-to-use method for the *t*-test and ANOVA with ceiling/floor data. *The proposed method calculates the degrees of freedom based on the after-truncation sample sizes (where l = number of floor observations, and r = number of ceiling observations). The rationale was that the proposed method utilizes full information only from data points of n − r − l participants and partial information from data points of r + l participants of a group for the mean and variance estimation. Specifically, the corrected mean and variance estimates (Eqs. 14 and 15) are functions of mean and variance estimates using after-truncation data (n − r − l participants) and the standardized floor and ceiling threshold estimates. The thresholds are estimated using the ceiling and floor percentage estimates based on data points of n − r and n − l participants, respectively. This is a relatively conservative approach for calculating the degrees of freedom, which can help control the type I error rate. This feature can be beneficial, especially given the "replication crisis" in psychological and behavioral research.*
+
+```{r}
+
+#FLOOR-CEILING ADJUSTED T TESTS
+library(DACF) #tests for data with floor and ceiling 
+# https://www.rdocumentation.org/packages/DACF/versions/1.0.0
+
+
+#prepare data [vector of scores for each group]
+score_111 <- df_subjects %>% filter(pretty_condition == "control") %>% dplyr::select(item_test_NABS) %>% pull()
+score_121 <- df_subjects %>% filter(pretty_condition == "impasse") %>% dplyr::select(item_test_NABS) %>% pull()
+
+# recover the mean and variance for ceiling/floor data
+a <- rec.mean.var(score_111) %>% unlist()
+# recover the mean and variance for ceiling/floor data
+b <- rec.mean.var(score_121) %>% unlist()
+r <- as.data.frame(rbind("control"=a ,"impasse"=b))
+r
+
+# method "a" uses original sample size
+# method "b" uses after-truncation sample size
+
+# perform adjusted t test
+lw.t.test(score_111,score_121,"a")
+
+#FLOOR-CEILING ADJUSTED F* TEST ANOVA
+lw.f.star(df_subjects,item_test_NABS~pretty_condition,"a")
+# method "a" uses original sample size
+# method "b" uses after-truncation sample size
+
+
+```
+
+Group 1 has ceiling and floor percentage of 10.5% and 30.2%, with corrected mean and variance respectively as 3.434 and 83.157. Group 2 has ceiling and floor percentage of 8.2% and 62.7%, with corrected mean and variance respectively as -6.504 and 210.664. The corrected t statistic is 4.778, p = 0. The estimated Cohen's d is 0.87 with a confidence interval as \[5.742,14.135\].
+
+
+#### Censored Linear Regression
+
+
+
 #### Linear Regression
 
 *LM on Test Phase absolute score **as number of questions**, rather than % correct.*
@@ -679,7 +740,126 @@ df  %>%
 
 ```
 
-#### Poisson Regression 
+
+#### Censored (Tobit) Regression
+
+https://stats.oarc.ucla.edu/r/dae/tobit-models/
+
+**For censored data (i.e. truncated axis).** The tobit model, also called a censored regression model, is designed to estimate linear relationships between variables when there is either left- or right-censoring in the dependent variable (also known as censoring from below and above, respectively). Censoring from above takes place when cases with a value at or above some threshold, all take on the value of that threshold, so that the true value might be equal to the threshold, but it might also be higher. In the case of censoring from below, values those that fall at or below some threshold are censored.
+
+- censored vs truncated : There is sometimes confusion about the difference between truncated data and censored data. With censored variables, all of the observations are in the dataset, but we don’t know the “true” values of some of them. With truncation some of the observations are not included in the analysis because of the value of the variable. When a variable is censored, regression models for truncated data provide inconsistent estimates of the parameters. See Long (1997, chapter 7) for a more detailed discussion of problems of using regression models for truncated data to analyze censored data.
+
+```{r}
+
+#SETUP
+df <- df_subjects %>% mutate(
+  accuracy = item_test_NABS
+)
+
+lo = 0
+hi = 8 
+range(df$accuracy)
+print("Lo and Hi should equate to upper and lower bounds of the # Qs ")
+
+library(VGAM)
+
+#FIT MODEL
+m1<- vglm(accuracy ~ condition, tobit(Lower = lo, Upper =hi ), data = df)
+summary(m1)
+
+#CONFIDENCE INTERVALS
+b <- coef(m1)
+se <- sqrt(diag(vcov(m1)))
+cbind(LL = b - qnorm(0.975) * se, UL = b + qnorm(0.975) * se)
+
+#TEST FIT
+#We can test the significance of condition overall by fitting an empty model and using a likelihood ratio test.
+m0 <- vglm(accuracy ~ 1, tobit(Lower = lo, Upper = hi), data = df)
+(p <- pchisq(2 * (logLik(m1) - logLik(m0)), df = 2, lower.tail = FALSE))
+paste("P value of likelihood ratio test less than alpha = 0.05? ", p <0.05)
+compare_performance(m0,m1)
+
+#DIAGNOSTICS
+plot(m1)
+
+df$yhat <- fitted(m1)[,1]
+df$rr <- resid(m1, type = "response")
+df$rp <- resid(m1, type = "pearson")[,1]
+
+par(mfcol = c(2, 3))
+
+with(df, {
+  plot(yhat, rr, main = "Fitted vs Residuals")
+  qqnorm(rr)
+  plot(yhat, rp, main = "Fitted vs Pearson Residuals")
+  qqnorm(rp)
+  plot(accuracy, rp, main = "Actual vs Pearson Residuals")
+  plot(accuracy, yhat, main = "Actual vs Fitted")
+})
+
+#VARIANCE ACCOUNTED FOR
+print("VARIANCE ACCOUNTED FOR")
+# correlation
+(r <- with(df, cor(yhat, accuracy)))
+# variance accounted for
+r^2
+performance(m1)
+
+
+#NOTE: censReg package also does Tobit regression [including mixed models]
+```
+-   The coefficient labeled “(Intercept):1” is the intercept or constant for the model.
+-   The coefficient labeled “(Intercept):2” is an ancillary statistic. If we exponentiate this value, we get a statistic that is analogous to the square root of the residual variance in OLS regression. logSigma is the variance of the model (logarithmized) (same as the second intercept in the VGAM output)
+-   The predicted value of test_phase_score is 5.75 points _higher_ for students in the impasse condition than for students in the control condition. (72% improvement in score!)
+
+
+
+
+
+
+**Using censReg package**
+-   https://cran.r-project.org/web/packages/censReg/vignettes/censReg.pdf
+
+```{r}
+library(censReg) #censored regression
+
+#SETUP
+df <- df_subjects %>% mutate(
+  accuracy = item_test_NABS
+)
+
+lo=0
+hi=8
+range(df$accuracy)
+
+#FIT MODEL
+c1 <- censReg( accuracy ~ pretty_condition, left=lo, right=hi, data = df )
+summary(c1)
+
+#CONFIDENCE INTERVALS
+b <- coef(c1)
+se <- sqrt(diag(vcov(c1)))
+cbind(LL = b - qnorm(0.975) * se, UL = b + qnorm(0.975) * se)
+
+#TEST FIT
+#We can test the significance of condition overall by fitting an empty model and using a likelihood ratio test.
+
+c0 <- censReg( accuracy ~ 1, left=lo, right=hi, data = df )
+(p <- pchisq(2 * (logLik(c1) - logLik(c0)), df = 2, lower.tail = FALSE))
+paste("P value of likelihood ratio test less than alpha = 0.05? ", p <0.05)
+
+
+performance(c1)
+```
+-   logSigma is the variance of the model (logarithmized) (same as the second intercept in the VGAM output)
+-   output should match that of VGAM
+
+
+
+
+
+
+#### Poisson Regression
 
 https://stats.oarc.ucla.edu/r/dae/poisson-regression/
 
@@ -793,24 +973,7 @@ In the zero-inflation model, the coefficient for the condition variable is -1.05
 
 **TODO come back to this and discuss further**\
 
-#### Tobit Regression
 
-https://stats.oarc.ucla.edu/r/dae/tobit-models/
-
-**For censored data (i.e. truncated axis).**  The tobit model, also called a censored regression model, is designed to estimate linear relationships between variables when there is either left- or right-censoring in the dependent variable (also known as censoring from below and above, respectively). Censoring from above takes place when cases with a value at or above some threshold, all take on the value of that threshold, so that the true value might be equal to the threshold, but it might also be higher. In the case of censoring from below, values those that fall at or below some threshold are censored.
-
-```{r}
-
-#set up data 
-df <- df_subjects %>% mutate(
-  accuracy = s_NABS
-)
-
-library(VGAM)
-t <- vglm(accuracy ~ condition, tobit(Upper = 13), data = df)
-summary(t)
-plot(t)
-```
 
 
 #### Model Comparison
@@ -1088,10 +1251,8 @@ compare_performance(h.1,h.2)
 
 ```
 
-
-
-
 ## WIP UNKNOWN
+
 ### Cummulative Ordinal (Bayesian)
 
 https://journals.sagepub.com/doi/full/10.1177/2515245918823199
@@ -1164,7 +1325,3 @@ https://journals.sagepub.com/doi/full/10.1177/2515245918823199
 
 
 ```
-
-
-
-

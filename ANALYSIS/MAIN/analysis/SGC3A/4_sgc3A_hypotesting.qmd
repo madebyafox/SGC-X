@@ -88,8 +88,8 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -313,8 +313,10 @@ tab_model(m1)
 
 *Fit an ordinal logistic regression (at the subject level), predicting Q1 interpretation by condition.*
 
--   https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/
 -   https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+-   https://m-clark.github.io/docs/logregmodels.html#preface
+-   https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/
+
 -   todo see ordinal regression video
 
 ```{r}
@@ -603,6 +605,40 @@ tab_model(mm.CrSQ)
 
 ### SHIFT IN MODAL MASS
 
+**Compare distributions using qqplot*
+```{r}
+score_111 <- df_subjects %>% filter(pretty_condition=="control") %>% dplyr::select(s_NABS) %>% pull()
+score_121 <- df_subjects %>% filter(pretty_condition=="impasse") %>% dplyr::select(s_NABS) %>% pull()
+qqplot(score_111,score_121, plot.it = T)
+
+
+#COMPARE BOTH TO NORMAL
+ggplot(df_subjects, aes(sample = s_NABS)) +
+  stat_qq(aes(color = pretty_condition)) +
+  scale_color_manual(values = c("#00AFBB", "#E7B800"))
+
+
+
+
+#Create the quantile-quantile data table
+qq.out <- qqplot(x=score_111, y=score_121, plot.it=F)
+qq.out <- as.data.frame(qq.out)
+
+# Set the x and y limits
+xylim <- range( c(qq.out$x, qq.out$y) )
+
+# Generate the QQ plot
+ggplot(qq.out, aes( x= x, y = y)) + 
+               geom_point(alpha=0.2) + 
+               geom_abline( intercept=0, slope=1) +
+               coord_fixed(ratio = 1, xlim=xylim, ylim = xylim) +
+               xlab("control") + ylab("impasse")
+
+#TODO FIGURE OUT HOW THIS WORKS
+#https://mgimond.github.io/ES218/Week05b.html#Is_the_relationship_between_tenor_and_bass_additive_or_multiplicative
+  
+```
+
 The Effect of Condition on Total Scaled Score can be described as a 'shift' in mass between the low and high modes of each distribution.
 
 _First, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations._
@@ -680,7 +716,6 @@ sf <- plot.sf(data=out) # function from rgar_visualisation.txt
 cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
 
 ```
-
 
 ## RESOURCES
 
