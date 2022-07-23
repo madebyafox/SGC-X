@@ -26,8 +26,8 @@
 //PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
 
 
-    //CONDITION
-    //    [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN] [ROTATION]
+    //CONDITION : 8 digit code 
+    // [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN] [AXIS ROTATION][LABEL ROTATION] [SHAPE]
 
     //EXPLICIT SCAFFOLD
     //    1 = none (control)
@@ -57,9 +57,19 @@
     //    4 = //
     //    5 = // on click data point turns color
 
-    //ROTATION
-    //    1 = normal
-    //    2 = rotate 45deg (and scale 0.75)
+    //AXIS ROTATION
+    //    1 = normal 0 deg
+    //    2 = rotate 45deg 
+    //    3 = rotate 90deg 
+
+    //LABEL ROTATION
+    //    1 = normal 0 deg
+    //    2 = rotate 45deg 
+    //    3 = rotate 90deg 
+
+    //SHAPE
+    //    1 = isoceles (default)
+    //    2 = equilateral (height * 0.5*Math.sqrt(3) //equaliateral?)
     
 
 //--------------------------------------------------------------------
@@ -133,6 +143,7 @@ const studies = {
   SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
   //SGC4B: ["1111"] fill the n last
   SGC4C: ["111111","111112","113112"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
+  SGC4D: ["1111111", "1111112", "1131111" , "1131112"], 
   SGC5A: ["11115","11111"]
 };
 
@@ -148,17 +159,19 @@ const grant_prolific = "https://app.prolific.co/submissions/complete?cc=63BEB07F
 
 //DEFINE VALID VALUES PER DIGIT CONDITION
 const conditions = {
-  1: ["1","2","3"],          //explicit
-  2: ["1","2"],              //impasse
-  3: ["1","2","3","4","5"],  //grid
-  4: ["1","2","3"],          //mark
-  5: ["1","2","3","4","5"],  //ixn
-  6: ["1","2"]               //orientation
+  1: ["1","2","3"],          //explicit | 1=none, 2=img, 3=ixv hover
+  2: ["1","2"],              //impasse | 1=none, 2=impasse
+  3: ["1","2","3","4","5"],  //grid | 1=fullorthog, 2=partorthog, 4=sparse orthog, 3=tri, 5=grid
+  4: ["1","2","3"],          //mark | point, arrow, cross
+  5: ["1","2","3","4","5"],  //ixn | check box ... 5=click point
+  6: ["1","2","3"],          //axis orientation | 1= 0, 1= 45degree, 2= 90 degree
+  7: ["1","2","3"],          //label orientation | 1= 0, 1= 45degree, 2= 90 degree
+  8: ["1","2"]               //triangle shape | 1=isoceles; 2=equilateral
 }
 
 //INITIALIZE GLOBAL VARIABLES 
 let study, session, condition, mode, pool, sona_id, exp_id, urlvar;
-let sid, explicit, impasse, grid, mark, ixn, colorClick, rotation, question_file; 
+let sid, explicit, impasse, grid, mark, ixn, colorClick, arotation, lrotation, shape, scale, question_file; 
 let graph, gwidth, gheight, q;
 let block, correct, orth_correct;
 let procedure_timeline, scaffold_timeline, test_timeline, free;
@@ -628,7 +641,9 @@ var satisf_answers = ["NULL"]; //index as null
       window._mfq.push(["setVariable", "GRID", data.grid]);
       window._mfq.push(["setVariable", "MARK", data.mark]);
       window._mfq.push(["setVariable", "IXN", data.ixn]);
-      window._mfq.push(["setVariable", "ROTATION", data.rotation]);
+      window._mfq.push(["setVariable", "AXIS ROTATION", data.arotation]);
+      window._mfq.push(["setVariable", "LABEL ROTATION", data.lrotation]);
+      window._mfq.push(["setVariable", "SHAPE", data.shape]);
    
     },
     data:{
@@ -640,7 +655,9 @@ var satisf_answers = ["NULL"]; //index as null
       grid: jsPsych.timelineVariable('grid'),
       mark: jsPsych.timelineVariable('mark'),
       ixn:  jsPsych.timelineVariable('ixn'),
-      rotation:  jsPsych.timelineVariable('rotation'),
+      arotation:  jsPsych.timelineVariable('arotation'),
+      lrotation:  jsPsych.timelineVariable('lrotation'),
+      shape:  jsPsych.timelineVariable('shape'),
       question: jsPsych.timelineVariable('question'),
       graph:jsPsych.timelineVariable('graph'),
       datafile: jsPsych.timelineVariable('datafile'),
@@ -746,9 +763,11 @@ function initializeStudy() {
   explicit = condition.charAt(0);
   impasse = condition.charAt(1); 
   grid = condition.charAt(2); 
-  mark = condition.charAt(3) ?? 1; 
-  ixn =  condition.charAt(4) ?? 1; 
-  rotation =  condition.charAt(5) ?? 1; 
+  mark = condition.charAt(3) || 1; //changed from ?? to || 
+  ixn =  condition.charAt(4) || 1; 
+  arotation =  condition.charAt(5) || 1; 
+  lrotation =  condition.charAt(6) || 1; 
+  shape =  condition.charAt(7) || 1; 
   colorClick = (ixn == 5 ) ; //only checkbox 
   question_file = "src/data/questions/SGC3A_"+impasse+"_questions.csv";
 
@@ -764,7 +783,9 @@ function initializeStudy() {
   console.log("grid: "+grid);
   console.log("mark: "+mark);
   console.log("ixn: "+ixn);
-  console.log("rotation: "+rotation);
+  console.log("axis-rotation: "+arotation);
+  console.log("label-rotation: "+lrotation);
+  console.log("shape: "+ shape);
   console.log("colorClick: "+colorClick);
   console.log("question_file: "+question_file);
 
@@ -848,32 +869,32 @@ function buildProcedure(){
     //CONDITION controls stimuli
     //EXPLICIT = 1, IMPASSE = 1, MARK = 1, IXN = 1, 
     //---------------------------------------------------  
-    case "SGC4A" || "SGC4B" || "SGC4C" :
+    case "SGC4A" || "SGC4B" || "SGC4C" || "SGC4D" :
       //last question q="F" is freeresponse, q="F" to bypass scoring
       free = "Please describe how to determine what event(s) start at 12pm?";
 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
-        { q:1,  grid : condition.charAt(2), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
-        { q:2,  grid : condition.charAt(2), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
-        { q:3,  grid : condition.charAt(2), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
-        { q:4,  grid : condition.charAt(2), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
-        { q:5,  grid : condition.charAt(2), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" }
+        { q:1,  grid : condition.charAt(2), impasse: 1, question: questions[1],  datafile: datas[1],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1],  block: "item_test" },
+        { q:2,  grid : condition.charAt(2), impasse: 1, question: questions[2],  datafile: datas[2],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2],  block: "item_test" },
+        { q:3,  grid : condition.charAt(2), impasse: 1, question: questions[3],  datafile: datas[3],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3],  block: "item_test" },
+        { q:4,  grid : condition.charAt(2), impasse: 1, question: questions[4],  datafile: datas[4],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4],  block: "item_test" },
+        { q:5,  grid : condition.charAt(2), impasse: 1, question: questions[5],  datafile: datas[5],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5],  block: "item_test" }
       ]
       
       test_timeline = [
-         { q:6,  grid : condition.charAt(2), impasse: 1, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
-         { q:7,  grid : condition.charAt(2), impasse: 1, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
-         { q:8,  grid : condition.charAt(2), impasse: 1, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
-         { q:9,  grid : condition.charAt(2), impasse: 1, question: questions[9],  datafile: datas[9],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
-         { q:10, grid : condition.charAt(2), impasse: 1, question: questions[10], datafile: datas[10], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
-         { q:11, grid : condition.charAt(2), impasse: 1, question: questions[11], datafile: datas[11], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
-         { q:12, grid : condition.charAt(2), impasse: 1, question: questions[12], datafile: datas[12], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
-         { q:13, grid : condition.charAt(2), impasse: 1, question: questions[13], datafile: datas[13], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
-         { q:14, grid : condition.charAt(2), impasse: 1, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
-         { q:15, grid : condition.charAt(2), impasse: 1, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+         { q:6,  grid : condition.charAt(2), impasse: 1, question: questions[6],  datafile: datas[6],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+         { q:7,  grid : condition.charAt(2), impasse: 1, question: questions[7],  datafile: datas[7],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+         { q:8,  grid : condition.charAt(2), impasse: 1, question: questions[8],  datafile: datas[8],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
+         { q:9,  grid : condition.charAt(2), impasse: 1, question: questions[9],  datafile: datas[9],  graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+         { q:10, grid : condition.charAt(2), impasse: 1, question: questions[10], datafile: datas[10], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+         { q:11, grid : condition.charAt(2), impasse: 1, question: questions[11], datafile: datas[11], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+         { q:12, grid : condition.charAt(2), impasse: 1, question: questions[12], datafile: datas[12], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+         { q:13, grid : condition.charAt(2), impasse: 1, question: questions[13], datafile: datas[13], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+         { q:14, grid : condition.charAt(2), impasse: 1, question: questions[14], datafile: datas[14], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+         { q:15, grid : condition.charAt(2), impasse: 1, question: questions[15], datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
          //FREE RESPONSE QUESTION
-         { q:"f", grid : condition.charAt(2),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, rotation: rotation, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
+         { q:"f", grid : condition.charAt(2),impasse: 1, question: free,          datafile: datas[15], graph: "triangular",  explicit : 1, mark: mark, ixn : 1, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
       ];
       break;
     //---------------------------------------------------
@@ -915,39 +936,39 @@ function buildProcedure(){
     //ALL PARAMETERS SET BY CONDITION
     //[5 condition] + free response
     //---------------------------------------------------
-    default: 
+    default:  //SGCX AND ANYTHING ELSE 
       
     //CHECK FOR SHORTCUT —— JUMP TO THIS QUESTION 
     if (q){
       console.log("JUMPING TO QUESTION: "+q);
       console.log("PRINTING GRID: "+grid);
       test_timeline = [
-        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation:rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
+        { q:q, impasse: impasse, question: questions[q], datafile: datas[q], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation:arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[q], block: "item" }
       ];
     }
 
     else { //RUN ALL QUESTIONS BASED ON PARAMETERS 
       //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
       scaffold_timeline = [
-        { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
-        { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
-        { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
-        { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
-        { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
+        { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape:shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
+        { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape:shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
+        { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape:shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
+        { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape:shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
+        { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape:shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
      ];
      
      //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE
      test_timeline = [
-       { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
-       { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test"},
-       { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test"},
-       { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
-       { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
-       { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
-       { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
-       { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
-       { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
-       { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, rotation: rotation, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
+       { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+       { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test"},
+       { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test"},
+       { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+       { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+       { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+       { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+       { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+       { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+       { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : explicit, mark: mark, ixn: ixn, grid : grid, arotation: arotation, lrotation: lrotation, shape: shape, colorClick: colorClick, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" }   
      ];
     }   
   }
@@ -972,6 +993,7 @@ function buildProcedure(){
     SGC4A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4B: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4C: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
+    SGC4D: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC5A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGCX:  {timeline: [block_test]},
   };

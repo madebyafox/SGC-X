@@ -1,3 +1,7 @@
+// shape parameter defines ratio beween width and height
+// these global variables are set in the stimulus .html file BASED on condition code 
+// var shape = 0.5*Math.sqrt(3) //equaliateral?
+// var shape = 1 ; //icoseles?
 
 console.log("GRAPH.JS LOADED");
 
@@ -15,19 +19,20 @@ function drawXAxis(xAxis,title,x,y,min,max,range) {
   console.log("DRAWING X AXIS");
 
   //DRAW THE X AXIS
-  var xaxis = svg.append("g")
+  let xaxis = svg.append("g")
     .attr("class","xaxis")
-    .attr("transform", "translate(0," + height + ")")
+    .attr("transform", "translate(0," + (height*scale) + ")")
     .call(xAxis);
     // .call(d3.axisBottom(x));
 
+    //draw x axis title
     d3.select(".xaxis")
       .append("g")
       .attr("class","axisTitle")
       .append("text")
-      .attr("x", width/1.5 +10 )
-      .attr("y", margin.bottom-5 )
-      .style("text-anchor", "end")
+      .attr("x", width/1.5 -100 )
+      .attr("y", margin.bottom -5 )
+      .style("text-anchor", "center")
       .text(title);
 }
 function drawYAxis_Orthogonal (y,title){
@@ -36,14 +41,15 @@ function drawYAxis_Orthogonal (y,title){
     .attr("class","yaxis")
     .call(d3.axisLeft(y).tickSize(15))
 
+    //draw y axis title 
     d3.select(".yaxis")
       .append("g")
       .attr("class","axisTitle")
       .append("text")
       .attr("transform", "rotate(-90)")
-      .attr("x", -height/2 +75)
+      .attr("x", -(height*scale)/2 +75)
       .attr("y", -margin.left/2 -10 )
-      .style("text-anchor", "end")
+      .style("text-anchor", "center")
       .text(title);
 
   var yGrid = svg.append("g")
@@ -54,6 +60,7 @@ function drawYAxis_Triangular (x,y,title,min,max,range){
   
   console.log("fitting range="+range);
   console.log("fitting w="+width+" h= "+height);
+  console.log("fitting scale="+scale);
   // var pyth = Math.sqrt(height**2 + width**2);
   // console.log("pyth: "+pyth);
 
@@ -71,6 +78,7 @@ function drawYAxis_Triangular (x,y,title,min,max,range){
     y2 = x2.diff(x1,"minutes")*2/60;
 
     
+  //DRAW TRIANGULAR Y AXIS   
   var yAxis = svg.append("g")
     .attr("class","yaxis")
     //this worked before allowed dynamic height/width
@@ -90,8 +98,9 @@ function drawYAxis_Triangular (x,y,title,min,max,range){
       .attr("class","axisTitle")
       .append("text")
       // .attr("transform","rotate(-65) translate(-180,220)") @600
-      .attr("transform","rotate(-"+height/9.1+") translate(-180,220)")//arbitrary but it works
-      .style("text-anchor", "end")
+      // .attr("transform","rotate(-"+(height*scale)/8.75+") translate(-180,220)")//arbitrary but it works
+      .style("text-anchor", "middle")
+      .attr("transform","rotate(-"+(height*scale)/9.25+") translate(-220,220)")//arbitrary but it works
       .text(title);
 
   var yGrid = svg.append("g")
@@ -164,7 +173,7 @@ function drawYGrid_Inside (x,y,min,max,range){
         .append("g")
         .attr("class", "grid")
         .append("line")
-        .attr("x1",x(min)-20)
+        .attr("x1",x(min)-20) //how far out of the triangle do the horizontal lines go in 114
         .attr("x2",x(max))
         .attr("y1",y(i))
         .attr("y2",y(i));
@@ -526,8 +535,9 @@ function displayAnswer(action, item) {
 
 
 //TRIANGULAR MODEL —————————————————————————————————————————————————————————
-function drawTriangleModel(datafile, axis, explicit, mark) {
+function drawTriangleModel(datafile, axis, explicit, mark, rotation) {
 
+  // console.log("ROTATION? : "+rotation);
   // console.log("axis: "+axis);
   // console.log("explicit: "+explicit);
 
@@ -568,7 +578,6 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
         dmax = moment.max(dmax, d.endt)
         range = dmax.diff(dmin,'hours');
 
-
         //setup arrays for labels and clicked answers
         // clicked.push([d.events,"false"]) //add the datapoint to an clicked array as default not clicked
         // graphLabel.push([d.events]);
@@ -594,7 +603,7 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
         label.appendChild(indicator);
       }); //END process raw data 
 
-      //square root of (half of range)squared + range squared
+      // square root of (half of range)squared + range squared
       // var halfbottom = height/2 * height/2;
       // var tall = height * height;
       // var pyth = Math.sqrt(halfbottom + tall);
@@ -615,7 +624,7 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
       // set Y AXIS graph scales, domains and ranges      
       var y = d3.scaleLinear()
         .domain([0, range])  //(the data)
-        .range([height, 0]); //(the position) 
+        .range([height*scale, 0]); //(the position) //SETS SHAPE
         // .range([width, 0]); //(the position) 
         //   .domain([0, range*2]); //equilateral
         //   .domain([0, range]); //isoceles
@@ -648,7 +657,7 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
       //  CREATE NEW Y SCALE
         y = d3.scaleLinear()
         .domain([0, range])  //(the data)
-        .range([height, 0]); //(the position) 
+        .range([height*scale, 0]); //(the position) 
         // .range([width, 0]); //(the position) 
         //   .domain([0, range*2]); //equilateral
         //   .domain([0, range]); //isoceles
@@ -800,6 +809,7 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
     //draw the data labels
     node.append("text")
       .attr("class","tmlabel")
+      .attr("transform-origin",  function(d) { return ( (x(d.midpoint) - 5) + " "+ (y(d.duration) - 8) )})
       .attr("x", function(d) { return x(d.midpoint) - 5; })
       .attr("y", function(d) { return y(d.duration) - 8; })
       .text(function(d) { return d.events; })
@@ -828,10 +838,175 @@ function drawTriangleModel(datafile, axis, explicit, mark) {
      if (explicit == 2){ //explicit text-image scaffold
        drawStaticLeaders(axis,staticLeaders,x,y);
      }
+    
+  
+    //-------------------  HANDLE SHAPE AND ROTATION  ------------------------//  
+    // HANDLE LABELS ROTATION AND AXIS MOVEMENT
+    // NOTE:: actual rotation of the graph happens in stimulus.html by simply rotating the entire SVG
+    // the label rotation needs to happen in this file, bc the elements haven't been rendered yet. 
+    // damn asynch stuffs 
+
+    console.log("HANDLING ROTATION FOR AXIS = "+arotation+" LABEL="+lrotation+" and SHAPE ="+shape)
+    //note: ROTATION 1 = 0, 2 = 45degrees, 3 = 90 degrees
+    //note: SHAPE 1 = isoceles, 2 = equilateral
+
+
+    //-------------------  AXIS ROTTATION  ------------------------//  
+    
+    //ROTATE AXIS 45 DEGREES 
+    if(arotation == 2){ //POINTY ARROW    
+      console.log("ROTATE THE GRAPH! to pointy arrow");
+      //ROTATE TRIANGULAR 45 DEGREES 
+      if (grid==3){ 
+       //ROTATE the stimulus DIV 45 degrees and shift upwards 
+        d3.select(".stimulus") 
+       .style("transform", "rotate(45deg) translate(-50px,-20px) scale(0.85,0.85)")   //scale(0.85, 0.85)")   
+      }
+      //ROTATE ORTHOGONAL 45 DEGREES  
+      else{ //otherwise orthog; need more vertical space
+       //ROTATE the stimulus DIV 45 DEGREES AND shift dowwnwards
+        d3.select(".stimulus") 
+       .style("transform", "rotate(45deg) translate(0px,20px) scale(0.85,0.85)")
+      }
+
+      //FOR ANY GRID ROTATE THE DATA LABELS
+       d3.selectAll(".tmlabel")
+          .style("transform", "rotate(-45deg) translate(-8px,0px)")   
+
+    }
+
+    //ROTATE AXIS 90 DEGREES 
+    if(arotation == 3){ //ROTATE 90 DEGREES 
+      console.log("ROTATE THE GRAPH! 90 degrees ");
+      
+      //ROTATE TRIANGULAR 90 DEGREES 
+      if (grid==3){ 
+        d3.select(".stimulus") 
+          .style("transform", " rotate(90deg) translate(0px,50px) scale(0.85, 0.85)")
+      } 
+      //ROTATE ORTHOGONAL 90 DEGREES
+      else{ //otherwise orthog; need more vertical space
+        d3.select(".stimulus") 
+          .style("transform", " rotate(90deg) translate(0px,50px) scale(0.85, 0.85)")
+      }
+
+      //FOR ANY GRID ROTATE THE DATA LABELS
+      d3.selectAll(".tmlabel")
+      .style("transform", "rotate(-90deg) translate(0px,10px)")   
+
+      //ROTATE X AXIS TITLE 90 DEGREES
+      //SPLIT TO 3 LINES 
+      
+      //get transform coords 
+      //so we can rotate around the coordinates
+      z = d3.select(".xaxis").select(".axisTitle")
+      bb = z.node().getBBox()
+      // console.log(bb)
+      
+      //change to two line
+      d3.select(".xaxis").select(".axisTitle")
+        .attr("transform-origin",  bb.x+bb.width/2+" "+bb.y+bb.height/2)
+        .attr("transform",  "rotate(-90) translate(-40,0)")
+        .select("text")
+        .text("Start")
+        
+      //add second line
+      d3.select(".xaxis").select(".axisTitle")
+        .append("text")
+        .text("& End")
+        .attr("x", bb.x+60)
+        .attr("y", bb.y+30)
+
+      //add third line
+      d3.select(".xaxis").select(".axisTitle")
+        .append("text")
+        .text("Time")
+        .attr("x", bb.x+65)
+        .attr("y", bb.y+45)  
+        
+    }
+
+
+    //-------------------  LABEL ROTTATION  ------------------------//  
+    
+    //ROTATE LABEL 45 DEGREES 
+    if(lrotation == 2){ //POINTY ARROW    
+      console.log("Rotate the labels 45 degrees");
+
+      //ROTATE X AXIS TICK LABLES 
+      d3.select(".xaxis").selectAll(".tick text")
+        // .attr("transform-origin",  "center")
+        .attr("text-anchor", "middle")
+        .attr("transform",  " translate(-23,20) rotate(-60)");
+
+      if(arotation !=3){
+        // SHIFT TITLE DOWN (only if not rotated 90 axis)
+        d3.select(".xaxis").select(".axisTitle")
+          .attr("transform-origin",  "middle")
+          .attr("transform",  "translate(0,20)");  
+      }
+      
+    }
+
+    //ROTATE LABEL 90 DEGREES 
+    if(lrotation == 3){ //ROTATE 90 DEGREES 
+      console.log("Rotate the labels 90 degrees");
+     
+       //ROTATE X AXIS TICK LABLES 
+       d3.select(".xaxis").selectAll(".tick text")
+       // .attr("transform-origin",  "center")
+       .attr("text-anchor", "middle")
+       .attr("transform",  " translate(-15,28) rotate(-90)");
+
+       if(arotation !=3){
+        // SHIFT TITLE DOWN (only if not rotated 90 axis)
+        d3.select(".xaxis").select(".axisTitle")
+          .attr("transform-origin",  "middle")
+          .attr("transform",  "translate(0,30)");  
+      } 
+    }
+
+      // if (grid==3){ 
+      //  //ROTATE the stimulus DIV 45 degrees and shift upwards 
+      //   d3.select(".stimulus") 
+      //  .style("transform", "rotate(45deg) translate(-50px,-20px) scale(0.85,0.85)")   //scale(0.85, 0.85)")   
+      // }
+      // //ROTATE ORTHOGONAL 45 DEGREES  
+      // else{ //otherwise orthog; need more vertical space
+      //  //ROTATE the stimulus DIV 45 DEGREES AND shift dowwnwards
+      //   d3.select(".stimulus") 
+      //  .style("transform", "rotate(45deg) translate(0px,20px) scale(0.85,0.85)")
+      // }
+    
+
+    //-------------------  EQUILATERAL SHAPE  ------------------------//  
+    //AJUST Y AXIS ROTATION FOR EQUILATERAL 
+    if (shape == 2) { //EQUILATERAL
+      console.log("ADJUSTING Y axis labels for GRID " + grid, " SHAPE "+shape +" SHAPE "+shape)
+
+      // //ORTHOGONAL GRID
+      if(grid !=3) {  
+      //   //move stim down and left 
+        d3.select(".theGraph") 
+       .style("transform", "translate(-20px,50px)")   //shift down and left
+      }
+      
+      // //TRIANGULAR GRID
+      if (grid == 3) { 
+      //move stim down and left 
+         d3.select(".theGraph") 
+           .style("transform", "translate(-20px,50px)")   //shift down and left
+      // tweak y axis label rotation on triangular 
+        d3.select(".yaxis").select(".axisTitle")
+          .attr("transform","rotate(-5) translate(30,-55)")
+      }
+        
+    }
 
   }); //END D3.CSV
 
 
+  
 }//end drawTriangleModel
 
 

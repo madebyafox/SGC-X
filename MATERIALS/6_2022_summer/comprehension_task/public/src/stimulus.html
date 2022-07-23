@@ -112,12 +112,27 @@
     explicit = data.explicit; 
     grid = data.grid; 
     mark = data.mark;
-    rotation = data.rotation;
+    arotation = data.arotation; //axis rotation 
+    lrotation = data.lrotation; //label rotation
+    shape = data.shape;
     console.log("MARK IS: "+mark);
     datafile = "src/data/data/"+data.datafile+".csv";
     colorClick = data.colorClick; 
     width = parseInt(data.gwidth);
     height = parseInt(data.gheight);
+
+    //SET SHAPE BASED ON DATA PASSSED FROM EXPERIMENT.JS
+    // these global variables are set in the stimulus .html file 
+    if (shape == 2){
+    //set height scale parameter to equilateral 
+    //base of triangle = left side of triangle 
+    scale = 0.5*Math.sqrt(3) //equaliateral?
+    } 
+    else {
+    //set height scale parameter to isoceles
+    //base of triangle = height [altitude] of triangle
+    scale = 1; //default to icoceles
+    } 
 
   
   //---------CREATE THE SVG  ------------------------//
@@ -126,7 +141,7 @@
     .attr("class","theGraph")
     .attr("xmlns","http://www.w3.org/2000/svg")
     .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("height", height + margin.top + margin.bottom*2)
     .append("g")
     .attr("transform",  "translate(" + margin.left + "," + margin.top + ")")
     .on('mousemove', function() {
@@ -134,40 +149,25 @@
         mousesvg.push(d3.mouse(this));
     }); // log the mouse x,y position in svg coords
 
-  //---------HACK AXIS 4  ------------------------//  
-  // NOTE THIS IS A TEMPORARY HACK
-  if(data.rotation == 2){
-    
-    console.log("ROTATE THE GRAPH!");
-
-    d3.select("g")
-      .attr("transform-origin",  "center")
-      .attr("transform",  "rotate(45) scale(0.75, 0.75)")
-      
-  }
-    // FOR TRIANGULAR AXES
-    // transform: translate(100, -20) rotate(45deg) scale(0.75, 0.75);
-    // transform-origin: center center;
-
-    // FOR ORTHOGONAL AXES
-    // transform: translate(400, 0) rotate(45deg) scale(0.75, 0.75);
   
   //---------DRAW THE GRAPH  ------------------------//
   switch(graph){
     case "triangular":
-      xAxisTitle = "Start and End Time (time of day)";
+      // xAxisTitle = "Start and End Time (time of day)";
+      xAxisTitle = "Start & End Time";
       yAxisTitle = "Duration (in hours)";
       // console.log("passing scaffold: "+explicit);
-      drawTriangleModel(datafile,grid,explicit, mark);
+      drawTriangleModel(datafile,grid,explicit, mark,arotation);
       $('#testingButton').attr("style","display:block");
 
     break;
     
     case "linear":
-      xAxisTitle = "Start and End Time (time of day)";
+      // xAxisTitle = "Start and End Time (time of day)";
+      xAxisTitle = "Start & End Time";
       if (scenario =="longmire"){yAxisTitle = "CONFERENCE ROOM";}
       if (scenario =="axis"){yAxisTitle = "TASK"}
-      drawLinearModel(datafile,grid,explicit);
+      drawLinearModel(datafile,grid,explicit,arotation);
     break;
     
     default:
@@ -175,6 +175,10 @@
     break;
   }
 
+//ROTATION STUFF WAS HERE 
+
+
+  
 });//END document ready
 
   
