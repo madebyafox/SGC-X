@@ -1,5 +1,5 @@
 //STATUS.JS ———————————————————————————————————————————————————
-//run against database to get counts of 
+//run against production (server) database to get counts of 
 //participants per condition that have valid data
 // —————————————————————————————————————————————————————————————
 
@@ -43,7 +43,7 @@ db.entries.aggregate([
             av_other: 1
        }},
         {$sort:{ _id: 1}},
-        {$out: "test_success"}
+        {$out: "_success"}
 
     ]);
         
@@ -88,9 +88,15 @@ db.entries.aggregate([
             av_other: 1
        }},
         {$sort: {_id:1}} ,
-        {$out: "test_fail"}
+        {$out: "_fail"}
     ]);
        
+
+
+
+
+
+
 
 //CREATE A COLLECTION WITH SONA STUDENTS TO GIVE EXCUSED NO-SHOWS
 db.entries.aggregate([
@@ -141,6 +147,6 @@ db.entries.aggregate([
         width: "$response.width",
         height:  "$response.height"
     }},
-    {$out: "test_sona_fail"}
+    {$out: "_sona_fail"}
 
 ]);    
