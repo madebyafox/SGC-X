@@ -1,12 +1,12 @@
 ---
-subtitle: 'Study SGC4B | 2 Response Scoring'
+subtitle: 'Study SGC4C | 2 Response Scoring'
 ---
 
 \newpage
 
-# Response Scoring {#sec-SGC4B-scoring}
+# Response Scoring {#sec-SGC4C-scoring}
 
-*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4B study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
+*The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC4C study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
 ```{r}
 #| label: SETUP
@@ -41,7 +41,7 @@ Based on prior observational studies where we observed emergence of other altern
 
 4\. **Tversky Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect connecting-lines strategy) answer key. 5. **Satisficing Score** : using partial scoring \[-1/q, +1/p\] referencing (incorrect satisficing strategy) answer key.
 
-### Prepare Answer Keys {#sec-SGC4B-keys}
+### Prepare Answer Keys {#sec-SGC4C-keys}
 
 We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) Q1-Q5 \[impasse condition\], (3) Q6-15. Separate answer keys by condition are required for Q1-Q5 because the stimuli for each condition visualize a different underlying dataset (i.e. the graphs show datapoints in different positions). Q6-Q15 are identical across conditions. Each answer key includes a row for each question, and a column defining the subset of response options that correspond to different graph interpretations.
 
@@ -67,7 +67,7 @@ keys_tversky_start <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_st
 
 ```
 
-### Calculate Subscores {#sec-SGC4B-subscores}
+### Calculate Subscores {#sec-SGC4C-subscores}
 
 Next, we import the item-level response data. For each row in the item level dataset (indicating the response to a single question-item for a single subject), we compare the raw response `df_items$response` with the answer keys in each interpretation (e.g. `keys_orth`, `keys_tri`, etc...), then using those sets, determine the number of correctly selected items(p) and incorrectly selected items (q), which in turn are used to calculate partial\[-1/q, +1/p\] scores for each interpretation. The resulting scores are then stored on each item in `df_items`, and can be used to determine which graph interpretation the subject held.
 
@@ -100,8 +100,8 @@ Specifically, the following scores are calculated for each item:
 imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 setwd(imac)
 
-#backup <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_items.rds') #for troubleshooting only
-df_items <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_items.rds')
+#backup <- read_rds('analysis/SGC4C/data/1-study-level/sgc4c_items.rds') #for troubleshooting only
+df_items <- read_rds('analysis/SGC4C/data/1-study-level/sgc4c_items.rds')
 
 ```
 
@@ -147,7 +147,7 @@ df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1)) #tri doesn't pe
 
 ```
 
-### Derive Interpretation {#sec-SGC4B-interpretation}
+### Derive Interpretation {#sec-SGC4C-interpretation}
 
 Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more 'special' situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn't match a special situation, it compares the individual subscores, and subscores and decides if they are *discriminant* (i.e. are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as "?", indicating it cannot be classified, and is of an unknown interpretation.
 
@@ -165,7 +165,7 @@ df_items <- temp
 ```
 
 
-### Derive Scaled Score {#sec-SGC4B-scaledScore}
+### Derive Scaled Score {#sec-SGC4C-scaledScore}
 
 The `interpretation` response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.
 
@@ -196,7 +196,7 @@ imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS
 setwd(imac)
 
 #import subjects
-df_subjects <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
+df_subjects <- read_rds('analysis/SGC4C/data/1-study-level/sgc4c_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
 
 #make temporary copies for testing safety
 s = df_subjects
@@ -426,15 +426,15 @@ Finally, we export the scores for each item (`df_items`) and summarized over sub
 # setwd(imac)
 
 #SAVE FILES
-write.csv(df_subjects,"analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.csv", row.names = FALSE)
-write.csv(df_items,"analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.csv", row.names = FALSE)
-write.csv(df_absolute_progress,"analysis/SGC4B/data/2-scored-data/sgc4b_absolute_progress.csv", row.names = FALSE)
-write.csv(df_scaled_progress,"analysis/SGC4B/data/2-scored-data/sgc4b_scaled_progress.csv", row.names = FALSE)
+write.csv(df_subjects,"analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.csv", row.names = FALSE)
+write.csv(df_items,"analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.csv", row.names = FALSE)
+write.csv(df_absolute_progress,"analysis/SGC4C/data/2-scored-data/sgc4c_absolute_progress.csv", row.names = FALSE)
+write.csv(df_scaled_progress,"analysis/SGC4C/data/2-scored-data/sgc4c_scaled_progress.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
-rio::export(df_subjects, "analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds") # to R data structure file
-rio::export(df_items, "analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds") # to R data structure file
+rio::export(df_subjects, "analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.rds") # to R data structure file
+rio::export(df_items, "analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds") # to R data structure file
 
 ```
 
