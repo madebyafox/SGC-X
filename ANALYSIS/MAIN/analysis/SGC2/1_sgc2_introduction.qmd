@@ -1,77 +1,35 @@
 ---
 # title: 'Introduction' 
-subtitle: 'Study SGC2 | 1 Introduction'
+subtitle: 'Study SGC2 | Introduction'
 ---
 
 \newpage
 
-# TODO Introduction {#sec-SGC2-introduction}
+# Introduction {#sec-SGC2-introduction}
 
-In Study Two we examine if scaffolding is effective in aiding untrained students to understand the Triangular Model (TM) graph.  We know that students are unlikely to construct the correct interpretation of the TM without assistance.  Guided by the results of the Study One Design Task, we created four scaffolds.  We test the effectiveness of these scaffolds by seeking to replicate the Qiang et.al (2014) finding that after 20 minutes of video training, students perform faster and more accurately with the unconventional TM than the conventional Linear Model (LM). Will our participants show similar performance on the TM with scaffolds rather than formal instruction? Further, will engagement with the TM in a reading task be sufficient for students to reproduce the graph in a subsequent drawing task?  
+In Study Two we examine if scaffolding is effective in aiding untrained students to understand the Triangular Model (TM) graph. We know that students are unlikely to construct the correct interpretation of the TM without assistance. Guided by the results of the Study One Design Task, we created four scaffolds. We test the effectiveness of these scaffolds by seeking to replicate the Qiang et.al (2014) finding that after 20 minutes of video training, students perform faster and more accurately with the unconventional TM than the conventional Linear Model (LM). Will our participants show similar performance on the TM with scaffolds rather than formal instruction? Further, will engagement with the TM in a reading task be sufficient for students to reproduce the graph in a subsequent drawing task?
 
-**To try the study yourself: **
-visit http://morning-gorge-17056.herokuapp.com/     
-*Enter "github" as your session code, and number of the condition you wish to test*    
-0 = control (no-scaffold), 1 = "what-text", 2 = "how-text", 3 = "static-image", 4 = "interactive-image"     
-<br> <br>
+**To try the study yourself:** <http://morning-gorge-17056.herokuapp.com>/\
+*Enter "github" as your session code, and number of the condition you wish to test*\
+0 = control (no-scaffold), 1 = "what-text", 2 = "how-text", 3 = "static-image", 4 = "interactive-image"\
 
-TODO REPLACE table with zoom in view of just the different conditions
-<!--html_preserve-->
-<table style="width:100%">
-  <tr>
-    <th>Scaffold Condition</th>
-    <th>Linear Model (LM)</th>
-    <th>Triangular Model (LM)</th> 
-  </tr>
-  <tr>
-    <td>none-control</td>
-    <td><img src="static/stimuli/0-LM.png" height="200" width="200" ></td> 
-    <td><img src="static/stimuli/0-TM.png" height="200" width="200" ></td> 
-  </tr>
-  <tr>
-    <td>"what-text"</td>
-    <td><img src="static/stimuli/1-LM.png" height="200" width="350"></td> 
-    <td><img src="static/stimuli/1-TM.png" height="200" width="350"></td> 
-  </tr>
-  <tr>
-    <td>"how-text"</td>
-    <td><img src="static/stimuli/2-LM.png" height="200" width="350" ></td> 
-    <td><img src="static/stimuli/2-TM.png" height="200" width="350" ></td> 
-  </tr>
-  <tr>
-    <td>"static-image"</td>
-    <td><img src="static/stimuli/3-LM.png" height="200" width="200"></td> 
-    <td><img src="static/stimuli/3-TM.png" height="200" width="200"></td> 
-  </tr>
-  <tr>
-    <td>"interactive-image"</td>
-    <td><img src="static/stimuli/4-LM.png" height="200" width="350"></td> 
-    <td><img src="static/stimuli/4-TM.png" height="200" width="350"></td> 
-    <td></td>
-  </tr>  
-</table>
-<!--/html_preserve-->
-<br> <br>
-
-
-+----------------------------------+-------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/111.png) | **Control-Condition**\                                                                                |
-|                                  | Demo: [111](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=111&session=WEB-DEMO) |
-+==================================+=======================================================================================================+
-| ![](/analysis/utils/img/121.png) | **Impasse-Condition**\                                                                                |
-|                                  | Demo: [121](https://limitless-plains-85018.herokuapp.com/?study=SGC3A&condition=121&session=WEB-DEMO) |
-+----------------------------------+-------------------------------------------------------------------------------------------------------+
-
-: **SGC3A Study Conditions** {tbl-colwidths="\[40,60\]"}
-
-
-::: {#fig-manipulation layout-ncol="2"}
-![](static/stimuli/nonimpasse.png){#fig-control}
-
-![](static/stimuli/impasse.png){#fig-impasse}
-
-Posing a mental impasse
-:::
++---------------------------------------------------------------------+------------------------------+------------------------------+
+| Condition                                                           | Linear Graph                 | Triangular Graph             |
++=====================================================================+==============================+==============================+
+| no scaffold (control)                                               | ![](static/stimuli/0-LM.png) | ![](static/stimuli/0-TM.png) |
++---------------------------------------------------------------------+------------------------------+------------------------------+
+| text---"what"\                                                      | ![](static/stimuli/1-LM.png) | ![](static/stimuli/1-TM.png) |
+| describes *the meaning of each mark in the system*                  |                              |                              |
++---------------------------------------------------------------------+------------------------------+------------------------------+
+| text---"how"\                                                       | ![](static/stimuli/2-LM.png) | ![](static/stimuli/2-TM.png) |
+| describes *the procedure for a first order reading of a data point* |                              |                              |
++---------------------------------------------------------------------+------------------------------+------------------------------+
+| img---static\                                                       | ![](static/stimuli/3-LM.png) | ![](static/stimuli/3-TM.png) |
+| shows a single 'worked example' for one data point                  |                              |                              |
++---------------------------------------------------------------------+------------------------------+------------------------------+
+| img---interactive\                                                  | ![](static/stimuli/4-LM.png) | ![](static/stimuli/4-TM.png) |
+| displays intersections of the coordinate system on mouse hover      |                              |                              |
++---------------------------------------------------------------------+------------------------------+------------------------------+
 
 ```{r}
 #| label: SETUP
@@ -80,6 +38,7 @@ Posing a mental impasse
 
 library(codebook) #data dictionary
 library(kableExtra) #tables
+library(Hmisc) #%nin% operator
 library(tidyverse) #ALL THE THINGS
 
 #set some output options
@@ -107,21 +66,29 @@ df_subjects <- read_csv("analysis/SGC2/data/1-study-level/sgc2_all_participants.
   pretty_condition = recode_factor(condition, "0"="control","1"="text:what","2"="text:how", "3"="img:static", "4"="img:ixv"),
   lm_scenarios = as.factor(lm_scenarios),
   tm_scenarios = as.factor(tm_scenarios), 
-  study = "SGC2"
+  study = "SGC2",
+  draw_type = as.factor(`Graph Type`)
 )
-#todo double check correct factor assignnment for 'experiment'
+
+#note: for some reason there are records for two subjects included in the item-level data that are NOT in the subject level data. Not sure whay this is; could be that these were test subjects. Decision is to remove them from the item level file c("S0MEG", "7UDVY"))
 
 df_items <- read_csv("analysis/SGC2/data/1-study-level/sgc2_all_items.csv") %>% mutate(
+  score = as.factor(correct),
   order = as.factor(experiment),
   order = recode_factor(order, "experiment" = "LM-First" , "reverse" = "TM-First" ),
   condition = as.factor(condition),
+  graph = as.factor(graph),
   pretty_condition = recode_factor(condition, "0"="control","1"="text:what","2"="text:how", "3"="img:static", "4"="img:ixv"),
   scenario = as.factor(scenario),
-  q = q_order, study = "SGC2",
+  q = as.factor(q_order), study = "SGC2",
   question = as.factor(question),
-  block = as.factor(block)) %>% dplyr::select(-`_id`,q_order)
+  block = as.factor(block)) %>% dplyr::select(-`_id`,q_order) %>% filter(subject %nin% c("S0MEG", "7UDVY"))
 
+#verify complete set of items for subjects 
+# n_items = 30+2 #15qs per block + 2 drawing
+# nrow(df_subjects) * n_items == nrow(df_items)
 ```
+
 
 ```{r}
 #| label : INSPECT-DATA-COLLECTION
@@ -133,171 +100,44 @@ cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_clas
 
 ```
 
-
 ### Hypotheses
-1. Learners without scaffolding (control) will perform better with the LM than TM    
-2. Learners with (any form of) scaffolding will perform better with the TM than LM (replication of [12]).     
-3. Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.    
-<br>   
 
+1.  Learners without scaffolding (control) will perform better with the LM than TM\
+2.  Learners with (any form of) scaffolding will perform better with the TM than LM (replication of \[12\]).\
+3.  Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.\
+    <br>
 
 ## METHODS
 
 ### Design
-We employed a 5 (scaffold: none-control, what-text, how-text, static image, interactive image) x 2 (graph: LM, TM) mixed design, with scaffold as a between-subjects variable and graph as a within-subject variable. To test our hypothesis that exposure to the conventional LM acts as a scaffold for the TM, we counterbalanced the order of graph-reading tasks (order: LM-first, TM-first). For each task we measured response accuracy and time.  For the follow-up graph-drawing task, a team of raters coded the type of graph produced by each participant.  
-<br>  
+
+We employed a 5 (scaffold: none-control, what-text, how-text, static image, interactive image) x 2 (graph: LM, TM) mixed design, with scaffold as a between-subjects variable and graph as a within-subject variable. To test our hypothesis that exposure to the conventional LM acts as a scaffold for the TM, we counterbalanced the order of graph-reading tasks (order: LM-first, TM-first). For each task we measured response accuracy and time. For the follow-up graph-drawing task, a team of raters coded the type of graph produced by each participant.\
+<br>
 
 ### Materials
+
 #### Scaffolds
-For the first five questions of each graph-reading task, participants saw their assigned scaffold along with the designated graph. On the following ten questions, the scaffold was not present. Examples of each scaffold-condition for the TM and LM graphs are shown below. 
-<br> <br>
 
-<!--html_preserve-->
-<table style="width:100%">
-  <tr>
-    <th>Scaffold Condition</th>
-    <th>Linear Model (LM)</th>
-    <th>Triangular Model (LM)</th> 
-  </tr>
-  <tr>
-    <td>none-control</td>
-    <td><img src="static/stimuli/0-LM.png" height="200" width="200" ></td> 
-    <td><img src="static/stimuli/0-TM.png" height="200" width="200" ></td> 
-  </tr>
-  <tr>
-    <td>"what-text"</td>
-    <td><img src="static/stimuli/1-LM.png" height="200" width="350"></td> 
-    <td><img src="static/stimuli/1-TM.png" height="200" width="350"></td> 
-  </tr>
-  <tr>
-    <td>"how-text"</td>
-    <td><img src="static/stimuli/2-LM.png" height="200" width="350" ></td> 
-    <td><img src="static/stimuli/2-TM.png" height="200" width="350" ></td> 
-  </tr>
-  <tr>
-    <td>"static-image"</td>
-    <td><img src="static/stimuli/3-LM.png" height="200" width="200"></td> 
-    <td><img src="static/stimuli/3-TM.png" height="200" width="200"></td> 
-  </tr>
-  <tr>
-    <td>"interactive-image"</td>
-    <td><img src="static/stimuli/4-LM.png" height="200" width="350"></td> 
-    <td><img src="static/stimuli/4-TM.png" height="200" width="350"></td> 
-    <td></td>
-  </tr>  
-</table>
-<!--/html_preserve-->
-<br> <br>
-
-#### The Graph Reading Task
-Each graph reading task consisted of a graph (LM or TM) and 15 multiple choice questions (used in Study One). Questions were presented one at a time, and participants did not receive feedback as to the accuracy of their response before proceeding to the next question. The order of the first five (scaffolded) questions was the same for each participant, while the order of the remaining 10 were randomized. For each question, the stimulus software recorded the participant’s response accuracy (correct, incorrect) and latency (time from page-load to “submit” button press). As each participant completed the reading task once with each graph, we developed two matched scenarios: a project manager scheduling tasks (scenario A), and an events manager scheduling reservations (scenario B). In each scenario, an equivalent question can be identified in the other pertaining to the same interval property or relation. For the LM graphs, intervals were sorted in order of duration, with the longest intervals appearing at the top of the graph.A pilot study on Amazon Mechanical Turk using the LM graph revealed no significant differences in difficulty between the scenarios. The four graphs constructed for the study are shown below. 
-
-<a href="static/stimuli/questions.html"> **The full list of questions and correct answers can be found here** </a>.
-
-<br> <br>
-<!--html_preserve-->
-<table style="width:100%">
-  <tr>
-    <th>Task Scheduling (Scenario A)</th>
-    <th>Event Scheduling (Scenario B)</th> 
-  </tr>
-  <tr>
-    <td><img src="static/stimuli/axis.png" height="200" width="350" ></td> 
-    <td><img src="static/stimuli/longmire.png" height="200" width="350" ></td> 
-  </tr>
-  <tr>
-    <td><img src="static/stimuli/0-LM.png" height="200" width="200" ></td> 
-    <td><img src="static/stimuli/5-LM.png" height="200" width="200" ></td> 
-  </tr>
-  <tr>
-    <td><img src="static/stimuli/0-TM.png" height="200" width="200"></td> 
-    <td><img src="static/stimuli/5-TM.png" height="200" width="200"></td> 
-  </tr>
-</table>
-<!--/html_preserve-->
-<br> <br>
+For the first five questions of each graph-reading task, participants saw their assigned scaffold along with the designated graph. On the following ten questions, the scaffold was not present. Examples of each scaffold-condition for the TM and LM graphs are shown in the table above.
 
 #### The Graph Drawing Task
-In the <!--html_preserve--><a href="static/stimuli/drawing_task.pdf"> graph drawing task</a><!--/html_preserve--> participants were given a sheet of isometric dot paper and a table containing a set of 10 time intervals. Isometric dot paper equally supports the construction of lines at 0, 45 and 90 degrees, thus minimizing any biasing effects of the paper on the type of graph the participants chose to draw. Participants were directed to draw a triangular graph of the data (“like the triangle graph you saw in the previous task”), using the pencil, eraser and ruler provided. 
 
+In the <!--html_preserve--><a href="static/stimuli/drawing_task.pdf"> graph drawing task</a><!--/html_preserve--> participants were given a sheet of isometric dot paper and a table containing a set of 10 time intervals. Isometric dot paper equally supports the construction of lines at 0, 45 and 90 degrees, thus minimizing any biasing effects of the paper on the type of graph the participants chose to draw. Participants were directed to draw a triangular graph of the data ("like the triangle graph you saw in the previous task"), using the pencil, eraser and ruler provided.
 
 <!--html_preserve--><br> <br><!--/html_preserve-->
 
+### Procedure
 
-### TODO Procedure
-Participants completed the study individually in a computer lab. Each particiant was randomly assigned to one of five conditions which determined what additional information (scaffold) they received while solving the first five problems with each graph: no-scaffold (control), 'what' text, 'how'-text, static-image, and interactive-image. After a short introduction they continued to the first of two graph reading tasks (graph order counterbalanced). After completing the first graph reading task, they were introduced to the second scenario, and completed the second graph reading task with the remaining graph. Finally, participants completed the graph drawing task. They finished the study by completing a short demographic survey, and reading the debriefing text. 
-The runtime of the entire study ranged from 20 to 60 minutes. 
-
+Participants completed the study individually in a computer lab. Each participant was randomly assigned to one of five conditions which determined what additional information (scaffold) they received while solving the first five problems with each graph: no-scaffold (control), 'what' text, 'how'-text, static-image, and interactive-image. After a short introduction they continued to the first of two graph reading tasks (graph order counterbalanced). After completing the first graph reading task, they were introduced to the second scenario, and completed the second graph reading task with the remaining graph. Finally, participants completed the graph drawing task. They finished the study by completing a short demographic survey, and reading the debriefing text. The runtime of the entire study ranged from 20 to 60 minutes.
 
 ### Sample
 
-Data was collected by convenience sample of a university subject pool. Data were collected in the Winter and Spring of 2016 with, in-person, with large groups of students simultaneously completing the study (independently) in a computer lab. 
-
+Data was collected by convenience sample of a university subject pool. Data were collected in the Spring of 2017 with, in-person, with large groups of students simultaneously completing the study (independently) in a computer lab.
 
 ## ANALYSIS
 
-### TODO Data Preparation {#sec-SGC2-harmonize}
+_note_: Unlike studies SGC3 and onwards, scoring for SGC2 is already included in the raw data files. 
 
-Data were collected via a custom web application and stored in a NoSQL database. The following exclusion criteria were applied during data cleaning:
-
--   completion status : "success" ; subject must have finished all parts of the study, including demographic questionnaire
--   session ID: \[in list\] ; subject must have been assigned to valid data collection session (discard testing and piloting data)
--   browser interaction violations \< 3; subject must have fewer than 3 violations of non-allowed browser interactions (i.e. resizing window, leaving browser tab or leaving fullscreen mode)
--   self-rated effort \> 2; subjects who reported, "not trying hard/rushing through questions" or "started out trying hard but giving up at some point" were excluded from analysis.
--   attention check ==TRUE ; subjects who failed to answer a mid-study attention check question (Graph Comprehension Task Question #6) are excluded
-
-Before analysis, data files from individual data collection periods are harmonized into a common data format.
-
-+-----------------------------------------------------------------------------------------------------------------+---------------------+
-| Pre-Requisite                                                                                                   | Followed By         |
-+=================================================================================================================+=====================+
-| spring17_clean_data.Rmd <br> spring18_clean_data.Rmd <br> fall21_clean_data.Rmd <br> winter2022_clean_sgc3a.Rmd | 2_sgc3A_scoring.qmd |
-+-----------------------------------------------------------------------------------------------------------------+---------------------+
-
-Data for study SGC_3A were collected across four time periods, interrupted by the Covid-19 pandemic.
-
-| Period      | Modality                               |
-|-------------|----------------------------------------|
-| x 2017   | in person, SONA groups in computer lab |
-| x 2018 | in person, SONA groups in computer lab |
-
-
-Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.
-
-The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
-
-#### TODO Participants
-
-First we import participant-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_subjects` containing one row for each subject (across all periods). Note that we *are not* discarding any *response* data. Rather, we discard columns that are automatically recorded by the stimulus web application and help the application run.
-
-*Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. No raw data (responses and response times) are discarded, only algorithmically-derived scores for the responses.*
-
-
-
-#### TODO Items
-
-Next we import item-level data from each data collection period, selecting only the columns relevant for analysis, and renaming columns to be consistent across each file. The result is a single data frame `df_items` containing one row for each *graph comprehension task question* (qs=15) (across all periods). A second data frame `df_freeresponse` contains one row for each free response strategy question (last question posed to participants in Winter2022) Note that we *do not* discard any *response* data. Rather, we *do* discard several columns representing accuracy scores for responses that were calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. Original response data are always preserved.
-
-
-#### TODO Validation
-
-Next, we validate that we have the complete number of item-level records based on the number of subject-level records
-
-```{r}
-#| label: RECONCILE
-
-#the number of items should be equal to 15 x the number of subjects
-nrow(df_items) == 30 * nrow(df_subjects) #TRUE
-
-#each subject should have 15 items
-df_items %>% group_by(subject) %>% summarise(n = n()) %>% filter(n != 15) %>% nrow() == 0
-
-
-```
-**TODO** reconcile mimatch between number of rows in items vs number of rows in subjects. Are the extra? or missing rows? 
-#### Export
-
-Finally, we export the data (with factors declared) data for analysis, as CSVs, and .RDS (includes metadata)
 
 ```{r}
 #| label: EXPORT-FILES
