@@ -43,8 +43,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #IMPORT SUBJECTS 
 sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
@@ -90,7 +90,6 @@ df_ospan <- df_subjects %>% filter(
 )
 
 df_ospan <- merge(df_ospan, ospan)
-
 
 #RENAME for reuse
 df_all <- df_subjects
@@ -263,17 +262,16 @@ gf_props(~correct, fill = ~pretty_condition, data = df) %>%
 library(ggdist)
 
 
-
-gf_boxplot( s_NABS ~ pretty_condition, color = ~pretty_condition, data = df) +
+gf_boxplot( s_NABS ~ pretty_condition, color = ~pretty_condition, data = df_all) +
   labs(title = "Distribution of ABSOLUTE Score by Condition")
 
 
-gf_boxplot(s_SCALED~ pretty_condition, color = ~pretty_condition, data = df) +
+gf_boxplot(s_SCALED~ pretty_condition, color = ~pretty_condition, data = df_all) +
   labs(title = "Distribution of SCALED Score by Condition")
 
 
 #GGDIST HALFEYE
-ggplot(df, aes(y = pretty_condition, x = s_NABS,
+ggplot(df_all, aes(y = pretty_condition, x = s_NABS,
                         fill = pretty_condition) ) + 
   ggdist::stat_halfeye(
     point_interval = "mean_qi"
@@ -288,7 +286,7 @@ ggplot(df, aes(y = pretty_condition, x = s_NABS,
 
 
 #DENSITY RIDGES BINLINE
-ggplot(df, aes(x = DV_percent_NABS, y = pretty_condition, height=stat(density))) +
+ggplot(df_all, aes(x = DV_percent_NABS, y = pretty_condition, height=stat(density))) +
   # geom_density_ridges( stat = "density",alpha = 0.7)
   geom_density_ridges( alpha = 0.7, stat = "binline", bins = 20,   scale = 0.75, draw_baseline = FALSE) +
   labs(title = "Distribution of ABSOLUTE Score by Condition")
@@ -296,7 +294,7 @@ ggplot(df, aes(x = DV_percent_NABS, y = pretty_condition, height=stat(density)))
   
 
 #DENSITY RIDGES SMOOTH
-ggplot(df, aes(x = DV_percent_NABS, y = pretty_condition, fill=pretty_condition)) +
+ggplot(df_all, aes(x = DV_percent_NABS, y = pretty_condition, fill=pretty_condition)) +
   xlim(0,1) + 
   stat_density_ridges( scale = 0.75, stat = "density", jittered_points = TRUE, 
         position = position_points_jitter(width = 0.05, height = 0),
@@ -895,13 +893,13 @@ library(modelr)
 library(distributional)
 
 ## A GIANT MODEL
-m <- lm(DV_percent_NABS ~ pretty_condition, data = df)
+m <- lm(DV_percent_NABS ~ pretty_condition, data = df_all)
 summary(m)
 report(m)
 check_model(m)
 
 ##UNCERTAINTY ESTIMATES OF THE MODEL 
-df %>%
+df_all %>%
   data_grid(pretty_condition) %>%
   augment(m, newdata = ., se_fit = TRUE) %>%
   ggplot(aes(y = pretty_condition)) +
@@ -911,7 +909,7 @@ df %>%
   ) +
   # we'll add the data back in too (scale = .5 above adjusts the halfeye height so
   # that the data fit in as well)
-  geom_point(aes(x = DV_percent_NABS), data = df, pch = "|", size = 2, position = position_nudge(y = -.15)) +
+  geom_point(aes(x = DV_percent_NABS), data = df_all, pch = "|", size = 2, position = position_nudge(y = -.15)) +
   labs(
     title = "Regression Model | Predicted Conditional Means",
     caption = " % Correct ~ Condition; halfeye estimated using student's t centered at model predicted mean with SE"
@@ -927,7 +925,7 @@ df %>%
 
 title = "OSPAN Participants by Condition"
 cols = c("Condition","n")
-cont <- table(df_subjects$pretty_condition)
+cont <- table(df_ospan$pretty_condition)
 cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_classic()
 
 ```
@@ -941,9 +939,9 @@ cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_clas
  
 title = "Descriptive Statistics of OSPAN Task Accuracy"
 ospan.stats <- rbind(
-  "MATH" = df_subjects %>% dplyr::select(math_acc) %>% unlist() %>% favstats(),
-  "ORDER" = df_subjects %>%  dplyr::select(order_acc) %>% unlist() %>% favstats(),
-  "WEIGHTED" = df_subjects %>% dplyr::select(weighted) %>% unlist() %>% favstats()
+  "MATH" = df_ospan %>% dplyr::select(math_acc) %>% unlist() %>% favstats(),
+  "ORDER" = df_ospan %>%  dplyr::select(order_acc) %>% unlist() %>% favstats(),
+  "WEIGHTED" = df_ospan %>% dplyr::select(weighted) %>% unlist() %>% favstats()
   
 ) 
 ospan.stats %>% kbl (caption = title) %>% kable_classic() %>% 
@@ -957,14 +955,14 @@ For (online) OSPAN weighted scores (n = `r ospan.stats["WEIGHTED",]$n`) range fr
 #| label: VIS-SUBJ-OSPAN
 
 #GGFORMULA | DENSITY HISTOGRAM 
-  gf_dhistogram(~weighted, data = df_subjects) + 
+  gf_dhistogram(~weighted, data = df_ospan) + 
   labs(x = "OSPAN (weighted) score",
        y = "% of subjects",
        title = "Distribution of OSPAN SCORE",
        subtitle = "") 
 
 ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
-p <- gghistogram(df_subjects, x = "weighted", binwidth = 1,
+p <- gghistogram(df_ospan, x = "weighted", binwidth = 1,
    add = "mean", rug = TRUE,
    fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
    add_density = TRUE)
@@ -976,7 +974,7 @@ facet(p, facet.by=c("pretty_condition")) +
 
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(weighted)) + 
+ggplot(data = df_ospan, aes(weighted)) + 
   stat_ecdf() + 
   facet_wrap(~pretty_condition) + 
   labs( title = "Empirical Cumulative Density Function — OSPAN",
@@ -1000,42 +998,42 @@ ggplot(data = df_subjects, aes(weighted)) +
 
 
 #CONDITION ONLY MODEL
-m1 <- lm( item_test_SCALED ~ condition, data = df_subjects)
+m1 <- lm( item_test_SCALED ~ condition, data = df_ospan)
 summary(m1)
 
 #OSPAN ONLY MODEL
-m2 <- lm( item_test_SCALED ~ weighted, data = df_subjects)
+m2 <- lm( item_test_SCALED ~ weighted, data = df_ospan)
 summary(m2)
 
 #STANDARDIZE OSPAN
-df_subjects$z_ospan = zscore(df_subjects$weighted)
-histogram(df_subjects$z_ospan)
+df_ospan$z_ospan = zscore(df_ospan$weighted)
+histogram(df_ospan$z_ospan)
 
 #OSPAN MEDIAN SPLIT
-med_ospan = median(df_subjects$weighted)
-df_subjects$low_ospan <- as.factor(df_subjects$weighted < med_ospan)
+med_ospan = median(df_ospan$weighted)
+df_ospan$low_ospan <- as.factor(df_ospan$weighted < med_ospan)
 
 #STANDARDIZED OSPAN ONLY MODEL
-m3 <- lm( item_test_SCALED ~ low_ospan, data = df_subjects)
+m3 <- lm( item_test_SCALED ~ low_ospan, data = df_ospan)
 summary(m3)
 
 #MULTIPLE WITH STANDARDIZED OSPAN
-mr <- lm(item_test_SCALED ~ condition + low_ospan, data = df_subjects)
+mr <- lm(item_test_SCALED ~ condition + low_ospan, data = df_ospan)
 summary(mr)
 anova(mr)
 
 #SINGLE WITH STANDARDIZED OSPAN
-mr2 <- lm(item_test_SCALED ~ condition + low_ospan, data = df_subjects)
+mr2 <- lm(item_test_SCALED ~ condition + low_ospan, data = df_ospan)
 summary(mr2)
 
-gf_histogram(~item_test_SCALED, data = df_subjects) %>% 
+gf_histogram(~item_test_SCALED, data = df_ospan) %>% 
   gf_facet_grid(low_ospan ~ condition, labeller = label_both)
 
 
-gf_jitter(item_test_SCALED ~ weighted, color = ~pretty_condition, data = df_subjects) %>% 
+gf_jitter(item_test_SCALED ~ weighted, color = ~pretty_condition, data = df_ospan) %>% 
   gf_facet_wrap(~pretty_condition)
 
-gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = df_subjects) %>% 
+gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = df_ospan) %>% 
   gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
 
 ```
@@ -1044,7 +1042,7 @@ gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = df_subjects) %
 **OPSAN score does NOT predict performance in the control condition. **
 ```{r}
 
-control <- df_subjects %>% filter(condition == "111")
+control <- df_ospan %>% filter(condition == "111")
 
 gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = control) %>% 
   gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
@@ -1058,7 +1056,7 @@ summary(m)
 **OPSAN score does NOT predict performance in the control condition. **
 ```{r}
 
-impasse <- df_subjects %>% filter(condition == "121")
+impasse <- df_ospan %>% filter(condition == "121")
 
 gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = impasse) %>% 
   gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
@@ -1078,21 +1076,21 @@ summary(m)
 #204 online  
   #  71 no ospan 
   # 133 ospan 
-sgc3a_lab <- df_all %>% filter(mode=="lab-synch") %>% filter(study=="SGC3A")
-sgc3a_online <- df_all %>% filter(mode=="asynch") %>% filter(study=="SGC3A")
-sgc3a_online_noospan <- sgc3a_online %>% filter(subject %nin% ospan$subject)
-sgc3a_onspan <- df_subjects
-
-m <- lm( item_test_NABS ~ condition, data = sgc3a_online_noospan)
-summary(m)
-
-m2 <- lm(item_test_NABS ~ condition, data = df_subjects)
-summary(m2)
-
-
-m3 <- lm(item_test_NABS ~ low_ospan, data = df_subjects)
-summary(m3)
-
+# sgc3a_lab <- df_all %>% filter(mode=="lab-synch") %>% filter(study=="SGC3A")
+# sgc3a_online <- df_all %>% filter(mode=="asynch") %>% filter(study=="SGC3A")
+# sgc3a_online_noospan <- sgc3a_online %>% filter(subject %nin% ospan$subject)
+# sgc3a_onspan <- df_subjects
+# 
+# m <- lm( item_test_NABS ~ condition, data = sgc3a_online_noospan)
+# summary(m)
+# 
+# m2 <- lm(item_test_NABS ~ condition, data = df_subjects)
+# summary(m2)
+# 
+# 
+# m3 <- lm(item_test_NABS ~ low_ospan, data = df_subjects)
+# summary(m3)
+# 
 
 
 ```
