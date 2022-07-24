@@ -1,25 +1,12 @@
 ---
-subtitle: 'Study SGC3A | 4 Hypothesis Testing'
+subtitle: 'Study SGC2 | Hypothesis Testing'
 ---
 
 \newpage
 
-# Hypothesis Testing {#sec-SGC3A-hypotesting}
+# Hypothesis Testing {#sec-SGC2-hypotesting}
 
-**TODO**
-
--   ORDINAL models on interpretation scale  
--   HURDLE MODEL? (mixture model w/ 0 + count)
--   review models already created in ARCHIVE?
--   separate combined (vs) lab (vs) online replication \[once analysis strategy locked down\]
-
-*The purpose of this notebook is test the hypotheses that determined the design of the SGC3A study.*
-
-+---------------------+
-| Pre-Requisite       |
-+=====================+
-| 2_sgc3A_scoring.qmd |
-+---------------------+
+*The purpose of this notebook is test the hypotheses that determined the design of the SGC2 study.*
 
 ```{r}
 #| label: SETUP
@@ -50,8 +37,8 @@ library(see) #easystats visualization
 library(performance) #easystats model diagnostics
 library(qqplotr) #confint on qq plot
 library(gmodels) #contingency table and CHISQR
-library(equatiomatic) #extract model equation
-library(pscl) #zeroinfl / hurdle models 
+# library(equatiomatic) #extract model equation
+# library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models 
 library(ggeffects) #visualization log regr models
 
@@ -70,16 +57,13 @@ theme_set(theme_minimal())
 
 **Research Questions**
 
-In SGC3A we set out to answer the following question: Does posing a mental impasse improve performance on the graph comprehension task?
+In SGC2 we compare learner performance on the linear and triangular model graphs by testing the effectiveness of 4 scaffolds and by seeking to replicate the Qiang et.al (2014) finding that after 20 minutes of video training, students perform faster and more accurately with the unconventional TM than the conventional Linear Model (LM). Will our participants show similar performance on the TM with scaffolds rather than formal instruction? Further, will engagement with the TM in a reading task be sufficient for students to reproduce the graph in a subsequent drawing task?
 
-**Experimental Hypothesis**\
-*Learners posed with scenario designed to evoke a mental impasse will be more likely to correct interpret the graph.*
+**Hypotheses**
 
--   H1A \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL.
--   H1B \| Learners in the IMPASSE condition will score higher on the TEST Phase than learners in CONTROL.
-
-**Null Hypothesis**\
-*No significant differences in performance will exist between learners in the IMPASSE and CONTROL conditions.*
+1.  Learners without scaffolding (control) will perform better with the LM than TM
+2.  Learners with (any form of) scaffolding will perform better with the TM than LM (replication of \[12\]).
+3.  Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.
 
 ```{r}
 #| label: IMPORT-DATA
@@ -92,89 +76,369 @@ mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/
 setwd(mbp)
 
 #IMPORT DATA 
-df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
-df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds')
-
-#PREP DATA 
-df_lab <- df_subjects %>% filter(pretty_mode == "laboratory")
-df_online <- df_subjects %>% filter(pretty_mode == "online-replication")
+df_items <- read_rds('analysis/SGC2/data/2-scored-data/sgc2_items.rds')
+df_subjects <- read_rds('analysis/SGC2/data/2-scored-data/sgc2_participants.rds') 
 
 ```
 
-## H1A \| Q1 ACCURACY
-
-**Do Ss in the IMPASSE condition have a higher likelihood of producing a correct response to the first question?**
-
-The graph comprehension tasks includes 15 questions completed in sequence. But the first question the reader encounters (Q1) is the most important, as it is their *first exposure* to the unconventional triangular coordinate system.
-
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                   |
-+=======================+========================================================================================================================================================================================================================================+
-| **Hypothesis**        | H1A \| Ss in the IMPASSE condition will have a higher likelihood of correctly responding to the first question than those in the CONTROL condition                                                                                     |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Data**              | data: `df_items` where `q == 1`                                                                                                                                                                                                        |
-|                       |                                                                                                                                                                                                                                        |
-|                       | outcome:                                                                                                                                                                                                                               |
-|                       |                                                                                                                                                                                                                                        |
-|                       | -   *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                                                                                                     |
-|                       |                                                                                                                                                                                                                                        |
-|                       | -   *interpretation* (ordered factor from `interpretation`)                                                                                                                                                                            |
-|                       |                                                                                                                                                                                                                                        |
-|                       | predictor: `condition` \[between-subjects factor\]                                                                                                                                                                                     |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | 1.  Logistic Regression on `accuracy` predicted by `condition`                                                                                                                                                                         |
-|                       |     -   account for difference in odds of correct score by condition                                                                                                                                                                   |
-|                       | 2.  Ordinal Regression on `interpretation` predicted by `condition`                                                                                                                                                                    |
-|                       |     -   account for difference in (ordered correctness of interpretation) by condition                                                                                                                                                 |
-|                       |                                                                                                                                                                                                                                        |
-|                       | Alternative:                                                                                                                                                                                                                           |
-|                       |                                                                                                                                                                                                                                        |
-|                       | -   Chi-Square test of independence on outcome `score_niceABS` by `condition`                                                                                                                                                          |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Notes**             | -   CHIQ SQR is simplest method to examine independence of two categorical factors; LOGISTIC REGRESSION is recommended for binomial \~ continuous; though with regression we can quantify the size of the effect and overall model fit |
-|                       | -   independence assumption : (CHI SQR) as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                           |
-|                       | -   cell frequency : (CHI SQR) expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                      |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+## MODELLING
 
 ```{r}
-#| label: SETUP-Q1ACC
 
-#FILTER THE DATASET [use subjects, bc it has covariates on that record]
-# df_q1 = df_items %>% filter(q==1) %>% mutate(
-#   accuracy = recode_factor(score_niceABS, "0" = "incorrect", "1"="correct")
-# )
-df_q1 <- df_subjects %>% mutate(
-  accuracy = recode_factor(item_q1_NABS, "0" ="incorrect","1"="correct"),
-  rt = item_q1_rt
-) %>% dplyr::select(
-  accuracy, rt, pretty_condition, pretty_mode
-)
+df_items <- df_items %>% filter(graph != "none") %>% 
+  mutate(graph = as.factor(graph)) #only include linear and triangular items
 
-#GROUPED PROPORTIONAL BAR CHART
-# gf_props(~accuracy, fill = ~pretty_condition, 
-#        position = position_dodge(), data = df_q1) %>% 
-#   gf_facet_grid(~pretty_mode) +
-#    labs(x = "Correct Response on Q 1",
-#        title = "Accuracy on First Question by Condition",
-#        subtitle="Impasse Condition yields a greater proportion of correct responses") #theme(legend.position = "none")
+##FIT LINEAR MODEL
+library(lme4)
+m <- lm(triangular_score ~ pretty_condition + order + tm_scenarios+ linear_score, data = df_subjects)
+summary(m)
+check_model(m)
 
-#STACKED BAR CHART
-df_q1 %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-  facet_wrap(~pretty_mode) + 
-   labs(#y = "Correct Response on Q 1",
-       title = "Accuracy on First Question by Condition",
-       x = "Condition",
-       fill = "",
-       subtitle="Impasse Condition yields a greater proportion of correct responses")
+#+ linear_score
+m <- lm(score ~  pretty_condition*graph, data = long_scores)
+summary(m)
+check_model(m)
+
+
+##FI MIXED MODEL
+library(lmerTest)
+#on subject, score total per block
+m0 <- lm( score ~ 1, data = long_scores)
+summary(m0)
+
+m.rS <- lmer(score ~ (1|subject), data = long_scores)
+summary(m.rS)
+
+#compare fit
+compare_performance(m0,m.rS)
+test_lrt(m0, m.rS)
+#validates that mixed mod is justified 
+
+mC.rS <- lmer(score ~ pretty_condition + (1|subject), data = long_scores)
+summary(mC.rS)
+
+#compare fit
+compare_performance(m.rS,mC.rS)
+test_lrt(m.rS, mC.rS)
+#validates that fixed effect significantly improves fit 
+
+
+##ITEM LEVEL MIXED MODEL
+
+#empty model
+m <- glm(correct ~ 1, data = df_items, family = "binomial")
+summary(m)
+
+#condition model
+m1 <- glm(correct ~ condition, data = df_items, family = "binomial")
+summary(m1)
+
+compare_performance(m,m1)
+test_lrt(m,m1)
+#condition model is better fit than null
+
+#graph model
+m2 <- glm(correct ~ condition + graph + graph*condition, data = df_items, family = "binomial" )
+summary(m2)
+
+library(effects)
+plot(allEffects(m2))
+
+compare_performance(m1,m2)
+test_lrt(m1,m2)
+#condition model is better fit than null
+
+
+#scenario model
+m3 <- glm(correct ~ condition + graph + graph*condition + order + scenario, data = df_items, family = "binomial" )
+summary(m3)
+
+library(effects)
+plot(allEffects(m2))
+
+compare_performance(m1,m2)
+test_lrt(m1,m2)
+#condition model is better fit than null
+
+
+
+#IGNORE THE ONES ABOVE 
+
+#full model
+m <- glm(correct ~ condition + order + scenario + condition*order + condition*scenario + order*scenario + condition*order*scenario, data = df_items %>% filter(graph=="triangular"), family = "binomial" )
+summary(m)
+
+library(effects)
+plot(allEffects(m2))
+
+compare_performance(m1,m2)
+test_lrt(m1,m2)
+#condition model is better fit than null
 
 ```
 
-A proportional bar chart visualizing the proportion of incorrect (vs) correct responses in each condition for each data collection modality (left/right facet) reveals that the pattern of responses appear the same regardless of the data collection modality. In both data collection sessions, the proportion of incorrect responses is much greater than the proportion of correct responses, regardless of condition (marginal probability of incorrect). In the impasse condition, the difference in proportions is smaller than the control condition (conditional probability of success in impasse; (i.e) There are more correct responses in the impasse condition than the control condition).
+## H1 \| The Need for Scaffolding
+
+**Hypothesis** The TM graph is not *discoverable* and requires scaffolding for correct interpretation. We predict that learners without scaffolding (the control condition) will perform better with the LM than TM
+
++-----------------------+-------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Do Ss in the CONTROL condition perform better on the LINEAR graph than the TRIANGULAR graph?                            |
++=======================+=========================================================================================================================+
+| **Hypothesis**        | Ss in the CONTROL condition will have higher scores on the LINEAR graph than the TRIANGULAR graph                       |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | data: `df_subjects` where `condition == 1`                                                                              |
+|                       |                                                                                                                         |
+|                       | outcome:                                                                                                                |
+|                       |                                                                                                                         |
+|                       | -   *linear graph accuracy* `linear_score` \[absolute score\]                                                           |
+|                       | -   *triangular graph accuracy* `triangular_score`                                                                      |
+|                       |                                                                                                                         |
+|                       | predictor: `graph` (block) \[within-subjects factor\]                                                                   |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  Paired Samples T-Test                                                                                               |
+|                       |     -   compare average accuracy score in linear vs triangular block                                                    |
+|                       |     -   either T-Test or Wilcoxon Rank Sum (paired sample) alternative if difference scores are is non normal           |
+|                       |                                                                                                                         |
+|                       | *Alternative*                                                                                                           |
+|                       |                                                                                                                         |
+|                       | 1.  Linear Mixed Effects Model \[violates normality of residuals\]                                                      |
+|                       |     -   predict subject `score` \[0-15\] by `graph` with random intercept for `subject`                                 |
+|                       |     -   demonstrate that `score` is independent of `order` \[nested\] and `scenario` \[nested\]                         |
+|                       | 2.  Logistic Mixed Effects Model                                                                                        |
+|                       |     -   predict item `score` \[0,1\] by `graph` with random intercept for `subject` and random intercept for `question` |
+|                       |                                                                                                                         |
+|                       |     -   demonstrate than `score` is independent of `order` and `scenario`                                               |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------+
+| **Notes**             |                                                                                                                         |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------+
+
+```{r}
+#| label: SETUP-H1
+
+#FILTER THE DATASET
+df <- df_subjects %>% filter(condition == 1)
+
+df_long <- df %>% dplyr::select(subject,pretty_condition,order,lm_scenarios,tm_scenarios,linear_score, triangular_score) %>% pivot_longer(
+  cols = ends_with("score"),
+  names_to = "graph",
+  values_to = "score"
+)
+  
+
+title = "Descriptive Statistics of Response Accuracy by Block (CONTROL Condition)"
+abs.stats <- rbind(
+  "linear.block"= df %>% dplyr::select(linear_score) %>% unlist() %>% favstats(),
+  "triangular.block" = df %>% dplyr::select(triangular_score) %>% unlist() %>% favstats(),
+  "block.differences" = df %>% dplyr::select(score_diff) %>% unlist() %>% favstats()
+)
+
+abs.stats %>% kbl (caption = title) %>% kable_classic() %>%
+  footnote(general = "block # questions correct [0,15]; DIFF = triangular - linear",
+           general_title = "Note: ",footnote_as_chunk = T)
+
+#DISTRIBUTION OF SCORE
+gf_dhistogram(~score, fill = ~graph, data = df_long) %>% gf_facet_wrap(~graph)+
+  labs(title = "Distribution of scores in CONTROL condition") + 
+  easy_remove_legend()
+
+##VERTICAL RAINCLOUD USING GGDISTR
+ggplot(df_long, aes(x = graph, y = score,
+                        fill = graph) ) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.1,
+    width = 1, 
+    point_colour = NA
+   ) + 
+  geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=graph, y = score),
+    width = .15, 
+    outlier.shape = NA
+  ) + 
+  geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=graph, y = score, color = graph),
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter( 
+      seed = 1, width = .05
+  )) + labs( 
+    title = "Distribution of scores in CONTROL condition", 
+    x = "Condition", y = "Score (# correct)") +
+  theme(legend.position = "blank") + 
+  coord_cartesian(xlim = c(0.5, NA), clip = "off")
+
+
+#DISTRIBUTION OF SCORE
+gf_dhistogram(~score_diff, data = df) %>% 
+  gf_fitdistr(~score_diff) + 
+  labs(title = "Distribution of paired score differences in CONTROL condition") + 
+  easy_remove_legend() 
+
+
+
+```
+
+For participants in the CONTROL condition, total absolute scores for the LINEAR graph (n = `r abs.stats["linear.block",]$n`) range from `r round(abs.stats["linear.block",]$min,2)` to `r round(abs.stats["linear.block",]$max,2)` with a mean score of (M = `r round(abs.stats["linear.block",]$mean,2)`, SD = `r round(abs.stats["linear.block",]$sd,2)`).
+
+For participants in the CONTROL condition, total absolute scores for the TRIANGULAR graph (n = `r abs.stats["triangular.block",]$n`) range from `r round(abs.stats["triangular.block",]$min,2)` to `r round(abs.stats["triangular.block",]$max,2)` with a mean score of (M = `r round(abs.stats["triangular.block",]$mean,2)`, SD = `r round(abs.stats["triangular.block",]$sd,2)`).
+
+Visual inspection of the distribution of scores for each block reveal that scores in on the triangular task were more variant than those in the linear graph. On average, scores on the triangular block were lower than those on the linear block.
+
+### PAIRED SAMPLES T-TEST
+
+#### Check Assumptions
+
+```{r}
+
+#PAIRED T TEST ASSUMPTIONS
+
+# 1| PAIRED?
+paste("1| Data are paired? ", "YES, block is crossed within subjects")
+paste("2| Sample size? ", "YES, sample size ",nrow(df), "> 30")
+paste("3| Paired differences are normally distributed? accept null [normal] at p > 0.05")
+shapiro.test(df$score_diff) 
+
+```
+_Because the difference scores are not normally distributed, we don't meet the assumptions of a standard paired t-test. Instead, we should use the alternative test Wilcoxon Rank Sum [paired] designed for non-normal distributions. 
+
+#### Visualize
+
+```{r}
+
+#PLOT PAIRED DATA
+#subset linear
+linear <- subset(df_long,  graph == "linear_score", score,
+                 drop = TRUE)
+# subset triangular
+triangular <- subset(df_long,  graph == "triangular_score", score,
+                 drop = TRUE)
+# Plot paired data
+library(PairedData)
+pd <- paired(linear, triangular)
+plot(pd, type = "profile") + theme_bw() + labs(title = "Paired Data | Control Condition scores by block")
+
+```
+
+#### Run Test (Wilcoxon Paired Rank Sum) 
+
+```{r}
+
+#WILCOXON RANK SUM PAIRED T-TEST
+w <- wilcox.test(df$linear_score, df$triangular_score, 
+            paired = TRUE, alternative = "greater", conf.int = TRUE)
+w
+report(w)
+```
+#### Inference
+
+The Wilcoxon signed rank test confirms that (for subjects in the control condition) scores on the **triangle graph** were significantly lower than those in the **linear graph** block.  This provides evidence in support of our hypothesis that the Triangular model graph (though computationally efficient) is in fact unconventional and lacking in discoverablility. It needs to be augmented with scaffolding in order to be correctly interpreted by novice readers. 
+
+
+## H2 \| The Effectiveness of Scaffolding
+
+**Hypothesis** All of the designs offered by participants in Study 1 are promising. We expect that only a small amount of scaffolding (a little nudge) will be required to help readers correctly interpret the graph. We predict that learners with (any form of) scaffolding will perform better with the TM than LM (a replication of Qiang et. al's finding on the computational efficiency of the TM graph).
+
+
+### MIXED EFFECTS LINEAR REGRESSION
+
+*Fit a linear mixed effects model (at the subject level), predicting block accuracy (absolute score) by graph, with a random intercept for subject.*
+
+#### Fit Model
+
+*First, we fit a linear regression with graph as predictor, and compare its fit to an empty (intercept-only) model.*
+
+```{r}
+#| label: FIT-CONTROLSCORE-LM
+#| warning: false
+#| message: false
+
+# MODEL FITTING:::::::::::::::::::::::::::::::::::::
+
+#: 1 EMPTY MODEL [grand mean as intercept]
+m0 = lmer(score ~ (1|subject), data = df_long)
+print("EMPTY MODEL")
+summary(m0)
+
+#: 2 GRAPH as predictor
+m1 <- lmer( score ~ graph + (1|subject), data = df_long)
+print("PREDICTOR MODEL")
+summary(m1)
+
+#: 3 TEST SUPERIOR FIT
+test_lrt(m0,m1) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
+
+
+#: 4 add additional predictors [shouldn't be significant]
+m2 <- lmer( score ~ graph + order + tm_scenarios + (1|subject), data = df_long)
+print("PREDICTOR MODEL")
+summary(m2)
+
+check_model(m2)
+```
+
+*The GRAPH predictor significantly improves model fit.*
+
+#### Visualize
+
+```{r}
+#| label: VIS-CONTROLSCORE-LM
+
+# DESCRIBE MODEL ::::::::::::::::::::::::::::::::::::: 
+
+#: 4 ASSESS PERFORMANCE
+print("MODEL PERFORMANCE")
+performance(m1)
+print("SANITY CHECK REPORTING")
+report(m1)
+
+#: PLOT
+
+#GGSTATS | MODEL | LOG ODDS 
+# library(ggstatsplot)
+# ggcoefstats(m1, output = "plot") + labs(x = "Log Odds Estimate")
+
+#SJPLOT | MODEL | RANDOM EFFECTS
+#library(sjPlot)
+# plot_model(m1, type = "re") +
+# labs(title = "Model Random Effects")
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m1, type="pred",
+           title = "Model Predicted Score",
+           axis.title = c("Graph Block","Score [0,15]"))
+
+```
+
+#### Diagnostics
+
+```{r}
+check_model(m1)
+binned_residuals(m1)
+```
+
+#### Inference
+
+We fit a linear mixed effects model to analyze the effect of experimental condition on probability of a correct answer on the first question. In this model, the effect of condition is statistically significant (z = 3.16, p = 0.0016). The model predicts that the odds of a correct response on the first question in the *impasse condition* increase by 146% ($e^{beta_1}$ = 2.46, 95% CI \[1.42, 4.37\]) over the *control condition*.
+
+*Equivalent statements:*
+
+-   being in impasse condition increases log odds of correct response by 0.901 (over control)
+-   being in impasse increases odds of correct response in impasse over control increases by factor of 2.46
+-   probability of correct response in control predicted as 28.5%, vs only 14% in control condition
+
+```{r}
+#PRETTY TABLE SJPLOT
+tab_model(m1)
+```
+
+#### TODO
+
+-   Are these residuals OK? I didn't think normally distributed residuals were an assumption for logistic regression.
+-   Interpretation/reporting of model fit?
+-   sanity check correct interpretation of coefficients & reporting
 
 ### LOGISTIC REGRESSION
 
@@ -309,413 +573,17 @@ tab_model(m1)
 -   Interpretation/reporting of model fit?
 -   sanity check correct interpretation of coefficients & reporting
 
-### TODO ORDINAL REGRESSION
 
-*Fit an ordinal logistic regression (at the subject level), predicting Q1 interpretation by condition.*
 
--   https://journals.sagepub.com/doi/full/10.1177/2515245918823199
--   https://m-clark.github.io/docs/logregmodels.html#preface
--   https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/
+## H3 \| Computational Efficiency
 
--   todo see ordinal regression video
+**Hypothesis** Qiang et. al found that the TM graph was more computationally efficient than the LM graph. We expect that for learners that *do* correctly interpret the graph, they will have lower response times for the TM vs. LM graph.\*\*
 
-```{r}
-# #CREATE DATAFRAME OF Q1
-# df <- df_items %>% filter(q ==1) %>% mutate(scaled = as.factor(score_SCALED))
-# 
-# #MODEL
-# m <- polr(scaled ~ condition , data = df, Hess=TRUE)
-# summary(m)
-# confint(m)
-# performance(m)
-# report(m)
-# 
-# #exponentiate coefficients and CIs 
-# ci <- confint(m)
-# ci
-# e <- coef(m)
-# e
-# # exp(cbind(e,ci))
-# 
-# # Retrieve predictions as probabilities 
-# # (for each level of the predictor)
-# # p.control <- predict(m,data.frame(condition="111"),type="response")
-# # paste("Probability of success in control,", p.control)
-# # p.impasse <- predict(m,data.frame(condition="121"),type="response")
-# # paste("Probability of success in impasse,", p.impasse)
-# 
-# # Plot Predicted data and original data points
-# # ggplot(df, aes(x=condition, y=accuracy)) + 
-# #   geom_point() +
-# #   stat_smooth(method="glm", color="green", se=FALSE,
-# #                 method.args = list(family=binomial))
-#   
-# #TO PLOT ALL EFFECTS
-# library(effects)
-# plot(allEffects(m))
-# 
-# #SJPLOT
-# library(sjPlot)
-# plot_model(m, )
-# 
-# 
-# #CONVERT TO PROBABILITIES
-# newdat <- data.frame(condition=c("111","121"))
-# prob <- (phat <- predict(object = m, newdat, type="p"))
-# prob
-# 
+## H4 \| Graph Order as Scaffold
 
-```
+**Hypothesis** Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.
 
-## H1B \| OVERALL ACCURACY
-
-**Do Ss in the IMPASSE condition have higher scores across the entire task?**
-
-The graph comprehension tasks includes 13 interpretation-discriminant questions completed in sequence.
-
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Do Ss in the IMPASSE condition score higher across the entire task than those in the CONTROL group.                                                     |
-+=======================+=========================================================================================================================================================+
-| **Hypothesis**        | (H1B) Participants in the IMPASSE condition will have higher test phase performance than those in the CONTROL condition.                                |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Data**              | **data**: `df_items` where `q nin 6,9` (the 13 discriminating Qs ), `df_subjects`                                                                       |
-|                       |                                                                                                                                                         |
-|                       | **outcome**:                                                                                                                                            |
-|                       |                                                                                                                                                         |
-|                       | -   \[at item level\]                                                                                                                                   |
-|                       |     -   *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                  |
-|                       |     -   *interpretation* (ordered factor from `interpretation`)                                                                                         |
-|                       | -   \[subject level\]                                                                                                                                   |
-|                       |     -   p_accuracy (percent of correct responses)                                                                                                       |
-|                       |                                                                                                                                                         |
-|                       | **predictor**: `condition` \[between-subjects factor\]                                                                                                  |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | 1.  Mixed Logistic Regression\                                                                                                                          |
-|                       |     `accuracy` \~ `condition` + (1 \| `subject` )\                                                                                                      |
-|                       |     model effect of condition on probability of correct response \[during test phase\] while accounting for subject (and item-level?) effects           |
-|                       | 2.  Ordinal Mixed Logistic Regression\                                                                                                                  |
-|                       |     `interpretation` \~ `condition` + (1 \| `subject` )\                                                                                                |
-|                       |     model effect of condition on \[ordered correctness of interpretation\] \[during test phase\] while accounting for subject (and item-level?) effects |
-|                       | 3.  Shift in Modal Mass (descriptive)\                                                                                                                  |
-|                       |     describe & visualize shift in deciles between conditions for `` `scaled_score` `` (at subject level)                                                |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Alternatives**      | -   OLS LINEAR REGRESSION                                                                                                                               |
-|                       |     -   bimodal distribution at tails makes the mean a poor predictor; LMs violate assumptions of normally distributed residuals                        |
-|                       |     -   lm `DV_percent_test_NABS` \~ `condition` (absolute scoring) OR lm `item_test_SCALED` \~ `condition` (scaled scoring)                            |
-|                       |     -   both absolute and scaled scores yield non-normal residuals                                                                                      |
-|                       |     -   no transformation of the outcome variables yield normal residuals                                                                               |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Notes**             | **Also exploring:**                                                                                                                                     |
-|                       |                                                                                                                                                         |
-|                       | -   Hurdle model (mixture model w/ binomial + \[poisson or negbinom count; 0s from 1 DGP)                                                               |
-|                       | -   Zero Inflated model (mixture model w/ binomial + poisson or negbinom count; 0s from 2 DGPs)                                                         |
-|                       | -   Beta regression hurdle model? (mixture with location and scale parameters \[mean, variance\] and hurdles for floor and ceiling effects)             |
-|                       | -   Other way to account for the severe bimodality?                                                                                                     |
-+-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-```{r}
-#| label: SETUP-TEST-ACC
-
-#PREPARE DATA 
-n_items = 13 #number of items in test
-
-#item level
-df = df_items %>% filter(q %nin% c(6,9)) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
-  q = as.factor(q)
-)
-
-#STACKED PROPORTIONAL BAR CHART
-df %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-  facet_wrap(~pretty_mode) + 
-   labs(#y = "Correct Response on Q 1",
-       title = "Accuracy on Task",
-       x = "Condition",
-       fill = "",
-       subtitle="Impasse Condition yields a greater proportion of correct responses")
-
-#GROUPED PROPORTIONAL BAR CHART
-# gf_props(~accuracy, fill = ~pretty_condition, x =~pretty_condition,
-#        position = position_dodge(), data = df) %>% 
-#   gf_facet_grid(~pretty_mode) +
-#    labs(x = "Correct Responses in Test Phase",
-#        title = "Accuracy on Task by Condition",
-#        subtitle="Impasse Condition yields a greater proportion of correct responses")
-
- 
-#FACETED HISTOGRAM
-stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(s_NABS))
-gf_props(~s_NABS, 
-         fill = ~pretty_condition, data = df_subjects) %>% 
-  gf_facet_grid(pretty_condition ~ pretty_mode) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "# Correct",
-       y = "proportion of subjects",
-       title = "Overall Absolute Score (# Correct)",
-       subtitle = "") + theme(legend.position = "blank")
-
-```
-
-### MIXED LOGISTIC REGRESSION
-
-*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
-
-#### Fit Model
-
-```{r}
-#| label: MODEL-MLOG-ABS-comb
-
-## 1 | SETUP RANDOM INTERCEPT SUBJECT
-
-#:: EMPTY MODEL (baseline, no random effect)
-print("Empty fixed model")
-m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
-m0
-
-#:: RANDOM INTERCEPT SUBJECT
-print("Subject intercept random model")
-mm.rS <- glmer(accuracy ~ (1|subject), data = df,family = "binomial")
-mm.rS
-
-# :: TEST random effect
-paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
-test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
-
-
-## 2 | ADD RANDOM RANDOM INTERCEPT ITEM
-
-#:: RANDOM INTERCEPT SUBJECT + INTERCEPT Q
-print("Subject & Question random intercepts")
-mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df,family = "binomial")
-mm.rSQ
-
-# :: TEST random effect
-paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)) )
-test_lrt(mm.rS,mm.rSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.rSQ))$p[2])
-
-## 3 | ADD FIXED EFFECT
-
-# SUBJECT INTERCEPT | FIXED CONDITION 
-print("FIXED Condition + Subject & Question random intercepts")
-mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q), 
-                data = df,family = "binomial")
-mm.CrSQ
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
-test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
-
-```
-
-#### Visualize
-
-```{r}
-
-#: PRINT MODEL 
-print("PREDICTOR MODEL")
-summary(mm.CrSQ)
-
-#: INTERPRET COEFFICIENTS
-
-print("MODEL PERFORMANCE")
-performance(mm.CrSQ)
-print("SANITY CHECK REPORTING")
-report(mm.CrSQ)
-
-
-#: PLOT
-
-#SJPLOT | MODEL | ODDS RATIO
-#library(sjPlot)
-plot_model(mm.CrSQ, type="std2", vline.color = "red", 
-           show.intercept = TRUE, 
-           show.values = TRUE) +  
-  labs(title = "Model Predicted Odds Ratio",
-       subtitle = "",
-       x = "Condition")
-
-#SJPLOT | MODEL | PROBABILITIES
-plot_model(mm.CrSQ, type="pred",
-           show.intercept = TRUE,
-           show.values = TRUE,
-           title = "Model Predicted Probability of Accuracy",
-           axis.title = c("Condition","Probability of Accurate Response"))
-
-#GGEFFECTS | MODEL | PROBABILITIES
-# library(ggeffects)
-# ggeffect(model = mm.CrSQ) %>% plot()
-
-#SANITY CHECK SJPLOT
-# library(effects)
-# plot(allEffects(mm.CrSQ))
-
-```
-
-#### Diagnostics
-
-```{r}
-check_model(mm.CrSQ)
-binned_residuals(mm.CrSQ)
-```
-
-#### Inference
-
-We fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items; to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(4): 38.72, p \< 0.001); and the total explanatory power is substantial (conditional R2 = 0.89) and the part related to the fixed effects alone (marginal R2) is 0.13. Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 55 over the control condition $e^{\beta_1}$ = 54.79, 95% CI \[13.2, 227.39\], p \< 0.001.
-
-```{r}
-# PRETTY TABLE SJPLOT
-tab_model(mm.CrSQ)
-```
-
-#### TODO
-
--   sanity check interpretation
--   sanity check random effects structure : ITEM appropriate as random intercept? What does it mean to have two random intercepts?
--   DIAGNOSTICS: What in the world is happening with the normality of random effects plot? Do the fixed effects residuals need to be normally distributed?
--   Are there other plots or recommended diagnostics for mixed log regression
--   consider multiple regression with rt, sequence cluster, confidence, etc.
-
-```{r}
-
-#STEPWISE FIT ALT 
-
-#:: EMPTY MODEL (baseline, no random effect)
-# m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
-
-#:: EMPTY MODEL (baseline, no random effect)
-# m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
-# 
-# #:: RANDOM INTERCEPT SUBJECT
-# mm.rS <- glmer(accuracy ~ (1|subject), data = df,family = "binomial")
-# 
-# # :: TEST random effect
-# paste("AIC with random effect is lower than glm empty model?", m0$aic > AIC(logLik(mm.rS)))
-# test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
-# paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
-
-```
-
-### TODO \| Ordinal Regression on ITEM-Interpretation
-
-### SHIFT IN MODAL MASS
-
-**Compare distributions using qqplot*
-```{r}
-score_111 <- df_subjects %>% filter(pretty_condition=="control") %>% dplyr::select(s_NABS) %>% pull()
-score_121 <- df_subjects %>% filter(pretty_condition=="impasse") %>% dplyr::select(s_NABS) %>% pull()
-qqplot(score_111,score_121, plot.it = T)
-
-
-#COMPARE BOTH TO NORMAL
-ggplot(df_subjects, aes(sample = s_NABS)) +
-  stat_qq(aes(color = pretty_condition)) +
-  scale_color_manual(values = c("#00AFBB", "#E7B800"))
-
-
-
-
-#Create the quantile-quantile data table
-qq.out <- qqplot(x=score_111, y=score_121, plot.it=F)
-qq.out <- as.data.frame(qq.out)
-
-# Set the x and y limits
-xylim <- range( c(qq.out$x, qq.out$y) )
-
-# Generate the QQ plot
-ggplot(qq.out, aes( x= x, y = y)) + 
-               geom_point(alpha=0.2) + 
-               geom_abline( intercept=0, slope=1) +
-               coord_fixed(ratio = 1, xlim=xylim, ylim = xylim) +
-               xlab("control") + ylab("impasse")
-
-#TODO FIGURE OUT HOW THIS WORKS
-#https://mgimond.github.io/ES218/Week05b.html#Is_the_relationship_between_tenor_and_bass_additive_or_multiplicative
-  
-```
-
-The Effect of Condition on Total Scaled Score can be described as a 'shift' in mass between the low and high modes of each distribution.
-
-_First, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations._
-
-```{r}
-#| label: COMPARE-DIST-NABS-comb
-
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
-
-#(requires shift function files loaded)
-#LOAD MODAL SHIFT FUNCTION RESOURCES
-source("analysis/utils/shift_function/Rallfun-v30.txt")
-source("analysis/utils/shift_function/wilcox_modified.txt")
-source("analysis/utils/shift_function/rgar_visualisation.txt")
-source("analysis/utils/shift_function/rgar_utils.txt")
-#NOTE: something in these breaks the stat_ecdf in ggplot2
-
-#PREP DATA 
-df <- df_subjects %>%
-  dplyr::select(s_SCALED, pretty_condition) %>%
-  mutate(
-    data = as.numeric(s_SCALED),
-    #flip order levels to correctly orient graph
-    # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
-    gr = as.character(pretty_condition)
-  ) %>% dplyr::select(data,gr)
-
-
-g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
-g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
-
-
-#COMPARE DISTRIBUTIONS WITH ROBUST TESTS
-
-#What do common tests say about the difference?
-
-# Kolmogorov-Smirnov test
-#If y is numeric, a two-sample (Smirnov) test of the null hypothesis that x and y 
-#were drawn from the same continuous distribution is performed. Alternatively, y ...
-
-#null is X is drawn from CDF EQUAL TO Y
-ks.test(g1,g2) 
-print("SUGGESTS that impasse and control come from different population distributions")
-
-# #null is X is NOT LESS THAN Y
-ks.test(g1,g2, alternative = "greater") 
-print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consistent with higher probability of low scores]")
-
-#REGULAR T-TEST
-t.test(g1,g2) # regular Welsh t-test
-
-```
-
-```{r}
-#| label: SHIFT-FN-NABS-comb
-#| warnings: false
-#| messages: false
-
-#IF THIS ERRORS, consider loadling plyr (older than dplyr)
-# kernel density estimate + rug plot + superimposed deciles
-kde <- plot.kde_rug_dec2(df)
-# kde
-
-# compute shift function
-out <- shifthd( g1, g2, nboot=200)
-
-# plot shift function
-sf <- plot.sf(data=out) # function from rgar_visualisation.txt
-# sf
-
-# combine KDE + SF
-cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
-
-```
+## DIAGRAMS 2018 PUBLICATION ANALYSIS
 
 ## RESOURCES
 
@@ -723,8 +591,6 @@ reset plot margins par(mar=c(1,1,1,1))
 
 ### Logistic Regression Notes
 
-
 *The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable*
 
 *The logistic regression coefficients give the change in the log odds of the outcome for a one unit increase in the predictor variable.*
-
