@@ -42,16 +42,16 @@ theme_set(theme_minimal())
 #| message : false
 
 # HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+setwd(mbp)
 
 #IMPORT SUBJECTS 
 sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
   study = "SGC3A"
 ) #%>% dplyr::select(-absolute_score)
 
-sgc3b <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
+sgc3b <- read_rds("analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.rds") %>% mutate(
   study = "SGC3B"
 ) #%>% dplyr::select(-absolute_score)
 
@@ -60,6 +60,11 @@ sgc4a <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.r
   pretty_mode = "online-replication"
 )
 sgc4b <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds") %>% mutate(
+  study = "SGC4B",
+  pretty_mode = "online-replication"
+)
+# TEMPORARY ONLY REPLACE WITH SCORED DATA 
+sgc4c <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_participants.rds") %>% mutate(
   pretty_mode = "online-replication"
 )
 sgc5 <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_participants.rds") %>% mutate(
@@ -89,7 +94,7 @@ df_ospan <- merge(df_ospan, ospan)
 
 #RENAME for reuse
 df_all <- df_subjects
-df_subjects <- df_ospan
+# df_subjects <- df_ospan
 
 #RECODE other study control conditions to CONTROL
 df <- df_all %>% mutate(
@@ -99,7 +104,39 @@ df <- df_all %>% mutate(
 
 #CLEANUP
 # rm(ospan, sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
+
+temp <- df_all %>% dplyr::select(s_NABS, condition, study, subject) %>% rename(score = s_NABS)
+temp2 <- sgc4c %>% dplyr::select(absolute_score, condition, study, subject) %>% rename(score = "absolute_score")
+df <- rbind(temp, temp2)
 ```
+
+```{r}
+table(df$study, df$condition)
+
+paste("Subjects: ", nrow(df))
+paste("unique subjects ",nrow(unique(df$subject)))
+
+#get list of unique subjects 
+u <- df %>% dplyr::select(subject) %>% distinct() 
+d <- df$subject %nin% u$subject
+
+#unique subjects
+u <- unique(df$subject)
+#duplicated subjects
+d <- df$subject[duplicated(df$subject)]
+
+length(d) 
+length(u) 
+length(d) + length(u) == nrow(df)
+
+dups <- df %>% filter(subject %in% d)
+
+table(dups$study, dups$condition)
+
+#TODO ... NEED TO RUN 4A CONTROL 62
+```
+
+
 
 ```{r}
 #| label: IMPORT-ITEMS
@@ -109,14 +146,14 @@ df <- df_all %>% mutate(
 # HACK WD FOR LOCAL RUNNING?
 imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
 mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+setwd(mbp)
 
 #IMPORT SUBJECTS 
 items_sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") %>% mutate(
   study = "SGC3A"
 ) #%>% dplyr::select(-absolute_score)
 
-items_sgc3b <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") %>% mutate(
+items_sgc3b <- read_rds("analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.rds") %>% mutate(
   study = "SGC3B"
 ) 
 
@@ -128,6 +165,12 @@ items_sgc4a <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rd
 items_sgc4b <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds") %>% mutate(
   pretty_mode = "online-replication"
 ) %>% dplyr::select(-answer)
+
+##TEMPORARY 
+items_sgc4c <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_items.rds") %>% mutate(
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-answer)
+
 
 items_sgc5 <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_items.rds") %>% mutate(
   study = "SGC5A",
@@ -192,6 +235,22 @@ df_items <- df_items %>% mutate(
 # 
 # #GET SCALED PROGRESS
 # df_scaled_progress <- progress_Scaled(df_items)
+
+
+```
+
+```{r}
+
+# gf_boxplot(s_NABS ~ pretty_condition, data = df_all)
+# gf_boxplot(absolute_score ~ pretty_condition, data=sgc4c )
+
+df <- df_items %>% dplyr::select(score_niceABS, pretty_condition) %>% rename(correct=score_niceABS)
+d2 <- items_sgc4c %>% dplyr::select(correct, pretty_condition) 
+
+df <- rbind(df, d2)
+
+gf_props(~correct, fill = ~pretty_condition, data = df) %>% 
+  gf_facet_wrap(pretty_condition ~ .)
 
 
 ```

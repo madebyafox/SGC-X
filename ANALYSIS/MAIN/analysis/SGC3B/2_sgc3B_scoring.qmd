@@ -458,3 +458,56 @@ sessionInfo()
 ```
 
 
+```{r}
+
+table(df_subjects$condition)
+
+set.seed(8)
+r111  <- df_subjects %>% filter(condition == "111") %>% sample(50) %>% dplyr::select(-orig.id)
+r121  <- df_subjects %>% filter(condition == "121") %>% sample(50) %>% dplyr::select(-orig.id)
+df <- df_subjects %>% filter(condition %nin% c(111,121)) 
+df <- rbind(df,r111,r121)
+
+df <- df %>% mutate(
+  explicit = as_factor(str_sub(condition,1,1)),
+  explicit = recode_factor(explicit, "1" = "none", "2" = "image", "3"="ixv"),
+  impasse = str_sub(condition,2,2),
+  impasse = recode_factor(impasse, "1" = "none", "2"="impasse")
+)
+
+table(df$explicit , df$impasse)
+table(df$condition)
+
+gf_histogram(~s_NABS, data = df) %>% 
+  gf_facet_grid(df$explicit~df$impasse)
+
+m <- lm(s_NABS ~ explicit+impasse+explicit*impasse, data = df)
+summary(m)
+summ(m)
+check_model(m)
+
+gf_boxplot(~s_NABS, data = df) %>% gf_facet_grid(explicit~impasse)
+
+library(interactions)
+library(jtools) #nice presentation of restuls
+summ(m)
+cat_plot(model = m, pred=explicit, modx = impasse, geom="line")+
+  lims(y=c(0,13))
+
+
+means <- favstats(s_NABS~condition, data = df)
+means
+
+x <- favstats(absolute_score~condition , data = df4c)
+x
+
+means <- rbind(means,x)
+means
+
+df <- df %>% dplyr::select(s_NABS, condition) %>% rename(score=s_NABS)
+c4 <- df4c %>% dplyr::select(absolute_score, condition) %>% rename(score = absolute_score)
+
+df <- rbind(df,c4)
+gf_boxplot(score ~ condition, data = df)
+```
+
