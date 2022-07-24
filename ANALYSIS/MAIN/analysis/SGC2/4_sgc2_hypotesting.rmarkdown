@@ -2,11 +2,13 @@
 subtitle: 'Study SGC2 | Hypothesis Testing'
 ---
 
+
 \newpage
 
 # Hypothesis Testing {#sec-SGC2-hypotesting}
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC2 study.*
+
 
 ```{r}
 #| label: SETUP
@@ -57,6 +59,7 @@ theme_set(theme_minimal())
 
 ```
 
+
 **Research Questions**
 
 In SGC2 we compare learner performance on the linear and triangular model graphs by testing the effectiveness of 4 scaffolds and by seeking to replicate the Qiang et.al (2014) finding that after 20 minutes of video training, students perform faster and more accurately with the unconventional TM than the conventional Linear Model (LM). Will our participants show similar performance on the TM with scaffolds rather than formal instruction? Further, will engagement with the TM in a reading task be sufficient for students to reproduce the graph in a subsequent drawing task?
@@ -66,6 +69,7 @@ In SGC2 we compare learner performance on the linear and triangular model graphs
 1.  Learners without scaffolding (control) will perform better with the LM than TM
 2.  Learners with (any form of) scaffolding will perform better with the TM than LM (replication of \[12\]).
 3.  Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.
+
 
 ```{r}
 #| label: IMPORT-DATA
@@ -82,6 +86,7 @@ df_items <- read_rds('analysis/SGC2/data/2-scored-data/sgc2_items.rds')
 df_subjects <- read_rds('analysis/SGC2/data/2-scored-data/sgc2_participants.rds') 
 
 ```
+
 
 ## H1 \| The Need for Scaffolding
 
@@ -117,6 +122,7 @@ df_subjects <- read_rds('analysis/SGC2/data/2-scored-data/sgc2_participants.rds'
 +-----------------------+-------------------------------------------------------------------------------------------------------------------------+
 | **Notes**             |                                                                                                                         |
 +-----------------------+-------------------------------------------------------------------------------------------------------------------------+
+
 
 ```{r}
 #| label: SETUP-H1
@@ -186,6 +192,7 @@ gf_dhistogram(~score_diff, data = df) %>%
 
 ```
 
+
 For participants in the CONTROL condition, total absolute scores for the LINEAR graph (n = `r abs.stats["linear.block",]$n`) range from `r round(abs.stats["linear.block",]$min,2)` to `r round(abs.stats["linear.block",]$max,2)` with a mean score of (M = `r round(abs.stats["linear.block",]$mean,2)`, SD = `r round(abs.stats["linear.block",]$sd,2)`).
 
 For participants in the CONTROL condition, total absolute scores for the TRIANGULAR graph (n = `r abs.stats["triangular.block",]$n`) range from `r round(abs.stats["triangular.block",]$min,2)` to `r round(abs.stats["triangular.block",]$max,2)` with a mean score of (M = `r round(abs.stats["triangular.block",]$mean,2)`, SD = `r round(abs.stats["triangular.block",]$sd,2)`).
@@ -195,6 +202,7 @@ Visual inspection of the distribution of scores for each block reveal that score
 ### PAIRED SAMPLES T-TEST
 
 #### Check Assumptions
+
 
 ```{r}
 
@@ -208,9 +216,11 @@ shapiro.test(df$score_diff)
 
 ```
 
+
 \_Because the difference scores are not normally distributed, we don't meet the assumptions of a standard paired t-test. Instead, we should use the alternative test Wilcoxon Rank Sum \[paired\] designed for non-normal distributions.
 
 #### Visualize
+
 
 ```{r}
 
@@ -235,7 +245,9 @@ ggwithinstats(
 )
 ```
 
+
 #### Run Test (Wilcoxon Paired Rank Sum)
+
 
 ```{r}
 
@@ -245,6 +257,7 @@ w <- wilcox.test(df$linear_score, df$triangular_score,
 w
 report(w)
 ```
+
 
 #### Inference
 
@@ -280,6 +293,7 @@ The Wilcoxon signed rank test confirms that (for subjects in the control conditi
 
 ### ONE WAY ANOVA
 
+
 ```{r}
 
 # PREPARE DATA 
@@ -287,7 +301,9 @@ df <- df_subjects
 
 ```
 
+
 #### Visualize
+
 
 ```{r}
 
@@ -306,7 +322,9 @@ ggboxplot(df, x = "pretty_condition", y = "triangular_score",
 
 ```
 
+
 #### Run Test (One Way ANOVA)
+
 
 ```{r}
 
@@ -321,7 +339,9 @@ plot(TukeyHSD(aov))
 
 ```
 
+
 #### Check Assumptions
+
 
 ```{r}
 
@@ -348,9 +368,11 @@ paste ("reject null hypothesis of normally distributed residuals?", s$p.value)
 
 ```
 
+
 *Because the residuals of the ANOVA are not normally distributed, (and variance is not homogenous) we need to use a non-parametric alternative test : The Kruskal-Wallis rank sum test.*
 
 #### Non Parametric Test
+
 
 ```{r}
 
@@ -364,11 +386,13 @@ pairwise.wilcox.test(df$triangular_score, df$pretty_condition,
 
 ```
 
+
 *Because the residuals of the ANOVA are not normally distributed, (and variance is not homogenous) we need to use a non-parametric alternative test : The Kruskal-Wallis rank sum test.*
 
 #### Inference
 
 A Kruskal-Wallis test reveals that **triangle graph** scores are significantly different by condition, though posthoc (holm-adjusted) Wilcoxon rank sum tests show than *only* the interactive image condition yielded significantly higher score than those in the control condition. Visual inspection of the distribution of triangular scores reveals substantial variance across all conditions. It is likely that the scaffolds function not by helping most subjects a little bit, but only some subjects a great deal.
+
 
 ```{r}
 
@@ -381,6 +405,7 @@ ggbetweenstats(y = triangular_score, x = condition, data = df,
 
 ```
 
+
 ### LINEAR REGRESSION
 
 *Fit a linear model (at the subject level), predicting triangular block accuracy (absolute score) by condition*
@@ -388,6 +413,7 @@ ggbetweenstats(y = triangular_score, x = condition, data = df,
 #### Fit Model
 
 *First, we fit a linear regression with graph as predictor, and compare its fit to an empty (intercept-only) model.*
+
 
 ```{r}
 #| label: FIT-TRIANGLE-LM
@@ -413,9 +439,11 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
 
 ```
 
+
 *The CONDITION predictor significantly improves model fit.*
 
 #### Visualize
+
 
 ```{r}
 #| label: VIS-CONTROLSCORE-LM
@@ -443,34 +471,42 @@ plot_model(m1, type="pred",
 
 ```
 
+
 #### Diagnostics
+
 
 ```{r}
 check_model(m1)
 binned_residuals(m1)
 ```
 
+
 #### Inference
 
 We fit a linear regression model to analyze the effect of experimental condition triangular block score. In this model, the effect of condition is statistically significant (F(4,311) = 6.23, p \< 0.001) and explains approximately 7% of variance in triangular block scores. All conditions yield score significantly higher than control at the 0.05 alpha level, with the interactive image yielding the highest difference, with an average of 4 points higher \[95% CI 2.3, 5.3\] than the control condition.
+
 
 ```{r}
 #PRETTY TABLE SJPLOT
 tab_model(m1)
 ```
 
+
 ### MIXED EFFECTS LOGISTIC REGRESSION
 
 *Fit a logistic regression (at the subject level), predicting triangular item accuracy (absolute score) by condition.*
+
 
 ```{r}
 df <- df_items %>% filter(graph == "triangular")
 ```
 
 
+
 #### Fit Model
 
 *First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.*
+
 
 ```{r}
 #| label: FIT-TRIANGULE-ITEM
@@ -506,9 +542,11 @@ test_lrt(mm.0,mm1) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.0,mm1))$p[2])
 ```
 
+
 *The Condition predictor significantly improves model fit.*
 
 #### Visualize
+
 
 ```{r}
 #| label: MODEL-TRIANGLEITEM
@@ -573,12 +611,15 @@ plot_model(mm1, type="pred",
 
 ```
 
+
 #### Diagnostics
+
 
 ```{r}
 check_model(mm1)
 binned_residuals(mm1)
 ```
+
 
 #### Inference
 
@@ -589,10 +630,12 @@ TODO EXPONENTIATE
 
 *Equivalent statements:*
 
+
 ```{r}
 #PRETTY TABLE SJPLOT
 tab_model(m1)
 ```
+
 
 #### TODO
 
@@ -647,6 +690,7 @@ A difference score of 0 represents the case where the particpant performs *equal
 
 ### ONE WAY ANOVA
 
+
 ```{r}
 
 # PREPARE DATA 
@@ -654,7 +698,9 @@ df <- df_subjects
 
 ```
 
+
 #### Visualize
+
 
 ```{r}
 
@@ -681,7 +727,9 @@ ggbetweenstats(y = score_diff, x = condition, data = df,
 
 ```
 
+
 #### Run Test (One Way ANOVA)
+
 
 ```{r}
 
@@ -701,7 +749,9 @@ plot(TukeyHSD(aov))
 
 ```
 
+
 #### Check Assumptions
+
 
 ```{r}
 
@@ -715,6 +765,7 @@ paste("3| Paired differences are normally distributed? accept null [normal] at p
 shapiro.test(df$score_diff) 
 
 ```
+
 
 \_Because the difference scores are not normally distributed, we don't meet the assumptions of a standard paired t-test. Instead, we should use the alternative test Wilcoxon Rank Sum \[paired\] designed for non-normal distributions.
 
@@ -730,6 +781,7 @@ The Wilcoxon signed rank test confirms that (for subjects in the control conditi
 **Hypothesis** Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.
 
 ## MODELLING
+
 
 ```{r}
 # 
@@ -827,6 +879,7 @@ The Wilcoxon signed rank test confirms that (for subjects in the control conditi
 
 
 
+
 ## DIAGRAMS 2018 PUBLICATION ANALYSIS
 
 ## RESOURCES
@@ -838,3 +891,4 @@ reset plot margins par(mar=c(1,1,1,1))
 *The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable*
 
 *The logistic regression coefficients give the change in the log odds of the outcome for a one unit increase in the predictor variable.*
+
