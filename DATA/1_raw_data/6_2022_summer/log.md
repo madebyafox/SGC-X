@@ -16,6 +16,29 @@
 
 ## WRANGLE
 
+### 07/22/22 WRANGLE WIP 4C on MBP
+(replace existing WIP files without delete from server )
+
+- DOWNLOAD from server to local file [DIDN'T DELETE data from server; meant to be WIP test of wrangling only]
+>> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out su22_test.json
+
+- IMPORT from local file to local dB
+>> mongoimport -d XSUMMER2022 -c entries_new --file su22_test.json
+
+- FILTER from entries collection to new delta collections [so to keep incoming data separate from existing]
+>> [run filter.js in 2022_summer 2_db_scripts]
+
+- FLATTEN SGC4C
+  - [run flatten_SGC4C]
+
+- DOWNLOAD study specific files (split here rather than in Rmd for size restrictions)
+- store files in 3_ready_files
+
+[4C]
+mongoexport -d XSUMMER2022 -c delta_SGC4C_final_participants --jsonArray --out WIP_su22_sgc4c_final_participants.json
+mongoexport -d XSUMMER2022 -c delta_SGC4C_final_items --jsonArray --out WIP_su22_sgc4c_final_items.json
+mongoexport -d XSUMMER2022 -c delta_SGC4C_final_items_mouse --jsonArray --out WIP_su22_sgc4c_final_items_mouse.json
+
 
 ### 07/20/22 WRANGLE ON IMAC
 - DOWNLOAD from server to local file [DIDN'T DELETE data from server; meant to be WIP test of wrangling only]
