@@ -8,16 +8,18 @@ subtitle: 'Study SGC3A | 4 Hypothesis Testing'
 
 **TODO**
 
+-   ORDINAL models on interpretation scale\
 -   HURDLE MODEL? (mixture model w/ 0 + count)
--   consider zero-inflated (poisson or neg binom) with \_rt as predictor of count process and condition as predictor of excess zeros
 -   review models already created in ARCHIVE?
--   explore response consistency
+-   separate combined (vs) lab (vs) online replication \[once analysis strategy locked down\]
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC3A study.*
 
++---------------------+
 | Pre-Requisite       |
-|---------------------|
++=====================+
 | 2_sgc3A_scoring.qmd |
++---------------------+
 
 ```{r}
 #| label: SETUP
@@ -32,7 +34,17 @@ library(ggformula) #easy graphs
 library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
+library(sjPlot) #visualize model coefficients
 
+#plot model estimates with uncertainty
+library(ggdist)
+library(broom)
+library(modelr)
+library(distributional)
+
+#models and performance
+library(lmerTest) #for CIs in glmer 
+library(ggstatsplot) #plots w/ embedded stats
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
@@ -40,11 +52,8 @@ library(qqplotr) #confint on qq plot
 library(gmodels) #contingency table and CHISQR
 library(equatiomatic) #extract model equation
 library(pscl) #zeroinfl / hurdle models 
-
-library(ggdist)
-library(broom)
-library(modelr)
-library(distributional)
+library(lme4) #mixed effects models 
+library(ggeffects) #visualization log regr models
 
 library(tidyverse) #ALL THE THINGS
 
@@ -54,8 +63,8 @@ options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
-#SET GGPLOT THEME
-theme_set(theme_minimal())
+#GRAPH THEMEING
+theme_set(theme_minimal()) 
 
 ```
 
@@ -66,9 +75,8 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 **Experimental Hypothesis**\
 *Learners posed with scenario designed to evoke a mental impasse will be more likely to correct interpret the graph.*
 
--   H1A \| Learners in the IMPASSE condition will score higher on the TEST Phase than learners in CONTROL.
--   H1B \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL.
--   H1C \| Learners in the IMPASSE condition will spend more time on the first question than learners in CONTROL.
+-   H1A \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL.
+-   H1B \| Learners in the IMPASSE condition will score higher on the TEST Phase than learners in CONTROL.
 
 **Null Hypothesis**\
 *No significant differences in performance will exist between learners in the IMPASSE and CONTROL conditions.*
@@ -80,30 +88,14 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
-
-#LOAD SHIFT FUNCTION RESOURCES
-source("analysis/utils/shift_function/Rallfun-v30.txt")
-source("analysis/utils/shift_function/wilcox_modified.txt")
-source("analysis/utils/shift_function/rgar_visualisation.txt")
-source("analysis/utils/shift_function/rgar_utils.txt")
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds')
 
-#TRANSFORMATIONS 
-#1. test phase absolute score as percentage
-df_subjects <- df_subjects %>% mutate(
-  DV_percent_test_NABS = (item_test_NABS/8) * 100 #for 8 Qs in test phase
-)
-
-#SEPARATE ITEM DATA BY QUESTION TYPE
-df_scaffold <- df_items %>% filter(q < 6)
-df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
-df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
-
+#PREP DATA 
 df_lab <- df_subjects %>% filter(pretty_mode == "laboratory")
 df_online <- df_subjects %>% filter(pretty_mode == "online-replication")
 
@@ -111,503 +103,536 @@ df_online <- df_subjects %>% filter(pretty_mode == "online-replication")
 
 ## H1A \| Q1 ACCURACY
 
-**Do Ss in the IMPASSE condition have a significantly higher likelihood of producing a correct response to the first question?**
+**Do Ss in the IMPASSE condition have a higher likelihood of producing a correct response to the first question?**
 
 The graph comprehension tasks includes 15 questions completed in sequence. But the first question the reader encounters (Q1) is the most important, as it is their *first exposure* to the unconventional triangular coordinate system.
 
-TODO: - does impasse yield different exploration behavior? (characterize mouse) - does impasse yield more time on task? (characterize response time ? number of answers then de-selected?)
-
-TODO: Think about characterizing how variable the interpretations are across a participant. Do they form an interpretation and hold it constant? Or do they change question to question.
-
-### Response Accuracy of First Question by Condition
-
-#### Chi Square \| Accuracy \~ Condition
-
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                                                                                                                                                                                                                                                                                                                   |
-+=======================+========================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
-| **Analysis Strategy** | Chi-Square test of independence on outcome `score_niceABS` by `condition` for `df_items` where `q == 1`                                                                                                                                                                                                                                                                                                                                                                                                                                |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Justification**     | \(0\) simplest method to examine independence of two categorical factors; logistic regression is recommended for binomial \~ continuous                                                                                                                                                                                                                                                                                                                                                                                                |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|                       | \(1\) independence assumption : as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                                                                                                                                                                                                                                                                                                                                   |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|                       | \(2\) frequency size assumption : expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                                                                                                                                                                                                                                                                                                                   |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Steps**             | \(1\) Express raw data as contingency table & visualize                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|                       | \(2\) Calculate Chi-Squared Statistic and p-value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|                       | \(3\) Interpret Odds-Ratio as effect size                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Inference**         | **Lab** For the (In Person) (n=126) the Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. In this particular data sample, the odds ratio (2.18, p = 0.055, 95% CI \[0.982, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition. |
-|                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|                       | **Online** For online data collection (n=204), a Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. The odds ratio (2.68, p = 0.005, 95% CI \[1.37, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition.                                   |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-```{r}
-#| label: VIS-Q1ACC.by.COND-bar
-
-#FITER THE DATASET
-df = df_items %>% filter(q==1) 
-
-#PROPORTIONAL BAR CHART
-gf_props(~score_niceABS, data = df, fill = ~mode) %>% 
-  gf_facet_grid(mode~condition, labeller = label_both) +
-  labs(x = "Correct Response on Q 1",
-       title = "Accuracy on First Question by Condition (Both Modalities)",
-       subtitle="Impasse Condition yields a greater proportion of correct responses than control ")+
-  theme_minimal()+ theme(legend.position = "none")
-```
-
-A proportional bar chart visualizing the proportion of incorrect (x =0) vs correct (x = 1) responses in each condition (right/left facet) for each data collection modality (top/bottom) reveal that the pattern of responses appear the same regardless of the data collection modality. In both data collection sessions, the proportion of incorrect responses is much greater than the proportion of correct responses, regardless of condition. In the impasse condition, the difference in proportions is smaller than the control condition (i.e. There are more correct responses in the impasse condition than the control condition).
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                   |
++=======================+========================================================================================================================================================================================================================================+
+| **Hypothesis**        | H1A \| Ss in the IMPASSE condition will have a higher likelihood of correctly responding to the first question than those in the CONTROL condition                                                                                     |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | data: `df_items` where `q == 1`                                                                                                                                                                                                        |
+|                       |                                                                                                                                                                                                                                        |
+|                       | outcome:                                                                                                                                                                                                                               |
+|                       |                                                                                                                                                                                                                                        |
+|                       | -   *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                                                                                                     |
+|                       |                                                                                                                                                                                                                                        |
+|                       | -   *interpretation* (ordered factor from `interpretation`)                                                                                                                                                                            |
+|                       |                                                                                                                                                                                                                                        |
+|                       | predictor: `condition` \[between-subjects factor\]                                                                                                                                                                                     |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  Logistic Regression on `accuracy` predicted by `condition`                                                                                                                                                                         |
+|                       |     -   account for difference in odds of correct score by condition                                                                                                                                                                   |
+|                       | 2.  Ordinal Regression on `interpretation` predicted by `condition`                                                                                                                                                                    |
+|                       |     -   account for difference in (ordered correctness of interpretation) by condition                                                                                                                                                 |
+|                       |                                                                                                                                                                                                                                        |
+|                       | Alternative:                                                                                                                                                                                                                           |
+|                       |                                                                                                                                                                                                                                        |
+|                       | -   Chi-Square test of independence on outcome `score_niceABS` by `condition`                                                                                                                                                          |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Notes**             | -   CHIQ SQR is simplest method to examine independence of two categorical factors; LOGISTIC REGRESSION is recommended for binomial \~ continuous; though with regression we can quantify the size of the effect and overall model fit |
+|                       | -   independence assumption : (CHI SQR) as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                           |
+|                       | -   cell frequency : (CHI SQR) expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                      |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ```{r}
-#| label: VIS-Q1ACC.by.COND-mosaic
+#| label: SETUP-Q1ACC
 
-#MOSAIC PLOT
-vcd::mosaic(main="Accuracy on First Question by Condition (Both Modalities)",
-            data = df, score_niceABS ~ condition, rot_labels=c(0,90,0,0),
-            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
-            spacing = spacing_dimequal(unit(1:2, "lines")))
-
-
-
-#PRINT CONTINGENCY TABLE
-title = "Proportion of Correct Responses On First Item (Both Modalities)"
-item.contingency <-  df %>% dplyr::select(condition, score_niceABS) %>% table() %>% prop.table() %>% addmargins()
-item.contingency %>% kbl (caption = title) %>% kable_classic()
-```
-
-A mosaic plot condition by response accuracy on the first question (across both data collection modalities) reveals the same pattern (the mosaic plot is an alternative visualization technique to the proportional bar chart). The relative size of condition boxes (111 vs 121) reflects that the sample is roughly evenly split across experimental conditions. The difference in size between 0 (incorrect) and 1 (correct) reflects that the proportion of correct responses (1) is greater in the impasse condition (121).
-
-Next, we compute a contingency table and Pearson's Chi-Squared test for each data collection modality.
-
-```{r}
-#| label : CHISQR-Q1TRI.by.COND-LAB
-
-df = df_items %>% filter(q==1) %>% filter(mode == "lab-synch")
-CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
-```
-
-**For the (In Person)** (n=126) the Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition approaching statistical significance, $\chi^2$ (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. In this particular data sample, the odds ratio (Odds Ratio = 2.18, p = 0.055, 95% CI \[0.982, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition .
-
-```{r}
-#| label : CHISQR-Q1TRI.by.COND-ONLINE
-
-df = df_items %>% filter(q==1) %>% filter(mode == "asynch")
-CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
-```
-
-**For online data collection** (n=204), a Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. The odds ratio (Odds Ratio = 2.68, p = 0.005, 95% CI \[1.37, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition .
-
-```{r}
-#| label : CHISQR-Q1TRI.by.COND-BOTH
-
-df = df_items %>% filter(q==1) 
-CrossTable( x = df$condition, y = df$score_niceABS, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
-```
-
-**Combining data across both sessions** (n=330), a Pearson's Chi-squared test suggests a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi_2$ (1) = 10.3, p = 0.001. The sample odds ratio (2.46, p = 0.001, 95% CI \[1.37, 4.53\]) indicates that the odds of providing a correct response to the first question are 2.46 higher for subjects in the impasse condition than those in the control condition.
-
-#### Logistic Regression
-
-##### Effect of Condition on Q1 Accuracy
-
-```{r}
-
-library(sjPlot)
-
-#CREATE DATAFRAME OF Q1
-df <- df_items %>% filter(q == 1) %>% mutate( accuracy = as.factor(score_niceABS))
-
-#FREQUENCY TABLE
-#my.table <- table(df$accuracy, df$condition)
-#addmargins(my.table)
-
-
-#:::::::::::::::::::::::::::::::::::::::
-#EMPTY MODEL
-m0 <- glm( accuracy ~ 1, data = df, family = "binomial")
-summary(m0)
-
-# library(sjPlot)
-
-#MODEL ESTIMATES | ODDS RATIO
-plot_model(m0, vline.color = "red", 
-           show.values = TRUE,
-           show.intercept = TRUE) + 
-  labs(title = "Empty Model [Q1 Accuracy]",
-       subtitle = "marginal odds of correct answer across sample")
-
-#MODEL ESTIMATES | MARGINAL PROBABILITY
-plot_model(m0,vline.color = "red", 
-           show.values = TRUE,
-           show.intercept = TRUE,
-           value.offset = .3,
-           transform = "plogis") +  #ONLY USE PLOGIS ON EMPTY
-  labs(title = "Empty Model [Q1 Accuracy]",
-       subtitle = "marginal probability of correct answer across sample")
-
-
-#:::::::::::::::::::::::::::::::::::::::
-#CONDITION MODEL
-m <- glm( accuracy ~ condition, data = df, family = "binomial")
-summary(m)
-confint(m)
-performance(m)
-report(m)
-
-#exponentiate coefficients and CIs 
-e <- cbind( exp(coef(m)), exp(confint(m)))
-e
-
-# Retrieve predictions as probabilities 
-# (for each level of the predictor)
-p.control <- predict(m,data.frame(condition="111"),type="response")
-paste("Probability of success in control,", p.control)
-p.impasse <- predict(m,data.frame(condition="121"),type="response")
-paste("Probability of success in impasse,", p.impasse)
-
-
-#TO PLOT ALL EFFECTS
-library(effects)
-plot(allEffects(m))
-
-#SJPLOT
-# library(sjPlot)
-
-#MODEL ESTIMATES | ODDS RATIO
-plot_model(m, type="std2", vline.color = "red", 
-           show.intercept = TRUE, 
-           show.values = TRUE) +  
-  labs(title = "Model Predicted Probabilities",
-       subtitle = "Model Predicted Odds Ratio",
-       x = "Condition")
-
-#PREDICTED PROBABILITIES
-plot_model(m, type="pred",
-           show.intercept = TRUE, 
-           show.values = TRUE) 
-# +  #TITLE DOESNT WORK
-#   labs(title = "Model Predicted Probabilities",
-#        subtitle = "Model Predicted Odds Ratio",
-#        x = "Condition")
-
-
-
-```
-
-```{r}
-library(sjPlot)
-library(sjlabelled)
-library(sjmisc)
-library(ggplot2)
-data(efc)
-
-# create binary response
-y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
-
-# create data frame for fitting model
-ex <- data.frame(
-  y = to_factor(y),
-  sex = to_factor(efc$c161sex),
-  dep = to_factor(efc$e42dep),
-  barthel = efc$barthtot,
-  education = to_factor(efc$c172code)
+#FILTER THE DATASET [use subjects, bc it has covariates on that record]
+# df_q1 = df_items %>% filter(q==1) %>% mutate(
+#   accuracy = recode_factor(score_niceABS, "0" = "incorrect", "1"="correct")
+# )
+df_q1 <- df_subjects %>% mutate(
+  accuracy = recode_factor(item_q1_NABS, "0" ="incorrect","1"="correct"),
+  rt = item_q1_rt
+) %>% dplyr::select(
+  accuracy, rt, pretty_condition, pretty_mode
 )
 
-# set variable label for response
-set_label(ex$y) <- "High Negative Impact"
+#GROUPED PROPORTIONAL BAR CHART
+# gf_props(~accuracy, fill = ~pretty_condition, 
+#        position = position_dodge(), data = df_q1) %>% 
+#   gf_facet_grid(~pretty_mode) +
+#    labs(x = "Correct Response on Q 1",
+#        title = "Accuracy on First Question by Condition",
+#        subtitle="Impasse Condition yields a greater proportion of correct responses") #theme(legend.position = "none")
 
-# fit model
-m1 <- glm(y ~ sex, data = ex, family = binomial(link = "logit"))
-
-m1
-
-#in LOG ODDS
-plot_model(m1, show.intercept = TRUE, show.values = TRUE, value.offset = .3,
-           transform = NULL)
-
-#in ODDS RATIO
-plot_model(m1, show.intercept = TRUE, show.values = TRUE, value.offset = .3 )
-
-#in PROBABILITY
-plot_model(m1, show.intercept = TRUE, show.values = TRUE, value.offset = .3,
-           transform = "plogis")
-
-
-p.male <- predict(m1,data.frame(sex="1"),type="response")
-p.female <- predict(m1,data.frame(sex="2"),type="response")
-
-plot_model(m1, show.intercept = TRUE, 
-           show.values = TRUE, 
-           value.offset = .3,
-           type="pred")
+#STACKED BAR CHART
+df_q1 %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "Correct Response on Q 1",
+       title = "Accuracy on First Question by Condition",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
 
 ```
 
-**empty model** - The intercept of an empty model (glm(accuracy \~ 1) is equal to log(p/(1-p)), where p = the overall probability of a correct response (df\$accuracy ==1 ). In SGC3A Q1 accuracy this = 71 correct / 330 = 0.215 -\> log(0.215 / (1-0.215)) = -1.29.\
-- In other words, the intercept from the model with no predictor variables is the estimated log odds of being in honors class for the whole population of interest.\
-- We can also transform the log of the odds back to a probability: p = exp(-1.29)/(1+exp(-1.29)) = 0.215, if we like.
+A proportional bar chart visualizing the proportion of incorrect (vs) correct responses in each condition for each data collection modality (left/right facet) reveals that the pattern of responses appear the same regardless of the data collection modality. In both data collection sessions, the proportion of incorrect responses is much greater than the proportion of correct responses, regardless of condition (marginal probability of incorrect). In the impasse condition, the difference in proportions is smaller than the control condition (conditional probability of success in impasse; (i.e) There are more correct responses in the impasse condition than the control condition).
 
-**dichotomous predictor**
+### LOGISTIC REGRESSION
 
-ln(odds of +) = -1.822 + 0.9(x1) ; x1 = 0 for control, 1 for impasse
+*Fit a logistic regression (at the subject level), predicting Q1 accuracy (absolute score) by condition.*
 
--   intercept: log odds of (+ response) in control condition
--   LN(+ for control): -1.822 + 0.9(0) = -1.822
--   odds of (+ for control) = exp(-1.822) = 0.162 odds = p(+) / (1-p(+)) odds = p / (1-p) odds \* (1-p) = p odds - p(odds) = p odds = p - p(odds) o/1-o = p p = 0.162 / (1-0.162) = 0.193 probability of (+) for control
+#### Fit Model
 
-|                                                                                                                  |
-|:-----------------------------------------------------------------------------------------------------------------|
-| MARGINAL total = 330 success : 71, failure : 259 p(+) = 71 / 330 = 0.215 = 22% odds(+) = 71 / 259 = 0.274        |
-| CONTROL total = 158 success = 22; failure = 136 p(success) = 22/158 = 0.139 = 14% odds(success) = 22/136 = 0.162 |
-| IMPASSE total = 172 success = 49; failure = 123 p(success) = 49/172 = 0.285 = 29% odds(success) = 49/123 = 0.398 |
-
--   coeff: DIFFERENCE in log odds of (+) in impasse vs. control
-
--   LN(+ for impasse): -1.822 + 0.9 = -0.922
-
--   odds of (+ for impasse) = exp(-0.922) = 0.398
-
--   the DIFFERENCE in logs odds is also called the ODDS RATIO (slope of logit model = difference in log odds = log odds ratio) b = 0.9 is log odds ratio of (+) in impasse vs control exp(b) = exp(0.9) = 2.46 = odds ratio of (+) in impasse vs control odds of (+) in impasse are 2.46 times higher than in control
-
-*The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable*
-
-*The logistic regression coefficients give the change in the log odds of the outcome for a one unit increase in the predictor variable.*
-
-Beta Coeff 0.901 indicates the model predicts being in the impasse condition yields an increase in log odds of 0.901 over control; the log odds of a correct answer in the impasse condition are 0.9. (Exponentiated) this is equivalent to an increase in odds of a correct response in the impasse condition of 2.46. Being in the impasse condition (versus control) increases the log odds of a correct answer by 0.9 (95% CI \[0.35, 1.48\]). In terms of odds ratios (rather than log odds) this equates to being in the impasse condition yields an increase in odds of a correct response of 2.4 \[1.42, 4.37\].
-
-This model predicts the probability of a correct response in the control condition is 14% and probability of a correct response in the impasse condition is 29% (NOTE: Just as the predictions made in linear regression are based on the mean of the sample data at each level of the categorical predictor, the predictions (as probabilities) of the logit model are equivalent to the % success (%1s instead of 0s) at each level of the categorical predictor.)
-
-##### Condition + RT on Q1 Accuracy
+*First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.*
 
 ```{r}
+#| label: FIT-Q1ACC-LOG-combined
+#| warning: false
+#| message: false
 
-#MODEL
-m2 <- glm( accuracy ~ rt_s, data = df, family = "binomial")
-summary(m2)
-confint(m2)
-performance(m2)
-report(m2)
+#combined
+df <- df_q1 
 
-plot(allEffects(m2))
+# FREQUENCY TABLE
+# my.table <- table(df$accuracy, df$pretty_condition)
+# addmargins(my.table) #counts
+# addmargins(prop.table(my.table)) #props
 
+# MODEL FITTING:::::::::::::::::::::::::::::::::::::
 
-m3 <- glm( accuracy ~ condition + rt_s, data = df, family = "binomial")
-summary(m3)
-confint(m3)
-performance(m3)
-report(m3)
+#: 1 EMPTY MODEL baseline glm model intercept only
+m0 = glm(accuracy ~ 1, data = df, family = "binomial")
+print("EMPTY MODEL")
+summary(m0)
 
-plot(allEffects(m3))
+#: 2 CONDITION model
+m1 <- glm( accuracy ~ pretty_condition, data = df, family = "binomial")
+print("PREDICTOR MODEL")
+summary(m1)
 
-compare_performance(m,m2,m3)
+#: 3 TEST SUPERIOR FIT
+paste("AIC wth predictor is lower than empty model?", m0$aic > m1$aic)
+test_lrt(m0,m1) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
 ```
 
-```{r}
-#evaluate model using kfold CV
-# https://www.statology.org/k-fold-cross-validation-in-r/
+*The Condition predictor significantly improves model fit.*
 
-#specify the cross-validation method
-ctrl <- trainControl(method = "cv", number = 5)
-#fit a regression model and use k-fold CV to evaluate performance
-mk <- train( accuracy ~ condition, data = df, method = "glm", trControl = ctrl, family = "binomial")
-print(mk)
-
-
-
-```
-
-#### ORDINAL Q1
-
-https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/ https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+#### Visualize
 
 ```{r}
-#CREATE DATAFRAME OF Q1
-df <- df_items %>% filter(q ==1) %>% mutate(scaled = as.factor(score_SCALED))
+#| label: MODEL-Q1ACC-LOG-combined
 
-#MODEL
-m <- polr(scaled ~ condition , data = df, Hess=TRUE)
-summary(m)
-confint(m)
-performance(m)
-report(m)
+# DESCRIBE MODEL ::::::::::::::::::::::::::::::::::::: 
 
-#exponentiate coefficients and CIs 
-ci <- confint(m)
-ci
-e <- coef(m)
+print("PREDICTOR MODEL")
+# summary(m1)
+
+#: INTERPRET COEFFICIENTS
+
+print("Coefficients —- LOG ODDS")
+confint(m1)
+print("Coefficients —- ODDS RATIOS")
+e <- cbind( exp(coef(m1)), exp(confint(m1))) #exponentiate
 e
-# exp(cbind(e,ci))
 
+print("MODEL PERFORMANCE")
+performance(m1)
+print("SANITY CHECK REPORTING")
+report(m1)
+
+print("MODEL PREDICTIONS")
 # Retrieve predictions as probabilities 
 # (for each level of the predictor)
-# p.control <- predict(m,data.frame(condition="111"),type="response")
-# paste("Probability of success in control,", p.control)
-# p.impasse <- predict(m,data.frame(condition="121"),type="response")
-# paste("Probability of success in impasse,", p.impasse)
+p.control <- predict(m1,data.frame(pretty_condition="control"),type="response")
+paste("Probability of success in control,", p.control)
+p.impasse <- predict(m1,data.frame(pretty_condition="impasse"),type="response")
+paste("Probability of success in impasse,", p.impasse)
 
-# Plot Predicted data and original data points
-# ggplot(df, aes(x=condition, y=accuracy)) + 
-#   geom_point() +
-#   stat_smooth(method="glm", color="green", se=FALSE,
-#                 method.args = list(family=binomial))
-  
-#TO PLOT ALL EFFECTS
-library(effects)
-plot(allEffects(m))
+#: PLOT
 
-#SJPLOT
-library(sjPlot)
-plot_model(m, )
+#GGSTATS | MODEL | LOG ODDS 
+# library(ggstatsplot)
+# ggcoefstats(m1, output = "plot") + labs(x = "Log Odds Estimate")
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m1, type="std2", vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE) +  
+  labs(title = "Model Predicted Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+#SJPLOT | MODEL | PROBABILITIES
+# plot_model(m1, type="pred",
+#            show.intercept = TRUE, 
+#            show.values = TRUE,
+#            title = "Model Predicted Probability of Accuracy",
+#            axis.title = c("Condition","Probability of Accurate Response"))
+
+#GGEFFECTS | MODEL | PROBABILITIES
+# library(ggeffects)
+ggeffect(model = m1) %>% plot()
 
 
-#CONVERT TO PROBABILITIES
-newdat <- data.frame(condition=c("111","121"))
-prob <- (phat <- predict(object = m, newdat, type="p"))
-prob
-
+#SANITY CHECK SJPLOT
+# library(effects)
+# plot(allEffects(m))
 
 ```
 
-#### Cummulative Ordinal (Bayesian)
-
-https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+#### Diagnostics
 
 ```{r}
-# library(brms)
+check_model(m1)
+binned_residuals(m1)
+```
 
+#### Inference
 
-# #DEFINE DATA 
-# df <- df_items %>% mutate(
-#   scaled = factor(score_SCALED, ordered = TRUE,  #ordered factor
-#                     levels = c("-1", "-0.5", "0", "0.5","1"))
-# )
+We fit a logistic regression model to analyze the effect of experimental condition on probability of a correct answer on the first question. In this model, the effect of condition is statistically significant (z = 3.16, p = 0.0016). The model predicts that the odds of a correct response on the first question in the *impasse condition* increase by 146% ($e^{beta_1}$ = 2.46, 95% CI \[1.42, 4.37\]) over the *control condition*.
+
+*Equivalent statements:*
+
+-   being in impasse condition increases log odds of correct response by 0.901 (over control)
+-   being in impasse increases odds of correct response in impasse over control increases by factor of 2.46
+-   probability of correct response in control predicted as 28.5%, vs only 14% in control condition
+
+```{r}
+#PRETTY TABLE SJPLOT
+tab_model(m1)
+```
+
+#### TODO
+
+-   Are these residuals OK? I didn't think normally distributed residuals were an assumption for logistic regression.
+-   Interpretation/reporting of model fit?
+-   sanity check correct interpretation of coefficients & reporting
+
+### TODO ORDINAL REGRESSION
+
+*Fit an ordinal logistic regression (at the subject level), predicting Q1 interpretation by condition.*
+
+-   https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/
+-   https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+-   todo see ordinal regression video
+
+```{r}
+# #CREATE DATAFRAME OF Q1
+# df <- df_items %>% filter(q ==1) %>% mutate(scaled = as.factor(score_SCALED))
 # 
-# ord_cum <- brm( formula = scaled ~ condition,
-#                data = df,
-#                family = cumulative("probit"),
-#                file = "analysis/SGC3A/models/m_items_ord.cum.rds" # cache model (can be removed)  
+# #MODEL
+# m <- polr(scaled ~ condition , data = df, Hess=TRUE)
+# summary(m)
+# confint(m)
+# performance(m)
+# report(m)
 # 
-# )
+# #exponentiate coefficients and CIs 
+# ci <- confint(m)
+# ci
+# e <- coef(m)
+# e
+# # exp(cbind(e,ci))
 # 
-# summary(ord_cum)
-# conditional_effects(ord_cum, "condition", categorical = TRUE)
+# # Retrieve predictions as probabilities 
+# # (for each level of the predictor)
+# # p.control <- predict(m,data.frame(condition="111"),type="response")
+# # paste("Probability of success in control,", p.control)
+# # p.impasse <- predict(m,data.frame(condition="121"),type="response")
+# # paste("Probability of success in impasse,", p.impasse)
+# 
+# # Plot Predicted data and original data points
+# # ggplot(df, aes(x=condition, y=accuracy)) + 
+# #   geom_point() +
+# #   stat_smooth(method="glm", color="green", se=FALSE,
+# #                 method.args = list(family=binomial))
+#   
+# #TO PLOT ALL EFFECTS
+# library(effects)
+# plot(allEffects(m))
 # 
 # #SJPLOT
 # library(sjPlot)
-# plot_model(ord_cum)
-# 
-# # m %>%
-# #   spread_draws(b_Intercept, r_condition[condition,]) %>%
-# #   mutate(condition_mean = b_Intercept + r_condition) %>%
-# #   ggplot(aes(y = condition, x = condition_mean)) +
-# #   stat_halfeye()
-# 
-# # performance(ord_cum)
-# # plot(ord_cum)
-```
-
-#### Adjacent-Category Ordinal (Bayesian)
-
-```{r}
-# 
-# #DEFINE DATA 
-# df <- df_items %>% mutate(
-#   scaled = factor(score_SCALED, ordered = TRUE,  #ordered factor
-#                     levels = c("-1", "-0.5", "0", "0.5","1"))
-# )
+# plot_model(m, )
 # 
 # 
-# # To specify an adjacent-category model, we use family = acat() instead of family = cumulative() as an argument to the brm() function. Then, to model condition with possible category-specific effects, we wrap this variable in cs() in the model’s formula:
+# #CONVERT TO PROBABILITIES
+# newdat <- data.frame(condition=c("111","121"))
+# prob <- (phat <- predict(object = m, newdat, type="p"))
+# prob
 # 
-# ord_acat <- brm( formula = scaled ~ cs(condition),
-#                data = df,
-#                family = acat("probit"),
-#                file = "analysis/SGC3A/models/m_items_ord.acat.rds" # cache model (can be removed)  
-# )
-# 
-# summary(ord_acat)
-# conditional_effects(ord_cum, "condition", categorical = TRUE)
-# conditional_effects(ord_acat, "condition", categorical = TRUE)
-# 
-# #TIDYBAYES VISUALIZATION
-# library(tidybayes)
-# ord_acat %>%
-#   spread_draws(b_Intercept, r_condition[condition,]) %>%
-#   mutate(condition_mean = b_Intercept + r_condition) %>%
-#   ggplot(aes(y = condition, x = condition_mean)) +
-#   stat_halfeye()
-# 
-
 
 ```
 
-## H1B \| TEST PHASE ACCURACY
+## H1B \| OVERALL ACCURACY
 
-On the TEST Phase of the graph comprehension task (the final 8 questions, encountered after the 5 scaffolded questions) does the impasse condition affect performance on the graph comprehension task?
+**Do Ss in the IMPASSE condition have higher scores across the entire task?**
 
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does posing a mental impasse improve performance?                                                                                      |
-+=======================+========================================================================================================================================+
-| **Hypothesis**        | (H1A) Participants in the IMPASSE condition will have significantly higher TEST PHASE performance than those in the CONTROL condition. |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | OLS Linear Regression `DV_percent_test_NABS` \~ `condition` (absolute scoring)\                                                        |
-|                       | OLS Linear Regression `item_test_SCALED` \~ `condition` (scaled scoring)                                                               |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| **Alternatives**      | **Exploring alternatives.**\                                                                                                           |
-|                       | *Simple linear regression models do a poor job of fitting the (bimodal) outcome distributions (both absolute and scaled scores)*       |
-|                       |                                                                                                                                        |
-|                       | -   Hurdle model (mixture model w/ binomial + count)                                                                                   |
-|                       | -   Negative Binomial / Zero Inflated Negative Binom for overdispersed count?                                                          |
-|                       | -   Beta regression?                                                                                                                   |
-|                       | -   Other way to account for the severe bimodality?                                                                                    |
-|                       | -   "shift function" way to characterize difference in bimodal distributions                                                           |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| **Inference**         | ***TODO*** **when done**                                                                                                               |
-+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+The graph comprehension tasks includes 13 interpretation-discriminant questions completed in sequence.
 
-### Test Phase Absolute Score
-
-#### Shift in Modal Mass
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Do Ss in the IMPASSE condition score higher across the entire task than those in the CONTROL group.                                                     |
++=======================+=========================================================================================================================================================+
+| **Hypothesis**        | (H1B) Participants in the IMPASSE condition will have higher test phase performance than those in the CONTROL condition.                                |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | **data**: `df_items` where `q nin 6,9` (the 13 discriminating Qs ), `df_subjects`                                                                       |
+|                       |                                                                                                                                                         |
+|                       | **outcome**:                                                                                                                                            |
+|                       |                                                                                                                                                         |
+|                       | -   \[at item level\]                                                                                                                                   |
+|                       |     -   *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                  |
+|                       |     -   *interpretation* (ordered factor from `interpretation`)                                                                                         |
+|                       | -   \[subject level\]                                                                                                                                   |
+|                       |     -   p_accuracy (percent of correct responses)                                                                                                       |
+|                       |                                                                                                                                                         |
+|                       | **predictor**: `condition` \[between-subjects factor\]                                                                                                  |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  Mixed Logistic Regression\                                                                                                                          |
+|                       |     `accuracy` \~ `condition` + (1 \| `subject` )\                                                                                                      |
+|                       |     model effect of condition on probability of correct response \[during test phase\] while accounting for subject (and item-level?) effects           |
+|                       | 2.  Ordinal Mixed Logistic Regression\                                                                                                                  |
+|                       |     `interpretation` \~ `condition` + (1 \| `subject` )\                                                                                                |
+|                       |     model effect of condition on \[ordered correctness of interpretation\] \[during test phase\] while accounting for subject (and item-level?) effects |
+|                       | 3.  Shift in Modal Mass (descriptive)\                                                                                                                  |
+|                       |     describe & visualize shift in deciles between conditions for `` `scaled_score` `` (at subject level)                                                |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Alternatives**      | -   OLS LINEAR REGRESSION                                                                                                                               |
+|                       |     -   bimodal distribution at tails makes the mean a poor predictor; LMs violate assumptions of normally distributed residuals                        |
+|                       |     -   lm `DV_percent_test_NABS` \~ `condition` (absolute scoring) OR lm `item_test_SCALED` \~ `condition` (scaled scoring)                            |
+|                       |     -   both absolute and scaled scores yield non-normal residuals                                                                                      |
+|                       |     -   no transformation of the outcome variables yield normal residuals                                                                               |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Notes**             | **Also exploring:**                                                                                                                                     |
+|                       |                                                                                                                                                         |
+|                       | -   Hurdle model (mixture model w/ binomial + \[poisson or negbinom count; 0s from 1 DGP)                                                               |
+|                       | -   Zero Inflated model (mixture model w/ binomial + poisson or negbinom count; 0s from 2 DGPs)                                                         |
+|                       | -   Beta regression hurdle model? (mixture with location and scale parameters \[mean, variance\] and hurdles for floor and ceiling effects)             |
+|                       | -   Other way to account for the severe bimodality?                                                                                                     |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ```{r}
-#| label: VIS-TEST-ABS
+#| label: SETUP-TEST-ACC
+
+#PREPARE DATA 
+n_items = 13 #number of items in test
+
+#item level
+df = df_items %>% filter(q %nin% c(6,9)) %>% mutate(
+  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+  q = as.factor(q)
+)
+
+#STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "Correct Response on Q 1",
+       title = "Accuracy on Task",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
+
+#GROUPED PROPORTIONAL BAR CHART
+# gf_props(~accuracy, fill = ~pretty_condition, x =~pretty_condition,
+#        position = position_dodge(), data = df) %>% 
+#   gf_facet_grid(~pretty_mode) +
+#    labs(x = "Correct Responses in Test Phase",
+#        title = "Accuracy on Task by Condition",
+#        subtitle="Impasse Condition yields a greater proportion of correct responses")
+
  
-#HISTOGRAM
-stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(DV_percent_test_NABS))
-gf_props(~DV_percent_test_NABS, 
-         fill = ~pretty_condition, data = df_subjects) %>% gf_facet_grid(~pretty_condition) %>% 
+#FACETED HISTOGRAM
+stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(s_NABS))
+gf_props(~s_NABS, 
+         fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_grid(pretty_condition ~ pretty_mode) %>% 
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "% Correct",
+  labs(x = "# Correct",
        y = "proportion of subjects",
-       title = "Test Phase Absolute Score (% Correct)",
+       title = "Overall Absolute Score (# Correct)",
        subtitle = "") + theme(legend.position = "blank")
 
 ```
 
-The Effect of Condition on Total Absolute Test Score can be described as a 'shift' in mass between the two modes of each distribution.
+### MIXED LOGISTIC REGRESSION
 
-*FIRST, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
+*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
+
+#### Fit Model
 
 ```{r}
-#| label: COMPARE-DIST-NABS
+#| label: MODEL-MLOG-ABS-comb
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
+m0
+
+#:: RANDOM INTERCEPT SUBJECT
+print("Subject intercept random model")
+mm.rS <- glmer(accuracy ~ (1|subject), data = df,family = "binomial")
+mm.rS
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
+test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+
+
+## 2 | ADD RANDOM RANDOM INTERCEPT ITEM
+
+#:: RANDOM INTERCEPT SUBJECT + INTERCEPT Q
+print("Subject & Question random intercepts")
+mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df,family = "binomial")
+mm.rSQ
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)) )
+test_lrt(mm.rS,mm.rSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.rSQ))$p[2])
+
+## 3 | ADD FIXED EFFECT
+
+# SUBJECT INTERCEPT | FIXED CONDITION 
+print("FIXED Condition + Subject & Question random intercepts")
+mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q), 
+                data = df,family = "binomial")
+mm.CrSQ
+paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
+test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
+
+```
+
+#### Visualize
+
+```{r}
+
+#: PRINT MODEL 
+print("PREDICTOR MODEL")
+summary(mm.CrSQ)
+
+#: INTERPRET COEFFICIENTS
+
+print("MODEL PERFORMANCE")
+performance(mm.CrSQ)
+print("SANITY CHECK REPORTING")
+report(mm.CrSQ)
+
+
+#: PLOT
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(mm.CrSQ, type="std2", vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE) +  
+  labs(title = "Model Predicted Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(mm.CrSQ, type="pred",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Predicted Probability of Accuracy",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+#GGEFFECTS | MODEL | PROBABILITIES
+# library(ggeffects)
+# ggeffect(model = mm.CrSQ) %>% plot()
+
+#SANITY CHECK SJPLOT
+# library(effects)
+# plot(allEffects(mm.CrSQ))
+
+```
+
+#### Diagnostics
+
+```{r}
+check_model(mm.CrSQ)
+binned_residuals(mm.CrSQ)
+```
+
+#### Inference
+
+We fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items; to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(4): 38.72, p \< 0.001); and the total explanatory power is substantial (conditional R2 = 0.89) and the part related to the fixed effects alone (marginal R2) is 0.13. Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 55 over the control condition $e^{\beta_1}$ = 54.79, 95% CI \[13.2, 227.39\], p \< 0.001.
+
+```{r}
+# PRETTY TABLE SJPLOT
+tab_model(mm.CrSQ)
+```
+
+#### TODO
+
+-   sanity check interpretation
+-   sanity check random effects structure : ITEM appropriate as random intercept? What does it mean to have two random intercepts?
+-   DIAGNOSTICS: What in the world is happening with the normality of random effects plot? Do the fixed effects residuals need to be normally distributed?
+-   Are there other plots or recommended diagnostics for mixed log regression
+-   consider multiple regression with rt, sequence cluster, confidence, etc.
+
+```{r}
+
+#STEPWISE FIT ALT 
+
+#:: EMPTY MODEL (baseline, no random effect)
+# m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
+
+#:: EMPTY MODEL (baseline, no random effect)
+# m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
+# 
+# #:: RANDOM INTERCEPT SUBJECT
+# mm.rS <- glmer(accuracy ~ (1|subject), data = df,family = "binomial")
+# 
+# # :: TEST random effect
+# paste("AIC with random effect is lower than glm empty model?", m0$aic > AIC(logLik(mm.rS)))
+# test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+# paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+
+```
+
+### TODO \| Ordinal Regression on ITEM-Interpretation
+
+### SHIFT IN MODAL MASS
+
+The Effect of Condition on Total Scaled Score can be described as a 'shift' in mass between the low and high modes of each distribution.
+
+*First, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
+
+```{r}
+#| label: COMPARE-DIST-NABS-comb
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #(requires shift function files loaded)
+#LOAD MODAL SHIFT FUNCTION RESOURCES
+source("analysis/utils/shift_function/Rallfun-v30.txt")
+source("analysis/utils/shift_function/wilcox_modified.txt")
+source("analysis/utils/shift_function/rgar_visualisation.txt")
+source("analysis/utils/shift_function/rgar_utils.txt")
+#NOTE: something in these breaks the stat_ecdf in ggplot2
 
 #PREP DATA 
-df <- df_subjects %>% dplyr::select(DV_percent_test_NABS, pretty_condition) %>% 
+df <- df_subjects %>%
+  dplyr::select(s_SCALED, pretty_condition) %>%
   mutate(
-    data = as.numeric(DV_percent_test_NABS),
+    data = as.numeric(s_SCALED),
     #flip order levels to correctly orient graph
     # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
     gr = as.character(pretty_condition)
   ) %>% dplyr::select(data,gr)
+
 
 g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
 g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
@@ -632,12 +657,12 @@ print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consis
 #REGULAR T-TEST
 t.test(g1,g2) # regular Welsh t-test
 
-
 ```
 
 ```{r}
-#| label: SHIFT-FN-SCALED
-
+#| label: SHIFT-FN-NABS-comb
+#| warnings: false
+#| messages: false
 
 #IF THIS ERRORS, consider loadling plyr (older than dplyr)
 # kernel density estimate + rug plot + superimposed deciles
@@ -656,960 +681,12 @@ cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights 
 
 ```
 
-#### WIP \| Mixed Logistic Regression ITEM-ABS
-
-Nesting Structure: FACTORS:
-
-Item Condition (2 levels: control, impasse)\
-subjects are in 1 condition (between - subjectss)
-
-SUBJECTS are nested within CONDITION SUBJECT completes \[8,13\] items in CONDITION item crossed with condition; subjected nested in condition -- each subject belongs to 1 condition -- each subject completes each item (x 8 or x 13)
-
-Example 2: A large HMO wants to know what patient and physician factors are most related to whether a patient's lung cancer goes into remission after treatment as part of a larger study of treatment outcomes and quality of life in patients with lunger cancer.
-
-Below we use the glmer command to estimate a mixed effects logistic regression model with Il6, CRP, and LengthofStay as patient level continuous predictors, CancerStage as a patient level categorical predictor (I, II, III, or IV), Experience as a doctor level continuous predictor, and a random intercept by DID, doctor ID.
-
-glmer( remission \~ cancerstage)
-
-outcome: remission factors: patient nested in doctor nested in hospital
-
-outcome : score factors : subject in condition; item
-
-1.  STEP 1 \| Graph continuous predictor variables //ggpairs(hdp\[, c("IL6", "CRP", "LengthofStay", "Experience")\])
-
-```{r}
-library(lme4) #mixed effects models 
-
-#TODO FILTER only for test data 
-df <- df_items %>% mutate(accuracy = score_niceABS)
-#Model accuracy BY condition with random intercept for question
-
-m <- glmer( accuracy ~ condition + (1|q) , data = df, family = "binomial")
-m
-```
-
-Output tells us \# of observations \[ITEMS\] = 4590, and number of groups (QUESTIONS = \[15\]).
-
-In a logistic model, the outcome is commonly on one of three scales:
-
--   Log odds (also called logits), which is the linearized scale\
--   Odds ratios (exponentiated log odds), which are not on a linear scale\
--   Probabilities, which are also not on a linear scale
-
-In ordinary logistic regression, you could just hold all predictors constant, only varying your predictor of interest. However, in mixed effects logistic models, the random effects also bear on the results. Thus, if you hold everything constant, the change in probability of the outcome over different values of your predictor of interest are only true when all covariates are held constant and you are in the same group, or a group with the same random effect. The effects are conditional on other predictors and group membership, which is quite narrowing. An attractive alternative is to get the average marginal probability. That is, across all the groups in our sample (which is hopefully representative of your population of interest), graph the average change in probability of the outcome across the range of some predictor of interest.
-
-```{r}
-df <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9))
-df$q = as.factor(df$q)
-
-# SUBJECT INTERCEPT + FIXED CONDITION
-mm1 <- glmer(score_niceABS ~ condition + (1|subject), data = df,family = "binomial")
-summary(mm1)
-report(mm1) 
-
-# CONDITION SLOPE per SUBJECT INTERCEPT + FIXED CONDITION
-mm2 <- glmer(score_niceABS ~ condition + (1|subject) + (1 | q) , data = df, family = "binomial")
-summary(mm2)
-report(mm2)
-# check_model(mm2)
-
-# SUBJECT INTERCEPT + Q  INTERCEPT +  FIXED CONDITION
-# DOESN'T CONVERGE
-# mm3 <- glmer(score_niceABS ~ condition + q + (1 | subject), data = df, family = "binomial")
-# summary(mm3)
-# report(mm3)
-
-#RANDOM ONLY
-mm.r0 <- glmer(score_niceABS ~  (1 | subject), data = df, family = "binomial")
-summary(mm.r0)
-report(mm.r0)
-
-#RANDOM ONLY
-mm.r1 <- glmer(score_niceABS ~  (1 | subject) + (1 | q), data = df, family = "binomial")
-summary(mm.r1)
-report(mm.r1)
-
-#COMPARE PERFORMANCE
-compare_performance(mm.r0, mm.r1, mm1,mm2)
-
-
-
-#SJ PLOTS
-#table of effects
-sjPlot:: tab_model(mm2)
-sjPlot::plot_model(mm2)
-sjPlot::plot_model(mm2, transform = "plogis")
-sjPlot::plot_model(mm2, type = "pred")
-
-
-library(lattice)
-randoms <- ranef(mm2)
-dotplot(randoms)
-
-library(lmerTest)
-# ranova(mm1,mm2)
-```
-
-#### TODO \| Ordinal Regression on ITEM-Interpretation
-
-#### Linear Regression
-
-##### (In Person)
-
-###### Model
-
-```{r}
-#| label: MODEL-TEST-ABS-LAB
-
-#SCORE predicted by CONDITION
-lab.testabs.lm1 <- lm(DV_percent_test_NABS ~ pretty_condition, data = df_lab)
-paste("Model")
-summary(lab.testabs.lm1)
-paste("Partition Variance")
-anova(lab.testabs.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(lab.testabs.lm1)
-report(lab.testabs.lm1) #sanity check
-#print model equation
-eq <- extract_eq(lab.testabs.lm1, use_coefs = TRUE)
-```
-
-```{r}
-#| label: VISMODEL-TEST-ABS-LAB
-
-#MODEL ESTIMATES WITH UNCERTAINTY
-
-#setup references 
-m <- lab.testabs.lm1
-df <- df_lab 
-call <- m$call %>% as.character()
-
-# uncertainty model visualization
-df  %>%
-  data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>% 
-  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
-  stat_halfeye( scale = .5,
-      aes(
-        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
-        fill = stat(cut_cdf_qi(cdf, 
-                .width = c(.90, .95),
-                labels = scales::percent_format())))) +
-  scale_fill_brewer(direction = -1) + 
-  labs (title = "(LAB) Test Phase Accuracy ~ Condition", 
-        x = "model predicted mean (% correct)", y = "Condition", fill = "Interval",
-        subtitle = paste("lm(",call[2],")")
-  ) + theme(legend.position = "blank")
-
-```
-
-###### Diagnostics
-
-```{r}
-#| label: DIAG-TEST-ABS-LAB
-
-#model diagnostics
-check_model(lab.testabs.lm1, panel = TRUE)
-```
-
-\(1\) RESIDUAL DISTRIBUTION: `r check_normality(lab.testabs.lm1)`\
-(2) HOMOGENEITY: `r check_homogeneity(lab.testabs.lm1)`\
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.testabs.lm1)` (4) AUTOCORRELATION: `r check_autocorrelation(lab.testabs.lm1)`
-
-###### Inference
-
-OLS Linear Regression on % correct in the TEST PHASE shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model is a poor fit to the data: (1) the model predictions for each group are closer to the anitimode of each of distribution than the group modes, and (2) the distribution of residuals is not normal.
-
-##### (Online Replication)
-
-###### Visualization
-
-```{r}
-#| label: VIS-TEST-ABS-ONLINE
- 
-#HISTOGRAM
-stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(DV_percent_test_NABS)*100)
-gmean = df_online %>% dplyr::summarise(mean = mean(DV_percent_test_NABS)*100)
-gf_props(~DV_percent_test_NABS*100, fill = ~pretty_condition, data = df_online) %>% 
-  gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "% Correct",
-       y = "proportion of subjects",
-       title = "(ONLINE) TEST Phase Absolute Score (% Correct)",
-       subtitle = "") + theme_minimal()
-
-```
-
-###### Model
-
-```{r}
-#| label: MODEL-TEST-ABS-ONLINE
-
-#SCORE predicted by CONDITION
-rep.testabs.lm1 <- lm(DV_percent_test_NABS ~ pretty_condition, data = df_online)
-paste("Model")
-summary(rep.testabs.lm1)
-paste("Partition Variance")
-anova(rep.testabs.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(rep.testabs.lm1)
-# report(m1) #sanity check
-#print model equation
-eq <- extract_eq(rep.testabs.lm1)
-```
-
-**Model equation** `r eq`
-
-**For online replication** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 5% variance in accuracy (F(1,202) = 10.8, p \< 0.01). The estimated beta coefficient ($\beta$ = 0.18, 95% CI \[0.07, 0.29\]) predicts that participants in the impasse condition will on average score 18% higher than those in the control condition.
-
-```{r}
-#| label: VISMODEL-TEST-ABS-ONLINE
-
-#MODEL ESTIMATES WITH UNCERTAINTY
-
-#setup references 
-m <- rep.testabs.lm1
-df <- df_online 
-call <- m$call %>% as.character()
-
-# uncertainty model visualization
-df  %>%
-  data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>% 
-  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
-  stat_halfeye( scale = .5,
-      aes(
-        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
-        fill = stat(cut_cdf_qi(cdf, 
-                .width = c(.90, .95),
-                labels = scales::percent_format())))) +
-  scale_fill_brewer(direction = -1) + 
-  labs (title = "(ONLINE) Test Phase Accuracy ~ Condition", 
-        x = "model predicted mean (% correct)", y = "Condition", fill = "Interval",
-        subtitle = paste("lm(",call[2],")")
-  ) + theme(legend.position = "blank")
-
-```
-
-###### Diagnostics
-
-```{r}
-#| label: DIAG-TEST-ABS-ONLINE
-
-#model diagnostics
-check_model(rep.testabs.lm1, panel = TRUE)
-```
-
-\(1\) RESIDUAL DISTRIBUTION: `r check_normality(rep.testabs.lm1)` (2) HOMOGENEITY: `r check_homogeneity(rep.testabs.lm1)` (3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.testabs.lm1)` (4) AUTOCORRELATION: `r check_autocorrelation(rep.testabs.lm1)` (5) OUTLIERS: `r check_outliers(rep.testabs.lm1)`
-
-###### Inference
-
-**For in person collection** OLS Linear Regression on % correct in the TEST PHASE shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model is a poor fit to the data: (1) the model predictions for each group are closer to the anitimode of each of distribution than the group modes, and (2) the distribution of residuals is not normal, and the LM assumptions of homogeneity of variance (between groups) and homogeneity of error variance appears to be violated.
-
-### Test Phase Scaled Score
-
-While Absolute Score (as \# or % correct) gives an indication of accuracy, it does not differentiate between different kinds of incorrect answers. The Scaled score includes this extra information see @sec-scoring-scaledScore
-
-#### Shift in Modal Mass
-
-```{r}
-#| label: VIS-TEST-SCALED
- 
-#HISTOGRAM
-stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_SCALED))
-gf_props(~item_test_SCALED, 
-         fill = ~pretty_condition, data = df_subjects) %>% gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "% Correct",
-       y = "proportion of subjects",
-       title = "Test Phase Scaled Score",
-       subtitle = "") + theme(legend.position = "blank")
-
-```
-
-The Effect of Condition on Test Phase Scaled Score can be described as a 'shift' in mass between the two modes of each distribution.
-
-*FIRST, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
-
-```{r}
-#| label: COMPARE-DIST-SCALED
-
-#(requires shift function files loaded)
-
-
-#PREP DATA 
-df <- df_subjects %>% dplyr::select(item_test_SCALED, pretty_condition) %>% 
-  mutate(
-    data = as.numeric(item_test_SCALED),
-    #flip order levels to correctly orient graph
-    # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
-    gr = as.character(pretty_condition)
-  ) %>% dplyr::select(data,gr)
-
-g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
-g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
-
-
-#COMPARE DISTRIBUTIONS WITH ROBUST TESTS
-
-#What do common tests say about the difference?
-
-# Kolmogorov-Smirnov test
-#If y is numeric, a two-sample (Smirnov) test of the null hypothesis that x and y 
-#were drawn from the same continuous distribution is performed. Alternatively, y ...
-
-#null is X is drawn from CDF EQUAL TO Y
-ks.test(g1,g2) 
-print("SUGGESTS that impasse and control come from different population distributions")
-
-# #null is X is NOT LESS THAN Y
-ks.test(g1,g2, alternative = "greater") 
-print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consistent with higher probability of low scores]")
-
-#REGULAR T-TEST
-t.test(g1,g2) # regular Welsh t-test
-
-
-```
-
-```{r}
-#| label: SHIFT-FN-NABS
-
-
-#IF THIS ERRORS, consider loadling plyr (older than dplyr)
-# kernel density estimate + rug plot + superimposed deciles
-kde <- plot.kde_rug_dec2(df)
-# kde
-
-# compute shift function
-out <- shifthd( g1, g2, nboot=200)
-
-# plot shift function
-sf <- plot.sf(data=out) # function from rgar_visualisation.txt
-# sf
-
-# combine KDE + SF
-plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
-
-```
-
-#### Linear Regression
-
-##### (In Person)
-
-###### Visualization
-
-```{r}
-#| label: VIS-TEST-SCALED-LAB
- 
-#HISTOGRAM
-stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_SCALED))
-gf_props(~item_test_SCALED, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Test Phase Scaled Score [-8, +8]",
-       y = "proportion of subjects",
-       title = "(LAB) TEST Phase Scaled Score ",
-       subtitle = "") + 
-  theme_minimal()
-
-```
-
-###### Model
-
-```{r}
-#| label: MODEL-TEST-SCALED-LAB
-
-#SCORE predicted by CONDITION
-lab.test_scaled.lm1 <- lm(item_test_SCALED ~ pretty_condition, data = df_lab)
-paste("Model")
-summary(lab.test_scaled.lm1)
-paste("Partition Variance")
-anova(lab.test_scaled.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(lab.test_scaled.lm1)
-# report(m1) #sanity check
-#print model equation
-eq <- extract_eq(lab.test_scaled.lm1, use_coefs = TRUE)
-```
-
-**Model equation** `r eq`
-
-**For (In Person)** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 8% variance in accuracy (F(1,124) = 10.8, p \< 0.005). The estimated beta coefficient ($\beta$ = 3.77, 95% CI \[1.49, 6.04\]) predicts that participants in the impasse condition will on average 4 points higher than those in the control condition.
-
-```{r}
-#| label: VISMODEL-TEST-SCALED-LAB
-
-#MODEL ESTIMATES WITH UNCERTAINTY
-
-#setup references 
-m <- lab.test_scaled.lm1
-df <- df_lab 
-call <- m$call %>% as.character()
-
-# uncertainty model visualization
-df  %>%
-  data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>% 
-  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
-  stat_halfeye( scale = .5,
-      aes(
-        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
-        fill = stat(cut_cdf_qi(cdf, 
-                .width = c(.90, .95),
-                labels = scales::percent_format())))) +
-  scale_fill_brewer(direction = -1) + 
-  labs (title = "(LAB) Test Phase Scaled Score ~ Condition", 
-        x = "model predicted mean", y = "Condition", fill = "Interval",
-        subtitle = paste("lm(",call[2],")")
-  ) + theme(legend.position = "blank")
-
-```
-
-###### Diagnostics
-
-```{r}
-#| label: DIAG-TEST-SCALED-LAB
-
-#model diagnostics
-check_model(lab.test_scaled.lm1, panel = TRUE)
-```
-
-\(1\) RESIDUAL DISTRIBUTION: `r check_normality(lab.test_scaled.lm1)`\
-(2) HOMOGENEITY: `r check_homogeneity(lab.test_scaled.lm1)`\
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.test_scaled.lm1)`\
-(4) AUTOCORRELATION: `r check_autocorrelation(lab.test_scaled.lm1)`
-
-###### Inference
-
-OLS Linear Regression on SCALED SCORE in the TEST PHASE shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model is a poor fit to the data: (1) the model predictions for each group are closer to the anitimode of each of distribution than the group modes, and (2) the distribution of residuals is not normal. (Assumptions of homogenity of variance across groups, and homogeneity of variance in residuals are met)
-
-##### (Online Replication)
-
-###### Visualization
-
-```{r}
-#| label: VIS-TEST-SCALED-ONLINE
- 
-#HISTOGRAM
-stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_SCALED))
-gf_props(~item_test_SCALED, fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "Test Phase Scaled Score [-8, +8]",
-       y = "proportion of subjects",
-       title = "(ONLINE) TEST Phase Scaled Score ",
-       subtitle = "") + 
-  theme_minimal()
-
-```
-
-###### Model
-
-```{r}
-#| label: MODEL-TEST-SCALED-ONLINE
-
-#SCORE predicted by CONDITION
-rep.test_scaled.lm1 <- lm(item_test_SCALED ~ pretty_condition, data = df_online)
-paste("Model")
-summary(rep.test_scaled.lm1)
-paste("Partition Variance")
-anova(rep.test_scaled.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(rep.test_scaled.lm1)
-# report(m1) #sanity check
-#print model equation
-eq <- extract_eq(rep.test_scaled.lm1, use_coefs = TRUE)
-```
-
-**Model equation** `r eq`
-
-**For online replication** an OLS linear regression predicting test-phase (% correct) by experimental condition explains a statistically significant though small 7% variance in accuracy (F(1,202) = 14.3, p \< 0.001). The estimated beta coefficient ($\beta$ = 3.24, 95% CI \[1.55, 4.62\]) predicts that participants in the impasse condition will on average 3 points higher than those in the control condition.
-
-```{r}
-#| label: VISMODEL-TEST-SCALED-ONLINE
-
-#MODEL ESTIMATES WITH UNCERTAINTY
-
-#setup references 
-m <- rep.test_scaled.lm1
-df <- df_online 
-call <- m$call %>% as.character()
-
-# uncertainty model visualization
-df  %>%
-  data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) %>% 
-  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
-  stat_halfeye( scale = .5,
-      aes(
-        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
-        fill = stat(cut_cdf_qi(cdf, 
-                .width = c(.90, .95),
-                labels = scales::percent_format())))) +
-  scale_fill_brewer(direction = -1) + 
-  labs (title = "(LAB) Test Phase Scaled Score ~ Condition", 
-        x = "model predicted mean (scaled score)", y = "Condition", fill = "Interval",
-        subtitle = paste("lm(",call[2],")")
-  ) + theme(legend.position = "blank")
-
-```
-
-###### Diagnostics
-
-```{r}
-#| label: DIAG-TEST-SCALED-ONLINE
-
-#model diagnostics
-check_model(rep.test_scaled.lm1, panel = TRUE)
-```
-
-\(1\) RESIDUAL DISTRIBUTION: `r check_normality(rep.test_scaled.lm1)`\
-(2) HOMOGENEITY: `r check_homogeneity(rep.test_scaled.lm1)`\
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.test_scaled.lm1)`\
-(4) AUTOCORRELATION: `r check_autocorrelation(rep.test_scaled.lm1)`
-
-###### Inference
-
-**For online replication** an OLS Linear Regression on SCALED SCORE in the TEST PHASE shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model is a poor fit to the data: (1) the model predictions for each group are closer to the anitimode of each of distribution than the group modes, and (2) the distribution of residuals is not normal. (Assumptions of homogenity of variance across groups, and homogeneity of variance in residuals are met)
-
-## H1C \| Q1 LATENCY
-
-## RESPONSE LATENCY
-
--   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
--   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
--   Especially see https://lindeloev.github.io/shiny-rt/ for ideas on modelling reaction time data
-
-| Research Question     |     |
-|-----------------------|-----|
-| **Hypothesis**        |     |
-| **Analysis Strategy** |     |
-| **Alternatives**      |     |
-| **Inference**         |     |
-
-### Q1 Response Latency
-
-#### Linear Regression (Log Transform)
-
-##### (In Person)
-
-###### Visualization
-
-```{r}
-#| label: VIS-TEST-Q1TIME
- 
-#HISTOGRAM
-stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
-gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
-  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(title = "(LAB) First Question Response Time",,
-       # x = "Response Time (seconds)",
-       # y = "proportion of participants",
-       subtitle = "") + 
-  theme_minimal()
-
-```
-
-###### Model
-
-```{r}
-#| label: MODEL-Q1TIME-LAB
-
-#SCORE predicted by CONDITION
-lab.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_lab)
-paste("Model")
-summary(lab.q1t.lm1)
-paste("Partition Variance")
-anova(lab.q1t.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(lab.q1t.lm1)
-report(lab.q1t.lm1) #sanity check
-#print model equation
-eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
-```
-
-```{r}
-#| label: VISMODEL-Q1-LATENCY-LAB
-
-#MODEL ESTIMATES WITH UNCERTAINTY
-
-#setup references 
-#lab.q1t.lm1 <- lm(log(item_q1_rt) ~ condition, data = df_lab)
-m <- lab.q1t.lm1
-df <- df_lab 
-call <- m$call %>% as.character()
-
-# uncertainty model visualization
-df <- df  %>%
-  data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) 
-
-#transform log
-df$.fitted <- exp(df$.fitted)
-df$.se.fit <- exp(df$.se.fit)
-
-df %>% 
-  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
-  stat_halfeye( scale = .5,
-      aes(
-        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
-        fill = stat(cut_cdf_qi(cdf, 
-                .width = c(.90, .95),
-                labels = scales::percent_format())))) +
-  scale_fill_brewer(direction = -1) + 
-  labs (title = "(LAB) Q1 Response Latency ~ Condition", 
-        x = "model predicted mean (seconds)", y = "Condition", fill = "Interval",
-        subtitle = paste("lm(",call[2],")"),
-        caption = "note: model log(predictions) have exponentiated to original scale") + theme(legend.position = "blank")
-
-```
-
-###### Diagnostics
-
-```{r}
-#| label: DIAG-Q1TIME-lab
-
-#model diagnostics
-check_model(lab.q1t.lm1, panel = TRUE)
-```
-
-(1) RESIDUAL DISTRIBUTION: `r check_normality(lab.q1t.lm1)`
-(2) HOMOGENEITY: `r check_homogeneity(lab.q1t.lm1)`
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.q1t.lm1)`
-(4) AUTOCORRELATION: `r check_autocorrelation(lab.q1t.lm1)`
-(5) OUTLIERS: `r check_outliers(lab.q1t.lm1)`
-
-###### Inference
-
-OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
-
-##### (Online Replication)
-
-###### Visualization
-
-```{r}
-#| label: VIS-TEST-Q1TIME-online
- 
-#HISTOGRAM
-stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
-gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
-  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(title = "(ONLINE) First Question Response Time",
-       # x = "Response Time (seconds)",
-       # y = "proportion of participants",
-       subtitle = "") + 
-  theme_minimal()
-
-```
-
-###### Model
-
-```{r}
-#| label: MODEL-Q1TIME-online
-
-#SCORE predicted by CONDITION
-rep.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_online)
-paste("Model")
-summary(rep.q1t.lm1)
-paste("Partition Variance")
-anova(rep.q1t.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(rep.q1t.lm1)
-report(rep.q1t.lm1) #sanity check
-#print model equation
-eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
-```
-
-```{r}
-#| label: VISMODEL-Q1-LATENCY-ONLINE
-
-#MODEL ESTIMATES WITH UNCERTAINTY
-
-#setup references 
-# rep.q1t.lm1 <- lm(log(item_q1_rt) ~ condition, data = df_online)
-m <- rep.q1t.lm1
-df <- df_online 
-call <- m$call %>% as.character()
-
-# uncertainty model visualization
-df <- df  %>%
-  data_grid(pretty_condition) %>%
-  augment(m, newdata = ., se_fit = TRUE) 
-
-#transform log
-df$.fitted <- exp(df$.fitted)
-df$.se.fit <- exp(df$.se.fit)
-
-df %>% 
-  ggplot(aes(y = pretty_condition, color = pretty_condition)) +
-  stat_halfeye( scale = .5,
-      aes(
-        xdist = dist_student_t(df = df.residual(m), mu = .fitted, sigma = .se.fit),
-        fill = stat(cut_cdf_qi(cdf, 
-                .width = c(.90, .95),
-                labels = scales::percent_format())))) +
-  scale_fill_brewer(direction = -1) + 
-  labs (title = "(ONLINE) Q1 Response Latency ~ Condition", 
-        x = "model predicted mean (seconds)", y = "Condition", fill = "Interval",
-        subtitle = paste("lm(",call[2],")"),
-        caption = "note: model log(predictions) have exponentiated to original scale") + theme(legend.position = "blank")
-
-```
-
-###### Diagnostics
-
-```{r}
-#| label: DIAG-Q1TIME-online
-
-#model diagnostics
-check_model(rep.q1t.lm1, panel = TRUE)
-```
-
-(1) RESIDUAL DISTRIBUTION: `r check_normality(rep.q1t.lm1)`
-(2) HOMOGENEITY: `r check_homogeneity(rep.q1t.lm1)`
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.q1t.lm1)`
-(4) AUTOCORRELATION: `r check_autocorrelation(rep.q1t.lm1)`
-(5) OUTLIERS: `r check_outliers(rep.q1t.lm1)`
-
-###### Inference
-
-OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
-
 ## RESOURCES
 
--   https://rpkgs.datanovia.com/ggpubr/reference/index.html
+reset plot margins par(mar=c(1,1,1,1))
 
-## WIP EXPLORING
+### Logistic Regression Notes
 
-### Test Phase Absolute Score (# questions)
+*The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable*
 
-#### Linear Regression
-
-*LM on Test Phase absolute score **as number of questions**, rather than % correct.*
-
-```{r}
-
-#SCORE predicted by CONDITION
-lm.1 <- lm(item_test_NABS ~ condition, data = df_subjects)
-paste("Model")
-summary(lm.1)
-paste("Partition Variance")
-anova(lm.1)
-paste("Confidence Interval on Parameter Estimates")
-confint(lm.1)
-report(lm.1) #sanity check
-check_model(lm.1)
-```
-
-#### Poisson Regression TODO
-
-https://stats.oarc.ucla.edu/r/dae/poisson-regression/
-
-The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can consider it a type of *count*, (ie. count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function).
-
-```{r}
-#POISSON
-
-#SCORE predicted by CONDITION --> POISSON DISTRIBUTION
-p.1 <- glm(item_test_NABS ~ condition, data = df_subjects, family = "poisson")
-paste("Model")
-summary(p.1)
-paste("Partition Variance")
-anova(p.1)
-paste("Confidence Interval on Parameter Estimates")
-confint(p.1)
-report(p.1) #sanity check
-check_model(p.1)
-
-```
-
-#### Zero Inflated Poisson
-
-https://stats.oarc.ucla.edu/r/dae/zip/\
-Poisson count process with excess zeros
-
-```{r}
-#ZERO INFLATED POISSON
-
-zinfp.1 <- zeroinfl(item_test_NABS ~  item_q1_rt| condition , data = df_subjects)
-summary(zinfp.1)
-report(zinfp.1)
-performance(zinfp.1)
-# check_model(zinfp.1)
-
-```
-
-#### Negative Binomial Regression
-
-https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/ - overdispersed count data (variance much greater than mean)
-
-```{r}
-#NEGATIVE BIONOMIAL REGRESSION
-# - https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/
-# - Overdispersed Count variables
-
-library(MASS)
-
-nb.1 <- glm.nb(item_test_NABS ~ condition, data = df_subjects)
-summary(nb.1)
-report(nb.1)
-check_model(nb.1)
-
-#check model assumption
-#assumes conditional means are not equal to conditional variances
-#conduct likelihood ration test to compare and test [need poisson]
-m3 <- glm(item_test_NABS ~ condition, family = "poisson", data = df_subjects)
-pchisq(2 * (logLik(nb.1) - logLik(m3)), df = 1, lower.tail = FALSE)
-#A large (+) log likelihood suggests that the negative binomial is more appropriate than the Poisson model
-
-
-#EXPONENTIATE PARAMETER ESTIMATES
-est <- cbind(Estimate = coef(nb.1), confint(nb.1))
-#exponentiate parameter estimates
-print("Exponentiated Estimates")
-exp(est)
-```
-
-The variable condition has a coefficient of 0.67, (p \< 0.005). This means that for the impasse condition, the expected log count \# of questions increases by 0.67. By exponentiating the estimate we see that \# question correct rate for the impasse condition is nearly 2x that of the control condition.
-
-**Diagnostics** ??
-
-#### Zero Inflated Negative Binomial Regression
-
-https://stats.oarc.ucla.edu/r/dae/zinb/ count data that are overdispersed and have excess zeros
-
-Zero-inflated negative binomial regression is for modelling count variables with excessive zeros, and especially when the count data are overdispersed (mean is much larger than variance). It can help account for situations where theory suggests that excess zeros are generated by 2 separate processes, one that includes the other count values, and the other that is just the zeros, and thus that the *excess* zeros can be modelled independently.
-
-Total Absolute Score (# items correct) may fit this situation, as the data are overdispersed (variance much greater than the mean) and there are are very large number of zeros. It is theoretically plausible that these excess zeros (no answers correct) are the result of a different 'process' ... (i.e) little understanding and/or resistance to restructuring understanding of the coordinate system. However, I am not certain if it is plausible to suggest that the zeros themselves are the result of two different processes: (ie. perhaps trying to understand, and not trying to understand?) \<- this could maybe be disentangled by first question latency?
-
-The model includes: - A logistic model to model which of the two processes the zero outcome is associated with - A negative binomial model to model the count process
-
-```{r}
-#| label: MODEL-TESTABS-ZINFNEGBINOM
-
-library(pscl) #  for zeroinfl negbinomial
-
-#ZERO INFLATED NEGATIVE BINOMIAL
-zinb.1 <- zeroinfl(s_NABS ~ condition | condition , data = df_subjects, dist = "negbin")
-#before the | is the count part, after the | is the logit model
-paste("Model")
-summary(zinb.1)
-report(zinb.1)
-performance(zinb.1)
-
-#   rootogram(zinb.1)
-
-
-
-# #EXPONENTIATE PARAMETER ESTIMATES
-# est <- cbind(Estimate = coef(zinb.1), confint(zinb.1))
-# #exponentiate parameter estimates
-# print("Exponentiated Estimates")
-# exp(est)
-
-```
-
-In the count model, the coefficient for the condition is very small, and not significant (suggesting it does not contribute to the count yielding process?).
-
-In the zero-inflation model, the coefficient for the condition variable is -1.056 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.06 if you are in the impasse condition (exponentiate it?)
-
-**TODO come back to this and discuss further**\
-
-#### Model Comparison
-
-```{r}
-compare_performance(lm.1, p.1, nb.1, zinb.1)
-```
-
-For modelling test phase absolute score (# items correct) it seems that the zero inflated negative binomial model is the best fit according to R2 and AIC, however, I am not clear on the implications of the interpretation (non significant in count process, significant on logit process), and also not clear if \# items correct is truly a count process.
-
-```{r}
-#uncertainty model visualization
-# df %>%
-  # data_grid(pretty_condition) %>%
-  # augment(m, newdata = ., se_fit = TRUE) %>%
-  # ggplot(aes(y = pretty_condition)) +
-  # stat_halfeye(
-  #   aes(xdist = dist_student_t(df = df.residual(m), 
-  #       mu = .fitted, sigma = .se.fit)), scale = .5) +
-  # # add raw data in too (scale = .5 above adjusts the halfeye height so
-  # # that the data fit in as well)
-  # geom_jitter(aes(x = x), data = df, pch = "|", size = 2, 
-  #             position =   position_nudge(y = -.15), alpha = 0.5) +  
-  # labs (title = "Model Estimates with Uncertainty", x = "model coefficient") + 
-  # theme_minimal()
-
-```
-
-#### Beta Regression (% Correct)
-
-Beta regression on % correct (with standard transformation for including \[0,1\]) https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression
-
-```{r}
-
-library(betareg)
-
-sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS)
-n = nrow(sub) %>% unlist()
-sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
-
-histogram(sub$dv_transformed)
-histogram(df_subjects$DV_percent_NABS)
-mb <- betareg(dv_transformed ~ condition, data = sub)
-
-summary(mb)
-plot(mb)
-
-```
-
-#### TOBIT Regression
-
-https://stats.oarc.ucla.edu/r/dae/tobit-models/
-
-```{r}
-
-#set up data 
-df <- df_subjects %>% mutate(
-  accuracy = s_NABS
-)
-
-library(VGAM)
-t <- vglm(accuracy ~ condition, tobit(Upper = 13), data = df)
-summary(t)
-plot(t)
-```
-
-#### WIP \| HURDLE MODEL
-
--   https://data.library.virginia.edu/getting-started-with-hurdle-models/\
--   https://en.wikipedia.org/wiki/Hurdle_model#:\~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.
-
-class of models for count data with both overdispersion and excess zeros;\
-different from zero-inflated models where the excess zeros are theorized to arise from two different processes; in the hurdle model, there is a model for P(x=0) and a separate model for P(x!=0)
-
-The model includes: - A binary logit model to model whether the observation takes a positive count or not. - a truncated Poisson or Negative binomial model that only fits positive counts
-
-This allows us to model: (1) Does the student get *any* questions right? (2) How many questions does the student get right?
-
-```{r}
-library(pscl) #zero-inf and hurdle models 
-library(countreg) #rootogram
-#install.packages("countreg", repos="http://R-Forge.R-project.org")
-
-#SYNTAX OUTCOME ~ count model predictor | hurdle predictor
-
-h.1 <- pscl::hurdle(item_test_NABS ~ condition | condition , data = df_subjects,
-              zero.dist = "binomial", dist = "poisson", size = 8)
-
-h.2 <- pscl::hurdle(item_test_NABS ~ condition | condition , data = df_subjects,
-              zero.dist = "binomial", dist = "negbin", size = 8)
-
-summary(h.1)
-summary(h.2)
-
-
-rootogram(h.1)
-rootogram(h.2)
-compare_performance(h.1,h.2)
-
-
-```
+*The logistic regression coefficients give the change in the log odds of the outcome for a one unit increase in the predictor variable.*
