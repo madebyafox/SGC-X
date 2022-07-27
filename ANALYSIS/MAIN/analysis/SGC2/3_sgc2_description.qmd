@@ -94,7 +94,7 @@ For **in person** data collection `r subject.stats$n` participants (`r  round((s
 
 ## RESPONSE ACCURACY
 
-### Task Scores
+### Block Scores
 
 Subject level scores summarize the the response accuracy by a particular participant across all blocks of the two graph comprehension tasks. The task score refers to the number of questions correct (absolute scoring) in each block (linear graph, triangular graph) of the graph comprehension task.
 
@@ -123,7 +123,7 @@ Total absolute scores across the ENTIRE TASK  (n = `r abs.stats["total",]$n`) ra
 
 Difference scores (difference between TRIANGULAR and LINEAR) scores for each participant (n = `r abs.stats["block.differences",]$n`) range from `r round(abs.stats["block.differences",]$min,2)` to `r round(abs.stats["block.differences",]$max,2)` with a mean score of (M = `r round(abs.stats["block.differences",]$mean,2)`, SD = `r round(abs.stats["block.differences",]$sd,2)`). (note: negative difference scores indicate the participant performed better on the linear block than the triangular block.)
 
-
+#### By Block
 ```{r}
 #| label: VIS-SCORE-by-GRAPH
 
@@ -140,9 +140,9 @@ gf_dhistogram(~score, fill = ~graph, binwidth = 0.5,data = long_scores) %>%
   gf_vline(xintercept = ~mean, color = ~graph, data = stats) %>%
   gf_dens(color = ~graph) %>%  
   gf_facet_grid(~ graph) +
-  labs( title = "Distribution of Score",
+  labs( title = "Distribution of Score (by Block)",
         subtitle ="Performance on Linear Graph is better than Triangular",
-        x = "Block Score (# correct)", y = "number of subjects") +
+        x = "Block Score (# correct)", y = "proportion of subjects") +
   easy_remove_legend()
 
 ##VERTICAL RAINCLOUD USING GGDISTR
@@ -168,16 +168,37 @@ ggplot(long_scores, aes(x = graph, y = score,
     position = position_jitter( 
       seed = 1, width = .05
   )) + labs( 
-    title = "Distribution of Score by Graph ",
+    title = "Distribution of Score (by Block) ",
     x = "Condition", y = "Score (# correct)") +
   theme(legend.position = "blank") + 
   coord_cartesian(xlim = c(0.5, NA), clip = "off")
 
 
-
 ```
 
 
+**TODO explore interactions**
+```{r}
+# 
+# 
+# library(interactions)
+m = lm(score ~ graph + pretty_condition + order + tm_scenarios, data = long_scores)
+m2 = lm(score ~ graph * pretty_condition * order * tm_scenarios, data = long_scores)
+# 
+# cat_plot(model = m, pred = graph, modx = order, mod2 = pretty_condition,
+#          INT.TYPE = "confidence", int.width = 0.95,
+#          rug = TRUE)
+# 
+# cat_plot(model = m2, pred = graph, modx = tm_scenarios, mod2 = pretty_condition,
+#          INT.TYPE = "confidence", int.width = 0.95,
+#          rug = TRUE)
+# 
+# # cat_plot(model = m, pred = graph, modx = tm_scenarios, mod2 = pretty_condition,
+# #          INT.TYPE = "confidence", int.width = 0.95,
+# #          rug = TRUE)
+```
+
+#### By Condition
 ```{r}
 #| label: VIS-SCORE-by-CONDITION
 
@@ -217,13 +238,14 @@ ggplot(long_scores, aes(x = graph, y = score,
       seed = 1, width = .05
   )) + 
   facet_wrap(~pretty_condition) + labs( 
-    title = "Distribution of Score by Graph ",
+    title = "Distribution of Score (by Condition) ",
     x = "Condition", y = "Score (# correct)") +
   theme(legend.position = "blank") + 
   coord_cartesian(xlim = c(0.5, NA), clip = "off")
   
 ```
 
+#### By Order
 ```{r}
 #| label: VIS-SCORE-by-ORDER
 
@@ -267,6 +289,8 @@ ggplot(long_scores, aes(x = graph, y = score,
   coord_cartesian(xlim = c(0.5, NA), clip = "off")
   
 ```
+
+#### By Scenario
 
 ```{r}
 #| label: VIS-SCORE-by-SCENARIO
@@ -312,8 +336,7 @@ ggplot(long_scores, aes(x = graph, y = score,
   
 ```
 
-
-
+### Block Difference Scores
 ```{r}
 #| label: VIS-SCOREDIFF-by-CONDITION
 
