@@ -88,8 +88,8 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -365,9 +365,9 @@ tab_model(m1)
 
 ```
 
-## H1B \| OVERALL ACCURACY
+## H1B \| TEST PHASE ACCURACY
 
-**Do Ss in the IMPASSE condition have higher scores across the entire task?**
+**Do Ss in the IMPASSE condition have higher scores in the TEST PHASE of the task?**
 
 The graph comprehension tasks includes 13 interpretation-discriminant questions completed in sequence.
 
@@ -690,3 +690,213 @@ reset plot margins par(mar=c(1,1,1,1))
 *The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable*
 
 *The logistic regression coefficients give the change in the log odds of the outcome for a one unit increase in the predictor variable.*
+
+
+## ARCHIVE
+
+### H1B \| OVERALL ACCURACY
+
+**Do Ss in the IMPASSE condition have higher scores across the entire task?**
+
+The graph comprehension tasks includes 13 interpretation-discriminant questions completed in sequence.
+
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Do Ss in the IMPASSE condition score higher across the entire task than those in the CONTROL group.                                                     |
++=======================+=========================================================================================================================================================+
+| **Hypothesis**        | (H1B) Participants in the IMPASSE condition will have higher test phase performance than those in the CONTROL condition.                                |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | **data**: `df_items` where `q nin 6,9` (the 13 discriminating Qs ), `df_subjects`                                                                       |
+|                       |                                                                                                                                                         |
+|                       | **outcome**:                                                                                                                                            |
+|                       |                                                                                                                                                         |
+|                       | -   \[at item level\]                                                                                                                                   |
+|                       |     -   *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                  |
+|                       |     -   *interpretation* (ordered factor from `interpretation`)                                                                                         |
+|                       | -   \[subject level\]                                                                                                                                   |
+|                       |     -   p_accuracy (percent of correct responses)                                                                                                       |
+|                       |                                                                                                                                                         |
+|                       | **predictor**: `condition` \[between-subjects factor\]                                                                                                  |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  Mixed Logistic Regression\                                                                                                                          |
+|                       |     `accuracy` \~ `condition` + (1 \| `subject` )\                                                                                                      |
+|                       |     model effect of condition on probability of correct response \[during test phase\] while accounting for subject (and item-level?) effects           |
+|                       | 2.  Ordinal Mixed Logistic Regression\                                                                                                                  |
+|                       |     `interpretation` \~ `condition` + (1 \| `subject` )\                                                                                                |
+|                       |     model effect of condition on \[ordered correctness of interpretation\] \[during test phase\] while accounting for subject (and item-level?) effects |
+|                       | 3.  Shift in Modal Mass (descriptive)\                                                                                                                  |
+|                       |     describe & visualize shift in deciles between conditions for `` `scaled_score` `` (at subject level)                                                |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Alternatives**      | -   OLS LINEAR REGRESSION                                                                                                                               |
+|                       |     -   bimodal distribution at tails makes the mean a poor predictor; LMs violate assumptions of normally distributed residuals                        |
+|                       |     -   lm `DV_percent_test_NABS` \~ `condition` (absolute scoring) OR lm `item_test_SCALED` \~ `condition` (scaled scoring)                            |
+|                       |     -   both absolute and scaled scores yield non-normal residuals                                                                                      |
+|                       |     -   no transformation of the outcome variables yield normal residuals                                                                               |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Notes**             | **Also exploring:**                                                                                                                                     |
+|                       |                                                                                                                                                         |
+|                       | -   Hurdle model (mixture model w/ binomial + \[poisson or negbinom count; 0s from 1 DGP)                                                               |
+|                       | -   Zero Inflated model (mixture model w/ binomial + poisson or negbinom count; 0s from 2 DGPs)                                                         |
+|                       | -   Beta regression hurdle model? (mixture with location and scale parameters \[mean, variance\] and hurdles for floor and ceiling effects)             |
+|                       | -   Other way to account for the severe bimodality?                                                                                                     |
++-----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+```{r}
+
+
+#PREPARE DATA 
+n_items = 13 #number of items in test
+
+#item level
+df = df_items %>% filter(q %nin% c(6,9)) %>% mutate(
+  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+  q = as.factor(q)
+)
+
+#STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "Correct Response on Q 1",
+       title = "Accuracy on Task",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
+
+#GROUPED PROPORTIONAL BAR CHART
+# gf_props(~accuracy, fill = ~pretty_condition, x =~pretty_condition,
+#        position = position_dodge(), data = df) %>% 
+#   gf_facet_grid(~pretty_mode) +
+#    labs(x = "Correct Responses in Test Phase",
+#        title = "Accuracy on Task by Condition",
+#        subtitle="Impasse Condition yields a greater proportion of correct responses")
+
+ 
+#FACETED HISTOGRAM
+stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(s_NABS))
+gf_props(~s_NABS, 
+         fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_grid(pretty_condition ~ pretty_mode) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "# Correct",
+       y = "proportion of subjects",
+       title = "Overall Absolute Score (# Correct)",
+       subtitle = "") + theme(legend.position = "blank")
+
+```
+
+#### MIXED LOGISTIC REGRESSION
+
+*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
+
+##### Fit Model
+
+```{r}
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df) 
+m0
+
+#:: RANDOM INTERCEPT SUBJECT
+print("Subject intercept random model")
+mm.rS <- glmer(accuracy ~ (1|subject), data = df,family = "binomial")
+mm.rS
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
+test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+
+
+## 2 | ADD RANDOM RANDOM INTERCEPT ITEM
+
+#:: RANDOM INTERCEPT SUBJECT + INTERCEPT Q
+print("Subject & Question random intercepts")
+mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df,family = "binomial")
+mm.rSQ
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)) )
+test_lrt(mm.rS,mm.rSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.rSQ))$p[2])
+
+## 3 | ADD FIXED EFFECT
+
+# SUBJECT INTERCEPT | FIXED CONDITION 
+print("FIXED Condition + Subject & Question random intercepts")
+mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q), 
+                data = df,family = "binomial")
+mm.CrSQ
+paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
+test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
+
+```
+
+##### Visualize
+
+```{r}
+
+#: PRINT MODEL 
+print("PREDICTOR MODEL")
+summary(mm.CrSQ)
+
+#: INTERPRET COEFFICIENTS
+
+print("MODEL PERFORMANCE")
+performance(mm.CrSQ)
+print("SANITY CHECK REPORTING")
+report(mm.CrSQ)
+
+
+#: PLOT
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(mm.CrSQ, type="std2", vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE) +  
+  labs(title = "Model Predicted Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(mm.CrSQ, type="pred",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Predicted Probability of Accuracy",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+#GGEFFECTS | MODEL | PROBABILITIES
+# library(ggeffects)
+# ggeffect(model = mm.CrSQ) %>% plot()
+
+#SANITY CHECK SJPLOT
+# library(effects)
+# plot(allEffects(mm.CrSQ))
+
+```
+
+##### Diagnostics
+
+```{r}
+check_model(mm.CrSQ)
+binned_residuals(mm.CrSQ)
+```
+
+##### Inference
+
+We fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items; to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(4): 38.72, p \< 0.001); and the total explanatory power is substantial (conditional R2 = 0.89) and the part related to the fixed effects alone (marginal R2) is 0.13. Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 55 over the control condition $e^{\beta_1}$ = 54.79, 95% CI \[13.2, 227.39\], p \< 0.001.
+
+```{r}
+# PRETTY TABLE SJPLOT
+tab_model(mm.CrSQ)
+```
+
+

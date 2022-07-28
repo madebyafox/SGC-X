@@ -27,6 +27,8 @@ library(vcd) #mosaicplots
 library(ggpubr) #arrange plots
 library(ggformula) #quick easy plots
 library(ggdist) # uncertainty viz
+library(ggstatsplot) #stats plots 4 dummies
+library(ggeasy) #theme editing. the way it should be
 
 library(multimode) #test for multimodality
 library(fitdistrplus) #fitting distributions
@@ -52,8 +54,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -198,13 +200,10 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
   theme(legend.position = "blank") + 
   coord_cartesian(xlim = c(0.5, NA), clip = "off")
 
-# set seed
-set.seed(1234)
-  
-# create a random data frame 
-sample_data <- data.frame(x = round(rnorm(700, mean=800, 
-                                          sd=450)))
-  
+ggbetweenstats(y = item_test_NABS, x = pretty_condition, data = df_subjects,
+               type = "nonparametric", var.equal = FALSE,
+               pairwide.display = "significant", )
+
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(item_test_NABS)) + 
@@ -216,6 +215,8 @@ ggplot(data = df_subjects, aes(item_test_NABS)) +
 
 #NOTE this is clobbered by the shift function imports; so I load those later
   
+
+
 ```
 
 Visual inspection of this distribution suggests it is not normal, and likely bimodal. We verify this via an excess mass test (Ameijeiras-Alsonso et. al 2018). TODO REFERENCE
@@ -236,7 +237,7 @@ The excess mass test for multimodality suggests the distribution is infact multi
 
 #### Test Phase Scaled Scores
 
-The total scaled score `s_SCALED` summarizes the scaled score on the 13 strategy-discriminant questions, for each subject. This score ranges from from -13 (all orthogonal) to 13 (all triangular). Recall that the `s_SCALED` score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1 (see [Section -@sec-SGC3A-scaledScore])
+The test phase scaled score `s_SCALED` summarizes the scaled score on the 8 strategy-discriminant questions in the test phase, for each subject. This score ranges from from -8 (all orthogonal) to 8 (all triangular). Recall that the `s_SCALED` score for an item is a numeric representation of the strategy-consistent response, scaled from -1 to +1 (see [Section -@sec-SGC3A-scaledScore])
 
 Most importantly, the Scaled score gives us a way of quantitatively examining how correctly a participant interpreted the coordinate system across the entire set of items. It offers a more nuanced look into performance than absolute score.
 
@@ -305,10 +306,15 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_SCALED,
     position = position_jitter( 
       seed = 1, width = .05
   )) + labs( 
-    title = "Distribution of TEST Absolute Score ",
-    x = "Condition", y = "Total Absolute Score (Test Phase)") +
+    title = "Distribution of TEST Scaled Score ",
+    x = "Condition", y = "Total Scaled Score (Test Phase)") +
   theme(legend.position = "blank") + 
   coord_cartesian(xlim = c(0.5, NA), clip = "off")
+
+#EASY STATS
+ggbetweenstats(y = item_test_SCALED, x = pretty_condition, data = df_subjects,
+               type = "nonparametric", var.equal = FALSE,
+               pairwide.display = "significant", )
 
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
@@ -342,22 +348,23 @@ Next we consider the response accuracy on *just* the first question of the graph
 ```{r}
 #| label: DESC-FIRST-ABSOLUTE
 
+
 title = "Proportion of Correct Response on First Item (Lab)"
-item.contingency <- df_lab %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency <- df_lab %>%  dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>%  addmargins(2) %>% prop.table(margin=2) %>% addmargins(1)
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 title = "Proportion of Correct Response on First Item (Online)"
-item.contingency <- df_online  %>% dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency <- df_online %>%  dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>%  addmargins(2) %>% prop.table(margin=2) %>% addmargins(1)
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 title = "Proportion of Correct Response on First Item (Combined)"
-item.contingency <- df_subjects %>%  dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>% prop.table() %>% addmargins()
+item.contingency <- df_subjects %>%  dplyr::select(item_q1_NABS, pretty_condition) %>% table() %>%  addmargins(2) %>% prop.table(margin=2) %>% addmargins(1)
 item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 
 ```
 
-Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (78%) than correct answers (22%). Accuracy is somewhat improved in the IMPASSE condition, with roughly 15% of all IMPASSE-condition questions answered correctly, compared to only 7% in the CONTROL condition.
+Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (78%) than correct answers (22%). Accuracy is somewhat improved in the IMPASSE condition, with roughly 28% of all IMPASSE-condition questions answered correctly, compared to only 14% in the CONTROL condition.
 
 ```{r}
 #| label: VIS-FIRST-ABSOLUTE
@@ -370,21 +377,33 @@ gf_props(~item_q1_NABS, data = df_subjects) +
        subtitle="")+
   theme(legend.position = "none")+theme_ggdist()
 
-#PROPORTIONAL BAR CHART
-gf_props(~item_q1_NABS, data = df_subjects, fill = ~pretty_condition) %>% 
-  gf_facet_grid(pretty_condition~pretty_mode) +
+#STACKED BAR CHART
+df_subjects %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = as.factor(item_q1_NABS))) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
   labs(x = "response accuracy",
        title = "Proportion of Correct Responses on First Item (by Modality and Condition)",
-       subtitle="")+
-  theme(legend.position = "none") 
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
 
 
 #MOSAIC PLOT
 vcd::mosaic(main="Proportion of Correct Responses on First Item",
-            data = df_subjects, pretty_condition ~ item_q1_NABS, rot_labels=c(0,90,0,0), 
+            data = df_subjects, item_q1_NABS ~ pretty_condition, rot_labels=c(0,90,0,0), 
             offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
             spacing = spacing_dimequal(unit(1:2, "lines"))) 
 
+#STATSPLOT
+ggbarstats(
+  x = item_q1_NABS,
+  y = pretty_condition, 
+  data = df_subjects
+)
 
 ```
 
@@ -432,17 +451,26 @@ facet(p, facet.by=c("pretty_condition","pretty_mode")) +
         x = "scaled score (firt item) ", y = "number of participants") + 
   theme_minimal() + theme(legend.position = "blank") 
 
+#STACKED BAR CHART
+df_subjects %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = as.factor(item_q1_SCALED))) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+  labs(x = "response accuracy",
+       title = "Type of Responses on First Item (by Modality and Condition)",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
 
-##GGFORMULA | HIST+DENSITY SCORE BY CONDITION/MODE
-# stats = df_subjects %>% group_by(pretty_condition, mode) %>% dplyr::summarise(mean = mean(item_q1_SCALED))
-# gf_density(~item_q1_SCALED, data = df_subjects) %>%
-#   gf_facet_grid(pretty_condition~mode, labeller = label_both) %>%
-#   gf_lims(x = c(-1, 1)) %>%
-#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
-# labs( title = "Distribution of First Item Scaled Score (by Mode and Condition)",
-#         subtitle ="Pattern of response is the same across data collection modes but differs by condition",
-#         x = "scaled score (firt item) ", y = "number of participants") + 
-#   theme_minimal()
+#STATSPLOT
+ggbarstats(
+  x = item_q1_SCALED,
+  y = pretty_condition, 
+  data = df_subjects
+)
   
 ```
 
@@ -480,13 +508,33 @@ gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>%
        subtitle="Impasse Condition yields shift from Orthogonal to alternative interpretations")+
   theme(legend.position = "none")
 
+#STACKED BAR CHART
+df_items %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = as.factor(interpretation))) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+  labs(x = "response accuracy",
+       title = "Response Types on All Items (by Modality and Condition)",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
+
 
 #MOSAIC PLOT
-# vcd::mosaic(main="Proportion of Interpretations across Conditions",
-#             data = df_items, pretty_condition ~ interpretation, rot_labels=c(0,90,0,0), 
-#             offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
-#             spacing = spacing_dimequal(unit(1:2, "lines"))) 
+vcd::mosaic(main="Proportion of Interpretations across Conditions",
+            data = df_items, pretty_condition ~ interpretation, rot_labels=c(0,90,0,0),
+            offset_varnames = c(left = 4.5), offset_labels = c(left = -0.5),just_labels = "right",
+            spacing = spacing_dimequal(unit(1:2, "lines")))
 
+#STATSPLOT
+ggbarstats(
+  x = high_interpretation,
+  y = pretty_condition, 
+  data = df_items
+)
 
 ```
 
@@ -497,17 +545,17 @@ gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>%
 #| label: VIZ-PROGRESS
 
 #VISUALIZE progress over time ABSOLUTE score 
-ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = condition)) + 
+ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_wrap(~condition) + 
+ facet_wrap(~pretty_condition) + 
  labs (title = "Cumulative Absolute Score over sequence of task", x = "Question" , y = "Cumulative Absolute Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
 
 #VISUALIZE progress over time SCALED score 
-ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = condition)) + 
+ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_wrap(~condition) + 
+ facet_wrap(~pretty_condition) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
@@ -537,7 +585,7 @@ Response time _on the first item_  for *in person* subjects (n = `r time.stats["
 
 Response time _on the first item_ for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
 
-Response time _on the first item_ for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+Response time _on the first item_ for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["combined",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
 
 ```{r}
 #| label : VIS-FIRSTTIME
@@ -618,7 +666,7 @@ Time on an individual item for *in person* subjects (n = `r time.stats["lab",]$n
 
 Time on an individual item  for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
 
-Time on an individual item for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+Time on an individual item for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["combined",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
 
 ```{r}
 #| label : VIS-ITEMTIME
@@ -703,7 +751,7 @@ Total time on SCAFFOLD phase for *in person* subjects (n = `r time.stats["lab",]
 
 Total time on SCAFFOLD phase for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
 
-Total time on SCAFFOLD phase for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+Total time on SCAFFOLD phase for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["combined",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
 
 ```{r}
 #| label : VIS-SCAFFOLDTIME
@@ -779,7 +827,7 @@ Total time on TEST phase for *in person* subjects (n = `r time.stats["lab",]$n`)
 
 Total time on TEST phase for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
 
-Total time on TEST phase for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+Total time on TEST phase for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["combined",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
 
 ```{r}
 #| label : VIS-TESTTIME
@@ -840,7 +888,6 @@ ggplot(df_subjects, aes(x = pretty_condition, y = item_test_rt, fill = pretty_co
 ## EXPLORING RELATIONSHIPS
 
 ### ACCURACY (VS) LATENCY
-
 
 #### Total Task 
 ```{r}
@@ -1027,7 +1074,6 @@ Both t-tests are non-significant with 95% confidence intervals including 0. Furt
 ::: callout-decision
 **It is reasonable to infer that data from both in-person and remote studies arise from the same data generating process.**
 :::
-
 
 
 ## ARCHIVE
@@ -1271,7 +1317,7 @@ The excess mass test for multimodality suggests the distribution is in fact mult
 
 #### Item Absolute Score
 
-Whote Task Accuracy summarized over items rather than subjects
+Whole Task Accuracy summarized over items rather than subjects
 
 ```{r}
 
@@ -1335,43 +1381,6 @@ gf_props(~score_SCALED, data = df_items) %>%
 
 ```
 
-
-
-
-### GRAPH CODE
-
-####  Horizontal Raincloud
-```{r}
-ggplot(df_subjects, aes(x = pretty_condition, y = item_test_NABS,
-                        fill = pretty_condition) ) + 
-  ggdist::stat_halfeye(
-    side = "top",
-    justification = -0.1,
-    width = 1, 
-    point_colour = NA
-   ) + 
-  scale_x_discrete(limits=c("impasse","control"))+
-  geom_boxplot(
-    position = "dodge",
-    inherit.aes = FALSE, #supress fill
-    mapping = aes(x=pretty_condition, y = item_test_NABS),
-    width = .15, 
-    outlier.shape = NA
-  ) + 
-  geom_point(
-    inherit.aes = FALSE, #supress fill
-    mapping = aes(x=pretty_condition, y = item_test_NABS, color = pretty_condition),
-    size = 1.3,
-    alpha = .3,
-    position = position_jitterdodge( seed = 8,
-      jitter.width = 0.5, jitter.height = 0.1
-      # seed = 1, width = .05
-  )) + labs( 
-    title = "Distribution of TEST Absolute Score ",
-    x = "Condition", y = "Total Absolute Score (Test Phase)") +
-  theme(legend.position = "blank") + coord_flip()
-  # coord_cartesian(xlim = c(0.5, NA), clip = "off")
-```
 
 ## RESOURCES
 

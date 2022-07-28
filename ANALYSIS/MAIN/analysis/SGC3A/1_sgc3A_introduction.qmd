@@ -74,12 +74,41 @@ options(scipen=1, digits=3)
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds')
 
+#IMPORT OSPAN DATA 
+ospan <- read_csv("analysis/SGC3A/data/0-session-level/fall21_scored_ospan.csv") %>% mutate(
+  subject = SUBJECTID
+) %>% dplyr::select(-SUBJECTID)
+
+# #MERGE OSPAN DATA WITH SGC DATA 
+# df_ospan <- df_subjects %>% filter(
+#   subject %in% ospan$subject
+# )
+
+
+```
+
+```{r}
+table(df_subjects$term, df_subjects$condition)
+
+#subjects in SGC3A 
+#LAB
+n_lab <- df_subjects %>% filter( mode == 'lab-synch') %>% nrow()
+n_web <- df_subjects %>% filter( mode == 'asynch') %>% nrow()
+total = n_lab + n_web
+
+n_ospan <- ospan %>% nrow()
+
+subs_ospan <- ospan %>% dplyr::select(subject)
+nrow(subs_ospan)
+subs_ospan %>% distinct(subject) %>% nrow()
+
+found <- df_subjects %>% filter(subject %in% subs_ospan$subject) %>% nrow()
 ```
 
 ```{r}
