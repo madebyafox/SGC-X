@@ -61,7 +61,7 @@ df_scaled_progress <- read_csv('analysis/SGC4B/data/2-scored-data/sgc4b_scaled_p
 df_items$q = as.factor(df_items$q)
 
 #REORDER FACTORS
-order <- c("point" ,"arrow", "cross")
+order <- c("point" ,"cross", "arrow")
 df_subjects <- df_subjects %>% mutate(
   pretty_condition = factor(pretty_condition, levels = order))
 df_items <- df_items %>% mutate(
@@ -113,7 +113,7 @@ Recall from [Section -@sec-absolute-scoring] that the absolute score (following 
 
 ```{r}
 #| label: DESC-SUBJ-ABS
-#| 
+
 title = "Descriptive Statistics of Task Response Accuracy (Total Absolute Score)"
 abs.stats <- df_subjects %>% dplyr::select(s_NABS) %>% unlist() %>% favstats()
 abs.stats %>% kbl (caption = title) %>% kable_classic() %>% 
@@ -183,7 +183,7 @@ ggbetweenstats(y = s_NABS, x = pretty_condition, data = df_subjects,
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
 ggplot(data = df_subjects, aes(s_NABS)) + 
   stat_ecdf(geom = "step") +
-  facet_grid(pretty_condition~pretty_mode) + 
+  facet_grid(pretty_condition) + 
   labs( title = "Empirical Cumulative Density Function — Task Absolute Score ",
         x = "Total Absolute Score [0,13]", 
         y = "Cumulative Probability")
