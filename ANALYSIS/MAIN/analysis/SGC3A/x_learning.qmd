@@ -47,6 +47,9 @@ library(equatiomatic) #extract model equation
 library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models 
 library(ggeffects) #visualization log regr models
+library(ordinal) #ordinal regression
+library(MASS) # polyr ordinal regression
+library(brant) #brant test for ordinal regression
 
 library(tidyverse) #ALL THE THINGS
 
@@ -68,8 +71,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+#setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -81,7 +84,7 @@ df_online <- df_subjects %>% filter(pretty_mode == "online-replication")
 
 ```
 
-## SINGLE ITEM LEVEL
+## SINGLE ITEM LEVEL — ACCURACY
 
 **Q1 Absolute, Interpretation Scores**
 
@@ -120,7 +123,7 @@ df_q1 %>%
 
 ```
 
-### CHI SQUARE
+### CHI SQUARE [ABS]
 
 #### (Combined)
 
@@ -136,13 +139,15 @@ mosaicplot(main="Accuracy on First Question by Condition",
             data = df, pretty_condition ~ accuracy, shade = T, color = 2)
 
 
-# CrossTable( x = df$condition, y = df$accuracy, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
+CrossTable( x = df$pretty_condition, y = df$accuracy, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
 
 
 df %>%
   sjtab(fun = "xtab", var.labels=c("accuracy", "pretty_condition"),
         show.row.prc=T, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
         statistics = "fisher")
+
+chiSquare(accuracy ~ pretty_condition, data = df)
 
 ```
 
@@ -202,9 +207,9 @@ df %>%
 
 **For online data collection** (n=204), a Pearson's Chi-squared test (of independence) indicates a statistically significant relationship between response accuracy on the first question and experimental condition, $\chi^2$ (1) = 7.26, p = 0.009. Thus we have sufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. The odds ratio (Odds Ratio = 2.68, p = 0.005, 95% CI \[1.37, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.68 times greater if a subject was in the impasse condition, than in the control condition .
 
-### LOGISTIC REGRESSION
+### LOGISTIC REGRESSION [ABS]
 
-*Fit a logistic regression (at the subject level), predicting Q1 accuracy (absolute score) by condition.*
+*Fit a logistic regression (at the subject-item level), predicting Q1 accuracy (absolute score) by condition.*
 
 #### Fit Model
 
@@ -390,6 +395,88 @@ We fit a logistic regression model to analyze the effect of experimental conditi
 tab_model(m1)
 ```
 
+
+## SINGLE ITEM LEVEL — INTERPRETATION
+
+### CHI SQUARE [Q1 INTERPRETATION]
+
+```{r}
+#| label : CHISQR-interpreation
+
+#lab only
+df <- df_items %>% filter(term == "spring18" & q ==1)
+
+#MOSAIC PLOT
+#note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis
+mosaicplot(main="Response Type on First Question by Condition",
+            data = df, pretty_condition ~ high_interpretation, 
+            shade = T)
+
+CrossTable( x = df$pretty_condition, y = df$high_interpretation, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
+
+
+df %>%
+  sjtab(fun = "xtab", var.labels=c("high_interpretation", "pretty_condition"),
+        show.row.prc=T, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
+        statistics = "fisher")
+```
+
+**TODO INFERENCE**
+
+### TODO WIP MULTINOMIAL REGRESSION [INTERPRETATION]
+**But what does affect of condition really mean relative to base rate of the reference category??
+
+*Does condition affect the type of response given on Q1?*
+
+-   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
+
+#### Fit Model
+
+```{r}
+library(nnet)
+df <- df_items %>% filter(q==1)
+#check reference level 
+levels(df$high_interpretation)
+
+#FIT MODEL
+mm <- multinom(formula = high_interpretation ~ condition, data = df)
+summary(mm)
+
+# calculate z-statistics of coefficients
+z_stats <- summary(mm)$coefficients/summary(mm)$standard.errors
+# convert to p-values
+p_values <- (1 - pnorm(abs(z_stats)))*2
+# display p-values in transposed data frame
+p_values <- data.frame(p = (p_values))
+# display odds ratios in transposed data frame
+paste("ODDS RATIOS")
+odds_ratios <- data.frame(OR = exp(summary(mm)$coefficients))
+
+options(scipen = 5)
+(results <- cbind(odds_ratios, p_values))
+```
+
+#### Inference
+
+Being in the control condition does not change the odds of a negative transition or neutral category over the orthogonal. But it does increase the odds:
+
+-   of giving a positive transition response (vs) orthogonal by 17.2 (?%)
+-   of giving a triangular response (vs) orthogonal by 6.38 (?%)
+
+#### Visualize
+```{r}
+plot_model(mm, type = "pred")
+plot_model(mm)
+```
+
+#### Diagnostics
+```{r}
+
+performance(mm)
+logitgof(df$high_interpretation, exp = mm$fitted.values, ord=FALSE)
+
+```
+
 ### TODO ORDINAL REGRESSION
 
 *Fit an ordinal logistic regression (at the subject level), predicting Q1 interpretation by condition.*
@@ -398,55 +485,77 @@ tab_model(m1)
 -   https://journals.sagepub.com/doi/full/10.1177/2515245918823199
 -   todo see ordinal regression video
 
+#### Fit Model
+
 ```{r}
-# #CREATE DATAFRAME OF Q1
-# df <- df_items %>% filter(q ==1) %>% mutate(scaled = as.factor(score_SCALED))
-# 
-# #MODEL
-# m <- polr(scaled ~ condition , data = df, Hess=TRUE)
-# summary(m)
-# confint(m)
-# performance(m)
-# report(m)
-# 
-# #exponentiate coefficients and CIs 
-# ci <- confint(m)
-# ci
-# e <- coef(m)
-# e
-# # exp(cbind(e,ci))
-# 
-# # Retrieve predictions as probabilities 
-# # (for each level of the predictor)
-# # p.control <- predict(m,data.frame(condition="111"),type="response")
-# # paste("Probability of success in control,", p.control)
-# # p.impasse <- predict(m,data.frame(condition="121"),type="response")
-# # paste("Probability of success in impasse,", p.impasse)
-# 
-# # Plot Predicted data and original data points
-# # ggplot(df, aes(x=condition, y=accuracy)) + 
-# #   geom_point() +
-# #   stat_smooth(method="glm", color="green", se=FALSE,
-# #                 method.args = list(family=binomial))
-#   
-# #TO PLOT ALL EFFECTS
-# library(effects)
-# plot(allEffects(m))
-# 
-# #SJPLOT
-# library(sjPlot)
-# plot_model(m, )
-# 
-# 
-# #CONVERT TO PROBABILITIES
-# newdat <- data.frame(condition=c("111","121"))
-# prob <- (phat <- predict(object = m, newdat, type="p"))
-# prob
-# 
+#CREATE DATAFRAME OF Q1
+
+#temp filter
+df <- df_items %>% filter(term =="spring18")
+df <- df_items %>% filter(q ==1) %>% mutate(scaled = as.factor(score_SCALED))
+
+#MODEL
+m <- polr(scaled ~ condition , data = df, Hess=TRUE)
+summary(m)
+#exponentiate coefficients and CIs
+(ctable <- coef(summary(m)))
+(p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2)
+(ctable <- cbind(ctable, "p value" = p))
+(ci <- confint(m))
+(e <- coef(m))
+
+#SANITY CHECK PLOT
+library(effects)
+plot(allEffects(m))
+
+#SJPLOT
+plot_model(m1, type = "pred")
+plot_model(m)
+
+#CONVERT TO PROBABILITIES
+newdat <- data.frame(condition=c("111","121"))
+prob <- (phat <- predict(object = m, newdat, type="p"))
+prob
+
+jtools::plot_summs(m, scale = TRUE, plot.distributions = TRUE, inner_ci_level = .95)
+plot_model(m, type = "est", transform = NULL)
+```
+
+-   we see the estimates for the 4 intercepts, which are sometimes called cutpoints.
+-   The intercepts indicate where the latent variable is cut to make the three groups that we observe in our data.
+-   Note that this latent variable is continuous. In general, these are not used in the interpretation of the results.
+-   The cutpoints are closely related to thresholds, which are reported by other statistical packages.
+-   for k groups there will be k-1 intercepts (cutpoints)
+-   confirm that the CI does not include 0 (the units are ordered logits \[ordered log odds\])
+-   as with logistic regression we exponentiate the coefficients and confints to get odds ratio
+-   
+
+Interpretation: \_For subjects in the impasse condition, the odds of giving less orthogonal responses (more uncertain or triangular) are 2.16 times that of those in the control condition. TODO see difference between the three types of orindal models TOODO check Agresti book
+
+-   proportional odds regression models effectively act as a series of stratified binomial models under the assumption that the 'slope' of the logistic function of each stratified model is the same.
+-   thus need to verify proportional odds assumption
+
+```{r}
+#:: ASSESS FIT
+performance(m)
+
+#test proportional log odds assumption
+generalhoslem::lipsitz.test(m)
+
+
+#test 
+generalhoslem::pulkrob.chisq(m, c("condition"))
+
+#test proporitional odds assumption 
+brant(m)
+# A p-value of less than 0.05 on this test—particularly on the Omnibus plus at least one of the variables—should be interpreted as a failure of the proportional odds assumption.
+
+
+
 
 ```
 
-## REPEATED ITEM LEVEL
+## REPEATED ITEM LEVEL — ACCURACY
 
 **Test Phase Accuracy (absolute score)**
 
@@ -688,10 +797,7 @@ lw.f.star(df_subjects,item_test_NABS~pretty_condition,"a")
 
 Group 1 has ceiling and floor percentage of 10.5% and 30.2%, with corrected mean and variance respectively as 3.434 and 83.157. Group 2 has ceiling and floor percentage of 8.2% and 62.7%, with corrected mean and variance respectively as -6.504 and 210.664. The corrected t statistic is 4.778, p = 0. The estimated Cohen's d is 0.87 with a confidence interval as \[5.742,14.135\].
 
-
 #### Censored Linear Regression
-
-
 
 #### Linear Regression
 
@@ -740,14 +846,13 @@ df  %>%
 
 ```
 
-
 #### Censored (Tobit) Regression
 
 https://stats.oarc.ucla.edu/r/dae/tobit-models/
 
 **For censored data (i.e. truncated axis).** The tobit model, also called a censored regression model, is designed to estimate linear relationships between variables when there is either left- or right-censoring in the dependent variable (also known as censoring from below and above, respectively). Censoring from above takes place when cases with a value at or above some threshold, all take on the value of that threshold, so that the true value might be equal to the threshold, but it might also be higher. In the case of censoring from below, values those that fall at or below some threshold are censored.
 
-- censored vs truncated : There is sometimes confusion about the difference between truncated data and censored data. With censored variables, all of the observations are in the dataset, but we don’t know the “true” values of some of them. With truncation some of the observations are not included in the analysis because of the value of the variable. When a variable is censored, regression models for truncated data provide inconsistent estimates of the parameters. See Long (1997, chapter 7) for a more detailed discussion of problems of using regression models for truncated data to analyze censored data.
+-   censored vs truncated : There is sometimes confusion about the difference between truncated data and censored data. With censored variables, all of the observations are in the dataset, but we don't know the "true" values of some of them. With truncation some of the observations are not included in the analysis because of the value of the variable. When a variable is censored, regression models for truncated data provide inconsistent estimates of the parameters. See Long (1997, chapter 7) for a more detailed discussion of problems of using regression models for truncated data to analyze censored data.
 
 ```{r}
 
@@ -808,17 +913,12 @@ performance(m1)
 
 #NOTE: censReg package also does Tobit regression [including mixed models]
 ```
--   The coefficient labeled “(Intercept):1” is the intercept or constant for the model.
--   The coefficient labeled “(Intercept):2” is an ancillary statistic. If we exponentiate this value, we get a statistic that is analogous to the square root of the residual variance in OLS regression. logSigma is the variance of the model (logarithmized) (same as the second intercept in the VGAM output)
--   The predicted value of test_phase_score is 5.75 points _higher_ for students in the impasse condition than for students in the control condition. (72% improvement in score!)
 
+-   The coefficient labeled "(Intercept):1" is the intercept or constant for the model.
+-   The coefficient labeled "(Intercept):2" is an ancillary statistic. If we exponentiate this value, we get a statistic that is analogous to the square root of the residual variance in OLS regression. logSigma is the variance of the model (logarithmized) (same as the second intercept in the VGAM output)
+-   The predicted value of test_phase_score is 5.75 points *higher* for students in the impasse condition than for students in the control condition. (72% improvement in score!)
 
-
-
-
-
-**Using censReg package**
--   https://cran.r-project.org/web/packages/censReg/vignettes/censReg.pdf
+**Using censReg package** - https://cran.r-project.org/web/packages/censReg/vignettes/censReg.pdf
 
 ```{r}
 library(censReg) #censored regression
@@ -851,13 +951,9 @@ paste("P value of likelihood ratio test less than alpha = 0.05? ", p <0.05)
 
 performance(c1)
 ```
+
 -   logSigma is the variance of the model (logarithmized) (same as the second intercept in the VGAM output)
 -   output should match that of VGAM
-
-
-
-
-
 
 #### Poisson Regression
 
@@ -972,9 +1068,6 @@ In the count model, the coefficient for the condition is very small, and not sig
 In the zero-inflation model, the coefficient for the condition variable is -1.056 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.06 if you are in the impasse condition (exponentiate it?)
 
 **TODO come back to this and discuss further**\
-
-
-
 
 #### Model Comparison
 
