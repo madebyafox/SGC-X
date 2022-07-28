@@ -1,13 +1,12 @@
 ---
-subtitle: 'Study SGC4A | 3 Description'
+subtitle: 'Study SGC4B | 3 Description'
 ---
 
 \newpage
 
-# Description {#sec-SGC4A-description}
+# Description {#sec-SGC4B-description}
 
-**TODO** check term cell counts and decide if data is pilot or included ?
-*The purpose of this notebook is describe the distributions of dependent variables for Study SGC4A.*
+*The purpose of this notebook is describe the distributions of dependent variables for Study SGC4B.*
 
 ```{r}
 #| label: SETUP
@@ -49,33 +48,27 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
-df_items <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds')
-df_subjects <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds') 
-df_absolute_progress <- read_csv('analysis/SGC4A/data/2-scored-data/sgc4a_absolute_progress.csv')
-df_scaled_progress <- read_csv('analysis/SGC4A/data/2-scored-data/sgc4a_scaled_progress.csv')
+df_items <- read_rds('analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds')
+df_subjects <- read_rds('analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds') 
+df_absolute_progress <- read_csv('analysis/SGC4B/data/2-scored-data/sgc4b_absolute_progress.csv')
+df_scaled_progress <- read_csv('analysis/SGC4B/data/2-scored-data/sgc4b_scaled_progress.csv')
 
 #TREAT QS AS FACTORS
 df_items$q = as.factor(df_items$q)
 
+#TODO TEMP REMOVE AFTER RESCORED 
 #REORDER FACTORS
-# order <- c("Orth-Full", "Orth-Sparse", "Orth-Grid", "Tri-Sparse")
-# df_subjects <- df_subjects %>% mutate(
-#   pretty_condition = factor(pretty_condition, levels = order))
-# df_items <- df_items %>% mutate(
-#   pretty_condition = factor(pretty_condition, levels = order))
+order <- c("point" ,"cross", "arrow")
+df_subjects <- df_subjects %>% mutate(
+  pretty_condition = factor(pretty_condition, levels = order))
+df_items <- df_items %>% mutate(
+  pretty_condition = factor(pretty_condition, levels = order))
 
 ```
-
-**TEMP REMOVE IN PERSON DATA**
-```{r}
-df_subjects <- df_subjects %>% filter(mode == "asynch") %>% droplevels()
-df_items <- df_items %>% filter(mode == "asynch") %>% droplevels()
-```
-
 
 ## SAMPLE
 
@@ -87,7 +80,7 @@ Data were collected online in Winter 2022.
 #| label : INSPECT-DATA-COLLECTION
 
 title = "Participants by Condition and Data Collection Period"
-cols = c("Orth-Full", "Orth-Sparse","Orth-Grid", "Tri-Sparse","Total for Period")
+cols = c("point", "cross","arrow", "Total for Period")
 cont <- table(df_subjects$term, df_subjects$condition)
 cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
 
@@ -121,7 +114,7 @@ Recall from [Section -@sec-absolute-scoring] that the absolute score (following 
 
 ```{r}
 #| label: DESC-SUBJ-ABS
-#| 
+
 title = "Descriptive Statistics of Task Response Accuracy (Total Absolute Score)"
 abs.stats <- df_subjects %>% dplyr::select(s_NABS) %>% unlist() %>% favstats()
 abs.stats %>% kbl (caption = title) %>% kable_classic() %>% 
@@ -188,13 +181,14 @@ ggbetweenstats(y = s_NABS, x = pretty_condition, data = df_subjects,
                pairwide.display = "significant", )
 
 
+#troubleshoot why broken 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(s_NABS)) + 
-  stat_ecdf(geom = "step") +
-  facet_grid(pretty_condition~pretty_mode) + 
-  labs( title = "Empirical Cumulative Density Function — Task Absolute Score ",
-        x = "Total Absolute Score [0,13]", 
-        y = "Cumulative Probability")
+# ggplot(data = df_subjects, aes(s_NABS)) + 
+#   stat_ecdf(geom = "step") +
+#   facet_grid(pretty_condition) + 
+#   labs( title = "Empirical Cumulative Density Function — Task Absolute Score ",
+#         x = "Total Absolute Score [0,13]", 
+#         y = "Cumulative Probability")
 
 
 ```
@@ -286,12 +280,12 @@ ggbetweenstats(y = s_SCALED, x = pretty_condition, data = df_subjects,
 
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(s_SCALED)) + 
-  stat_ecdf(geom = "step") + 
-  facet_grid(pretty_condition ~ pretty_mode) + 
-  labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
-        x = "Test Phase Scaled Score [-13,13]", 
-        y = "Cumulative Probability") 
+# ggplot(data = df_subjects, aes(s_SCALED)) +
+#   stat_ecdf(geom = "step") +
+#   # facet_grid(pretty_condition ) +
+#   labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
+#         x = "Test Phase Scaled Score [-13,13]",
+#         y = "Cumulative Probability")
 
 ```
 
@@ -322,7 +316,7 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (91%) than correct answers (9%). Highest accuracy is achieved in the Triangular gridlines condition, with roughly 14% correct response rate, compared to only 6% in the orthogonal axis control. 
+Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (89%) than correct answers (11%). Highest accuracy is achieved in the arrow-mark condition, with roughly 15% correct response rate, compared to only 9% in the orthogonal axis control. 
 
 ```{r}
 #| label: VIS-FIRST-ABSOLUTE
@@ -440,7 +434,7 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 #PROPORTIONAL BAR CHART
 gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>% 
-  gf_facet_grid(pretty_condition~pretty_mode) +
+  gf_facet_grid(~pretty_condition) +
   labs(x = "% of items",
        title = "Proportion of Interpretations Across Items",
        subtitle="")+
