@@ -49,6 +49,7 @@ library(ggeffects) #visualization log regr models
 library(ordinal) #ordinal regression
 library(MASS) # polyr ordinal regression
 library(brant) #brant test for ordinal regression
+library(nnet) #multinomial logistic regression 
 
 library(tidyverse) #ALL THE THINGS
 
@@ -1103,6 +1104,11 @@ ggeffect(model = m1) %>% plot()
 ```{r}
 check_model(m1)
 binned_residuals(m1)
+
+# logitgof(df$accuracy, m1$fitted.values, ord=FALSE)
+# hoslem.test(x = df$accuracy, y = fitted(m1), g =  2)
+# p should be non significant
+
 ```
 
 #### Inference
@@ -1132,20 +1138,26 @@ df <- df_items %>% filter(q==1)  %>% filter(mode == "lab-synch")
 #scaled has already been set as an ordered factor of score_SCALED
 
 #::::::::::::DESCRIPTIVES
-mosaic::favstats(scaled ~ condition, data = df)
+prop.table(table(df$scaled, df$condition))
 
 #::::::::::::VISUALIZE DISTRIBUTIONS
 gf_props(~scaled, fill= ~condition, data = df) %>% 
   gf_facet_grid(condition ~ .) + easy_remove_legend()
 
-#withstats 
-ggbarstats(
-  data = df,
-  x = condition,
-  y = scaled,
-  results.subtitle = FALSE,
-  subtitle = "(misleading, because bars are scaled to 100%)"
-)
+#STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = condition,
+                       fill = scaled)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "",
+       title = "Q1 Interpretation",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
 ```
 **Does CONDITION affect the Q1 [ordered] state of understanding?**
 
@@ -1157,20 +1169,25 @@ df <- df_items %>% filter(q==1)  %>% filter(mode == "lab-synch")
 #scaled has already been set as an ordered factor of score_SCALED
 
 #::::::::::::DESCRIPTIVES
-mosaic::favstats(state ~ condition, data = df)
+prop.table(table(df$state, df$condition))
 
 #::::::::::::VISUALIZE DISTRIBUTIONS
 gf_props(~state, fill= ~condition, data = df) %>% 
   gf_facet_grid(condition ~ .) + easy_remove_legend()
 
-#withstats 
-ggbarstats(
-  data = df,
-  x = condition,
-  y = state,
-  results.subtitle = FALSE,
-  subtitle = "(misleading, because bars are scaled to 100%)"
-)
+#STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "",
+       title = "Q1 State",
+       x = "Condition",
+       fill = "",
+       subtitle="")
 ```
 
 ### ORDINAL REGRESSION --- Cumulative Link; Proportional Odds 
@@ -1302,58 +1319,92 @@ _The ordinal package offers a parameter to set certain predictors as nominal)
 
 ## INDEPENDENT --- (Categorical) REGRESSION
 
+**Does CONDITION affect the Q1 [ordered] type of response given?**
+
+```{r}
+
+#SETUP DATA
+df <- df_items %>% filter(q==1)  %>% filter(mode == "lab-synch") 
+#scaled has already been set as an ordered factor of score_SCALED
+
+#::::::::::::DESCRIPTIVES
+prop.table(table(df$scaled, df$condition))
+
+#::::::::::::VISUALIZE DISTRIBUTIONS
+gf_props(~scaled, fill= ~condition, data = df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend()
+
+#STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = condition,
+                       fill = scaled)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "",
+       title = "Q1 Interpretation",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+```
+**Does CONDITION affect the Q1 [ordered] state of understanding?**
+
+```{r}
+
+#SETUP DATA
+df <- df_items %>% filter(q==1)  %>% filter(mode == "lab-synch") 
+#scaled has already been set as an ordered factor of score_SCALED
+
+#::::::::::::DESCRIPTIVES
+prop.table(table(df$state, df$condition))
+
+#::::::::::::VISUALIZE DISTRIBUTIONS
+gf_props(~state, fill= ~condition, data = df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend()
+
+#STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(#y = "",
+       title = "Q1 State",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+```
+
 ### CHI SQUARE
 
 **Does CONDITION affect the Q1 [categorical] type of response given?**
 
 ```{r}
-#| label : SETUP-INDEPENDENT-CATEGORICAL
 
-#SETUP DATA
-df <- df_items %>% filter(q==1) #%>% filter(mode == "lab-synch") 
-#high_interpretation has already been set as a factor
-
-#::::::::::::DESCRIPTIVES
-mosaic::favstats(interpretation ~ condition, data = df)
-
-#::::::::::::VISUALIZE DISTRIBUTIONS
-gf_props(~scaled, fill= ~condition, data = df) %>% 
-  gf_facet_grid(condition ~ .) + easy_remove_legend()
-
-#withstats 
-ggbarstats(
-  data = df,
-  x = condition,
-  y = scaled,
-  results.subtitle = FALSE,
-  subtitle = "(misleading, because bars are scaled to 100%)"
-)
+CrossTable( x = df$condition, y = df$scaled, 
+             fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
 ```
-\*\* Does CONDITION affect Q1 INTERPRETATION?\*\*
 
 ```{r}
-#| label : SETUP-INDEPENDENT-ORDINAL
 
-#SETUP DATA
-df <- df_items %>% filter(q==1) %>% filter(mode == "lab-synch") 
-#scaled has already been set as an ordered factor of score_SCALED
+#MOSAIC PLOT
+#note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis
+mosaicplot(main="Interpretation on First Question by Condition",
+            data = df, condition ~ scaled, 
+            shade = T)
 
-#::::::::::::DESCRIPTIVES
-mosaic::favstats(scaled ~ condition, data = df)
-
-#::::::::::::VISUALIZE DISTRIBUTIONS
-gf_props(~scaled, fill= ~condition, data = df) %>% 
-  gf_facet_grid(condition ~ .) + easy_remove_legend()
-
-#withstats 
-ggbarstats(
-  data = df,
-  x = condition,
-  y = scaled,
-  results.subtitle = FALSE,
-  subtitle = "(misleading, because bars are scaled to 100%)"
-)
+#::::::::::::WITH STATISTICS
+ggbarstats(data = df, x = condition, y = scaled,
+           type = "nonparametric")
 ```
+
+
+
+
 
 ```{r}
 #| label : CHISQR-interpreation
@@ -1361,25 +1412,23 @@ ggbarstats(
 #MOSAIC PLOT
 #note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis
 mosaicplot(main="Response Type on First Question by Condition",
-            data = df, pretty_condition ~ high_interpretation, 
+            data = df, condition ~ scaled, 
             shade = T)
 
-CrossTable( x = df$pretty_condition, y = df$high_interpretation, fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
+CrossTable( x = df$condition, y = df$scaled, 
+            fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
 
 df %>%
-  sjtab(fun = "xtab", var.labels=c("high_interpretation", "pretty_condition"),
+  sjtab(fun = "xtab", var.labels=c("scaled", "pretty_condition"),
         show.row.prc=T, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
         statistics = "fisher")
 ```
 
 **TODO INFERENCE**
 
-### TODO WIP MULTINOMIAL REGRESSION \[INTERPRETATION\]
+### WIP WIP MULTINOMIAL REGRESSION \[INTERPRETATION\]
 
-\*\*But what does affect of condition really mean relative to base rate of the reference category??
-
-*Does condition affect the type of response given on Q1?*
+*Does condition affect the response state of Q1?*
 
 -   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
 -   https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK
@@ -1389,49 +1438,110 @@ df %>%
 
 ```{r}
 library(nnet)
-df <- df_items %>% filter(q==1)
-#check reference level 
-levels(df$high_interpretation)
 
-#FIT MODEL
-mm <- multinom(formula = high_interpretation ~ condition, data = df)
-summary(mm)
+#check reference level 
+levels(df$state)
+
+#FIT EMPTY MODEL
+catm.0 <- multinom(state ~ 1, data = df)
+# summary(catm.0)
+
+#FIT PREDICTOR MODEL
+catm <- multinom(formula = state ~ condition, data = df, model = TRUE)
+# summary(catm)
+
+#COMPARE MODEL FIT
+test_lrt(catm.0, catm)
+
+
+##compare bayesian version
+library(brms)
+# m1 <- brm( state ~ condition, data = df, family = "categorical")
+# summary(m1)
+# plot_model(m1)
+# report(m1)
+
+#BAYESIAN MIXED VERSION
+df <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% filter(term=="spring18")
+# mm1 <- brm( state ~ condition + (1|subject), data = df, family = "categorical")
+# write_rds(mm1, "analysis/models/sgc3a_brms_mixedcat_teststate.rds")
+# mm1 <- read_rds("analysis/models/sgc3a_brms_mixedcat_teststate.rds")
+# summary(mm1)
+# performance(mm1)
+# plot(mm1)
+# #report(mm1)
+# #check_posterior_predictions(mm1, draws=100)
+# # library(bayesplot)
+# library(bayestestR)
+# plot(rope(mm1))
+```
+_Likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model._
+
+#### Interpretation
+
+```{r}
+
+#::::::::INTERPRETATION
+paste("MODEL SUMMARY")
+summary(catm)
 
 # calculate z-statistics of coefficients
-z_stats <- summary(mm)$coefficients/summary(mm)$standard.errors
+(z_stats <- summary(catm)$coefficients/summary(catm)$standard.errors)
 # convert to p-values
 p_values <- (1 - pnorm(abs(z_stats)))*2
 # display p-values in transposed data frame
 p_values <- data.frame(p = (p_values))
 # display odds ratios in transposed data frame
-paste("ODDS RATIOS")
-odds_ratios <- data.frame(OR = exp(summary(mm)$coefficients))
 
-options(scipen = 5)
+paste("ODDS RATIOS")
+odds_ratios <- data.frame(OR = exp(summary(catm)$coefficients))
+
+# options(scipen = 3)
 (results <- cbind(odds_ratios, p_values))
 ```
 
+####Learning Notes
+
+- Model estimates encompass two equations: 
+- effect of predictor on log odds of being in [unknown] instead of reference category [orth-like]
+- effect of predictor on log odds of being in [tri-like] instead of reference category [orth-like]
+
+
 #### Inference
 
-Being in the control condition does not change the odds of a negative transition or neutral category over the orthogonal. But it does increase the odds:
+-   Being in the IMPASSE condition increases the odds of giving 'unknown/uncertain' response rather than an orthogonal (or satisficing)  response by a factor of 50 (z = 3.59, p < 0.001 ).
+-   Being in the IMPASSE condition increases the odds of giving an 'triangular or line-driven' response rather than an orthogonal (or satisficing) response by a factor of  6 (z = 3.98, p <0.001 )
 
--   of giving a positive transition response (vs) orthogonal by 17.2 (?%)
--   of giving a triangular response (vs) orthogonal by 6.38 (?%)
 
 #### Visualize
 
 ```{r}
-plot_model(mm, type = "pred")
-plot_model(mm)
+plot_model(catm, vline.color = 'red')
+plot_model(catm, type = "eff")
+
 ```
 
 #### Diagnostics
 
 ```{r}
 
-performance(mm)
+#EXAMINE PREDICTIONS
+#create sample data frame
+test <- data.frame(condition = c("control", "impasse"))
+pred <- predict(catm, newdata = test, "probs")
+paste("Predicted Probability of Being in Each State")
+(cbind(test, pred))
+
+#performance
+performance(catm)
+DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
+
+#General Goodness of Fit
 library(generalhoslem)
-logitgof(df$high_interpretation, exp = mm$fitted.values, ord=FALSE)
+# logitgof(df$state, catm$fitted.values, g = 3)
+# hoslem.test(x = df$state, y = catm$fitted.values, g =  10)
+#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
+#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
 
 ```
 
