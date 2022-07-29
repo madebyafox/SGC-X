@@ -483,7 +483,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header><div style="page-break-after: always;"></div>
 <p><strong>In this notebook we use data from study SGC3A to explore different modelling techniques and assess their suitability for the bimodal accuracy distributions in the SGC project data.</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/SETUP_e7812fd4381b3f6ce54e6d53d0da3fee">
 <details><summary>CODE</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://hbiostat.org/R/Hmisc/">Hmisc</a></span><span class="op">)</span> <span class="co"># %nin% operator</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://jtools.jacob-long.com">jtools</a></span><span class="op">)</span> <span class="co">#misc helpers </span>
 
@@ -536,7 +536,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/IMPORT-DATA_f716a9af5978c912086dfd9af5541625">
 <details><summary>CODE</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co"># HACK WD FOR LOCAL RUNNING?</span>
 <span class="co"># imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"</span>
 <span class="co">#mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"</span>
@@ -576,7 +576,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><strong>Does CONDITION have an effect on TEST PHASE ABSOLUTE SCORE?<br>
 (# questions correct on test phase of task, [in lab] participants)</strong></p>
 <p><em>(Can also be transformed to proportion or percentage).</em></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/SETUP-IND-TESTSCORE_212e535fa26b39ad060262549bed0089">
 <details><summary>CODE</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#::::::::::::SETUP DATA</span>
 <span class="va">df</span> <span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span>
 
@@ -652,7 +652,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>
 <strong>SGC accuracy data violate both homogeneity and normality</strong>*</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/STUDENTS-T_f8cf4924e46d8a981be948beead5ffeb">
 <details><summary>CODE</summary><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="op">(</span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span> <span class="va">test_score</span> <span class="op">~</span> <span class="va">condition</span>,data <span class="op">=</span> <span class="va">df</span>,
               paired <span class="op">=</span> <span class="cn">FALSE</span>, var.equal <span class="op">=</span> <span class="cn">TRUE</span>, alternative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"two.sided"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># less, greater for one sided tests</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -679,7 +679,7 @@ retrieve data from htest object. Using t_to_d() approximation.</code></pre>
 The Two Sample t-test testing the difference of test_score by condition (mean in group control = 1.71, mean in group impasse = 3.33) suggests that the effect is negative, statistically significant, and medium (difference = -1.62, 95% CI [-2.76, -0.48], t(124) = -2.81, p = 0.006; Cohen's d = -0.50, 95% CI [-0.86, -0.15])</code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-5_3dbb19111ca4af091575acd41050d8ed">
 <details><summary>CODE</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#STATSPLOT | VIOLIN</span>
 
 <span class="co">#one tailed tests must be done manually by extracting results expression and adding as subtitle</span>
@@ -706,7 +706,7 @@ The Two Sample t-test testing the difference of test_score by condition (mean in
 <strong>Does not</strong> assumes equal variance of samples (homogeneity of variance)</li>
 <li><strong><em>SGC accuracy data violates normality assumption</em></strong></li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/WELCHES-T_6f10fbbc0665988ef775bee24cb83bd0">
 <details><summary>CODE</summary><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="op">(</span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/t.test.html">t.test</a></span><span class="op">(</span> <span class="va">test_score</span> <span class="op">~</span> <span class="va">condition</span>,data <span class="op">=</span> <span class="va">df</span>,
               paired <span class="op">=</span> <span class="cn">FALSE</span>, var.equal <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -733,7 +733,7 @@ retrieve data from htest object. Using t_to_d() approximation.</code></pre>
 The Welch Two Sample t-test testing the difference of test_score by condition (mean in group control = 1.71, mean in group impasse = 3.33) suggests that the effect is negative, statistically significant, and medium (difference = -1.62, 95% CI [-2.76, -0.48], t(123.25) = -2.81, p = 0.006; Cohen's d = -0.51, 95% CI [-0.86, -0.15])</code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-7_ad53df923b04d156bfe09e9c58238dd8">
 <details><summary>CODE</summary><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#STATSPLOT | VIOLIN</span>
 <span class="fu"><a href="https://indrajeetpatil.github.io/ggstatsplot/reference/ggbetweenstats.html">ggbetweenstats</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">test_score</span>, x <span class="op">=</span> <span class="va">condition</span>, data <span class="op">=</span> <span class="va">df</span>,
                type <span class="op">=</span> <span class="st">"parametric"</span>, var.equal <span class="op">=</span> <span class="cn">FALSE</span>,
@@ -749,7 +749,7 @@ The Welch Two Sample t-test testing the difference of test_score by condition (m
 <li>Trimmed means are not desireable for this research scenario because they trim data from the extremes, and in this study these are true, interesting values</li>
 <li><a href="https://garstats.wordpress.com/2017/11/28/trimmed-means/" class="uri">https://garstats.wordpress.com/2017/11/28/trimmed-means/</a></li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/YUENS-T_eabe6d5052b396b9a346c8af9cf59a1f">
 <details><summary>CODE</summary><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="op">(</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/WRS2/man/yuen.html">yuenbt</a></span><span class="op">(</span> formula <span class="op">=</span> <span class="va">test_score</span> <span class="op">~</span> <span class="va">condition</span>, data <span class="op">=</span> <span class="va">df</span>,
               side <span class="op">=</span> <span class="cn">TRUE</span>, EQVAR <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -761,10 +761,10 @@ Test statistic: -2.99 (df = NA), p-value = 0.00334
 
 Trimmed mean difference:  -2.53 
 95 percent confidence interval:
--4.08     -0.98 </code></pre>
+-4.15     -0.909 </code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-9_18b79d5de12f35e480648c0c33d22364">
 <details><summary>CODE</summary><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#STATSPLOT | VIOLIN</span>
 <span class="fu"><a href="https://indrajeetpatil.github.io/ggstatsplot/reference/ggbetweenstats.html">ggbetweenstats</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">test_score</span>, x <span class="op">=</span> <span class="va">condition</span>, data <span class="op">=</span> <span class="va">df</span>,
                type <span class="op">=</span> <span class="st">"robust"</span>, var.equal <span class="op">=</span> <span class="cn">FALSE</span>,
@@ -781,7 +781,7 @@ Trimmed mean difference:  -2.53
 <li>Does not assume equal variance of samples (homogeneity of variance)</li>
 <li><strong>Appropriate for SGC accuracy data</strong></li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/WILCOXON RANK SUM_d53598cafcdd03a5db18f5853aba1b38">
 <details><summary>CODE</summary><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="op">(</span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html">wilcox.test</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">test_score</span> <span class="op">~</span> <span class="va">df</span><span class="op">$</span><span class="va">condition</span>,
                  pared <span class="op">=</span> <span class="cn">FALSE</span>, alternative <span class="op">=</span> <span class="st">"two.sided"</span><span class="op">)</span><span class="op">)</span> <span class="co">#less, greater</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -799,7 +799,7 @@ alternative hypothesis: true location shift is not equal to 0</code></pre>
 The Wilcoxon rank sum test with continuity correction testing the difference in ranks between df$test_score and df$condition suggests that the effect is negative, statistically significant, and medium (W = 1438.00, p = 0.003; r (rank biserial) = -0.28, 95% CI [-0.45, -0.08])</code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-11_f31a3b2b7ee1629693594986fc3c8945">
 <details><summary>CODE</summary><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#STATSPLOT | VIOLIN</span>
 <span class="fu"><a href="https://indrajeetpatil.github.io/ggstatsplot/reference/ggbetweenstats.html">ggbetweenstats</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">test_score</span>, x <span class="op">=</span> <span class="va">condition</span>, data <span class="op">=</span> <span class="va">df</span>,
                type <span class="op">=</span> <span class="st">"nonparametric"</span>, var.equal <span class="op">=</span> <span class="cn">FALSE</span>,
@@ -816,7 +816,7 @@ The Wilcoxon rank sum test with continuity correction testing the difference in 
 <li>https://link.springer.com/article/10.3758/s13428-020-01407-2#Sec14 see also https://qmliu.shinyapps.io/DACFE/</li>
 </ul>
 <p>For comparison we run a standard followed by a Wilcoxon rank-sum (Mann-Whitney) test that is a nonparametric alternative for non-normally distributed data.</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-12_cbe57b72aa03998b58a81527326f1bec">
 <details><summary>CODE</summary><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="op">(</span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html">wilcox.test</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">test_score</span> <span class="op">~</span> <span class="va">df</span><span class="op">$</span><span class="va">condition</span><span class="op">)</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>
@@ -833,7 +833,7 @@ alternative hypothesis: true location shift is not equal to 0</code></pre>
 </ul>
 <p>Using properties from truncated normal distributions, the authors propose an easy-to-use method for the <em>t</em>-test and ANOVA with ceiling/floor data.</p>
 <p><em>The proposed method calculates the degrees of freedom based on the after-truncation sample sizes (where l = number of floor observations, and r = number of ceiling observations). The rationale was that the proposed method utilizes full information only from data points of n − r − l participants and partial information from data points of r + l participants of a group for the mean and variance estimation. Specifically, the corrected mean and variance estimates (Eqs. 14 and 15) are functions of mean and variance estimates using after-truncation data (n − r − l participants) and the standardized floor and ceiling threshold estimates. The thresholds are estimated using the ceiling and floor percentage estimates based on data points of n − r and n − l participants, respectively. This is a relatively conservative approach for calculating the degrees of freedom, which can help control the type I error rate. This feature can be beneficial, especially given the “replication crisis” in psychological and behavioral research.</em></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-13_043ce0b9ed69ba0b1e18e67477074b15">
 <details><summary>CODE</summary><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#FLOOR-CEILING ADJUSTED T TESTS</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">DACF</span><span class="op">)</span> <span class="co">#tests for data with floor and ceiling </span>
 <span class="co"># https://www.rdocumentation.org/packages/DACF/versions/1.0.0</span>
@@ -901,7 +901,7 @@ $est.f.squared
 </ul>
 </li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-14_001f56255be4a657fd23dd3011297356">
 <details><summary>CODE</summary><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SCORE predicted by CONDITION</span>
 <span class="va">lm.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">test_score</span> <span class="op">~</span> <span class="va">condition</span>, data <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Model"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -977,7 +977,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <p><img src="modelling_ref_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/PLOT-MODEL-COEFSS-GGDIST_b51595fb6a552e802da625b5fddb62fb">
 <details><summary>CODE</summary><div class="sourceCode" id="cb53"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#MODEL ESTIMATES WITH UNCERTAINTY</span>
 
 <span class="co">#setup references</span>
@@ -1005,7 +1005,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <p><img src="modelling_ref_files/figure-html/PLOT-MODEL-COEFSS-GGDIST-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/PLOT-MODEL-PRED-SJPLOT_2a948a6523666b0f0737f005508f8f16">
 <details><summary>CODE</summary><div class="sourceCode" id="cb54"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#sjPlot</span>
 <span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/plot_model.html">plot_model</a></span><span class="op">(</span><span class="va">lm.1</span>,  type <span class="op">=</span> <span class="st">"eff"</span>, 
            show.data <span class="op">=</span> <span class="cn">TRUE</span>, jitter <span class="op">=</span> <span class="cn">TRUE</span>,
@@ -1034,7 +1034,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <li>With truncation some of the observations are not included in the analysis because of the value of the variable.</li>
 <li>When a variable is censored, regression models for truncated data provide inconsistent estimates of the parameters. See Long (1997, chapter 7) for a more detailed discussion of problems of using regression models for truncated data to analyze censored data.</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-17_4e983efa4ddf0cca119ca8f6fa7c3d26">
 <details><summary>CODE</summary><div class="sourceCode" id="cb56"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#set censoring values </span>
 <span class="va">lo</span> <span class="op">=</span> <span class="fl">0</span>
 <span class="va">hi</span> <span class="op">=</span> <span class="fl">8</span> 
@@ -1166,7 +1166,7 @@ AIC     |     BIC |  RMSE | Sigma
 <li>The predicted value of test_phase_score is 5.75 points <em>higher</em> for students in the impasse condition than for students in the control condition. (72% improvement in score!)</li>
 </ul>
 <p><strong>Using censReg package</strong> - https://cran.r-project.org/web/packages/censReg/vignettes/censReg.pdf</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-18_88c243a8b5cee19c5958b05739b0873e">
 <details><summary>CODE</summary><div class="sourceCode" id="cb81"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.sampleSelection.org">censReg</a></span><span class="op">)</span> <span class="co">#censored regression</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stderr">
 <pre><code>Warning: package 'censReg' was built under R version 4.1.2</code></pre>
@@ -1264,7 +1264,7 @@ AIC     |     BIC
 <p><strong>Does CONDITION have an effect on TEST PHASE ABSOLUTE SCORE?<br>
 (# questions correct on test phase of task, [in lab] participants)</strong></p>
 <p>The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can try considering it a type of <em>count</em>, (i.e.&nbsp;count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function). Note that the process of answering questions on a test do not seem to strictly match the assumptions of a Poisson process.</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/SETUP-COUNT-TESTSCORE_650bb4a4fb090a9fd8d4374b6dafc081">
 <details><summary>CODE</summary><div class="sourceCode" id="cb99"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#::::::::::::SETUP DATA</span>
 <span class="va">df</span> <span class="op">=</span> <span class="va">df_subjects</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span>
 
@@ -1334,7 +1334,7 @@ AIC     |     BIC
 </div>
 <section id="poisson-regression" class="level3"><h3 class="anchored" data-anchor-id="poisson-regression">Poisson Regression</h3>
 <p><a href="https://stats.oarc.ucla.edu/r/dae/poisson-regression/" class="uri">https://stats.oarc.ucla.edu/r/dae/poisson-regression/</a><br><em>General Linear model using the Poisson distribution</em></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-20_9e59e58f468628d11dcddc6631b6aca0">
 <details><summary>CODE</summary><div class="sourceCode" id="cb103"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SCORE predicted by CONDITION --&gt; POISSON DISTRIBUTION</span>
 <span class="va">p.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">test_score</span> <span class="op">~</span> <span class="va">condition</span>, data <span class="op">=</span> <span class="va">df</span>, family <span class="op">=</span> <span class="st">"poisson"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Model"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1486,7 +1486,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <ul>
 <li>similar to Poisson regression, but using the negative binomial distribution, which can better account for ‘overdispersed’ data where variance is much greater than the mean</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-21_748f4608a311dec6bdd27396a0f1b05e">
 <details><summary>CODE</summary><div class="sourceCode" id="cb120"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#NEGATIVE BIONOMIAL REGRESSION</span>
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.stats.ox.ac.uk/pub/MASS4/">MASS</a></span><span class="op">)</span>
@@ -1590,7 +1590,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </div>
 </div>
 <p><em>The variable condition has a coefficient of 0.67, (p &lt; 0.005). This means that for the impasse condition, the expected log count # of questions increases by 0.67. By exponentiating the estimate we see that # question correct rate for the impasse condition is nearly 1.95x that of the control condition. However, model diagnostics suggest the residuals are not normally distributed.</em></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-22_b7f56246ee34cd8e6c2378e756cc0df2">
 <details><summary>CODE</summary><div class="sourceCode" id="cb135"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#COMPARE POISSON AND NEGATIVE BINOMIAL</span>
 <span class="fu"><a href="https://easystats.github.io/performance/reference/compare_performance.html">compare_performance</a></span><span class="op">(</span><span class="va">p.1</span>, <span class="va">nb.1</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -1626,7 +1626,7 @@ nb.1 | negbin |  3 |       1 | 277.71 | &lt; .001</code></pre>
 <li>Can specify different predictors for each part of the model</li>
 <li>predictors after the | are for the binomial zero-inflated part of the model, while those infront are for the poisson process</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-23_e6d43d2e5fef6d216a86d3338fa7a898">
 <details><summary>CODE</summary><div class="sourceCode" id="cb139"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#ZERO INFLATED POISSON</span>
 
 <span class="va">zinfp.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pscl/man/zeroinfl.html">zeroinfl</a></span><span class="op">(</span><span class="va">test_score</span> <span class="op">~</span>  <span class="va">condition</span><span class="op">|</span> <span class="va">condition</span> , data <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
@@ -1702,7 +1702,7 @@ AIC     |     BIC |    R2 | R2 (adj.) |  RMSE | Sigma | Score_log | Score_spheri
 <li>A logistic model to model which of the two processes the zero outcome is associated with</li>
 <li>A negative binomial model to model the count process</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/MODEL-TESTABS-ZINFNEGBINOM_5cad3d934be3d8fa20c6a9c1857f0904">
 <details><summary>CODE</summary><div class="sourceCode" id="cb147"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/atahk/pscl">pscl</a></span><span class="op">)</span> <span class="co">#  for zeroinfl negbinomial</span>
 
 <span class="co">#ZERO INFLATED NEGATIVE BINOMIAL</span>
@@ -1786,7 +1786,7 @@ AIC     |     BIC |    R2 | R2 (adj.) |  RMSE | Sigma | Score_log | Score_spheri
 </div>
 <p><em>In the count model, the coefficient for the condition is very small, and not significant (suggesting it does not contribute to the count yielding process?).</em></p>
 <p><em>In the zero-inflation model, the coefficient for the condition variable is -1.056 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.06 if you are in the impasse condition</em></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-25_b402605c1d0cf0ff793b99b77806d459">
 <details><summary>CODE</summary><div class="sourceCode" id="cb157"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://easystats.github.io/performance/reference/compare_performance.html">compare_performance</a></span><span class="op">(</span><span class="va">zinfp.1</span>, <span class="va">zinb.1</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code># Comparison of Model Performance Indices
@@ -1822,7 +1822,7 @@ different from zero-inflated models where the excess zeros are theorized to aris
 <li><p>A binary logit model to model whether the observation takes a positive count or not. (1) Does the student get <em>any</em> questions right?</p></li>
 <li><p>a truncated Poisson or Negative binomial model that only fits positive counts (2) How many questions does the student get right?</p></li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-26_50f1028b1c966b071bce5f125a4cf752">
 <details><summary>CODE</summary><div class="sourceCode" id="cb162"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/atahk/pscl">pscl</a></span><span class="op">)</span> <span class="co">#zero-inf and hurdle models </span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">countreg</span><span class="op">)</span> <span class="co">#rootogram</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -1976,7 +1976,7 @@ h.2  | hurdle |  5 |       1 | 0.25 | 0.615</code></pre>
 <section id="beta-regression-1" class="level3"><h3 class="anchored" data-anchor-id="beta-regression-1">BETA Regression</h3>
 <p>Beta regression on % correct (with standard transformation for including [0,1])</p>
 <p><a href="https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression" class="uri">https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression</a></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-27_4251ec67095a8eb5b2d3e99fc60eba68">
 <details><summary>CODE</summary><div class="sourceCode" id="cb183"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co"># </span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">betareg</span><span class="op">)</span>
 
@@ -2045,7 +2045,7 @@ Number of iterations: 12 (BFGS) + 1 (Fisher scoring) </code></pre>
 <li>NU coefficient tells if condition yields different probability at floor</li>
 <li>TAU coefficient tells if condition yields different probability at ceiling</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-28_454f1997230c6709c9547ba786bbe440">
 <details><summary>CODE</summary><div class="sourceCode" id="cb188"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#BETA HURDLE REGRESSION EXAMPLE</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.gamlss.com/">gamlss</a></span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -2253,7 +2253,7 @@ Filliben correlation coefficient  =  1
 - p0 is the probability that a case equals 0,<br>
 - p1 is the probability that a case equals 1,<br>
 - p2 (i.e., 1 −p0 −p1) is the probability that the case comes from the beta distribution</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-29_5edd4b013814c6db46e73a2455933114">
 <details><summary>CODE</summary><div class="sourceCode" id="cb222"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#MY DATA</span>
 <span class="co">#SETUP DATA </span>
 
@@ -2904,7 +2904,7 @@ Filliben correlation coefficient  =  0.998
 <li>NU coefficient tells if condition yields different probability at floor</li>
 <li>TAU coefficient tells if condition yields different probability at ceiling</li>
 </ul></section></section><section id="binomial-outcome" class="level2"><h2 class="anchored" data-anchor-id="binomial-outcome">BINOMIAL OUTCOME</h2>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/SETUP-Q1-ACCURACY_45ac9847251a41c4162e85d17c56cb36">
 <details><summary>CODE</summary><div class="sourceCode" id="cb310"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#PREPARE DATA </span>
 <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span> <span class="op">==</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span>
 <span class="co"># %&gt;% mutate(</span>
@@ -2942,7 +2942,7 @@ Filliben correlation coefficient  =  0.998
 </div>
 <section id="chi-square" class="level3"><h3 class="anchored" data-anchor-id="chi-square">CHI SQUARE</h3>
 <p><strong>Does CONDITION affect Q1 ACCURACY?</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-31_a34850f5aff4ef03d9dcf7db07ae9584">
 <details><summary>CODE</summary><div class="sourceCode" id="cb312"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/gmodels/man/CrossTable.html">CrossTable</a></span><span class="op">(</span> x <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">condition</span>, y <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">accuracy</span>, 
              fisher <span class="op">=</span> <span class="cn">TRUE</span>, chisq<span class="op">=</span><span class="cn">TRUE</span>, expected <span class="op">=</span> <span class="cn">TRUE</span>, sresid <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -3016,7 +3016,7 @@ p =  0.0547
  </code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/label - VIS-CHISQR-Q1_f4259dafe1788a022c118fae153c580f">
 <details><summary>CODE</summary><div class="sourceCode" id="cb314"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#MOSAIC PLOT</span>
 <span class="co">#note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/mosaicplot.html">mosaicplot</a></span><span class="op">(</span>main<span class="op">=</span><span class="st">"Accuracy on First Question by Condition"</span>,
@@ -3098,7 +3098,7 @@ p =  0.0547
 <p><em>Fit a logistic regression (at the subject-item level), predicting Q1 accuracy (absolute score) by condition.</em><br><em>note: this example uses the combined dataset rather than lab-only, as learning notes were done with the combined and I don’t want to recalcualte all the marginal probabilities by hand for learning purposes.</em></p>
 <section id="fit-model" class="level4"><h4 class="anchored" data-anchor-id="fit-model">Fit Model</h4>
 <p><em>First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.</em></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/FIT-Q1ACC-LOG-combined_5939f3bb23ae53ba23996f29f5f2d4e0">
 <details><summary>CODE</summary><div class="sourceCode" id="cb317"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#combined dataset, not lab only</span>
 <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
   accuracy <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">score_niceABS</span><span class="op">)</span>
@@ -3194,7 +3194,7 @@ m1   |   glm |  2 |       1 | 10.59 | 0.001</code></pre>
 </div>
 <p><em>The Condition predictor significantly improves model fit.</em></p>
 </section><section id="learning-notes" class="level4"><h4 class="anchored" data-anchor-id="learning-notes">Learning Notes</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/MODEL-Q1ACC-LOG-combined_597f8d6d5f485df3d129e2a4a5444a6c">
 <details><summary>CODE</summary><div class="sourceCode" id="cb331"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co"># DESCRIBE MODEL ::::::::::::::::::::::::::::::::::::: </span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="st">"PREDICTOR MODEL"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -3320,7 +3320,7 @@ odds(+) = 49/123 = 0.398</td>
 </tr>
 </tbody>
 </table></section><section id="visualize" class="level4"><h4 class="anchored" data-anchor-id="visualize">Visualize</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-35_c838cb275e8c754268e7998f4724bf76">
 <details><summary>CODE</summary><div class="sourceCode" id="cb346"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="st">"MODEL PERFORMANCE"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>[1] "MODEL PERFORMANCE"</code></pre>
@@ -3416,7 +3416,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </details>
 </div>
 </section><section id="diagnostics" class="level4"><h4 class="anchored" data-anchor-id="diagnostics">Diagnostics</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-36_e717beb22247129de7c036dac4de16b2">
 <details><summary>CODE</summary><div class="sourceCode" id="cb365"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://easystats.github.io/performance/reference/check_model.html">check_model</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <p><img src="modelling_ref_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid" width="672"></p>
@@ -3441,7 +3441,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <li>being in impasse increases odds of correct response in impasse over control increases by factor of 2.46</li>
 <li>probability of correct response in control predicted as 28.5%, vs only 14% in control condition</li>
 </ul>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-37_aa4a015199fe571bdde28afd7251d77d">
 <details><summary>CODE</summary><div class="sourceCode" id="cb369"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#PRETTY TABLE SJPLOT</span>
 <span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/tab_model.html">tab_model</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
@@ -3482,7 +3482,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </div>
 </section></section></section><section id="ordinal-outcome" class="level2"><h2 class="anchored" data-anchor-id="ordinal-outcome">ORDINAL OUTCOME</h2>
 <p><strong>Does CONDITION affect the Q1 [ordered] type of response given?</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/label - SETUP-INDEPENDENT-ORDINAL_bcd852336a04d35413d89fa16bd154db">
 <details><summary>CODE</summary><div class="sourceCode" id="cb370"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SETUP DATA</span>
 <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span>  <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span> 
 <span class="co">#scaled has already been set as an ordered factor of score_SCALED</span>
@@ -3522,7 +3522,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </div>
 </div>
 <p><strong>Does CONDITION affect the Q1 [ordered] state of understanding?</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/label - SETUP-INDEPENDENT-ORDINAL-STATE_c2e696091b93525a51a82206162efbe9">
 <details><summary>CODE</summary><div class="sourceCode" id="cb374"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SETUP DATA</span>
 <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span>  <span class="op"><a href="https://rpkgs.datanovia.com/ggpubr/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span> 
 <span class="co">#scaled has already been set as an ordered factor of score_SCALED</span>
@@ -3580,7 +3580,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 <strong>TODO</strong> - see difference between the three types of ordinal models (adjacent category (vs) cumulative proportions; check Agresti book</li>
 </ul>
 <section id="fit-model-1" class="level4"><h4 class="anchored" data-anchor-id="fit-model-1">Fit Model</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-40_e313bea26551ad31adf0874cecae86ff">
 <details><summary>CODE</summary><div class="sourceCode" id="cb378"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#::::::::::::ORDINAL REGRESSION MODELS</span>
 
 <span class="co">#EMPTY MODEL</span>
@@ -3625,7 +3625,7 @@ om   |   clm |  3 |       1 | 25.77 | &lt; .001</code></pre>
 </div>
 <p><em>Likelihood ratio test suggests the predictor model is a better fit than the empty (intercept only) model.</em></p>
 </section><section id="inference-1" class="level4"><h4 class="anchored" data-anchor-id="inference-1">Inference</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-41_7acd4b47b3a988f353e19d71c63b440a">
 <details><summary>CODE</summary><div class="sourceCode" id="cb385"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"SUMMARY"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
 <pre><code>[1] "SUMMARY"</code></pre>
@@ -3692,7 +3692,7 @@ conditionimpasse  3.12   15.1</code></pre>
 <li>confirm that the CI does not include 0 (the units are ordered logits [ordered log odds])</li>
 <li>as with logistic regression we exponentiate the coefficients and confints to get odds ratio</li>
 </ul></section><section id="visualize-model" class="level4"><h4 class="anchored" data-anchor-id="visualize-model">Visualize Model</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-42_c4b07734972e163dcdf6e0ec7bd0806c">
 <details><summary>CODE</summary><div class="sourceCode" id="cb401"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co"># sjPlot::tab_model(om)</span>
 <span class="fu">sjPlot</span><span class="fu">::</span><span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/plot_model.html">plot_model</a></span><span class="op">(</span><span class="va">om</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
@@ -3709,7 +3709,7 @@ conditionimpasse  3.12   15.1</code></pre>
 </details>
 </div>
 </section><section id="diagnostics-1" class="level4"><h4 class="anchored" data-anchor-id="diagnostics-1">Diagnostics</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-43_32dda8b05afaf474d34e98954dac5972">
 <details><summary>CODE</summary><div class="sourceCode" id="cb405"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#:: ASSESS FIT</span>
 <span class="fu"><a href="https://easystats.github.io/performance/reference/model_performance.html">performance</a></span><span class="op">(</span><span class="va">om</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -3771,7 +3771,7 @@ attr(,"class")
 <p>*Note: for multiple regression, the ordinal package offers a parameter (nominal = ~predictors) that allow you to designate some predictors as nominal rather than ordinal. But this is not appropriate for this use case._</p>
 </section></section></section><section id="categorical-outcome" class="level2"><h2 class="anchored" data-anchor-id="categorical-outcome">CATEGORICAL OUTCOME</h2>
 <p><strong>Does CONDITION affect the Q1 [ordered] type of response given?</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-44_2e58c925f0b33aaedef09abdcee73059">
 <details><summary>CODE</summary><div class="sourceCode" id="cb414"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SETUP DATA</span>
 <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rdrr.io/pkg/pomcheckr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span>  <span class="op"><a href="https://rdrr.io/pkg/pomcheckr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span> 
 <span class="co">#scaled has already been set as an ordered factor of score_SCALED</span>
@@ -3811,7 +3811,7 @@ attr(,"class")
 </div>
 </div>
 <p><strong>Does CONDITION affect the Q1 [ordered] state of understanding?</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-45_cd810725fe2a63ec4a7a39622540f68b">
 <details><summary>CODE</summary><div class="sourceCode" id="cb418"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SETUP DATA</span>
 <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rdrr.io/pkg/pomcheckr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span>  <span class="op"><a href="https://rdrr.io/pkg/pomcheckr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span> <span class="st">"lab-synch"</span><span class="op">)</span> 
 <span class="co">#scaled has already been set as an ordered factor of score_SCALED</span>
@@ -3850,7 +3850,7 @@ attr(,"class")
 </div>
 <section id="chi-square-1" class="level3"><h3 class="anchored" data-anchor-id="chi-square-1">CHI SQUARE</h3>
 <p><strong>Does CONDITION affect the Q1 [categorical] type of response given?</strong></p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-46_83565a7cf2565b26a1a3ddc7b99d40c3">
 <details><summary>CODE</summary><div class="sourceCode" id="cb422"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/gmodels/man/CrossTable.html">CrossTable</a></span><span class="op">(</span> x <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">condition</span>, y <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">scaled</span>, 
              fisher <span class="op">=</span> <span class="cn">TRUE</span>, chisq<span class="op">=</span><span class="cn">TRUE</span>, expected <span class="op">=</span> <span class="cn">TRUE</span>, sresid <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stderr">
@@ -3913,7 +3913,7 @@ p =  1.01e-09
  </code></pre>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-47_b2b518a620580218d719029bf0a96cb2">
 <details><summary>CODE</summary><div class="sourceCode" id="cb425"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#MOSAIC PLOT</span>
 <span class="co">#note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/mosaicplot.html">mosaicplot</a></span><span class="op">(</span>main<span class="op">=</span><span class="st">"Interpretation on First Question by Condition"</span>,
@@ -3929,7 +3929,7 @@ p =  1.01e-09
 <p><img src="modelling_ref_files/figure-html/unnamed-chunk-47-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/label - CHISQR-interpreation_0d919eb86a008e462e69f6924d7755a7">
 <details><summary>CODE</summary><div class="sourceCode" id="cb427"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#MOSAIC PLOT</span>
 <span class="co">#note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/mosaicplot.html">mosaicplot</a></span><span class="op">(</span>main<span class="op">=</span><span class="st">"Response Type on First Question by Condition"</span>,
@@ -4104,7 +4104,7 @@ p =  1.01e-09
 <li><a href="https://www.youtube.com/watch?v=JcCBIPqcwFo&amp;list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&amp;ab_channel=NCRMUK" class="uri">https://www.youtube.com/watch?v=JcCBIPqcwFo&amp;list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&amp;ab_channel=NCRMUK</a></li>
 </ul>
 <section id="fit-model-2" class="level4"><h4 class="anchored" data-anchor-id="fit-model-2">Fit Model</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-49_819484559562eed7d6b0d17cd246fa06">
 <details><summary>CODE</summary><div class="sourceCode" id="cb432"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.stats.ox.ac.uk/pub/MASS4/">nnet</a></span><span class="op">)</span>
 
 <span class="co">#check reference level </span>
@@ -4154,7 +4154,7 @@ catm   | multinom |  4 |       2 | 38.02 | &lt; .001</code></pre>
 </div>
 <p><em>Likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model.</em></p>
 </section><section id="interpretation" class="level4"><h4 class="anchored" data-anchor-id="interpretation">Interpretation</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-50_b363aa45fcecb2b7e89b1fc48687eeb9">
 <details><summary>CODE</summary><div class="sourceCode" id="cb441"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#::::::::INTERPRETATION</span>
 <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"MODEL SUMMARY"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -4215,7 +4215,7 @@ tri-like           0.22                5.91      5.45e-06          0.0000692</co
 <li>Being in the IMPASSE condition increases the odds of giving ‘unknown/uncertain’ response rather than an orthogonal (or satisficing) response by a factor of 50 (z = 3.59, p &lt; 0.001 ).</li>
 <li>Being in the IMPASSE condition increases the odds of giving an ‘triangular or line-driven’ response rather than an orthogonal (or satisficing) response by a factor of 6 (z = 3.98, p &lt;0.001 )</li>
 </ul></section><section id="visualize-1" class="level4"><h4 class="anchored" data-anchor-id="visualize-1">Visualize</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-51_887398fbeff3fe7fe68c8aaa2e1c0b04">
 <details><summary>CODE</summary><div class="sourceCode" id="cb451"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/plot_model.html">plot_model</a></span><span class="op">(</span><span class="va">catm</span>, vline.color <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <p><img src="modelling_ref_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid" width="672"></p>
@@ -4229,7 +4229,7 @@ tri-like           0.22                5.91      5.45e-06          0.0000692</co
 </div>
 </div>
 </section><section id="diagnostics-2" class="level4"><h4 class="anchored" data-anchor-id="diagnostics-2">Diagnostics</h4>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-52_d993b5ae185c046d096854360612f041">
 <details><summary>CODE</summary><div class="sourceCode" id="cb454"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#EXAMINE PREDICTIONS</span>
 <span class="co">#create sample data frame</span>
 <span class="va">test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>condition <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"control"</span>, <span class="st">"impasse"</span><span class="op">)</span><span class="op">)</span>
@@ -4276,7 +4276,7 @@ AIC     |     BIC | Nagelkerke's R2 |  RMSE | Sigma
 </details>
 </div>
 </section></section></section></section><section id="mixed-repeated-measures" class="level1"><h1>MIXED (Repeated Measures)</h1>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/SETUP-TEST-ACC-ITEM_864ca78c0852a829a70704d7124dabbe">
 <details><summary>CODE</summary><div class="sourceCode" id="cb465"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#PREPARE DATA </span>
 <span class="va">n_items</span> <span class="op">=</span> <span class="fl">8</span> <span class="co">#number of items in test</span>
 
@@ -4331,7 +4331,7 @@ AIC     |     BIC | Nagelkerke's R2 |  RMSE | Sigma
 <section id="mixed-logistic-regression" class="level4"><h4 class="anchored" data-anchor-id="mixed-logistic-regression">Mixed Logistic Regression</h4>
 <p><em>Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on test phase questions by condition; accounting for random effects of subject.</em></p>
 <section id="fit-model-3" class="level5"><h5 class="anchored" data-anchor-id="fit-model-3">Fit Model</h5>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-54_19f2d0f311b449f6838a6788ba1bd54f">
 <details><summary>CODE</summary><div class="sourceCode" id="cb468"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#SETUP DATA </span>
 <span class="va">n_items</span> <span class="op">=</span> <span class="fl">8</span> <span class="co">#number of items in test</span>
 
@@ -4395,7 +4395,7 @@ mm.CrS | glmerMod |  3 |       1 | 3.91 | 0.048</code></pre>
 </div>
 </div>
 </section><section id="visualize-2" class="level5"><h5 class="anchored" data-anchor-id="visualize-2">Visualize</h5>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-55_6296d6184785416ac0a11f989efcb79a">
 <details><summary>CODE</summary><div class="sourceCode" id="cb480"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#: PRINT MODEL </span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="st">"PREDICTOR MODEL"</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stdout">
@@ -4580,7 +4580,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </details>
 </div>
 </section><section id="diagnostics-3" class="level5"><h5 class="anchored" data-anchor-id="diagnostics-3">Diagnostics</h5>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-56_1b7b3a3099d08b1107e99d65cd942f6a">
 <details><summary>CODE</summary><div class="sourceCode" id="cb496"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="fu"><a href="https://easystats.github.io/performance/reference/check_model.html">check_model</a></span><span class="op">(</span><span class="va">mm.CrS</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
 <p><img src="modelling_ref_files/figure-html/unnamed-chunk-56-1.png" class="img-fluid" width="672"></p>
@@ -4595,7 +4595,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </div>
 </section><section id="inference-3" class="level5"><h5 class="anchored" data-anchor-id="inference-3">Inference</h5>
 <p>We fit a mixed-effect binomial logistic regression model with random intercepts for subjects to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(3): 4.98, p &lt; 0.05). Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 5 over the control condition <span class="math inline">\(e^{\beta_1}\)</span> = 5.11, 95% CI [1.17,22,36], p &lt; 0.05.</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-57_8a596c060628b3798a62a4c177a9af9e">
 <details><summary>CODE</summary><div class="sourceCode" id="cb499"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co"># PRETTY TABLE SJPLOT</span>
 <span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/tab_model.html">tab_model</a></span><span class="op">(</span><span class="va">mm.CrS</span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output-display">
@@ -4661,7 +4661,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </div>
 </section></section></section><section id="mixed-ordinal" class="level2"><h2 class="anchored" data-anchor-id="mixed-ordinal">MIXED — ORDINAL</h2>
 </section><section id="mixed-categorical" class="level2"><h2 class="anchored" data-anchor-id="mixed-categorical">MIXED — CATEGORICAL</h2>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-58_83c4083ce75eaa2dcb2f9d71392003ea">
 <details><summary>CODE</summary><div class="sourceCode" id="cb500"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="co">#BAYESIAN MIXED VERSION</span>
 <span class="co">#df &lt;- df_items %&gt;% filter(q %nin% c(1,2,3,4,5,6,9)) %&gt;% filter(term=="spring18")</span>
 <span class="co"># mm1 &lt;- brm( state ~ condition + (1|subject), data = df, family = "categorical", </span>
@@ -4679,7 +4679,7 @@ Standardized parameters were obtained by fitting the model on a standardized ver
 </section><section id="wip-unknown" class="level2"><h2 class="anchored" data-anchor-id="wip-unknown">WIP UNKNOWN</h2>
 <section id="cummulative-ordinal-bayesian-equal-variance" class="level3"><h3 class="anchored" data-anchor-id="cummulative-ordinal-bayesian-equal-variance">Cummulative Ordinal (Bayesian) — Equal Variance</h3>
 <p>https://journals.sagepub.com/doi/full/10.1177/2515245918823199</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-59_99af1c389a1e0e1f79d55dcc023297c3">
 <details><summary>CODE</summary><div class="sourceCode" id="cb501"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms">brms</a></span><span class="op">)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details><div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: Rcpp</code></pre>
@@ -4817,8 +4817,8 @@ Chain 1: Rejecting initial value:
 Chain 1:   Log probability evaluates to log(0), i.e. negative infinity.
 Chain 1:   Stan can't start sampling from this initial value.
 Chain 1: 
-Chain 1: Gradient evaluation took 0.000125 seconds
-Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.25 seconds.
+Chain 1: Gradient evaluation took 0.000153 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.53 seconds.
 Chain 1: Adjust your expectations accordingly!
 Chain 1: 
 Chain 1: 
@@ -4835,15 +4835,15 @@ Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 1: 
-Chain 1:  Elapsed Time: 0.138981 seconds (Warm-up)
-Chain 1:                0.135616 seconds (Sampling)
-Chain 1:                0.274597 seconds (Total)
+Chain 1:  Elapsed Time: 0.138664 seconds (Warm-up)
+Chain 1:                0.135617 seconds (Sampling)
+Chain 1:                0.274281 seconds (Total)
 Chain 1: 
 
 SAMPLING FOR MODEL 'cf2f01a4fe37a84227ece42ac0100f30' NOW (CHAIN 2).
 Chain 2: 
-Chain 2: Gradient evaluation took 3.1e-05 seconds
-Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.31 seconds.
+Chain 2: Gradient evaluation took 2.9e-05 seconds
+Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.29 seconds.
 Chain 2: Adjust your expectations accordingly!
 Chain 2: 
 Chain 2: 
@@ -4860,15 +4860,15 @@ Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 2: 
-Chain 2:  Elapsed Time: 0.137063 seconds (Warm-up)
-Chain 2:                0.133782 seconds (Sampling)
-Chain 2:                0.270845 seconds (Total)
+Chain 2:  Elapsed Time: 0.141138 seconds (Warm-up)
+Chain 2:                0.132802 seconds (Sampling)
+Chain 2:                0.27394 seconds (Total)
 Chain 2: 
 
 SAMPLING FOR MODEL 'cf2f01a4fe37a84227ece42ac0100f30' NOW (CHAIN 3).
 Chain 3: 
-Chain 3: Gradient evaluation took 3e-05 seconds
-Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.3 seconds.
+Chain 3: Gradient evaluation took 2.9e-05 seconds
+Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.29 seconds.
 Chain 3: Adjust your expectations accordingly!
 Chain 3: 
 Chain 3: 
@@ -4885,15 +4885,15 @@ Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 3: 
-Chain 3:  Elapsed Time: 0.142458 seconds (Warm-up)
-Chain 3:                0.135934 seconds (Sampling)
-Chain 3:                0.278392 seconds (Total)
+Chain 3:  Elapsed Time: 0.141417 seconds (Warm-up)
+Chain 3:                0.133805 seconds (Sampling)
+Chain 3:                0.275222 seconds (Total)
 Chain 3: 
 
 SAMPLING FOR MODEL 'cf2f01a4fe37a84227ece42ac0100f30' NOW (CHAIN 4).
 Chain 4: 
-Chain 4: Gradient evaluation took 3.3e-05 seconds
-Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.33 seconds.
+Chain 4: Gradient evaluation took 3e-05 seconds
+Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.3 seconds.
 Chain 4: Adjust your expectations accordingly!
 Chain 4: 
 Chain 4: 
@@ -4910,9 +4910,9 @@ Chain 4: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 4: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 4: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 4: 
-Chain 4:  Elapsed Time: 0.13968 seconds (Warm-up)
-Chain 4:                0.140996 seconds (Sampling)
-Chain 4:                0.280676 seconds (Total)
+Chain 4:  Elapsed Time: 0.139052 seconds (Warm-up)
+Chain 4:                0.138151 seconds (Sampling)
+Chain 4:                0.277203 seconds (Total)
 Chain 4: </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
@@ -4945,7 +4945,7 @@ Following the Sequential Effect eXistence and sIgnificance Testing (SEXIT) frame
 </div>
 </section><section id="cummulative-ordinal-bayesian-unequal-variance" class="level3"><h3 class="anchored" data-anchor-id="cummulative-ordinal-bayesian-unequal-variance">Cummulative Ordinal (Bayesian) — Unequal Variance</h3>
 <p>https://journals.sagepub.com/doi/full/10.1177/2515245918823199</p>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-60_e313db5af10d579fd479e712a645d6fb">
 <details><summary>CODE</summary><div class="sourceCode" id="cb532"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms">brms</a></span><span class="op">)</span>
 
 
@@ -5029,8 +5029,8 @@ Chain 1: Rejecting initial value:
 Chain 1:   Log probability evaluates to log(0), i.e. negative infinity.
 Chain 1:   Stan can't start sampling from this initial value.
 Chain 1: 
-Chain 1: Gradient evaluation took 6.9e-05 seconds
-Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.69 seconds.
+Chain 1: Gradient evaluation took 7e-05 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.7 seconds.
 Chain 1: Adjust your expectations accordingly!
 Chain 1: 
 Chain 1: 
@@ -5047,15 +5047,15 @@ Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 1: 
-Chain 1:  Elapsed Time: 0.533274 seconds (Warm-up)
-Chain 1:                0.33759 seconds (Sampling)
-Chain 1:                0.870864 seconds (Total)
+Chain 1:  Elapsed Time: 0.526857 seconds (Warm-up)
+Chain 1:                0.339216 seconds (Sampling)
+Chain 1:                0.866073 seconds (Total)
 Chain 1: 
 
 SAMPLING FOR MODEL '6d2eabb1cdbde54c793de3661fa8db1b' NOW (CHAIN 2).
 Chain 2: 
-Chain 2: Gradient evaluation took 4.6e-05 seconds
-Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.46 seconds.
+Chain 2: Gradient evaluation took 3.8e-05 seconds
+Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.38 seconds.
 Chain 2: Adjust your expectations accordingly!
 Chain 2: 
 Chain 2: 
@@ -5072,15 +5072,15 @@ Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 2: 
-Chain 2:  Elapsed Time: 0.542786 seconds (Warm-up)
-Chain 2:                0.492856 seconds (Sampling)
-Chain 2:                1.03564 seconds (Total)
+Chain 2:  Elapsed Time: 0.544406 seconds (Warm-up)
+Chain 2:                0.488075 seconds (Sampling)
+Chain 2:                1.03248 seconds (Total)
 Chain 2: 
 
 SAMPLING FOR MODEL '6d2eabb1cdbde54c793de3661fa8db1b' NOW (CHAIN 3).
 Chain 3: 
-Chain 3: Gradient evaluation took 3.5e-05 seconds
-Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.35 seconds.
+Chain 3: Gradient evaluation took 7.2e-05 seconds
+Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.72 seconds.
 Chain 3: Adjust your expectations accordingly!
 Chain 3: 
 Chain 3: 
@@ -5097,15 +5097,15 @@ Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 3: 
-Chain 3:  Elapsed Time: 0.574614 seconds (Warm-up)
-Chain 3:                0.477057 seconds (Sampling)
-Chain 3:                1.05167 seconds (Total)
+Chain 3:  Elapsed Time: 0.554185 seconds (Warm-up)
+Chain 3:                0.474468 seconds (Sampling)
+Chain 3:                1.02865 seconds (Total)
 Chain 3: 
 
 SAMPLING FOR MODEL '6d2eabb1cdbde54c793de3661fa8db1b' NOW (CHAIN 4).
 Chain 4: 
-Chain 4: Gradient evaluation took 3.4e-05 seconds
-Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.34 seconds.
+Chain 4: Gradient evaluation took 3.5e-05 seconds
+Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.35 seconds.
 Chain 4: Adjust your expectations accordingly!
 Chain 4: 
 Chain 4: 
@@ -5122,9 +5122,9 @@ Chain 4: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 4: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 4: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 4: 
-Chain 4:  Elapsed Time: 0.552806 seconds (Warm-up)
-Chain 4:                0.495466 seconds (Sampling)
-Chain 4:                1.04827 seconds (Total)
+Chain 4:  Elapsed Time: 0.553802 seconds (Warm-up)
+Chain 4:                0.48838 seconds (Sampling)
+Chain 4:                1.04218 seconds (Total)
 Chain 4: </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
@@ -5155,7 +5155,7 @@ Following the Sequential Effect eXistence and sIgnificance Testing (SEXIT) frame
 </div>
 <p>In brms, the parameter related to latent variances is called disc (short for “discrimination”), following conventions in item response theory. Note that disc is not the variance itself, but the inverse of the standard deviation, s. That is, s = 1/disc. Further, because disc must be strictly positive, it is by default modeled on the log scale.</p>
 </section><section id="adjacent-category-ordinal-bayesian" class="level3"><h3 class="anchored" data-anchor-id="adjacent-category-ordinal-bayesian">Adjacent-Category Ordinal (Bayesian)</h3>
-<div class="cell">
+<div class="cell" data-hash="modelling_ref_cache/html/unnamed-chunk-61_213219dc63ec6cf373bc2953c8a3eac4">
 <details><summary>CODE</summary><div class="sourceCode" id="cb547"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_items</span> <span class="op"><a href="https://rdrr.io/pkg/pomcheckr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">q</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/pomcheckr/man/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">mode</span> <span class="op">==</span><span class="st">"lab-synch"</span><span class="op">)</span>
 
 
@@ -5265,8 +5265,8 @@ likely invalid for ordinal families.</code></pre>
 <pre><code>
 SAMPLING FOR MODEL 'cb54d61933639a344521da987151fc46' NOW (CHAIN 1).
 Chain 1: 
-Chain 1: Gradient evaluation took 0.00026 seconds
-Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.6 seconds.
+Chain 1: Gradient evaluation took 0.000217 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.17 seconds.
 Chain 1: Adjust your expectations accordingly!
 Chain 1: 
 Chain 1: 
@@ -5283,9 +5283,9 @@ Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 1: 
-Chain 1:  Elapsed Time: 1.67332 seconds (Warm-up)
-Chain 1:                1.84163 seconds (Sampling)
-Chain 1:                3.51495 seconds (Total)
+Chain 1:  Elapsed Time: 1.76106 seconds (Warm-up)
+Chain 1:                1.83352 seconds (Sampling)
+Chain 1:                3.59457 seconds (Total)
 Chain 1: 
 
 SAMPLING FOR MODEL 'cb54d61933639a344521da987151fc46' NOW (CHAIN 2).
@@ -5308,15 +5308,15 @@ Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 2: 
-Chain 2:  Elapsed Time: 1.73421 seconds (Warm-up)
-Chain 2:                1.56503 seconds (Sampling)
-Chain 2:                3.29924 seconds (Total)
+Chain 2:  Elapsed Time: 1.77346 seconds (Warm-up)
+Chain 2:                1.59958 seconds (Sampling)
+Chain 2:                3.37304 seconds (Total)
 Chain 2: 
 
 SAMPLING FOR MODEL 'cb54d61933639a344521da987151fc46' NOW (CHAIN 3).
 Chain 3: 
-Chain 3: Gradient evaluation took 0.000122 seconds
-Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 1.22 seconds.
+Chain 3: Gradient evaluation took 0.000119 seconds
+Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 1.19 seconds.
 Chain 3: Adjust your expectations accordingly!
 Chain 3: 
 Chain 3: 
@@ -5333,15 +5333,15 @@ Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 3: 
-Chain 3:  Elapsed Time: 1.73438 seconds (Warm-up)
-Chain 3:                2.25674 seconds (Sampling)
-Chain 3:                3.99112 seconds (Total)
+Chain 3:  Elapsed Time: 1.76223 seconds (Warm-up)
+Chain 3:                2.35291 seconds (Sampling)
+Chain 3:                4.11514 seconds (Total)
 Chain 3: 
 
 SAMPLING FOR MODEL 'cb54d61933639a344521da987151fc46' NOW (CHAIN 4).
 Chain 4: 
-Chain 4: Gradient evaluation took 0.000118 seconds
-Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 1.18 seconds.
+Chain 4: Gradient evaluation took 0.000123 seconds
+Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 1.23 seconds.
 Chain 4: Adjust your expectations accordingly!
 Chain 4: 
 Chain 4: 
@@ -5358,9 +5358,9 @@ Chain 4: Iteration: 1600 / 2000 [ 80%]  (Sampling)
 Chain 4: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 Chain 4: Iteration: 2000 / 2000 [100%]  (Sampling)
 Chain 4: 
-Chain 4:  Elapsed Time: 1.77848 seconds (Warm-up)
-Chain 4:                1.66533 seconds (Sampling)
-Chain 4:                3.44381 seconds (Total)
+Chain 4:  Elapsed Time: 2.13537 seconds (Warm-up)
+Chain 4:                1.68762 seconds (Sampling)
+Chain 4:                3.82298 seconds (Total)
 Chain 4: </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">

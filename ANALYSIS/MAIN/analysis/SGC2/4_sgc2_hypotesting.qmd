@@ -439,7 +439,7 @@ summ(m1)
 ggcoefstats(m1, output = "plot") 
 
 #SJPLOT | MODEL | PROBABILITIES
-plot_model(m1, type="pred",
+plot_model(m1, type="eff",
            title = "Model Predicted Score",
            axis.title = c("Graph Block","Score [0,15]"))
 
@@ -469,7 +469,6 @@ tab_model(m1)
 df <- df_items %>% filter(graph == "triangular")
 ```
 
-
 #### Fit Model
 
 *First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.*
@@ -488,11 +487,11 @@ summary(m0)
 
 #: RANDOM SUBJECT INTERCEPT 
 mm.0 <- glmer( score ~ (1|subject), data = df, family = "binomial")
-print("PREDICTOR MODEL")
+print("RANDOM SUBJECT INTERCEPT MODEL")
 summary(mm.0)
 
 #: TEST SUPERIOR FIT
-paste("AIC wth predictor is lower than empty model?", m0$aic > AIC(mm.0))
+paste("AIC wth random subject is lower than empty model?", m0$aic > AIC(mm.0))
 test_lrt(m0,mm.0) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.0))$p[2])
 
@@ -584,10 +583,9 @@ binned_residuals(mm1)
 
 #### Inference
 
-We fit a mixed logistic regression model to analyze the effect of experimental condition on probability of a correct answer on the triangular graph block, including subject as a random intercept. The model explains a small proportion of variance (Pseudo R2 = 0.04). In this model, the fixed effect of condition is statistically accounts for 4% of variance, while the random effects component (conditional r2) accounts for 41%. 
+We fit a mixed logistic regression model to analyze the effect of experimental condition on probability of a correct answer on the triangular graph block, including subject as a random intercept. The model explains a small proportion of variance (Pseudo R2 = 0.04). In this model, the fixed effect of condition is statistically accounts for 4% of variance, while the random effects component (conditional r2) accounts for 41%.
 
-TODO EXPONENTIATE 
-- The model predicts that the odds of a correct response on a triangular graph question question in either of the text or static image conditions increases by a factor of about 1.6 relative to control, while participants in the interactive image condition experience an increase in odds of around 2.8 relative to control (($e^{beta_1}$ = 2.98, 95% CI \[2.4, 3.5\]) over the *control condition*.
+TODO EXPONENTIATE - The model predicts that the odds of a correct response on a triangular graph question question in either of the text or static image conditions increases by a factor of about 1.6 relative to control, while participants in the interactive image condition experience an increase in odds of around 2.8 relative to control (($e^{beta_1}$ = 2.98, 95% CI \[2.4, 3.5\]) over the *control condition*.
 
 *Equivalent statements:*
 
@@ -602,50 +600,27 @@ tab_model(m1)
 -   Interpretation/reporting of model fit?
 -   sanity check correct interpretation of coefficients & reporting
 
-## H3 \| Computational Efficiency
+## TODO H3 \| Computational Efficiency
 
-**Hypothesis** Qiang et. al found that the TM graph was more computationally efficient than the LM graph. We expect that for learners that *do* correctly interpret the graph, they will have lower response times for the TM vs. LM graph.\*\*
+**Hypothesis** Qiang et. al found that the TM graph was more computationally efficient than the LM graph. We expect that for learners that *do* correctly interpret the graph, they will have lower response times for the TM vs. LM graph.
 
-**Hypothesis** All of the designs offered by participants in Study 1 are promising. We expect that only a small amount of scaffolding (a little nudge) will be required to help readers correctly interpret the graph. We predict that learners with (any form of) scaffolding will perform better with the TM than LM (a replication of Qiang et. al's finding on the computational efficiency of the TM graph).
-
-
-**TODO RE-EVALUATE THIS**
-A difference score of 0 represents the case where the particpant performs *equally well* on the linear and triangular blocks. Positive scores indicate better performance on the triangular block, and negative scores indicate better performance on the linear block.
-
-**To determine that a scaffold is *effective*, we expect to see a difference score greater than or equal to 0** such that the participant performs *at least* as well on the triangular block as the linear block.
-+-----------------------+-----------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does SCAFFOLDING result in superior performance on the Triangular graph?                                        |
-+=======================+=================================================================================================================+
-| **Hypothesis**        | Ss in any of the SCAFFOLD conditions will have higher scores on the TRIANGULAR graph than the LINEAR graph      |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------+
-| **Data**              | data: `df_subjects`                                                                                             |
-|                       |                                                                                                                 |
-|                       | outcome:                                                                                                        |
-|                       |                                                                                                                 |
-|                       | -   *difference score* `diff_score` \[linear - triangular absolute score\]                                      |
-|                       |                                                                                                                 |
-|                       | predictor: `condition` \[between-subjects factor\]                                                              |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | 1.  Independent Samples ANOVA                                                                                   |
-|                       |     -   compare `diff_score` between conditions                                                                 |
-|                       |     -   check assumptions re: variance and normality                                                            |
-|                       | 2.  Linear Regression                                                                                           |
-|                       |     -   predict `diff_score` by `condition`                                                                     |
-|                       |     -   confirm each condition yields significantly higher score than control                                   |
-|                       | 3.  Mixed Effects Linear Regression                                                                             |
-|                       |     -   predict block `score` \[0-15\] by `graph` and `condition` with random intercept for `subject`           |
-|                       |     -   expect significant interaction between fixed effects `graph` and `condition` for non-control conditions |
-|                       | 4.  Logistic Mixed Effects Regression                                                                           |
-|                       |     -   predict item `score` by `graph` and `condition` with random intercepts for `subject` and `item`         |
-|                       |                                                                                                                 |
-|                       |     -   expect significant interaction between `graph` and `condition` for non-control conditions               |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------+
-| **Notes**             |                                                                                                                 |
-+-----------------------+-----------------------------------------------------------------------------------------------------------------+
-
-
-
-
++-----------------------+-------------------------------------------------------------------------------+
+| Research Question     | ?                                                                             |
++=======================+===============================================================================+
+| **Hypothesis**        |                                                                               |
++-----------------------+-------------------------------------------------------------------------------+
+| **Data**              | data: `df_subjects`                                                           |
+|                       |                                                                               |
+|                       | outcome:                                                                      |
+|                       |                                                                               |
+|                       | -   *triangular block score* `triangular_score` \[triangular absolute score\] |
+|                       |                                                                               |
+|                       | predictor: `condition` \[between-subjects factor\]                            |
++-----------------------+-------------------------------------------------------------------------------+
+| **Analysis Strategy** |                                                                               |
++-----------------------+-------------------------------------------------------------------------------+
+| **Notes**             |                                                                               |
++-----------------------+-------------------------------------------------------------------------------+
 
 ### ONE WAY ANOVA
 
@@ -723,9 +698,6 @@ shapiro.test(df$score_diff)
 #### Inference
 
 The Wilcoxon signed rank test confirms that (for subjects in the control condition) scores on the **triangle graph** were significantly lower than those in the **linear graph** block. This provides evidence in support of our hypothesis that the Triangular model graph (though computationally efficient) is in fact unconventional and lacking in discoverablility. It needs to be augmented with scaffolding in order to be correctly interpreted by novice readers.
-
-
-
 
 ## H4 \| Graph Order as Scaffold
 
@@ -826,8 +798,6 @@ The Wilcoxon signed rank test confirms that (for subjects in the control conditi
 # #condition model is better fit than null
 
 ```
-
-
 
 ## DIAGRAMS 2018 PUBLICATION ANALYSIS
 
