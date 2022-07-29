@@ -13,6 +13,7 @@ subtitle: 'COMBINED | Cheat Sheep'
 # Combined Study Data {#sec-combined}
 
 **TODO** - TODO DOUBLE CHECK PAIRED WILCOXON ETC\*\*
+**non parametric anova? factorial anova?*
 
 ```{r}
 #| label: SETUP
@@ -29,12 +30,16 @@ library(performance) #multimodality
 library(kableExtra) #printing tables 
 library(vcd) #mosaicplots
 library(ggpubr) #arrange plots
+library(ggstatsplot) #sanity checks 
+library(sjPlot) #model plots
 library(ggeasy) #easy plot changes
+
+
 
 #modelling
 library(lme4)
 library(ordinal) #mixed ordinal models
-
+library(jtools) # misc helpers 
 library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
@@ -162,6 +167,7 @@ paste(n_dups, "duplicated subjects")
 *3A \[in person\] SPRING 18 ONLY \~ 35 PER CELL*
 
 ```{r}
+
 
 # OPTION 1: sgc3a as spring 18 only [designate fall 18 as sgc3b only]
 sub_df <- sgc3a %>% filter(term %in% c("spring18"))
