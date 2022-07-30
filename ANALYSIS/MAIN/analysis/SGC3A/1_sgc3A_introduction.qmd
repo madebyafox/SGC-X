@@ -1,28 +1,5 @@
 ---
-# title: 'Introduction' 
-subtitle: 'Study SGC3A | 1 Introduction'
-#RMD YAML
-# author: 'Amy Rae Fox'
-# header-includes:
-#    - \usepackage{amsmath}
-# always_allow_html: true  
-# output:
-#   html_document:
-#     theme: yeti
-#     code_folding: hide
-#     fig_caption: yes
-#     number_sections: yes
-#     toc: yes
-#     toc_depth: 4
-#     toc_float:
-#       collapsed: no
-#       smooth_scroll: yes
-#   pdf_document: 
-#     toc: true
-#     toc_depth: 3
-#     latex_engine: xelatex
-# font-family: "DejaVu Sans"
-# mainfont: "DejaVu Sans"
+subtitle: 'Study SGC3A | Introduction'
 ---
 
 \newpage
@@ -57,8 +34,8 @@ Posing a mental impasse
 #| message : false
 
 library(codebook) #data dictionary
-library(tidyverse) #ALL THE THINGS
 library(kableExtra) #tables
+library(tidyverse) #ALL THE THINGS
 
 #set some output options
 library(dplyr, warn.conflicts = FALSE)
@@ -74,49 +51,20 @@ options(scipen=1, digits=3)
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
-#IMPORT DATA 
+#IMPORT SUBJECTS DATA 
 df_subjects <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_participants.rds')
 
-#IMPORT OSPAN DATA 
-ospan <- read_csv("analysis/SGC3A/data/0-session-level/fall21_scored_ospan.csv") %>% mutate(
-  subject = SUBJECTID
-) %>% dplyr::select(-SUBJECTID)
-
-# #MERGE OSPAN DATA WITH SGC DATA 
-# df_ospan <- df_subjects %>% filter(
-#   subject %in% ospan$subject
-# )
-
-
-```
-
-```{r}
-table(df_subjects$term, df_subjects$condition)
-
-#subjects in SGC3A 
-#LAB
-n_lab <- df_subjects %>% filter( mode == 'lab-synch') %>% nrow()
-n_web <- df_subjects %>% filter( mode == 'asynch') %>% nrow()
-total = n_lab + n_web
-
-n_ospan <- ospan %>% nrow()
-
-subs_ospan <- ospan %>% dplyr::select(subject)
-nrow(subs_ospan)
-subs_ospan %>% distinct(subject) %>% nrow()
-
-found <- df_subjects %>% filter(subject %in% subs_ospan$subject) %>% nrow()
 ```
 
 ```{r}
 #| label : INSPECT-DATA-COLLECTION
 
-title = "Participants by Condition and Data Collection Period"
+title = "Participants by Condition and Data Collection Modality"
 cols = c("Control Condition","Impasse Condition","Total for Period")
-cont <- table(df_subjects$term, df_subjects$condition)
+cont <- table(df_subjects$mode, df_subjects$condition)
 cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
 
 ```
@@ -217,7 +165,7 @@ Data for study SGC_3A were collected across four time periods, interrupted by th
 | Fall 2021   | asynchronous, online, SONA             |
 | Winter 2022 | asynchronous, online, SONA             |
 
-Data collected in Fall 2017, Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.
+Data collected in Fall 2017 (in person pilot) were analyzed and published as a Cognitive Science Society conference paper ("When Graph Comprehension is an Insight Problem). Additional data were collected in person in Spring 2018. Combined, Fall 2017 and Spring 2018 constitute the original SGC_3A study, conducted in person. Data collected in Fall 2021, Winter 2022 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application. The replication study was conducted to validate the use of remote, asynchronous data collection during the Covid-19 pandemic.  
 
 The underlying data structure of the stimulus web application changed across the data collection period, resulting in slightly different data files (i.e. columns are not named consistently). In this section, we combine the files from each data collection period into a single *harmonized* data file for analysis (one for participants, one for items).
 
@@ -239,7 +187,7 @@ First we import participant-level data from each data collection period, selecti
 # setwd(imac)
 
 #set datafiles
-fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_participants.csv"
+fall17 <- "analysis/SGC3A/data/0-session-level/fall17_sgc3a_participants.csv" #COGSCI18 data
 spring18 <- "analysis/SGC3A/data/0-session-level/spring18_sgc3a_participants.csv"
 fall21 <- "analysis/SGC3A/data/0-session-level/fall21_sgc3a_participants.csv"
 winter22 <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_participants.rds"
@@ -348,9 +296,39 @@ var_label(df_subjects$mode) <- "indicates mode in which the participant complete
 var_label(df_subjects$gender) <- "What is your gender identity?"
 var_label(df_subjects$schoolyear) <- "What is your year in school?"
 
+#IMPORT OSPAN DATA 
+ospan <- read_csv("analysis/SGC3A/data/0-session-level/fall21_scored_ospan.csv") %>% mutate(
+  subject = SUBJECTID
+) %>% dplyr::select(-SUBJECTID)
+
+#MERGE OSPAN DATA WITH SGC DATA 
+#special dataframe with just ospan subjects
+#should be 133 subjects. Some of the 200 who completed the task failed the 
+#attention check question. Others were allocated to SGC4A pilot. 
+#note that rather than adding OSPAN data to main dataframe, the after-scored data
+#will be manually joined to df_ospan during exploratory analysis
+df_ospan <- df_subjects %>% filter(
+  subject %in% ospan$subject
+) %>% merge(ospan)  
+
+
 #CLEANUP
 rm(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_winter22,df_subjects_before)
 rm(fall17,fall21,spring18,winter22)
+
+```
+
+```{r}
+
+title = "Participants by Condition and Data Collection Period"
+cols = c("Control Condition","Impasse Condition","Total for Period")
+cont <- table(df_subjects$term, df_subjects$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
+
+title = "Subset of Participants who completed OSPAN TASK [Fall 2021]"
+cols = c("Control Condition","Impasse Condition","Total for Period")
+cont <- table(df_ospan$mode, df_ospan$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
 
 ```
 
@@ -380,10 +358,10 @@ df_items_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
-map_relations <- df_items_winter22 %>% group_by(q) %>% select(q,relation) %>% unique()
+map_relations <- df_items_winter22 %>% group_by(q) %>% dplyr::select(q,relation) %>% unique()
 
 #SAVE METADATA FROM WINTER, but no rows 
-df_items <- df_items_winter22 %>% filter(condition=='X') %>% select(
+df_items <- df_items_winter22 %>% filter(condition=='X') %>% dplyr::select(
   subject,condition,term,mode,
   question, q, answer, correct, rt_s
 ) 
@@ -391,11 +369,11 @@ df_items <- df_items_winter22 %>% filter(condition=='X') %>% select(
 #reduce data collected using old webapp
 df_items_before <- rbind(df_items_fall17, df_items_spring18, df_items_fall21) %>% 
   mutate(rt_s = rt / 1000, correct = as.logical(correct)) %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) 
+  dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) 
   
 #reduce data collected using new webapp
 df_items_winter22 <- df_items_winter22 %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
@@ -427,7 +405,6 @@ df_items <- rbind(df_items, df_items_winter22,df_items_before) %>%
     num_o = replace_na(num_o, 0)
   )
 
-
 #FIX METADATA
 #Add metadata for columns that lost it [factors, for some reason!]
 var_label(df_items$subject) <- "ID of subject (randomly assigned in stimulus app)."
@@ -441,7 +418,7 @@ var_label(df_items$num_o) <- "number of options selected by the subject"
 
 #HANDLE FREE RESPONSE QUESTION #16 
 #save `free response` Q#16 in its own dataframe
-df_freeresponse <- df_items %>% filter(q == 16) %>% select(-question,-correct,-rt_s,-num_o)
+df_freeresponse <- df_items %>% filter(q == 16) %>% dplyr::select(-question,-correct,-rt_s,-num_o)
 #add data from wi22 [stored on subject data]
 df_freeresponse <- rbind(df_freeresponse, df_winter22_q16)
 #add question description
@@ -494,6 +471,7 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 write.csv(df_subjects,"analysis/SGC3A/data/1-study-level/sgc3a_participants.csv", row.names = FALSE)
 write.csv(df_items,"analysis/SGC3A/data/1-study-level/sgc3a_items.csv", row.names = FALSE)
 write.csv(df_freeresponse,"analysis/SGC3A/data/1-study-level/sgc3a_freeresponse.csv", row.names = FALSE)
+write.csv(df_ospan,"analysis/SGC3A/data/1-study-level/sgc3a_ospan.csv", row.names = FALSE)
 
 #SAVE R Data Structures 
 #export R DATA STRUCTURES (include codebook metadata)
@@ -502,10 +480,3 @@ rio::export(df_items, "analysis/SGC3A/data/1-study-level/sgc3a_items.rds") # to 
 
 ```
 
-## RESOURCES
-
-```{r}
-#| label: SESSION
-
-sessionInfo()
-```
