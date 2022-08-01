@@ -148,7 +148,6 @@ plotmat(Ts.121,
 plotweb(Ts.111, val=T)
 plotweb(Ts.121, val=T)
 
-
 ##TODO | Is this Markov chain homogoeneous, or non homogeneous?
 ##ie. do the transition probabilities change at each time?
 
