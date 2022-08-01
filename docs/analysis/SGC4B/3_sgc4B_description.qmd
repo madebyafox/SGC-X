@@ -48,8 +48,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
+mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds')
@@ -60,6 +60,7 @@ df_scaled_progress <- read_csv('analysis/SGC4B/data/2-scored-data/sgc4b_scaled_p
 #TREAT QS AS FACTORS
 df_items$q = as.factor(df_items$q)
 
+#TODO TEMP REMOVE AFTER RESCORED 
 #REORDER FACTORS
 order <- c("point" ,"cross", "arrow")
 df_subjects <- df_subjects %>% mutate(
@@ -180,13 +181,14 @@ ggbetweenstats(y = s_NABS, x = pretty_condition, data = df_subjects,
                pairwide.display = "significant", )
 
 
+#troubleshoot why broken 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(s_NABS)) + 
-  stat_ecdf(geom = "step") +
-  facet_grid(pretty_condition) + 
-  labs( title = "Empirical Cumulative Density Function — Task Absolute Score ",
-        x = "Total Absolute Score [0,13]", 
-        y = "Cumulative Probability")
+# ggplot(data = df_subjects, aes(s_NABS)) + 
+#   stat_ecdf(geom = "step") +
+#   facet_grid(pretty_condition) + 
+#   labs( title = "Empirical Cumulative Density Function — Task Absolute Score ",
+#         x = "Total Absolute Score [0,13]", 
+#         y = "Cumulative Probability")
 
 
 ```
@@ -278,12 +280,12 @@ ggbetweenstats(y = s_SCALED, x = pretty_condition, data = df_subjects,
 
 
 #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
-ggplot(data = df_subjects, aes(s_SCALED)) + 
-  stat_ecdf(geom = "step") + 
-  facet_grid(pretty_condition ~ pretty_mode) + 
-  labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
-        x = "Test Phase Scaled Score [-13,13]", 
-        y = "Cumulative Probability") 
+# ggplot(data = df_subjects, aes(s_SCALED)) +
+#   stat_ecdf(geom = "step") +
+#   # facet_grid(pretty_condition ) +
+#   labs( title = "Empirical Cumulative Density Function — Task Scaled Score",
+#         x = "Test Phase Scaled Score [-13,13]",
+#         y = "Cumulative Probability")
 
 ```
 
@@ -314,7 +316,7 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (91%) than correct answers (9%). Highest accuracy is achieved in the Triangular gridlines condition, with roughly 14% correct response rate, compared to only 6% in the orthogonal axis control. 
+Across data collection sessions, first-item accuracy is consistent across experimental conditions. Incorrect answers are far more frequent (89%) than correct answers (11%). Highest accuracy is achieved in the arrow-mark condition, with roughly 15% correct response rate, compared to only 9% in the orthogonal axis control. 
 
 ```{r}
 #| label: VIS-FIRST-ABSOLUTE
@@ -432,7 +434,7 @@ item.contingency %>% kbl (caption = title) %>% kable_classic()
 
 #PROPORTIONAL BAR CHART
 gf_propsh(~interpretation, data = df_items, fill = ~pretty_condition) %>% 
-  gf_facet_grid(pretty_condition~pretty_mode) +
+  gf_facet_grid(~pretty_condition) +
   labs(x = "% of items",
        title = "Proportion of Interpretations Across Items",
        subtitle="")+

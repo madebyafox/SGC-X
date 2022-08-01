@@ -894,6 +894,15 @@ function drawTriangleModel(datafile, axis, explicit, mark, rotation) {
       d3.selectAll(".tmlabel")
       .style("transform", "rotate(-90deg) translate(0px,10px)")   
 
+      //WIP ROTATE Y AXIS LABELS
+      // z = d3.select(".yaxis").selectAll(".tick").select("text")
+      // bb = z.node().getBBox()
+      // console.log(bb)
+      //attr("transform-origin",  bb.x+bb.width/2+" "+bb.y+bb.height/2)
+        // .style("transform", "rotate(-90deg) translate(0px,10px)")   
+
+
+      
       //ROTATE X AXIS TITLE 90 DEGREES
       //SPLIT TO 3 LINES 
       

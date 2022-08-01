@@ -6,7 +6,7 @@ subtitle: 'SGCX | Modelling Reference'
 
 # Modelling Reference {#modelling .unnumbered}
 
-**In this notebook we use data from study SGC3A \[in person, LAB\] to explore different modelling techniques and assess their suitability for the bimodal accuracy distributions.**
+**In this notebook we use data from study SGC3A to explore different modelling techniques and assess their suitability for the bimodal accuracy distributions in the SGC project data.**
 
 ```{r}
 #| label: SETUP
@@ -26,31 +26,33 @@ library(sjPlot) #visualize model coefficients
 library(ggeasy) #the way it should be
 library(statsExpressions) #expressions to add to plots
 library(ggstatsplot) #plots with expressions
-
-#plot model estimates with uncertainty
 library(ggdist)
+library(ggeffects) #visualization log regr models
+
+#misc utilities
 library(broom)
 library(modelr)
 library(distributional)
-
-#models and performance
-library(WRS2) #robust and nonparametric tests 
-library(lmerTest) #for CIs in glmer 
-library(ggstatsplot) #plots w/ embedded stats
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
+library(equatiomatic) #extract model equation
+
+#modelling
+library(WRS2) #robust and nonparametric tests 
+library(lmerTest) #for CIs in glmer 
 library(qqplotr) #confint on qq plot
 library(gmodels) #contingency table and CHISQR
-library(equatiomatic) #extract model equation
 library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models 
-library(ggeffects) #visualization log regr models
 library(ordinal) #ordinal regression
 library(MASS) # polyr ordinal regression
+library(VGAM) #censored, zero infl, etc
 library(brant) #brant test for ordinal regression
 library(nnet) #multinomial logistic regression 
+library(bayestestR)
 
+#one package to rule them all
 library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
@@ -84,7 +86,7 @@ df_subjects <- df_subjects %>% mutate(
   raw_condition = condition,
   condition = pretty_condition
 )
-  
+
 df_items <- df_items %>% mutate(
   accuracy = as.factor(score_niceABS),
   scaled = recode_factor(score_SCALED, "-1" = "orth", "-0.5"="unknown","0"="uncertain","0.5"="lines","1"="tri"),
@@ -99,17 +101,25 @@ df_items <- df_items %>% mutate(
                          "1" = "tri-like"),
   state = as.ordered(state)
 )
+# 3 group ordered STATE variable
+# 5 group ordered SCALED variable [matches high_interpretation]
+
 
 ```
 
 # INDEPENDENT SAMPLES
 
-## INDEPENDENT --- (Continuous)
+## CONTINUOUS OUTCOME
 
-**Does CONDITION have an effect on TEST PHASE ABSOLUTE SCORE? (# questions) \[in lab\]** *Number of questions correct on test phase of task. (Can also be transformed to proportion or percentage).*
+**Does CONDITION have an effect on TEST PHASE ABSOLUTE SCORE?\
+(# questions correct on test phase of task, \[in lab\] participants)**
+
+*(Can also be transformed to proportion or percentage).*
 
 ```{r}
 #| label: SETUP-IND-TESTSCORE
+#| message: false
+#| warning: false
 
 #::::::::::::SETUP DATA
 df = df_subjects %>% filter(mode == "lab-synch")
@@ -177,7 +187,7 @@ ggplot(df, aes(x = condition, y = test_score,
 -   Tests null hypothesis that true difference in population mean is == 0
 -   Assumes normally distributed variables
 -   Assumes equal variance of samples (homogeneity of variance)
--   ***OUR DATA VIOLATE BOTH NORMALITY AND HOMOGENEITY OF VARIANCE***
+-   **SGC accuracy data violate both homogeneity and normality**\*
 
 ```{r}
 #| label: STUDENTS-T
@@ -191,7 +201,7 @@ report(t)
 ```{r}
 #STATSPLOT | VIOLIN
 
-#one tailed test must be done manually by extracting results expression and adding as subtitle
+#one tailed tests must be done manually by extracting results expression and adding as subtitle
 #default is two tailed test
 # results <- two_sample_test( data = df, x = pretty_condition, 
 #                             y = item_test_NABS,
@@ -210,7 +220,7 @@ ggbetweenstats(y = test_score, x = condition, data = df,
 -   Tests null hypothesis that true difference in population mean is == 0
 -   Assumes normally distributed variables
 -   **Does not** assumes equal variance of samples (homogeneity of variance)
--   ***OUR DATA VIOLATE BOTH NORMALITY ASSUMPTION***
+-   ***SGC accuracy data violates normality assumption***
 
 ```{r}
 #| label: WELCHES-T
@@ -233,7 +243,7 @@ ggbetweenstats(y = test_score, x = condition, data = df,
 
 -   **Robust alternative to** to t-test is Yuen's t-test which uses trimmed means
 -   Trimmed means are not desireable for this research scenario because they trim data from the extremes, and in this study these are true, interesting values
--   https://garstats.wordpress.com/2017/11/28/trimmed-means/
+-   <https://garstats.wordpress.com/2017/11/28/trimmed-means/>
 
 ```{r}
 #| label: YUENS-T
@@ -256,14 +266,14 @@ ggbetweenstats(y = test_score, x = condition, data = df,
 -   **Non parametric alternative** to t-test; compares median rather than mean by ranking data
 -   Does not assume normality
 -   Does not assume equal variance of samples (homogeneity of variance)
+-   **Appropriate for SGC accuracy data**
 
 ```{r}
 #| label: WILCOXON RANK SUM
 
 (w <- wilcox.test(df$test_score ~ df$condition,
-                 pared = FALSE, alternative = "two.sided")) #less, greater
+                 paired = FALSE, alternative = "two.sided")) #less, greater
 report(w)
-
 
 ```
 
@@ -292,7 +302,7 @@ For comparison we run a standard followed by a Wilcoxon rank-sum (Mann-Whitney) 
 
 Next, we calculate the t-test and ANOVA (F-test) based on a series of corrections provided for data with floor and/or ceiling effects.
 
--   https://link.springer.com/article/10.3758/s13428-020-01407-2#Sec14
+-   <https://link.springer.com/article/10.3758/s13428-020-01407-2#Sec14>
 
 Using properties from truncated normal distributions, the authors propose an easy-to-use method for the *t*-test and ANOVA with ceiling/floor data.
 
@@ -329,17 +339,19 @@ lw.f.star(df,test_score~condition,"b")
 
 ```
 
-The control condition has 11% of data at ceiling and 71% at floor, with corrected mean of -7 and variance of 207. The impasse condition has 17% at ceiling, and only 42% at floor, with with corrected mean of 2.39 and variance respectively as of 58.
+*The control condition has 11% of data at ceiling and 71% at floor, with corrected mean of -7 and variance of 207. The impasse condition has 17% at ceiling, and only 42% at floor, with with corrected mean of 2.39 and variance respectively as of 58.*
 
-A corrected t-test t statistic is -4.94, p = 0.05. The estimated Cohen's d is -0.89 with a confidence interval 0f \[-14.22, -5.97\].
+*A corrected t-test t statistic is -4.94, p = 0.05. The estimated Cohen's d is -0.89 with a confidence interval 0f \[-14.22, -5.97\].*
 
-A correct F-test (ANOVA) has a corrected F-statstic of 5.85, p \< 0.05, and Fsquared effect size of 0.195
+*A correct F-test (ANOVA) has a corrected F-statstic of 5.85, p \< 0.05, and Fsquared effect size of 0.195*
 
 ### Linear Regression
 
 -   Assumes homogeneity of variance
 -   Assumes normally distributed residuals
--   assuming dummy coding... intercept = predicted mean of first group, predictor coefficient = difference to mean of second group
+-   when default dummy coding is used;
+    -   intercept = predicted mean of first group,
+    -   predictor coefficient = difference to mean of second group
 
 ```{r}
 #SCORE predicted by CONDITION
@@ -387,27 +399,30 @@ df  %>%
 #| label: PLOT-MODEL-PRED-SJPLOT
 
 #sjPlot
-p1 <- plot_model(lm.1,  type = "pred", 
+p1 <- plot_model(lm.1,  type = "eff", 
            show.data = TRUE, jitter = TRUE,
            show.p = TRUE) 
 
-#BS TO MANUALLY ADD LABEL
-library(equatiomatic)
-library(latex2exp)
-(x <- extract_eq(lm.1, use_coefs = TRUE, ital_vars=TRUE, coef_digits = 1, raw_tex = FALSE))
-b = TeX(x)
-p1[["condition"]][["labels"]][["subtitle"]]= expression( paste(widehat(accuracy), " = ", 1.7, " + ", "1.6", "*", condition[impasse]) )
+#BS TO MANUALLY ADD REGRESSION FORMULA AS SUBTITLE 
+# library(equatiomatic)
+# library(latex2exp)
+# (x <- extract_eq(lm.1, use_coefs = TRUE, ital_vars=TRUE, coef_digits = 1, raw_tex = FALSE))
+# b = TeX(x)
+# p1[["condition"]][["labels"]][["subtitle"]]= expression( paste(widehat(accuracy), " = ", 1.7, " + ", "1.6", "*", condition[impasse]) )
 p1
 
 ```
 
 ### Censored (Tobit) Regression
 
-https://stats.oarc.ucla.edu/r/dae/tobit-models/
+<https://stats.oarc.ucla.edu/r/dae/tobit-models/>
 
 **For censored data (i.e. truncated axis).** The tobit model, also called a censored regression model, is designed to estimate linear relationships between variables when there is either left- or right-censoring in the dependent variable (also known as censoring from below and above, respectively). Censoring from above takes place when cases with a value at or above some threshold, all take on the value of that threshold, so that the true value might be equal to the threshold, but it might also be higher. In the case of censoring from below, values those that fall at or below some threshold are censored.
 
--   censored vs truncated : There is sometimes confusion about the difference between truncated data and censored data. With censored variables, all of the observations are in the dataset, but we don't know the "true" values of some of them. With truncation some of the observations are not included in the analysis because of the value of the variable. When a variable is censored, regression models for truncated data provide inconsistent estimates of the parameters. See Long (1997, chapter 7) for a more detailed discussion of problems of using regression models for truncated data to analyze censored data.
+-   censored vs truncated : There is sometimes confusion about the difference between truncated data and censored data.
+-   With censored variables, all of the observations are in the dataset, but we don't know the "true" values of some of them.
+-   With truncation some of the observations are not included in the analysis because of the value of the variable.
+-   When a variable is censored, regression models for truncated data provide inconsistent estimates of the parameters. See Long (1997, chapter 7) for a more detailed discussion of problems of using regression models for truncated data to analyze censored data.
 
 ```{r}
 
@@ -497,68 +512,122 @@ performance(c1)
 -   logSigma is the variance of the model (logarithmized) (same as the second intercept in the VGAM output)
 -   output should match that of VGAM
 
-## TODO FIX INDEPENDENT --- (Count)
+## COUNT OUTCOME
+
+**Does CONDITION have an effect on TEST PHASE ABSOLUTE SCORE?\
+(# questions correct on test phase of task, \[in lab\] participants)**
+
+The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can try considering it a type of *count*, (i.e. count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function). Note that the process of answering questions on a test do not seem to strictly match the assumptions of a Poisson process.
+
+```{r}
+#| label: SETUP-COUNT-TESTSCORE
+#| message: false
+#| warning: false
+
+#::::::::::::SETUP DATA
+df = df_subjects %>% filter(mode == "lab-synch")
+
+#::::::::::::DESCRIPTIVES
+mosaic::favstats(test_score ~ condition, data = df)
+
+#::::::::::::VISUALIZE DISTRIBUTIONS
+
+# #GGFORMULA | FACETED HISTOGRAM
+# stats = df %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_NABS))
+# gf_props(~item_test_NABS, 
+#          fill = ~pretty_condition, data = df) %>% 
+#   gf_facet_grid(~pretty_condition) %>% 
+#   gf_vline(data = stats, xintercept = ~mean, color = "red") +
+#   labs(x = "# Correct",
+#        y = "proportion of subjects",
+#        title = "Test Phase Absolute Score (# Correct)",
+#        subtitle = "") + theme(legend.position = "blank")
+
+##GGPUBR | HIST+DENSITY SCORE 
+p <- gghistogram(df, x = "test_score", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("condition")) +
+  labs( title = "Distribution of TEST Absolute Score",
+        subtitle ="Pattern of response is similar across data collection modes but differs by condition",
+        x = "Total Absolute Score (Test Phase)", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+##VERTICAL RAINCLOUD USING GGDISTR
+ggplot(df, aes(x = condition, y = test_score,
+                        fill = condition) ) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.1,
+    width = 1, 
+    point_colour = NA
+   ) + 
+  geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=condition, y = test_score),
+    width = .15, 
+    outlier.shape = NA
+  ) + 
+  geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=condition, y = test_score, color = condition),
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter( 
+      seed = 1, width = .05
+  )) + labs( 
+    title = "Distribution of TEST Absolute Score ",
+    x = "Condition", y = "Total Absolute Score (Test Phase)") +
+  theme(legend.position = "blank") + 
+  coord_cartesian(xlim = c(0.5, NA), clip = "off")
+
+```
 
 ### Poisson Regression
 
-https://stats.oarc.ucla.edu/r/dae/poisson-regression/
-
-The outcome variable absolute score is clearly not normal. As it represents the cumulative number of items a participant has answered correctly, we can consider it a type of *count*, (ie. count of the number of questions the participant got correct) and attempt to model it using a General Linear Model with the Poisson distribution (and the default log-link function).
+<https://stats.oarc.ucla.edu/r/dae/poisson-regression/>\
+*General Linear model using the Poisson distribution*
 
 ```{r}
-#POISSON
 
 #SCORE predicted by CONDITION --> POISSON DISTRIBUTION
-p.1 <- glm(item_test_NABS ~ pretty_condition, data = df_subjects, family = "poisson")
+p.1 <- glm(test_score ~ condition, data = df, family = "poisson")
 paste("Model")
-summary(p.1)
+summ(p.1)
 paste("Partition Variance")
 anova(p.1)
 paste("Confidence Interval on Parameter Estimates")
 confint(p.1)
 report(p.1) #sanity check
+plot_model(p.1)
 check_model(p.1)
 
 ```
 
-### Zero Inflated Poisson
-
-https://stats.oarc.ucla.edu/r/dae/zip/\
-Poisson count process with excess zeros
-
-```{r}
-#ZERO INFLATED POISSON
-
-zinfp.1 <- zeroinfl(item_test_NABS ~  item_q1_rt| pretty_condition , data = df_subjects)
-summary(zinfp.1)
-report(zinfp.1)
-performance(zinfp.1)
-# check_model(zinfp.1)
-
-```
+*The variable condition has a coefficient of 0.67, (p \< 0.005). This means that for the impasse condition, the expected log count \# of questions increases by 0.67. By exponentiating the estimate we see that \# question correct rate for the impasse condition is 1.95x that of the control condition. However, model diagnostics suggest the residuals are not normally distributed.*
 
 ### Negative Binomial Regression
 
-https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/ - overdispersed count data (variance much greater than mean)
+<https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/> -*overdispersed count data (variance much greater than mean)*
+
+-   similar to Poisson regression, but using the negative binomial distribution, which can better account for 'overdispersed' data where variance is much greater than the mean
 
 ```{r}
 #NEGATIVE BIONOMIAL REGRESSION
-# - https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/
-# - Overdispersed Count variables
 
 library(MASS)
 
-nb.1 <- glm.nb(item_test_NABS ~ pretty_condition, data = df_subjects)
-summary(nb.1)
-report(nb.1)
-check_model(nb.1)
+#fit model 
+nb.1 <- glm.nb(test_score ~ condition, data = df)
 
-#check model assumption
+#check overdispersion need 
 #assumes conditional means are not equal to conditional variances
 #conduct likelihood ration test to compare and test [need poisson]
-m3 <- glm(item_test_NABS ~ pretty_condition, family = "poisson", data = df_subjects)
-pchisq(2 * (logLik(nb.1) - logLik(m3)), df = 1, lower.tail = FALSE)
+m.t <- glm(test_score ~ condition, family = "poisson", data = df)
+#pchisq(2 * (logLik(nb.1) - logLik(m.t)), df = 1, lower.tail = FALSE)
 #A large (+) log likelihood suggests that the negative binomial is more appropriate than the Poisson model
+test_lrt(m.t, nb.1)
 
 
 #EXPONENTIATE PARAMETER ESTIMATES
@@ -566,21 +635,65 @@ est <- cbind(Estimate = coef(nb.1), confint(nb.1))
 #exponentiate parameter estimates
 print("Exponentiated Estimates")
 exp(est)
+
+summary(nb.1)
+report(nb.1)
+plot_model(nb.1)
+check_model(nb.1)
 ```
 
-The variable condition has a coefficient of 0.67, (p \< 0.005). This means that for the impasse condition, the expected log count \# of questions increases by 0.67. By exponentiating the estimate we see that \# question correct rate for the impasse condition is nearly 2x that of the control condition.
+*The variable condition has a coefficient of 0.67, (p \< 0.005). This means that for the impasse condition, the expected log count \# of questions increases by 0.67. By exponentiating the estimate we see that \# question correct rate for the impasse condition is nearly 1.95x that of the control condition. However, model diagnostics suggest the residuals are not normally distributed.*
 
-**Diagnostics** ??
+```{r}
+#COMPARE POISSON AND NEGATIVE BINOMIAL
+compare_performance(p.1, nb.1)
+test_lrt(p.1, nb.1)
+```
+
+*AIC, Pseudo-R2 and a likelihood ratio test indicate that the negative binomial regression model are a better fit for the distribution of test-phase scores.*
+
+## MIXTURE MODELS
+
+### Zero Inflated Poisson
+
+<https://stats.oarc.ucla.edu/r/dae/zip/>\
+*A Poisson count process with excess zeros*
+
+-   The Zero-Inflated model allows specification of two models (a mixture) where *some* of the zeros are included in the DGP for the Poisson model, while only the 'excess' zeros are included in the DGP for the Binomial model \[the zero-inflated part\]
+-   The model includes:
+    -   A logistic model to model which of the two processes the zero outcome is associated with
+    -   A poisson model to model the count process
+-   Can specify different predictors for each part of the model
+-   predictors after the \| are for the binomial zero-inflated part of the model, while those infront are for the poisson process
+
+```{r}
+#ZERO INFLATED POISSON
+
+zinfp.1 <- zeroinfl(test_score ~  condition| condition , data = df)
+summary(zinfp.1)
+report(zinfp.1)
+performance(zinfp.1)
+#check_model(zinfp.1)
+
+```
+
+*In the count model, the coefficient for the condition is not significant.*
+
+*In the zero-inflation model, the coefficient for the condition variable is -1.23 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.23 if you are in the impasse condition*
 
 ### Zero Inflated Negative Binomial Regression
 
-https://stats.oarc.ucla.edu/r/dae/zinb/ count data that are overdispersed and have excess zeros
+<https://stats.oarc.ucla.edu/r/dae/zinb/>\
+*count data that are overdispersed and have excess zeros*
 
 Zero-inflated negative binomial regression is for modelling count variables with excessive zeros, and especially when the count data are overdispersed (mean is much larger than variance). It can help account for situations where theory suggests that excess zeros are generated by 2 separate processes, one that includes the other count values, and the other that is just the zeros, and thus that the *excess* zeros can be modelled independently.
 
 Total Absolute Score (# items correct) may fit this situation, as the data are overdispersed (variance much greater than the mean) and there are are very large number of zeros. It is theoretically plausible that these excess zeros (no answers correct) are the result of a different 'process' ... (i.e) little understanding and/or resistance to restructuring understanding of the coordinate system. However, I am not certain if it is plausible to suggest that the zeros themselves are the result of two different processes: (ie. perhaps trying to understand, and not trying to understand?) \<- this could maybe be disentangled by first question latency?
 
-The model includes: - A logistic model to model which of the two processes the zero outcome is associated with - A negative binomial model to model the count process
+The model includes:
+
+-   A logistic model to model which of the two processes the zero outcome is associated with
+-   A negative binomial model to model the count process
 
 ```{r}
 #| label: MODEL-TESTABS-ZINFNEGBINOM
@@ -588,7 +701,8 @@ The model includes: - A logistic model to model which of the two processes the z
 library(pscl) #  for zeroinfl negbinomial
 
 #ZERO INFLATED NEGATIVE BINOMIAL
-zinb.1 <- zeroinfl(item_test_NABS ~ pretty_condition | pretty_condition , data = df_subjects, dist = "negbin")
+zinb.1 <- zeroinfl(test_score ~ condition | condition , 
+                   data = df, dist = "negbin")
 #before the | is the count part, after the | is the logit model
 paste("Model")
 summary(zinb.1)
@@ -607,25 +721,30 @@ performance(zinb.1)
 
 ```
 
-In the count model, the coefficient for the condition is very small, and not significant (suggesting it does not contribute to the count yielding process?).
+*In the count model, the coefficient for the condition is very small, and not significant (suggesting it does not contribute to the count yielding process?).*
 
-In the zero-inflation model, the coefficient for the condition variable is -1.056 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.06 if you are in the impasse condition (exponentiate it?)
+*In the zero-inflation model, the coefficient for the condition variable is -1.056 and statistically significant. This suggests that the log odds of being an excessive zero decrease by 1.06 if you are in the impasse condition*
+
+```{r}
+compare_performance(zinfp.1, zinb.1)
+test_likelihoodratio(zinfp.1, zinb.1)
+```
 
 **TODO come back to this and discuss further**\
 
-## TODO FIX INDEPENDENT --- (Mixture/HURDLE) REGRESSION
+### Hurdle Model 
 
-### WIP \| HURDLE MODEL
-
--   https://data.library.virginia.edu/getting-started-with-hurdle-models/\
--   https://en.wikipedia.org/wiki/Hurdle_model#:\~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.
+-   <https://data.library.virginia.edu/getting-started-with-hurdle-models/>
+-   <https://en.wikipedia.org/wiki/Hurdle_model#:~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.>
 
 class of models for count data with both overdispersion and excess zeros;\
-different from zero-inflated models where the excess zeros are theorized to arise from two different processes; in the hurdle model, there is a model for P(x=0) and a separate model for P(x!=0)
+different from zero-inflated models where the excess zeros are theorized to arise from two *different* processes; in the hurdle model, there is a separate model for P(x=0) and a separate model for P(x!=0)
 
-The model includes: - A binary logit model to model whether the observation takes a positive count or not. - a truncated Poisson or Negative binomial model that only fits positive counts
+The model includes:
 
-This allows us to model: (1) Does the student get *any* questions right? (2) How many questions does the student get right?
+-   A binary logit model to model whether the observation takes a positive count or not. (1) Does the student get *any* questions right?
+
+-   a truncated Poisson or Negative binomial model that only fits positive counts (2) How many questions does the student get right?
 
 ```{r}
 library(pscl) #zero-inf and hurdle models 
@@ -634,10 +753,10 @@ library(countreg) #rootogram
 
 #SYNTAX OUTCOME ~ count model predictor | hurdle predictor
 
-h.1 <- pscl::hurdle(item_test_NABS ~ condition | condition , data = df_subjects,
+h.1 <- pscl::hurdle(test_score ~ condition | condition , data = df,
               zero.dist = "binomial", dist = "poisson", size = 8)
 
-h.2 <- pscl::hurdle(item_test_NABS ~ condition | condition , data = df_subjects,
+h.2 <- pscl::hurdle(test_score ~ condition | condition , data = df,
               zero.dist = "binomial", dist = "negbin", size = 8)
 
 summary(h.1)
@@ -646,14 +765,18 @@ summary(h.2)
 
 rootogram(h.1)
 rootogram(h.2)
-compare_performance(h.1,h.2)
-
+plot(compare_performance(h.1,h.2))
+test_lrt(h.1, h.2)
 
 ```
 
-### Beta Regression (% Correct)
+## BETA REGRESSION
 
-Beta regression on % correct (with standard transformation for including \[0,1\]) https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression
+### BETA Regression 
+
+Beta regression on % correct (with standard transformation for including \[0,1\])
+
+<https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression>
 
 ```{r}
 # 
@@ -678,9 +801,15 @@ plot(mb)
 
 ### BETA HURDLE Regression
 
-https://github.com/markhwhiteii/beta_hurdle/blob/master/manuscript/beta_hurdle.pdf
+<https://github.com/markhwhiteii/beta_hurdle/blob/master/manuscript/beta_hurdle.pdf>
+
+-   MU tells if mean is different by condition
+-   SIGMA tells if variance is different by condition
+-   NU coefficient tells if condition yields different probability at floor
+-   TAU coefficient tells if condition yields different probability at ceiling
 
 ```{r}
+#BETA HURDLE REGRESSION EXAMPLE
 library(gamlss)
 
 #CREATE SAMPLE DATA 
@@ -743,20 +872,20 @@ paste("P1: ",fit_p1)
 
 ```{r}
 
-
+#MY DATA
 #SETUP DATA 
 
 min = 0 #min possible value of scale
-max = 8 #max possible value of scale
+max = 13 #max possible value of scale
 
 library(mosaic) #for shuffling
 #1. Rescale accuracy using 
 # recommended adjustment 
 #rescaled = value-min/(max-min)
 df <- df_subjects %>% mutate(
-  accuracy = item_test_NABS,
+  accuracy = s_NABS,
   R_acc = (accuracy-min)/(max-min), #as %
-  T_acc = (accuracy * (nrow(df)-1) + 0.5)/nrow(df)/8, #transform for no 0 and 1
+  T_acc = (accuracy * (nrow(df)-1) + 0.5)/nrow(df)/max, #transform for no 0 and 1
   perm = shuffle(condition),
   scaffold_rt = item_scaffold_rt
 ) %>% dplyr::select(accuracy,R_acc, T_acc, condition, perm,scaffold_rt)
@@ -794,6 +923,7 @@ m0 <- gamlss( formula = R_acc ~ 1, # formula for mu
 
 m0 <- gamlss(R_acc ~ 1, ~ 1, ~ 1, ~ 1, 
             data = df, family = BEINF())
+paste("THE EMPTY MODEL")
 summary(m0)
 plot(m0)
 
@@ -817,6 +947,7 @@ paste("P1: ",m0_p1)
 #CREATE PREDICTOR MODEL
 m1 <- gamlss(R_acc ~ condition, ~ condition, ~ condition, ~ condition, 
             data = df, family = BEINF())
+paste("THE PREDICTOR MODEL")
 summary(m1)
 
 #LOOKING PREDICTOR MODEL
@@ -825,6 +956,8 @@ m <- gamlss(R_acc ~ condition ,
             ~ condition , 
             ~ condition , 
             data = df, family = BEINF())
+paste("THE PREDICTOR MODEL")
+
 summary(m)
 
 
@@ -856,15 +989,14 @@ paste("TAU: ",m1_tau)
 summary(m)
 plot(m)
 
-
 ```
 
--   MU tells if mean is different by condition\
--   SIGMA tells if variance is different by condition\
+-   MU tells if mean is different by condition
+-   SIGMA tells if variance is different by condition
 -   NU coefficient tells if condition yields different probability at floor
 -   TAU coefficient tells if condition yields different probability at ceiling
 
-## TODO RETROFIT INDEPENDENT --- (Binomial) REGRESSION
+## BINOMIAL OUTCOME
 
 ```{r}
 #| label: SETUP-Q1-ACCURACY
@@ -901,36 +1033,41 @@ df %>%
 
 ```
 
-### CHI SQUARE
-
-**Does CONDITION affect Q1 ACCURACY?**
+#### CHI SQUARE
 
 ```{r}
+#| label : CHISQR-Q1
 
-CrossTable( x = df$condition, y = df$accuracy, 
-             fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-```
+#::::::::::::CROSSTABLE
+# CrossTable( x = df$condition, y = df$accuracy, 
+#              fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
 
-```{r}
-#| label : VIS-CHISQR-Q1
+#::::::::::::MOSAIC PLOT
+# note: blue indicates cell count higher than expected, 
+# red indicates cell count less than expected; under null hypothesis
+# mosaicplot(main="Accuracy on First Question by Condition",
+#             data = df, pretty_condition ~ accuracy, 
+#             shade = T)
 
-#MOSAIC PLOT
-#note: blue indicates cell count higher than expected, red indicates cell count less than expected; under null hypothesis
-mosaicplot(main="Accuracy on First Question by Condition",
-            data = df, pretty_condition ~ accuracy, 
-            shade = T)
-#SJTABLE
-df %>%
-  sjtab(fun = "xtab", var.labels=c("accuracy", "pretty_condition"),
-        show.row.prc=T, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
-        statistics = "fisher")
+#::::::::::::TABLE
+df %>% sjtab( fun = "xtab", var.labels=c("accuracy", "pretty_condition"),
+        show.row.prc=F, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
+        statistics = c("auto"))
 
-#::::::::::::WITH STATISTICS
-ggbarstats(data = df, x = condition, y = accuracy,
+
+#::::::::::::BAR PLOT
+ggbarstats(data = df, x = accuracy, y = condition,
            type = "nonparametric")
+
+#::::::::::::CHISQR TEST
+(x <- stats::chisq.test(x = df$accuracy, y = df$condition, simulate.p.value = T))
+
+
+#::::::::::::POWER ANALYSIS
+(po <- pwr.chisq.test( w = 0.1, df=(2-1), N = nrow(df), sig.level = 0.05))
 ```
 
-**For (In Person) data collection** (n=126) the Pearson's Chi-squared test (of independence) indicates a relationship between response accuracy on the first question and experimental condition that is not significant at the alpha level 0.05, $\chi^2$ (1) = 10.3, p = 0.07. Thus we have insufficient evidence to reject the null hypothesis that the odds ratio is equal to 1. In this particular data sample, the odds ratio (Odds Ratio = 2.18, p = 0.055, 95% CI \[0.982, +Inf\]) indicates that the odds of producing a correct response on the first question were 2.18 times greater if a subject was in the impasse condition, than in the control condition .
+**A Chi-Square test of independence of Q1 accuracy [correct,incorrect] by condition indicates the question accuracy is not dependent on condition. _However, this test may be underpowered, as with the given sample size it has only 20% power to detect a small effect (w = 0.1)_**
 
 ### LOGISTIC REGRESSION
 
@@ -1126,9 +1263,9 @@ We fit a logistic regression model to analyze the effect of experimental conditi
 tab_model(m1)
 ```
 
-## INDEPENDENT --- (Ordinal) REGRESSION
+## ORDINAL OUTCOME
 
-**Does CONDITION affect the Q1 [ordered] type of response given?**
+**Does CONDITION affect the Q1 \[ordered\] type of response given?**
 
 ```{r}
 #| label : SETUP-INDEPENDENT-ORDINAL
@@ -1159,7 +1296,8 @@ df %>%
        subtitle="")
 
 ```
-**Does CONDITION affect the Q1 [ordered] state of understanding?**
+
+**Does CONDITION affect the Q1 \[ordered\] state of understanding?**
 
 ```{r}
 #| label : SETUP-INDEPENDENT-ORDINAL-STATE
@@ -1190,21 +1328,24 @@ df %>%
        subtitle="")
 ```
 
-### ORDINAL REGRESSION --- Cumulative Link; Proportional Odds 
+### ORDINAL REGRESSION --- Cumulative Link; Proportional Odds
 
 *Fit an ordinal logistic regression (at the subject level), predicting Q1 interpretation by condition.*
 
--   https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/
--   https://journals.sagepub.com/doi/full/10.1177/2515245918823199
--   todo see ordinal regression video: https://www.youtube.com/watch?v=rPcMcW25PPA&ab_channel=NCRMUK
--   https://peopleanalytics-regression-book.org/ord-reg.html
--   https://medium.com/evangelinelee/brant-test-for-proportional-odds-in-r-b0b373a93aa2
--   https://github.com/runehaubo/ordinal/blob/master/old_vignettes/clm_tutorial.pdf
+-   <https://stats.oarc.ucla.edu/r/faq/ologit-coefficients/>
+-   <https://journals.sagepub.com/doi/full/10.1177/2515245918823199>
+-   todo see ordinal regression video: <https://www.youtube.com/watch?v=rPcMcW25PPA&ab_channel=NCRMUK>
+-   <https://peopleanalytics-regression-book.org/ord-reg.html>
+-   <https://medium.com/evangelinelee/brant-test-for-proportional-odds-in-r-b0b373a93aa2>
+-   <https://github.com/runehaubo/ordinal/blob/master/old_vignettes/clm_tutorial.pdf>
 
-**Learning Notes** - proportional odds regression models effectively act as a series of stratified binomial models under the assumption that the 'slope' of the logistic function of each stratified model is the same. - thus need to verify proportional odds assumption - ordinal regression requires an **proportional odds assumption** (the same slope holds for each equation) - this is required because the model simultaneously estimates k-1 equations, but each equation has the same *slope*, with different intercepts.\
-- conversely, a multinomial (categorical) model will have different slopes as well as intercepts - the intercepts are always ordered in size alpha 1 \< alpha 2 \< alpha k-1...
+**Learning Notes**
 
-**TODO** - see difference between the three types of orindal models TOODO check Agresti book
+-   proportional odds regression models effectively act as a series of stratified binomial models under the assumption that the 'slope' of the logistic function of each stratified model is the same.
+-   thus need to verify proportional odds assumption - ordinal regression requires an **proportional odds assumption** (the same slope holds for each equation)
+-   this is required because the model simultaneously estimates k-1 equations, but each equation has the same *slope*, with different intercepts.
+-   conversely, a multinomial (categorical) model will have different slopes as well as intercepts - the intercepts are always ordered in size alpha 1 \< alpha 2 \< alpha k-1...
+-   **TODO** - see difference between the three types of ordinal models (adjacent category (vs) cumulative proportions; check Agresti book
 
 #### Fit Model
 
@@ -1214,12 +1355,12 @@ df %>%
 
 #EMPTY MODEL
 paste("EMPTY Ordinal regression of q1 SCALED score (ordered interpretation)")
-om.0 <- clm(scaled ~ 1 , data = df)
+om.0 <- clm(state ~ 1 , data = df)
 # summary(om.0)
 
 #PREDICTOR MODEL
 paste("Ordinal regression of q1 SCALED score (ordered interpretation)")
-om <- clm(scaled ~ condition, data = df)
+om <- clm(state ~ condition, data = df)
 # summary(om)
 
 #COMPARE EMPTY AND PREDICTOR
@@ -1262,9 +1403,9 @@ exp(ci)
 
 ```
 
-**Overall, participants in the impasse condition had higher odds (6.41 X as likely) to offer *more correct* interpretations than those in the control condition (z = 4.65, p \< 0.001).**
+**Overall, participants in the impasse condition had higher odds (6.68 X as likely) to offer *more correct* interpretations than those in the control condition (z = 4.74, p \< 0.001).**
 
--   we see the estimates for the 4 intercepts, which are sometimes called cutpoints.
+-   we see the estimates for the 2 intercepts, which are sometimes called cutpoints.
 -   The intercepts indicate where the latent variable is cut to make the three groups that we observe in our data.
 -   Note that this latent variable is continuous. In general, these are not used in the interpretation of the results.
 -   The cutpoints are closely related to thresholds, which are reported by other statistical packages.
@@ -1311,15 +1452,11 @@ Thus, an alternative approach may be more appropriate:
 
 -   Continuation-ratio logistic model. This model compares each level of the ordinal variable to all lower levels. This can be modeled using binary logistic regression techniques, but new variables need to be constructed from the data set to allow this. The R package rms has a function cr.setup() which is a utility for preparing an outcome variable for a continuation ratio model.
 
-*Note: for multiple regression, the ordinal package offers a parameter (nominal = ~predictors) that allow you to designate some predictors as nominal rather than ordinal. But this is not appropriate for this use case._
+\*Note: for multiple regression, the ordinal package offers a parameter (nominal = \~predictors) that allow you to designate some predictors as nominal rather than ordinal. But this is not appropriate for this use case.\_
 
-_The ordinal package offers a parameter to set certain predictors as nominal)
+## CATEGORICAL OUTCOME 
 
-
-
-## INDEPENDENT --- (Categorical) REGRESSION
-
-**Does CONDITION affect the Q1 [ordered] type of response given?**
+**Does CONDITION affect the Q1 \[ordered\] type of response given?**
 
 ```{r}
 
@@ -1349,7 +1486,8 @@ df %>%
        subtitle="")
 
 ```
-**Does CONDITION affect the Q1 [ordered] state of understanding?**
+
+**Does CONDITION affect the Q1 \[ordered\] state of understanding?**
 
 ```{r}
 
@@ -1381,7 +1519,7 @@ df %>%
 
 ### CHI SQUARE
 
-**Does CONDITION affect the Q1 [categorical] type of response given?**
+**Does CONDITION affect the Q1 \[categorical\] type of response given?**
 
 ```{r}
 
@@ -1399,12 +1537,8 @@ mosaicplot(main="Interpretation on First Question by Condition",
 
 #::::::::::::WITH STATISTICS
 ggbarstats(data = df, x = condition, y = scaled,
-           type = "nonparametric")
+           type = "nonparametric") 
 ```
-
-
-
-
 
 ```{r}
 #| label : CHISQR-interpreation
@@ -1426,13 +1560,12 @@ df %>%
 
 **TODO INFERENCE**
 
-### WIP WIP MULTINOMIAL REGRESSION \[INTERPRETATION\]
+### MULTINOMIAL REGRESSION 
 
 *Does condition affect the response state of Q1?*
 
 -   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
--   https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK
-
+-   <https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK>
 
 #### Fit Model
 
@@ -1453,29 +1586,16 @@ catm <- multinom(formula = state ~ condition, data = df, model = TRUE)
 #COMPARE MODEL FIT
 test_lrt(catm.0, catm)
 
-
 ##compare bayesian version
-library(brms)
+#library(brms)
 # m1 <- brm( state ~ condition, data = df, family = "categorical")
 # summary(m1)
 # plot_model(m1)
 # report(m1)
 
-#BAYESIAN MIXED VERSION
-df <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% filter(term=="spring18")
-# mm1 <- brm( state ~ condition + (1|subject), data = df, family = "categorical")
-# write_rds(mm1, "analysis/models/sgc3a_brms_mixedcat_teststate.rds")
-# mm1 <- read_rds("analysis/models/sgc3a_brms_mixedcat_teststate.rds")
-# summary(mm1)
-# performance(mm1)
-# plot(mm1)
-# #report(mm1)
-# #check_posterior_predictions(mm1, draws=100)
-# # library(bayesplot)
-# library(bayestestR)
-# plot(rope(mm1))
 ```
-_Likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model._
+
+*Likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model.*
 
 #### Interpretation
 
@@ -1500,18 +1620,16 @@ odds_ratios <- data.frame(OR = exp(summary(catm)$coefficients))
 (results <- cbind(odds_ratios, p_values))
 ```
 
-####Learning Notes
+**Learning Notes**
 
-- Model estimates encompass two equations: 
-- effect of predictor on log odds of being in [unknown] instead of reference category [orth-like]
-- effect of predictor on log odds of being in [tri-like] instead of reference category [orth-like]
-
+-   Model estimates encompass two equations:
+-   effect of predictor on log odds of being in \[unknown\] instead of reference category \[orth-like\]
+-   effect of predictor on log odds of being in \[tri-like\] instead of reference category \[orth-like\]
 
 #### Inference
 
--   Being in the IMPASSE condition increases the odds of giving 'unknown/uncertain' response rather than an orthogonal (or satisficing)  response by a factor of 50 (z = 3.59, p < 0.001 ).
--   Being in the IMPASSE condition increases the odds of giving an 'triangular or line-driven' response rather than an orthogonal (or satisficing) response by a factor of  6 (z = 3.98, p <0.001 )
-
+-   Being in the IMPASSE condition increases the odds of giving 'unknown/uncertain' response rather than an orthogonal (or satisficing) response by a factor of 50 (z = 3.59, p \< 0.001 ).
+-   Being in the IMPASSE condition increases the odds of giving an 'triangular or line-driven' response rather than an orthogonal (or satisficing) response by a factor of 6 (z = 3.98, p \<0.001 )
 
 #### Visualize
 
@@ -1537,12 +1655,11 @@ performance(catm)
 DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
 
 #General Goodness of Fit
-library(generalhoslem)
+# library(generalhoslem)
 # logitgof(df$state, catm$fitted.values, g = 3)
 # hoslem.test(x = df$state, y = catm$fitted.values, g =  10)
 #A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
 #don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
-
 ```
 
 # MIXED (Repeated Measures)
@@ -1598,18 +1715,6 @@ df %>%
 
 ## MIXED --- BINOMIAL
 
-## MIXED --- ORDINAL
-
-## MIXED --- CATEGORICAL
-
-# ADVANCED (Other Distributions)
-
-## SINGLE ITEM LEVEL --- INTERPRETATION
-
-## REPEATED ITEM LEVEL --- ACCURACY
-
-**Test Phase Accuracy (absolute score)**
-
 #### Mixed Logistic Regression
 
 *Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on test phase questions by condition; accounting for random effects of subject.*
@@ -1619,16 +1724,13 @@ df %>%
 ```{r}
 
 #SETUP DATA 
-#PREPARE DATA 
 n_items = 8 #number of items in test
 
 #item level
-df_test = df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% mutate(
+df = df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% mutate(
   accuracy = as.factor(score_niceABS),
   q = as.factor(q)
-)
-
-df <- df_test
+) %>% filter(mode =="lab-synch")
 
 library(lmerTest) #for CIs in glmer 
 
@@ -1645,6 +1747,7 @@ paste("AIC with random effect is lower than glm empty model?", m0$aic > AIC(logL
 test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
 
+
 ## 2 | ADD FIXED EFFECT
 
 # SUBJECT INTERCEPT | FIXED CONDITION 
@@ -1652,7 +1755,7 @@ mm.CrS <- glmer(accuracy ~ pretty_condition + (1|subject),
                 data = df,family = "binomial")
 
 # :: TEST fixed factor 
-paste("AIC with random effect is lower than glm empty model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.CrS)) )
+paste("AIC with fixed effect is lower than random intercept only model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.CrS)) )
 test_lrt(mm.rS,mm.CrS) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.CrS))$p[2])
 ```
@@ -1663,7 +1766,7 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.CrS))$p[2]
 
 #: PRINT MODEL 
 print("PREDICTOR MODEL")
-summary(mm.CrS)
+summ(mm.CrS)
 
 #: INTERPRET COEFFICIENTS
 
@@ -1672,6 +1775,11 @@ performance(mm.CrS)
 print("SANITY CHECK REPORTING")
 report(mm.CrS)
 
+# se <- sqrt(diag(stats::vcov(m1)))
+# # table of estimates with 95% CI
+# (tab <- cbind(Est = fixef(m1), LL = fixef(m1) - 1.96 * se, UL = fixef(m1) + 1.96 *
+#     se))
+# (e <- exp(tab))
 
 #: PLOT
 
@@ -1717,79 +1825,149 @@ We fit a mixed-effect binomial logistic regression model with random intercepts 
 tab_model(mm.CrS)
 ```
 
-#### TODO Mixed Ordinal Regression
+
+
+
+## MIXED --- ORDINAL
+
+## MIXED --- CATEGORICAL
+
+```{r}
+#BAYESIAN MIXED VERSION
+#df <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% filter(term=="spring18")
+# mm1 <- brm( state ~ condition + (1|subject), data = df, family = "categorical", 
+# file = "analysis/models/sgc3a_brms_mixedcat_teststate.rds" # cache model (can be removed)))
+# summary(mm1)
+# performance(mm1)
+# plot(mm1)
+# #report(mm1)
+# #check_posterior_predictions(mm1, draws=100)
+# # library(bayesplot)
+# library(bayestestR)
+# plot(rope(mm1))
+```
+
+
 
 ## WIP UNKNOWN
 
-### Cummulative Ordinal (Bayesian)
+### Cummulative Ordinal (Bayesian) — Equal Variance
 
 https://journals.sagepub.com/doi/full/10.1177/2515245918823199
 
 ```{r}
-# library(brms)
+library(brms)
 
 
-# #DEFINE DATA 
-# df <- df_items %>% mutate(
-#   scaled = factor(score_SCALED, ordered = TRUE,  #ordered factor
-#                     levels = c("-1", "-0.5", "0", "0.5","1"))
-# )
-# 
-# ord_cum <- brm( formula = scaled ~ condition,
-#                data = df,
-#                family = cumulative("probit"),
-#                file = "analysis/SGC3A/models/m_items_ord.cum.rds" # cache model (can be removed)  
-# 
-# )
-# 
-# summary(ord_cum)
-# conditional_effects(ord_cum, "condition", categorical = TRUE)
-# 
-# #SJPLOT
-# library(sjPlot)
-# plot_model(ord_cum)
-# 
-# # m %>%
-# #   spread_draws(b_Intercept, r_condition[condition,]) %>%
-# #   mutate(condition_mean = b_Intercept + r_condition) %>%
-# #   ggplot(aes(y = condition, x = condition_mean)) +
-# #   stat_halfeye()
-# 
-# # performance(ord_cum)
-# # plot(ord_cum)
-```
+#DEFINE DATA 
+df <- df_items %>% filter(q==1) %>% filter(mode =="lab-synch")
+  
+#TODO: why is this probit instead of logit?
+cumord <- brm( formula = state ~ condition,
+               data = df,
+               family = cumulative("probit"),
+               file = "analysis/models/sgc3a_brms_cumord_q1state.rds" # cache model (can be removed)
+)
 
-### Adjacent-Category Ordinal (Bayesian)
+summary(cumord)
+conditional_effects(cumord, "condition", categorical = TRUE)
 
-```{r}
-# 
-# #DEFINE DATA 
-# df <- df_items %>% mutate(
-#   scaled = factor(score_SCALED, ordered = TRUE,  #ordered factor
-#                     levels = c("-1", "-0.5", "0", "0.5","1"))
-# )
-# 
-# 
-# # To specify an adjacent-category model, we use family = acat() instead of family = cumulative() as an argument to the brm() function. Then, to model condition with possible category-specific effects, we wrap this variable in cs() in the model’s formula:
-# 
-# ord_acat <- brm( formula = scaled ~ cs(condition),
-#                data = df,
-#                family = acat("probit"),
-#                file = "analysis/SGC3A/models/m_items_ord.acat.rds" # cache model (can be removed)  
-# )
-# 
-# summary(ord_acat)
-# conditional_effects(ord_cum, "condition", categorical = TRUE)
-# conditional_effects(ord_acat, "condition", categorical = TRUE)
-# 
-# #TIDYBAYES VISUALIZATION
-# library(tidybayes)
-# ord_acat %>%
+#SJPLOT
+plot_model(cumord)
+plot(cumord)
+plot(rope(cumord))
+
+#REPORT
+report(cumord)
+
+# ord_cum %>%
 #   spread_draws(b_Intercept, r_condition[condition,]) %>%
 #   mutate(condition_mean = b_Intercept + r_condition) %>%
 #   ggplot(aes(y = condition, x = condition_mean)) +
 #   stat_halfeye()
-# 
 
+# performance(cumord)
+# plot(cumord)
+```
+
+
+### Cummulative Ordinal (Bayesian) — Unequal Variance
+
+https://journals.sagepub.com/doi/full/10.1177/2515245918823199
+
+```{r}
+library(brms)
+
+
+#DEFINE DATA 
+df <- df_items %>% filter(q==1) %>% filter(mode =="lab-synch")
+  
+#TODO: why is this probit instead of logit?
+u.cumord <- brm( 
+  formula = bf(state ~ condition) +
+               lf(disc ~ 0 + condition, cmc = FALSE),
+               data = df,
+               family = cumulative("probit"),
+               file = "analysis/models/sgc3a_brms_ucumord_q1state.rds" # cache model (can be removed)
+)
+
+summary(u.cumord)
+conditional_effects(u.cumord, "condition", categorical = TRUE)
+
+#SJPLOT
+plot_model(u.cumord)
+plot(u.cumord)
+plot(rope(u.cumord))
+
+#REPORT
+report(u.cumord)
+
+# ord_cum %>%
+#   spread_draws(b_Intercept, r_condition[condition,]) %>%
+#   mutate(condition_mean = b_Intercept + r_condition) %>%
+#   ggplot(aes(y = condition, x = condition_mean)) +
+#   stat_halfeye()
+
+# performance(cumord)
+# plot(cumord)
+```
+
+In brms, the parameter related to latent variances is called disc (short for “discrimination”), following conventions in item response theory. Note that disc is not the variance itself, but the inverse of the standard deviation, s. That is, s = 1/disc. Further, because disc must be strictly positive, it is by default modeled on the log scale.
+
+### Adjacent-Category Ordinal (Bayesian)
+
+```{r}
+df <- df_items %>% filter(q==1) %>% filter(mode =="lab-synch")
+
+
+# # To specify an adjacent-category model, we use family = acat() instead of family = cumulative() as an argument to the brm() function. Then, to model condition with possible category-specific effects, we wrap this variable in cs() in the model’s formula:
+
+adjcat <- brm( formula = state ~ cs(condition),
+               data = df,
+               family = acat("probit"),
+               file = "analysis/models/sgc3a_brms_adjcat_q1state.rds" # cache model (can be removed)
+)
+ 
+summary(adjcat)
+
+conditional_effects(cumord, "condition", categorical = TRUE)
+conditional_effects(adjcat, "condition", categorical = TRUE)
+
+#WHICH IS BETTER? cumulative or adjacent?
+plot(compare_performance(cumord, adjcat))
+compare_performance(cumord, adjcat)
+
+# #TIDYBAYES VISUALIZATION
+# library(tidybayes)
+# adjcat %>%
+#   spread_draws(b_Intercept, r_condition[condition,]) %>%
+#   mutate(condition_mean = b_Intercept + r_condition) %>%
+#   ggplot(aes(y = condition, x = condition_mean)) +
+#   stat_halfeye()
+
+plot(cumord)
+plot(adjcat)
+report(adjcat)
 
 ```
+_Converges, but estimates are unreliable?_

@@ -1,4 +1,57 @@
 **CHANGELOG**
+
+- July 2022
+  - added more support for sGC4C
+    - split 6th condition position into 6,7,8
+    - 6 is axis rotation
+    - 7 is label rotation
+    - 8 is shape-scale (isoceles or equilateral)
+
+  //CONDITION : 8 digit code 
+    // [EXPLICIT] [IMPASSE] [GRID] [MARK] [IXN] [AXIS ROTATION][LABEL ROTATION] [SHAPE]
+
+    //EXPLICIT SCAFFOLD
+    //    1 = none (control)
+    //    2 = static image
+    //    3 = interactive image 
+
+    //IMPASSE SCAFFOLD
+    //    1 = none (control)
+    //    2 = impasse 
+    
+    //GRID SCAFFOLD
+    //    1 = orthog y(full) x(tri) [control] Orthogonal-XInside-YFull
+    //    2 = orthog y(partial) x(tri) [ignore] Orthogonal-XInside-YPartial
+    //    3 = tri y(tri) x(tri) [minimal] Triangular-XInside-YInside
+    //    4 = orthog y(partial) x(tri) [original] Orthogonal-XInside-YInside
+    //    5 = orthog y(full) x(full) [maximal] Orthogonal-XFull-YFull
+
+    //MARK SCAFFOLD
+    //    1 = point
+    //    2 = triangle
+    //    3 = cross
+
+    //IXN TYPE
+    //    1 = none
+    //    2 = //
+    //    3 = //
+    //    4 = //
+    //    5 = // on click data point turns color
+
+    //AXIS ROTATION
+    //    1 = normal 0 deg
+    //    2 = rotate 45deg 
+    //    3 = rotate 90deg 
+
+    //LABEL ROTATION
+    //    1 = normal 0 deg
+    //    2 = rotate 45deg 
+    //    3 = rotate 90deg 
+
+    //SHAPE
+    //    1 = isoceles (default)
+    //    2 = equilateral (height * 0.5*Math.sqrt(3) //equaliateral?)
+
 - summer 2022:
   - added support for prolific via a prolific redirect 
   - added additional browser_check trial AFTER going to fullscreen to record screensize on fullscreen
@@ -6,6 +59,8 @@
     - 1 == no rotation, 2 == 45 degree rotation
     - automatically downscales graph to 0.75 and does a very rough rotation
     - configured using same pattern as SGC4A and SGC4B
+
+
 
 # Experimental Stimuli 
 AUTHOR: AMY RAE FOX amyraefox@gmail.com  

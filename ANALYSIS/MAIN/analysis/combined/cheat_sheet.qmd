@@ -1,0 +1,1517 @@
+---
+subtitle: 'COMBINED | Cheat Sheet'
+---
+
+\newpage
+
+# Combined Study Data {#sec-combined}
+
+```{r}
+#| label: SETUP
+#| warning : false
+#| message : false
+
+library(Hmisc) # %nin% operator
+library(janitor) #compare df cols 
+library(mosaic) #simple descriptives [favstats]
+library(multimode) #test for multimodality
+library(fitdistrplus) #fitting distributions
+library(performance) #multimodality
+library(kableExtra) #printing tables 
+library(vcd) #mosaicplots
+library(ggpubr) #arrange plots
+library(ggstatsplot) #sanity checks 
+library(sjPlot) #model plots
+library(ggeasy) #easy plot changes
+library(statsExpressions) #easy plot changes
+
+#modelling
+library(lme4)
+library(ordinal) #ordinal and mixed ordinal models
+library(nnet) #multinomial regression
+library(jtools) # misc helpers 
+library(brms) #bayesian regression models
+
+#all the things
+library(tidyverse) #ALL THE THINGS
+
+#OUTPUT OPTIONS
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(ggplot2.summarise.inform = FALSE)
+options(scipen=1, digits=3)
+
+#SET THEME
+theme_set(theme_minimal())
+```
+
+## SETUP
+
+```{r}
+#| label: IMPORT-SUBJECTS
+#| warning : false
+#| message : false
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+##:::::::: IMPORT SUBJECT DATA 
+
+in_sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
+  study = "SGC3A"
+) #%>% dplyr::select(-absolute_score)
+
+in_sgc3b <- read_rds("analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.rds") %>% mutate(
+  study = "SGC3B"
+) #%>% dplyr::select(-absolute_score)
+
+in_sgc4a <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") %>% mutate(
+  study = "SGC4A",
+  pretty_mode = "online-replication"
+)
+in_sgc4b <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds") %>% mutate(
+  study = "SGC4B",
+  pretty_mode = "online-replication"
+)
+
+# TODO TEMPORARY ONLY REPLACE WITH SCORED DATA 
+in_sgc4c <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_participants.rds") %>% mutate(
+  pretty_mode = "online-replication"
+)
+
+in_sgc5 <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_participants.rds") %>% mutate(
+  study = "SGC5A",
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-absolute_score)
+
+#COMPARE DF COLUMNS
+# janitor::compare_df_cols(sgc3a, sgc4c)
+#SGC5 HAS ABSOLUTE SCORE BUT THEY SHOULDN'T 
+
+##:::::::: IMPORT ITEM DATA 
+
+in_sgc3a_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") %>% mutate(study = "SGC3A")
+  
+in_sgc3b_items <- read_rds("analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.rds") %>% mutate(study = "SGC3B")
+  
+in_sgc4a_items <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds") %>% mutate(study = "SGC4A")
+  
+in_sgc4b_items <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds") %>% mutate(study = "SGC4B")
+
+# TODO TEMPORARY ONLY REPLACE WITH SCORED DATA 
+in_sgc4c_items <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_items.rds") %>% mutate(study = "SGC4C")
+  
+in_sgc5_items <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5a_scored_items.rds") %>% mutate(study = "SGC5")
+  
+##:::::::: IMPORT OSPAN DATA 
+ospan <- read_csv("analysis/combined/data/fall21_scored_ospan.csv") %>% mutate(
+  subject = SUBJECTID
+)
+
+# MERGE #TODO ADD IN SGC4C
+df_all <- rbind(in_sgc3a, in_sgc3b, in_sgc4a, in_sgc4b, in_sgc5) %>%  dplyr::select(subject,term,study,condition,pretty_condition)
+```
+
+### Conditions per Study
+
+```{r}
+paste("SG3A")
+addmargins(table(in_sgc3a$term, in_sgc3a$pretty_condition))
+
+paste("SG3B")
+addmargins(table(in_sgc3b$term, in_sgc3b$pretty_condition))
+
+paste("SG4A")
+addmargins(table(in_sgc4a$term, in_sgc4a$pretty_condition))
+
+paste("SG4B")
+addmargins(table(in_sgc4b$term, in_sgc4b$pretty_condition))
+
+paste("SG4C")
+addmargins(table(in_sgc4c$term, in_sgc4c$pretty_condition))
+
+paste("SG5")
+addmargins(table(in_sgc5$term, in_sgc5$pretty_condition))
+
+paste("ALL")
+addmargins(table(df_all$study, df_all$condition))
+
+```
+
+### Are Subjects Unique?
+
+```{r}
+#CHECK FOR DUPLICATES 
+n_total <- nrow(df_all)
+paste(n_total, "subjects records imported ")
+n_dist <- nrow(df_all %>% distinct(subject))
+paste(n_dist, "unique subjects")
+subs <- df_all$subject
+dups <- subs[duplicated(subs)] 
+n_dups <- length(dups)
+paste(n_dups, "duplicated subjects")
+```
+
+### De-Duplicate?
+
+#### SGC3A 
+```{r}
+# table(in_sgc3a$term, in_sgc3a$condition)
+# 
+# #REPORT sgc3a ONLINE REPLICATION [fall21, winter22]
+# # sub_df <- sgc3a %>% filter(term %in% c("fall21"))
+# sub_df <- in_sgc3a %>% filter(mode == "asynch")
+# item_df <- in_sgc3a_items %>% filter(subject %in% sub_df$subject) %>% filter(q %nin% c(6,9)) %>% mutate(
+#   state = recode_factor(score_SCALED, #for ordinal
+#                          "-1" = "orth-like",
+#                          "-0.5" = "unknown",
+#                          "0" = "unknown",
+#                          "0.5" = "tri-like",
+#                          "1" = "tri-like"),
+#   state = as.ordered(state),
+#   score_SCALED = as.ordered(score_SCALED)
+# )
+# nrow(item_df) == nrow(sub_df) * 13
+# table(sub_df$condition)
+# 
+# sgc3a <- sub_df
+# sgc3a_items <- item_df
+# 
+# table(sgc3a$term, sgc3a$condition) %>% addmargins()
+
+```
+
+
+#### SGC4A 
+```{r}
+
+table(in_sgc4a$term, in_sgc4a$condition)
+
+#sgc4a as ONLINE ONLY [winter22]
+#discard 17,18 as pilot?
+
+sub_df <- in_sgc4a %>% filter(term == "winter22")
+item_df <- in_sgc4a_items %>% filter(subject %in% sub_df$subject) %>% filter(q %nin% c(6,9)) %>% mutate(
+  state = recode_factor(score_SCALED, #for ordinal
+                         "-1" = "orth-like",
+                         "-0.5" = "unknown",
+                         "0" = "unknown",
+                         "0.5" = "tri-like",
+                         "1" = "tri-like"),
+  state = as.ordered(state),
+  score_SCALED = as.ordered(score_SCALED)
+)
+nrow(item_df) == nrow(sub_df) * 13
+table(sub_df$condition)
+
+sgc4a_A <- sub_df %>% filter(condition %in% c("111","113")) %>% droplevels()
+sgc4a_A_items <- item_df %>% filter(subject %in% sgc4a_A$subject) %>% droplevels()
+
+sgc4a_B <- sub_df %>% filter(condition %in% c("111","114","115")) %>% droplevels()
+sgc4a_B_items <- item_df %>% filter(subject %in% sgc4a_B$subject) %>% droplevels()
+
+table(sgc4a_A$term, sgc4a_A$condition) %>% addmargins()
+table(sgc4a_B$term, sgc4a_B$condition) %>% addmargins()
+```
+
+
+### EVALUATE DE-DUP
+
+```{r}
+# new_df_subjects <- rbind(new_3a,new_3a_online,new_3b,new_4a,new_4b,new_5a)
+# 
+# #CHECK FOR DUPLICATES 
+# x_total <- nrow(new_df_subjects)
+# paste(x_total, "subjects should be unique")
+# x_dist <- nrow(new_df_subjects %>% distinct(subject))
+# paste(x_dist, "unique subjects")
+# x_subs <- new_df_subjects$subject
+# x_dups <- x_subs[duplicated(x_subs)] 
+# xn_dups <- length(x_dups)
+# paste(xn_dups, "duplicated subjects")
+# 
+# pilot_3b = 15+29
+# pilot_3b3 = 5+12+3+11
+# n_discard = 6+52+5+12+3+11 + 15+29 #hardcoded number of discards 
+# #1197 unique subjects  + 327 [de-duplicated] + (sgc3b,4a pilots) = 
+# 
+# #number of distinct in original == number of distinct now + n discarded 
+# n_dist ==  x_dist + n_discard 
+
+```
+
+## SGC3A _ IN PERSON
+
+```{r}
+
+#SETUP DATA HERE 
+sub_df <-  in_sgc3a %>% filter(mode == "lab-synch") 
+item_df <- in_sgc3a_items %>% filter(subject %in% sub_df$subject) %>% 
+  mutate (
+    state = recode_factor(score_SCALED, #for ordinal
+                         "-1" = "orth-like",
+                         "-0.5" = "unknown",
+                         "0" = "unknown",
+                         "0.5" = "tri-like",
+                         "1" = "tri-like"),
+    state = as.ordered(state))
+
+
+q1   <- item_df %>% filter(q ==1)
+test <- item_df %>% filter(q %nin% c(1,2,3,4,5,6,9))
+all  <- item_df %>% filter(q %nin% c(6,9))
+```
+
+
+#### Describe
+```{r}
+table(sub_df$condition)
+favstats(item_test_NABS ~ condition, data = sub_df)
+favstats(item_test_SCALED ~ condition, data = sub_df)
+```
+
+```{r}
+#::::::::::::SUBJECT LEVEL
+ab.dist <- gf_density(~s_NABS, fill= ~condition, data = sub_df) %>%
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total Absolute Score")
+
+result <- two_sample_test(data = sub_df, x = condition, y = s_NABS,
+                          type = "nonparametric", var.equal = FALSE,
+                          alternative = "less",
+                          k = 2L, conf.level = 0.89, effsize.type = "g",
+                          bf.prior = 0.707, tr = 0.2, nboot = 100L)
+
+ab.box <- ggbetweenstats(data = sub_df, x = condition, y = s_NABS,
+               type = "nonparametric", var.equal = FALSE, 
+               results.subtitle = FALSE,
+               subtitle = result$expression[[1]],
+               title = "Total Absolute Score [one-tailed]")
+
+scal.dist <- gf_density(~s_SCALED, fill= ~condition, data = sub_df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total Scaled Score")
+
+result <- two_sample_test(data = sub_df, x = condition, y = s_SCALED,
+                          type = "nonparametric", var.equal = FALSE,
+                          alternative = "less",
+                          k = 2L, conf.level = 0.89, effsize.type = "g",
+                          bf.prior = 0.707, tr = 0.2, nboot = 100L)
+
+scal.box <- ggbetweenstats(data = sub_df, x = condition, y = s_SCALED,
+               type = "nonparametric", var.equal = FALSE,
+               results.subtitle = FALSE,
+               subtitle = result$expression[[1]],
+               title = "Total Scaled Score [one-tailed]")
+
+stat.dist <- gf_props(~state, fill= ~condition, data = item_df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total States")
+
+stat.box <- ggbarstats(data = item_df, x = state, y = condition,
+               results.subtitle = FALSE, label = "percentage",
+               title = "Total States")
+
+#::::::::::::Q1 
+# q1ab.box <- 
+  ggbarstats(data = item_df %>% filter(q==1), x = condition, y = score_niceABS,
+               # results.subtitle = FALSE,
+               title = "Q1 Absolute Score")
+
+q1scal.box <- ggbarstats(data = item_df %>% filter(q==1), x = score_SCALED, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 Scaled Score")
+
+q1stat.box <- ggbarstats(data = item_df %>% filter(q==1), x = state, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 State")
+
+#Subject Level Totals
+cowplot::plot_grid(ab.dist, scal.dist, stat.dist, ab.box, scal.box, stat.box,  nrow = 2)
+
+#Q1 Totals
+cowplot::plot_grid(q1ab.box, q1scal.box, q1stat.box,  nrow = 1)
+
+```
+
+
+
+#### NON PARAMETRIC T TESTS
+
+```{r}
+
+#::::::::::::NONPARAMETRIC TESTS
+
+# paste("Q1 Absolute Score")
+# #WILCOXON RANK SUM TEST  [non parametric t-test]
+# wilcox.test(item_q1_NABS ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+# 
+# paste("Q1 Scaled Score")
+# wilcox.test(item_q1_SCALED ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+
+
+#WILCOXON RANK SUM TEST  [non parametric t-test]
+paste("Test Phase Absolute")
+wilcox.test(item_test_NABS ~ pretty_condition, 
+            data = sub_df,
+            alternative = "less")
+
+paste("Test Phase Scaled")
+wilcox.test(item_test_SCALED ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("All Task Absolute")
+wilcox.test(s_NABS ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("All Task Scaled")
+wilcox.test(s_SCALED ~ pretty_condition, data = sub_df,
+            alternative = "less")
+```
+
+
+#### NON PARAMETRIC ANOVA
+
+```{r}
+
+#::::::::::::NONPARAMETRIC TESTS
+
+# paste("Q1 Absolute Score")
+# #KRUSKAL WALLIS [non parametric ANOVA]
+# kruskal.test(formula = item_q1_NABS ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+# 
+# paste("Q1 Scaled Score")
+# wilcox.test(item_q1_SCALED ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+
+
+# #WILCOXON RANK SUM TEST  [non parametric t-test]
+# paste("Test Phase Absolute")
+# kruskal.test(item_test_NABS ~ pretty_condition,
+#             data = sub_df)
+# 
+# #POSTHOC
+# # wilcox.test(item_test_NABS ~ pretty_condition, 
+# #             data = sub_df,
+# #             alternative = "less")
+# 
+# paste("Test Phase Scaled")
+# kruskal.test(item_test_SCALED ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(item_test_SCALED ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+# 
+# paste("All Task Absolute")
+# kruskal.test(s_NABS ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(s_NABS ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+# 
+# paste("All Task Scaled")
+# kruskal.test(s_SCALED ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(s_SCALED ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+```
+
+
+#### Logistic Regression on ABSOLUTE SCORE
+```{r}
+#::::::::::::LOGISTIC REGRESSION MODELS
+
+paste("Logistic regression of q1 score")
+q1.lr <- glm( score_niceABS ~ condition, data = q1, family = "binomial")
+summ(q1.lr)
+plot_model(q1.lr)
+
+paste("MIXED Logistic regression of test phase score")
+test.ml <- glmer( score_niceABS ~ condition + (1|subject), data = test, family = "binomial")
+summ(test.ml)
+plot_model(test.ml)
+
+paste("MIXED Logistic regression of all items score")
+all.ml <- glmer( score_niceABS ~ condition + (1|subject), data = all, family = "binomial")
+summ(all.ml)
+plot_model(all.ml)
+```
+
+#### Ordinal Regression on SCALED SCORE
+```{r}
+
+#::::::::::::ORDINAL REGRESSION MODELS
+
+paste("Ordinal regression of q1 score")
+q1.om <- clm(as.ordered(score_SCALED) ~ condition, data = q1)
+summary(q1.om)
+(ctable <- coef(summary(q1.om)))
+(ci <- confint(q1.om)) 
+sjPlot::plot_model(q1.om, type = "eff")
+sjPlot::plot_model(q1.om)
+
+paste("MIXED Ordinal regression of test phase score")
+test.mom <- clmm(score_SCALED ~ condition + (1|subject), data = test)
+summary(test.mom)
+(ctable <- coef(summary(test.mom)))
+(ci <- confint(test.mom)) 
+sjPlot::plot_model(test.mom, type = "eff")
+sjPlot::plot_model(test.mom)
+
+paste("MIXED Ordinal regression of all phase score")
+all.mom <- clmm(score_SCALED ~ condition + (1|subject), data = all)
+summary(all.mom)
+(ctable <- coef(summary(all.mom)))
+(ci <- confint(all.mom)) 
+sjPlot::plot_model(all.mom, type = "pred")
+sjPlot::plot_model(all.mom)
+
+```
+
+
+#### Ordinal Regression on STATE
+```{r}
+
+#::::::::::::ORDINAL REGRESSION MODELS
+
+paste("Ordinal regression of q1 state")
+q1.om <- clm(state ~ condition, data = q1)
+summary(q1.om)
+(ctable <- coef(summary(q1.om)))
+(ci <- confint(q1.om)) 
+sjPlot::plot_model(q1.om, type = "eff")
+sjPlot::plot_model(q1.om)
+
+paste("MIXED Ordinal regression of test phase state")
+test.mom <- clmm(state ~ condition + (1|subject), data = test)
+summary(test.mom)
+(ctable <- coef(summary(test.mom)))
+(ci <- confint(test.mom)) 
+sjPlot::plot_model(test.mom, type = "eff")
+sjPlot::plot_model(test.mom)
+
+paste("MIXED Ordinal regression of all phase stae")
+all.mom <- clmm(state ~ condition + (1|subject), data = all)
+summary(all.mom)
+(ctable <- coef(summary(all.mom)))
+(ci <- confint(all.mom)) 
+sjPlot::plot_model(all.mom, type = "pred")
+sjPlot::plot_model(all.mom)
+
+```
+
+#### Multinomial Regression on Q1 STATE
+```{r}
+
+#::::::::::::MULTINOMIAL REGRESSION MODELS
+paste("Multinomial regression of q1 state")
+q1.catm <- multinom(state ~ condition, data = q1)
+summary(q1.catm)
+(ctable <- coef(summary(q1.catm)))
+(ci <- confint(q1.catm)) 
+sjPlot::plot_model(q1.catm, type = "eff")
+sjPlot::plot_model(q1.catm)
+
+paste("TODO MIXED Multinomial regression of test phase STATE")
+### BAYESIAN ###
+paste("TODO MIXED Multinomial regression of all phase STATE")
+
+```
+
+
+
+
+
+## MODEL SGC3A _ ONLINE REPLICATION
+
+```{r}
+
+#STUDY LEVEL DATAFRAMES
+# sgc3a, sgc3a_items
+# sgc4a_A, sgc4a_A_items
+# sgc4a_B, sgc4a_B_items
+
+#SETUP DATA HERE 
+sub_df <-  sgc3a #set dataframe
+item_df <- sgc3a_items # set dataframe
+  
+q1   <- item_df %>% filter(q ==1)
+test <- item_df %>% filter(q %nin% c(1,2,3,4,5,6,9))
+all  <- item_df %>% filter(q %nin% c(6,9))
+```
+
+
+#### Describe
+```{r}
+table(sub_df$condition)
+favstats(item_test_NABS ~ condition, data = sub_df)
+favstats(item_test_SCALED ~ condition, data = sub_df)
+```
+
+```{r}
+#::::::::::::SUBJECT LEVEL
+ab.dist <- gf_density(~s_NABS, fill= ~condition, data = sub_df) %>%
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total Absolute Score")
+
+ab.box <- ggbetweenstats(data = sub_df, x = condition, y = s_NABS,
+               type = "nonparametric", var.equal = FALSE, 
+               title = "Total Absolute Score")
+
+scal.dist <- gf_density(~s_SCALED, fill= ~condition, data = sub_df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total Scaled Score")
+
+scal.box <- ggbetweenstats(data = sub_df, x = condition, y = s_SCALED,
+               type = "nonparametric", var.equal = FALSE,
+               title = "Total Scaled Score")
+
+stat.dist <- gf_props(~state, fill= ~condition, data = item_df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total States")
+
+stat.box <- ggbarstats(data = item_df, x = state, y = condition,
+               results.subtitle = FALSE, label = "percentage",
+               title = "Total States")
+
+
+#::::::::::::Q1 
+q1ab.box <- ggbarstats(data = item_df %>% filter(q==1), x = score_niceABS, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 Absolute Score")
+
+q1scal.box <- ggbarstats(data = item_df %>% filter(q==1), x = score_SCALED, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 Scaled Score")
+
+q1stat.box <- ggbarstats(data = item_df %>% filter(q==1), x = state, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 State")
+
+#Subject Level Totals
+cowplot::plot_grid(ab.dist, scal.dist, stat.dist, ab.box, scal.box, stat.box,  nrow = 2)
+
+#Q1 Totals
+cowplot::plot_grid(q1ab.box, q1scal.box, q1stat.box,  nrow = 1)
+
+```
+
+
+
+#### NON PARAMETRIC T TESTS
+
+```{r}
+
+#::::::::::::NONPARAMETRIC TESTS
+
+# paste("Q1 Absolute Score")
+# #WILCOXON RANK SUM TEST  [non parametric t-test]
+# wilcox.test(item_q1_NABS ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+# 
+# paste("Q1 Scaled Score")
+# wilcox.test(item_q1_SCALED ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+
+
+#WILCOXON RANK SUM TEST  [non parametric t-test]
+paste("Test Phase Absolute")
+wilcox.test(item_test_NABS ~ pretty_condition, 
+            data = sub_df,
+            alternative = "less")
+
+paste("Test Phase Scaled")
+wilcox.test(item_test_SCALED ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("All Task Absolute")
+wilcox.test(s_NABS ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("All Task Scaled")
+wilcox.test(s_SCALED ~ pretty_condition, data = sub_df,
+            alternative = "less")
+```
+
+
+#### NON PARAMETRIC ANOVA
+
+```{r}
+
+#::::::::::::NONPARAMETRIC TESTS
+
+# paste("Q1 Absolute Score")
+# #KRUSKAL WALLIS [non parametric ANOVA]
+# kruskal.test(formula = item_q1_NABS ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+# 
+# paste("Q1 Scaled Score")
+# wilcox.test(item_q1_SCALED ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+
+
+# #WILCOXON RANK SUM TEST  [non parametric t-test]
+# paste("Test Phase Absolute")
+# kruskal.test(item_test_NABS ~ pretty_condition,
+#             data = sub_df)
+# 
+# #POSTHOC
+# # wilcox.test(item_test_NABS ~ pretty_condition, 
+# #             data = sub_df,
+# #             alternative = "less")
+# 
+# paste("Test Phase Scaled")
+# kruskal.test(item_test_SCALED ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(item_test_SCALED ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+# 
+# paste("All Task Absolute")
+# kruskal.test(s_NABS ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(s_NABS ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+# 
+# paste("All Task Scaled")
+# kruskal.test(s_SCALED ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(s_SCALED ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+```
+
+
+#### Logistic Regression on ABSOLUTE SCORE
+```{r}
+#::::::::::::LOGISTIC REGRESSION MODELS
+
+paste("Logistic regression of q1 score")
+q1.lr <- glm( score_niceABS ~ condition, data = q1, family = "binomial")
+summ(q1.lr)
+plot_model(q1.lr)
+
+paste("MIXED Logistic regression of test phase score")
+test.ml <- glmer( score_niceABS ~ condition + (1|subject), data = test, family = "binomial")
+summ(test.ml)
+plot_model(test.ml)
+
+paste("MIXED Logistic regression of all items score")
+all.ml <- glmer( score_niceABS ~ condition + (1|subject), data = all, family = "binomial")
+summ(all.ml)
+plot_model(all.ml)
+```
+
+#### Ordinal Regression on SCALED SCORE
+```{r}
+
+#::::::::::::ORDINAL REGRESSION MODELS
+
+paste("Ordinal regression of q1 score")
+q1.om <- clm(as.ordered(score_SCALED) ~ condition, data = q1)
+summary(q1.om)
+(ctable <- coef(summary(q1.om)))
+(ci <- confint(q1.om)) 
+sjPlot::plot_model(q1.om, type = "eff")
+sjPlot::plot_model(q1.om)
+
+paste("MIXED Ordinal regression of test phase score")
+test.mom <- clmm(score_SCALED ~ condition + (1|subject), data = test)
+summary(test.mom)
+(ctable <- coef(summary(test.mom)))
+(ci <- confint(test.mom)) 
+sjPlot::plot_model(test.mom, type = "eff")
+sjPlot::plot_model(test.mom)
+
+paste("MIXED Ordinal regression of all phase score")
+all.mom <- clmm(score_SCALED ~ condition + (1|subject), data = all)
+summary(all.mom)
+(ctable <- coef(summary(all.mom)))
+(ci <- confint(all.mom)) 
+sjPlot::plot_model(all.mom, type = "pred")
+sjPlot::plot_model(all.mom)
+
+```
+
+
+#### Ordinal Regression on STATE
+```{r}
+
+#::::::::::::ORDINAL REGRESSION MODELS
+
+paste("Ordinal regression of q1 state")
+q1.om <- clm(state ~ condition, data = q1)
+summary(q1.om)
+(ctable <- coef(summary(q1.om)))
+(ci <- confint(q1.om)) 
+sjPlot::plot_model(q1.om, type = "eff")
+sjPlot::plot_model(q1.om)
+
+paste("MIXED Ordinal regression of test phase state")
+test.mom <- clmm(state ~ condition + (1|subject), data = test)
+summary(test.mom)
+(ctable <- coef(summary(test.mom)))
+(ci <- confint(test.mom)) 
+sjPlot::plot_model(test.mom, type = "eff")
+sjPlot::plot_model(test.mom)
+
+paste("MIXED Ordinal regression of all phase stae")
+all.mom <- clmm(state ~ condition + (1|subject), data = all)
+summary(all.mom)
+(ctable <- coef(summary(all.mom)))
+(ci <- confint(all.mom)) 
+sjPlot::plot_model(all.mom, type = "pred")
+sjPlot::plot_model(all.mom)
+
+```
+
+#### Multinomial Regression on Q1 STATE
+```{r}
+
+#::::::::::::MULTINOMIAL REGRESSION MODELS
+paste("Multinomial regression of q1 state")
+q1.catm <- multinom(state ~ condition, data = q1)
+summary(q1.catm)
+(ctable <- coef(summary(q1.catm)))
+(ci <- confint(q1.catm)) 
+sjPlot::plot_model(q1.catm, type = "eff")
+sjPlot::plot_model(q1.catm)
+
+paste("TODO MIXED Multinomial regression of test phase STATE")
+### BAYESIAN ###
+paste("TODO MIXED Multinomial regression of all phase STATE")
+
+```
+
+
+## MODEL SGC4A _ TRIANGULAR OPTIMIZATION
+
+```{r}
+
+#STUDY LEVEL DATAFRAMES
+# sgc3a, sgc3a_items
+# sgc4a_A, sgc4a_A_items
+# sgc4a_B, sgc4a_B_items
+
+#SETUP DATA HERE 
+sub_df <-  sgc4a_A #set dataframe
+item_df <- sgc4a_A_items # set dataframe
+  
+q1   <- item_df %>% filter(q ==1)
+test <- item_df %>% filter(q %nin% c(1,2,3,4,5,6,9))
+all  <- item_df %>% filter(q %nin% c(6,9))
+```
+
+
+#### Describe
+```{r}
+table(sub_df$condition)
+favstats(s_NABS ~ condition, data = sub_df)
+favstats(s_SCALED ~ condition, data = sub_df)
+```
+
+```{r}
+#::::::::::::SUBJECT LEVEL
+ab.dist <- gf_density(~s_NABS, fill= ~condition, data = sub_df) %>%
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total Absolute Score")
+
+ab.box <- ggbetweenstats(data = sub_df, x = condition, y = s_NABS,
+               type = "nonparametric", var.equal = FALSE, 
+               title = "Total Absolute Score")
+
+scal.dist <- gf_density(~s_SCALED, fill= ~condition, data = sub_df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total Scaled Score")
+
+scal.box <- ggbetweenstats(data = sub_df, x = condition, y = s_SCALED,
+               type = "nonparametric", var.equal = FALSE,
+               title = "Total Scaled Score")
+
+stat.dist <- gf_props(~state, fill= ~condition, data = item_df) %>% 
+  gf_facet_grid(condition ~ .) + easy_remove_legend() + 
+  labs(title = "Total States")
+
+stat.box <- ggbarstats(data = item_df, x = state, y = condition,
+               results.subtitle = FALSE, label = "percentage",
+               title = "Total States")
+
+
+#::::::::::::Q1 
+q1ab.box <- ggbarstats(data = item_df %>% filter(q==1), x = score_niceABS, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 Absolute Score")
+
+q1scal.box <- ggbarstats(data = item_df %>% filter(q==1), x = score_SCALED, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 Scaled Score")
+
+q1stat.box <- ggbarstats(data = item_df %>% filter(q==1), x = state, y = condition,
+               results.subtitle = FALSE,
+               title = "Q1 State")
+
+#Subject Level Totals
+cowplot::plot_grid(ab.dist, scal.dist, stat.dist, ab.box, scal.box, stat.box,  nrow = 2)
+
+#Q1 Totals
+cowplot::plot_grid(q1ab.box, q1scal.box, q1stat.box,  nrow = 1)
+
+```
+
+
+
+#### NON PARAMETRIC T TESTS
+
+```{r}
+
+#::::::::::::NONPARAMETRIC TESTS
+
+paste("Q1 Absolute Score")
+#WILCOXON RANK SUM TEST  [non parametric t-test]
+wilcox.test(item_q1_NABS ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("Q1 Scaled Score")
+wilcox.test(item_q1_SCALED ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("All Task Absolute")
+wilcox.test(s_NABS ~ pretty_condition, data = sub_df,
+            alternative = "less")
+
+paste("All Task Scaled")
+wilcox.test(s_SCALED ~ pretty_condition, data = sub_df,
+            alternative = "less")
+```
+
+
+#### NON PARAMETRIC ANOVA
+
+```{r}
+
+#::::::::::::NONPARAMETRIC TESTS
+
+# paste("Q1 Absolute Score")
+# #KRUSKAL WALLIS [non parametric ANOVA]
+# kruskal.test(formula = item_q1_NABS ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+# 
+# paste("Q1 Scaled Score")
+# wilcox.test(item_q1_SCALED ~ pretty_condition, data = sub_df,
+#             alternative = "less")
+
+
+# #WILCOXON RANK SUM TEST  [non parametric t-test]
+# paste("Test Phase Absolute")
+# kruskal.test(item_test_NABS ~ pretty_condition,
+#             data = sub_df)
+# 
+# #POSTHOC
+# # wilcox.test(item_test_NABS ~ pretty_condition, 
+# #             data = sub_df,
+# #             alternative = "less")
+# 
+# paste("Test Phase Scaled")
+# kruskal.test(item_test_SCALED ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(item_test_SCALED ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+# 
+# paste("All Task Absolute")
+# kruskal.test(s_NABS ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(s_NABS ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+# 
+# paste("All Task Scaled")
+# kruskal.test(s_SCALED ~ pretty_condition,
+#             data = sub_df)
+# #POSTHOC
+# # wilcox.test(s_SCALED ~ pretty_condition, data = sub_df,
+# #             alternative = "less")
+```
+
+
+#### Logistic Regression on Q1 ABSOLUTE SCORE
+```{r}
+#::::::::::::LOGISTIC REGRESSION MODELS
+
+paste("Logistic regression of q1 score")
+q1.lr <- glm( score_niceABS ~ condition, data = q1, family = "binomial")
+summary(q1.lr)
+plot_model(q1.lr)
+
+paste("MIXED Logistic regression of all items score")
+all.ml <- glmer( score_niceABS ~ condition + (1|subject) + (1|q), data = all, family = "binomial")
+summary(all.ml)
+plot_model(all.ml)
+```
+
+#### Ordinal Regression on SCALED SCORE
+```{r}
+# 
+# #::::::::::::ORDINAL REGRESSION MODELS
+# 
+# paste("Ordinal regression of q1 score")
+# q1.om <- clm(as.ordered(score_SCALED) ~ condition, data = q1)
+# summary(q1.om)
+# (ctable <- coef(summary(q1.om)))
+# (ci <- confint(q1.om)) 
+# sjPlot::plot_model(q1.om, type = "eff")
+# sjPlot::plot_model(q1.om)
+# 
+# paste("MIXED Ordinal regression of test phase score")
+# test.mom <- clmm(score_SCALED ~ condition + (1|subject), data = test)
+# summary(test.mom)
+# (ctable <- coef(summary(test.mom)))
+# (ci <- confint(test.mom)) 
+# sjPlot::plot_model(test.mom, type = "eff")
+# sjPlot::plot_model(test.mom)
+# 
+# paste("MIXED Ordinal regression of all phase score")
+# all.mom <- clmm(score_SCALED ~ condition + (1|subject), data = all)
+# summary(all.mom)
+# (ctable <- coef(summary(all.mom)))
+# (ci <- confint(all.mom)) 
+# sjPlot::plot_model(all.mom, type = "pred")
+# sjPlot::plot_model(all.mom)
+
+```
+
+
+#### Ordinal Regression on STATE
+```{r}
+
+# #::::::::::::ORDINAL REGRESSION MODELS
+# 
+# paste("Ordinal regression of q1 state")
+# q1.om <- clm(state ~ condition, data = q1)
+# summary(q1.om)
+# (ctable <- coef(summary(q1.om)))
+# (ci <- confint(q1.om)) 
+# sjPlot::plot_model(q1.om, type = "eff")
+# sjPlot::plot_model(q1.om)
+# 
+# paste("MIXED Ordinal regression of test phase state")
+# test.mom <- clmm(state ~ condition + (1|subject), data = test)
+# summary(test.mom)
+# (ctable <- coef(summary(test.mom)))
+# (ci <- confint(test.mom)) 
+# sjPlot::plot_model(test.mom, type = "eff")
+# sjPlot::plot_model(test.mom)
+# 
+# paste("MIXED Ordinal regression of all phase stae")
+# all.mom <- clmm(state ~ condition + (1|subject), data = all)
+# summary(all.mom)
+# (ctable <- coef(summary(all.mom)))
+# (ci <- confint(all.mom)) 
+# sjPlot::plot_model(all.mom, type = "pred")
+# sjPlot::plot_model(all.mom)
+
+```
+
+#### Multinomial Regression on Q1 STATE
+```{r}
+
+#::::::::::::MULTINOMIAL REGRESSION MODELS
+paste("Multinomial regression of q1 state")
+q1.catm <- multinom(state ~ condition, data = q1)
+summary(q1.catm)
+(ctable <- coef(summary(q1.catm)))
+(ci <- confint(q1.catm)) 
+sjPlot::plot_model(q1.catm, type = "eff")
+sjPlot::plot_model(q1.catm)
+
+paste("TODO MIXED Multinomial regression of test phase STATE")
+### BAYESIAN ###
+paste("TODO MIXED Multinomial regression of all phase STATE")
+
+```
+
+
+
+## WIP
+
+### OSPAN SETUP
+
+### Find OSPAN subjects
+
+```{r}
+# 
+# #OSPAN RECORDS
+# n_ospan <- nrow(ospan)
+# paste(n_ospan, "scored OSPAN records")
+# 
+# #MERGE OSPAN DATA WITH SGC DATA 
+# ospan_subjects <- new_df_subjects %>% filter(
+#   subject %in% ospan$subject
+# )
+# n_found <- nrow(ospan_subjects)
+# paste(n_found, "records found")
+# n_missing <- n_ospan - n_found
+# paste(n_missing, "ospan records don't have subjects")
+# #where did the others go? maybe no clean records?
+# paste("Some of these subjects failed attention check. Others were part of SGC3B online pilot")
+# 
+# #GET MERGED OSPAN
+# df_ospan <- merge(ospan_subjects, ospan)
+# #CONFIRM ALL DISTINCT 
+# df_ospan %>% distinct(subject) %>% nrow() == nrow(df_ospan)
+# 
+# table(df_ospan$condition)
+# 
+# 
+# #HOW MANY OSPAN IN SGC3A?
+# sgc3a_ospan <- sgc3a %>% filter(subject %in% subs_ospan$subject)
+# paste(nrow(sgc3a_ospan)," subjects in SGC3A")
+# 
+# sgc3b_ospan <- sgc3b %>% filter(subject %in% subs_ospan$subject)
+# paste(nrow(sgc3b_ospan)," subjects in SGC3B")
+# 
+# sgc4a_ospan <- sgc4a %>% filter(subject %in% subs_ospan$subject)
+# paste(nrow(sgc4a_ospan)," subjects in SGC4A")
+# 
+# 
+
+```
+
+**Investigate subjects for SGC3A, SGC3B**
+
+```{r}
+# #
+# #validate how many subjects per study
+# table(df_subjects$study)
+# 
+# #COMBINE SGC3A AND SGC3B
+# df3 <- rbind(sgc3a, sgc3b)
+# n_total <- nrow(df3)
+# paste(n_total, "subjects total SGC3A + SGC3B")
+# n_dist <- nrow(df3 %>% distinct(subject))
+# paste(n_dist, "unique subjects")
+# subs <- df3$subject
+# dups <- subs[duplicated(subs)] 
+# n_dups <- length(dups)
+# paste(n_dups, "duplicated subjects")
+# 
+# #DATAFRAME of DUPLICATES
+# df_dups <- df3 %>% filter(subject %in% dups)
+# #what studies?
+# unique(df_dups$condition)
+# 
+# 
+# #filter out sgc3a subjects from 3b study file
+# df_3b <- sgc3b
+# df_3b <- sgc3b %>% filter(mode == 'lab-synch')
+# table(df_3b$condition)
+# 
+# 
+# 
+# #double check; only sgc3as onlines are not in sgc3b
+# check <- sgc3a 
+# 
+# 
+# #CHECK 
+# #need to fill cells for SGC3B 
+# 
+# df_a <- sgc3a %>% filter(subject %nin% df_3b$subject)
+# table(df_a$condition , df_a$mode)
+# 
+# table(sgc3a$condition, sgc3a$mode)
+# 
+# table(sgc3a$term)
+# 
+# 
+# 
+# 
+
+```
+
+```{r}
+
+#LOOK AT DUPLICATES
+# n_total <- nrow(df_subjects)
+# paste(n_total, "subjects total")
+# n_dist <- nrow(df_subjects %>% distinct(subject))
+# paste(n_dist, "unique subjects")
+# subs <- df_subjects$subject
+# dups <- subs[duplicated(subs)] 
+# n_dups <- length(dups)
+# paste(n_dups, "duplicated subjects")
+# 
+# #DATAFRAME of DUPLICATES
+# df_dups <- df_subjects %>% filter(subject %in% dups)
+# #what studies?
+# unique(df_dups$condition)
+# table(df_dups$condition, df_dups$study)
+
+#NEED 62 for SGC4A
+
+```
+
+```{r}
+
+# df_3b <- df_3b %>% mutate(
+#   IMPASSE = recode_factor(condition, 
+#                            "111" = "none",
+#                            "121" = "impasse",
+#                            "211" = "none",
+#                            "221" = "impasse",
+#                            "311" = "none",
+#                            "321" = "impasse"),
+#    EXPLICIT = recode_factor(condition, 
+#                            "111" = "none",
+#                            "121" = "none",
+#                            "211" = "img",
+#                            "221" = "img",
+#                            "311" = "ixn",
+#                            "321" = "ixn")
+# )
+# 
+# 
+# gf_dhistogram(~item_test_NABS, data = df_3b) %>% 
+#   gf_facet_grid(IMPASSE ~ EXPLICIT)
+# 
+# gf_boxplot(item_test_NABS ~ condition, data = df_3b) %>% 
+#   gf_facet_grid(IMPASSE ~ EXPLICIT)
+# 
+# 
+# 
+# m <- lm(item_test_NABS ~ IMPASSE*EXPLICIT, data = df_3b)
+# summ(m)
+# check_model(m)
+# 
+# 
+# 
+# #KRUSKAL WALLIS RANK SUM TEST  [non parametric anova]
+# kruskal.test(item_test_NABS ~ pretty_condition, data = df_3b)
+# 
+# #POSTHOC 
+# pairwise.wilcox.test(df_3b$item_test_NABS, df_3b$pretty_condition,
+#   p.adjust.method = "holm"
+# )
+
+```
+
+```{r}
+# 
+# #MERGE OSPAN DATA WITH SGC DATA 
+# df_ospan <- df_subjects %>% filter(
+#   subject %in% ospan$subject
+# )
+# 
+# df_ospan <- merge(df_ospan, ospan)
+# 
+# #RENAME for reuse
+# df_all <- df_subjects
+# # df_subjects <- df_ospan
+# 
+# #RECODE other study control conditions to CONTROL
+# df <- df_all %>% mutate(
+#   pretty_condition = recode_factor(pretty_condition, "Orth-Full" = "control",
+#                                    "point" = "control")
+# )
+# 
+# #CLEANUP
+# # rm(ospan, sgc3a, sgc4a, sgc4b, sgc5, df_ospan)
+# 
+# temp <- df_all %>% dplyr::select(s_NABS, condition, study, subject) %>% rename(score = s_NABS)
+# temp2 <- sgc4c %>% dplyr::select(absolute_score, condition, study, subject) %>% rename(score = "absolute_score")
+# df <- rbind(temp, temp2)
+```
+
+```{r}
+# table(df$study, df$condition)
+# 
+# paste("Subjects: ", nrow(df))
+# paste("unique subjects ",nrow(unique(df$subject)))
+# 
+# #get list of unique subjects 
+# u <- df %>% dplyr::select(subject) %>% distinct() 
+# d <- df$subject %nin% u$subject
+# 
+# #unique subjects
+# u <- unique(df$subject)
+# #duplicated subjects
+# d <- df$subject[duplicated(df$subject)]
+# 
+# length(d) 
+# length(u) 
+# length(d) + length(u) == nrow(df)
+# 
+# dups <- df %>% filter(subject %in% d)
+# 
+# table(dups$study, dups$condition)
+# 
+# #TODO ... NEED TO RUN 4A CONTROL 62
+```
+
+
+### Describe OSPAN
+
+```{r}
+#| label: DESC-PARTICIPANTS
+# 
+# title = "OSPAN Participants by Condition"
+# cols = c("Condition","n")
+# cont <- table(df_ospan$pretty_condition)
+# cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_classic()
+
+```
+
+
+```{r}
+#| label: DESC-SUBJ-OSPAN
+ 
+# title = "Descriptive Statistics of OSPAN Task Accuracy"
+# ospan.stats <- rbind(
+#   "MATH" = df_ospan %>% dplyr::select(math_acc) %>% unlist() %>% favstats(),
+#   "ORDER" = df_ospan %>%  dplyr::select(order_acc) %>% unlist() %>% favstats(),
+#   "WEIGHTED" = df_ospan %>% dplyr::select(weighted) %>% unlist() %>% favstats()
+#   
+# ) 
+# ospan.stats %>% kbl (caption = title) %>% kable_classic() %>% 
+#   footnote(general = "MATH = %correct of all math questions; 
+#            ORDER = % correct of OSPAN ordering (out of 30); WEIGHTED = math*ospan number correct", general_title = "Note: ",footnote_as_chunk = T) 
+
+```
+
+
+```{r}
+#| label: VIS-SUBJ-OSPAN
+
+# #GGFORMULA | DENSITY HISTOGRAM 
+#   gf_dhistogram(~weighted, data = df_ospan) + 
+#   labs(x = "OSPAN (weighted) score",
+#        y = "% of subjects",
+#        title = "Distribution of OSPAN SCORE",
+#        subtitle = "") 
+# 
+# ##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+# p <- gghistogram(df_ospan, x = "weighted", binwidth = 1,
+#    add = "mean", rug = TRUE,
+#    fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+#    add_density = TRUE)
+# facet(p, facet.by=c("pretty_condition")) +
+#   labs( title = "Distribution of OSPAN Score",
+#         subtitle ="The Distribution of OSPAN scores is similar across conditions",
+#         x = "OSPAN (weighted) score", y = "number of subjects") +
+#   theme_minimal() + theme(legend.position = "blank")
+# 
+# 
+# #PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+# ggplot(data = df_ospan, aes(weighted)) + 
+#   stat_ecdf() + 
+#   facet_wrap(~pretty_condition) + 
+#   labs( title = "Empirical Cumulative Density Function — OSPAN",
+#         x = "OSPAN (weighted) score", 
+#         y = "Cumulative Probability") + theme_minimal()
+
+```
+
+```{r}
+
+#IXN PLOT
+
+# ospan.stats <- favstats(weighted, groups = condition)
+
+
+```
+
+#### NONPARAMETRIC TEST? nope no factorial anova
+
+```{r}
+# 
+# #IMPORT SUBJECTS 
+# df_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") %>% mutate(
+#   study = "SGC3A"
+# ) #%>% dplyr::select(-absolute_score)
+# 
+# #FILTER GET ONLY neeed records
+# 
+# ospan_items <- df_items %>% filter(subject %in% df_ospan$subject)
+# nrow(ospan_items)
+# #VERIFY ITEMS ARE FOR SSPAN SUBJECTS
+# nrow(ospan_items) == nrow(df_ospan) * 15
+# 
+# 
+# #STANDARDIZE OSPAN
+# df_ospan$z_ospan = zscore(df_ospan$weighted)
+# histogram(df_ospan$z_ospan)
+# 
+# #OSPAN MEDIAN SPLIT
+# med_ospan = median(df_ospan$weighted)
+# df_ospan$low_ospan <- as.factor(df_ospan$weighted < med_ospan)
+# 
+# 
+# #JOIN TO ospan to items 
+# df_test <- left_join(df_ospan , ospan_items, by = 'subject') %>% 
+#   dplyr::select(subject, condition.y, q, score_niceABS,  score_SCALED, low_ospan, z_ospan, weighted, math_acc, order_acc) %>% rename(condition = condition.y)
+# 
+# 
+# items <- df_test
+# q1 <- items %>% filter(q==1)
+# test <- items %>% filter(q %nin% c(1,2,3,4,5,6,9))
+# all <- items 
+# 
+# paste("Logistic regression of q1 score")
+# m <- glm( score_niceABS ~ condition, data = q1, family = 'binomial')
+# summ(m)
+# 
+# paste("Logistic regression of test phase score")
+# m <- glmer( score_niceABS ~ condition*low_ospan+ (1|subject), data = test, family='binomial')
+# summ(m)
+# 
+# paste("Logistic regression of all items score")
+# m <- glmer( score_niceABS ~ condition*low_ospan+ (1|subject), data = all, family = "binomial")
+# summ(m)
+
+```
+
+
+
+#### MODELS
+
+```{r}
+# 
+# #CONDITION ONLY MODEL
+# m1 <- lm( item_test_SCALED ~ condition, data = df_ospan)
+# summary(m1)
+# 
+# #OSPAN ONLY MODEL
+# m2 <- lm( item_test_SCALED ~ weighted, data = df_ospan)
+# summary(m2)
+# 
+# #STANDARDIZE OSPAN
+# df_ospan$z_ospan = zscore(df_ospan$weighted)
+# histogram(df_ospan$z_ospan)
+# 
+# #OSPAN MEDIAN SPLIT
+# med_ospan = median(df_ospan$weighted)
+# df_ospan$low_ospan <- as.factor(df_ospan$weighted < med_ospan)
+# 
+# #STANDARDIZED OSPAN ONLY MODEL
+# m3 <- lm( item_test_SCALED ~ low_ospan, data = df_ospan)
+# summ(m3)
+# 
+# #MULTIPLE WITH STANDARDIZED OSPAN
+# mr <- lm(item_test_SCALED ~ condition + low_ospan, data = df_ospan)
+# summ(mr)
+# anova(mr)
+# 
+# library(interactions)
+# cat_plot(mr, item_test_SCALED, pred = condition, modx = low_ospan)
+# df <- df_ospan %>% mutate(
+#   condition = recode_factor(condition,
+#                             "111"="111","121"="121")
+# )
+# library(ggstatsplot)
+# grouped_ggbetweenstats(data = df,
+#                        y = item_test_SCALED,
+#                        x = condition,
+#                        grouping.var = low_ospan)
+# 
+# #SINGLE WITH STANDARDIZED OSPAN
+# mr2 <- lm(item_test_SCALED ~ condition + low_ospan, data = df_ospan)
+# summary(mr2)
+# 
+# gf_histogram(~item_test_SCALED, data = df_ospan) %>% 
+#   gf_facet_grid(low_ospan ~ condition, labeller = label_both)
+# 
+# 
+# gf_jitter(item_test_SCALED ~ weighted, color = ~pretty_condition, data = df_ospan) %>% 
+#   gf_facet_wrap(~pretty_condition)
+# 
+# gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = df_ospan) %>% 
+#   gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
+
+```
+
+**OPSAN score does NOT predict performance in the control condition.**
+
+```{r}
+# 
+# control <- df_ospan %>% filter(condition == "111")
+# 
+# gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = control) %>% 
+#   gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
+# 
+# #test performance predicted by OSPAN score
+# m <- lm(item_test_NABS ~ weighted, data = control)
+# summary(m)
+
+```
+
+**OPSAN score does NOT predict performance in the control condition.**
+
+```{r}
+
+# impasse <- df_ospan %>% filter(condition == "121")
+# 
+# gf_dhistogram(~item_test_NABS , color = ~pretty_condition, data = impasse) %>% 
+#   gf_facet_wrap(low_ospan ~ pretty_condition, labeller = label_both)
+# 
+# #test performance predicted by OSPAN score
+# m <- lm(item_test_NABS ~ low_ospan, data = impasse)
+# summary(m)
+
+```
+
+**EXPLORE**
+
+```{r}
+
+# test <- df_ospan %>% filter(condition == "121")
+# table(test$condition)
+# 
+# m <- lm(item_test_NABS ~ low_ospan, data = test)
+# summ(m)
+# 
+# gf_boxplot(item_test_NABS ~ low_ospan, data = test)
+```
+#### describe ospan totals 
+```{r}
+
+#330 total 
+# —————————
+#126 lab 
+#204 online  
+  #  71 no ospan 
+  # 133 ospan 
+# sgc3a_lab <- df_all %>% filter(mode=="lab-synch") %>% filter(study=="SGC3A")
+# sgc3a_online <- df_all %>% filter(mode=="asynch") %>% filter(study=="SGC3A")
+# sgc3a_online_noospan <- sgc3a_online %>% filter(subject %nin% ospan$subject)
+# sgc3a_onspan <- df_subjects
+# 
+# m <- lm( item_test_NABS ~ condition, data = sgc3a_online_noospan)
+# summary(m)
+# 
+# m2 <- lm(item_test_NABS ~ condition, data = df_subjects)
+# summary(m2)
+# 
+# 
+# m3 <- lm(item_test_NABS ~ low_ospan, data = df_subjects)
+# summary(m3)
+# 
+
+
+```
+
+```{r}
+# library(lpme)
+# m <- modereg(Y = df_ospan$DV_percent_NABS, W= df_ospan$condition, 
+#         bw = 2, nstart = 2, PLOT = TRUE)
+# 
+# summary(m)
+```
+
+
+

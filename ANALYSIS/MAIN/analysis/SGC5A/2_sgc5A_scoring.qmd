@@ -183,6 +183,30 @@ df_items$score_SCALED <- calc_scaled(df_items$interpretation)
 
 ```
 
+### Derive State Score
+
+The scaled score represents a 5-category ordering of understanding. We also derive a 3-category ordering that gives higher grained access to "orthogonal-like" vs "uncertain" vs "triangle-like" responses. 
+
+Specifically, we assign the following values to each interpretation:
+
+-   (orth-like) : orthogonal, satisfice
+-   (unknown) : unidentified alternatives, blank, both tri&orth, and reference point responses
+-   (tri-like) : Tverskian and triangular responses 
+
+```{r}
+
+df_items <- df_items %>% mutate (
+  score_STATE = recode_factor(df_items$score_SCALED,
+                         "-1" = "orth-like",
+                         "-0.5" = "unknown",
+                         "0" = "unknown",
+                         "0.5" = "tri-like",
+                         "1" = "tri-like"),
+  score_STATE = as.ordered(score_STATE))
+  
+```
+
+
 ## SUMMARIZE BY SUBJECT
 
 Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.

@@ -29,6 +29,8 @@ library(kableExtra) #printing tables
 library(ggformula) #quick graphs
 library(pbapply) #progress bar and time estimate for *apply fns
 library(Hmisc) # %nin% operator
+library(ggstatsplot) #plots-n-stats
+library(statsExpressions) # expressions for stats results on plots 
 library(tidyverse) #ALL THE THINGS
 
 ```
@@ -194,6 +196,30 @@ df_items$score_SCALED <- calc_scaled(df_items$interpretation)
 
 ```
 
+### Derive State Score
+
+The scaled score represents a 5-category ordering of understanding. We also derive a 3-category ordering that gives higher grained access to "orthogonal-like" vs "uncertain" vs "triangle-like" responses. 
+
+Specifically, we assign the following values to each interpretation:
+
+-   (orth-like) : orthogonal, satisfice
+-   (unknown) : unidentified alternatives, blank, both tri&orth, and reference point responses
+-   (tri-like) : Tverskian and triangular responses 
+
+```{r}
+
+df_items <- df_items %>% mutate (
+  score_STATE = recode_factor(df_items$score_SCALED,
+                         "-1" = "orth-like",
+                         "-0.5" = "unknown",
+                         "0" = "unknown",
+                         "0.5" = "tri-like",
+                         "1" = "tri-like"),
+  score_STATE = as.ordered(score_STATE))
+  
+```
+
+
 ## SUMMARIZE BY SUBJECT
 
 Next, we summarize the item level scores by subject in order to calculate cummulative subscores to be stored on the subject record.
@@ -287,7 +313,7 @@ gf_facet_wrap(~pretty_condition)+
   theme_minimal() + theme(legend.position = "blank")
 
 #DISTRIBUTION ABSOLUTE SCORE TEST PHASE
-gf_histogram(~item_test_NABS, fill = ~pretty_condition, 
+gf_props(~item_test_NABS, fill = ~pretty_condition, 
              data = df_subjects) %>% 
   gf_facet_wrap(~pretty_condition) + 
   labs( x = "Absolute Score in TEST Phase", 
@@ -296,6 +322,21 @@ gf_histogram(~item_test_NABS, fill = ~pretty_condition,
         y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
+
+
+#QUICK PEEK
+result <- two_sample_test(data = df_subjects, x = pretty_condition, y = s_NABS,
+                          type = "nonparametric", var.equal = FALSE,alternative = "less",
+                          k = 2L, conf.level = 0.89, effsize.type = "g",
+                          bf.prior = 0.707, tr = 0.2, nboot = 100L)
+
+ggbetweenstats( data = df_subjects,
+                x = pretty_condition, y = s_NABS,
+                type = "non-parametric",
+                title = "Total Absolute Score [directional test]",
+                results.subtitle = FALSE,
+                subtitle = result$expression[[1]])
+
 ```
 
 ### Scaled Score
@@ -343,6 +384,20 @@ gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>
         y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
+
+#QUICK PEEK
+result <- two_sample_test(data = df_subjects, x = pretty_condition, y = s_SCALED,
+                          type = "nonparametric", var.equal = FALSE,alternative = "less",
+                          k = 2L, conf.level = 0.89, effsize.type = "g",
+                          bf.prior = 0.707, tr = 0.2, nboot = 100L)
+
+ggbetweenstats( data = df_subjects,
+                x = pretty_condition, y = s_SCALED,
+                type = "non-parametric",
+                title = "Total Scaled Score [directional test]",
+                results.subtitle = FALSE,
+                subtitle = result$expression[[1]])
+
 ```
 
 -   TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance
