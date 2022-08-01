@@ -732,7 +732,7 @@ test_likelihoodratio(zinfp.1, zinb.1)
 
 **TODO come back to this and discuss further**\
 
-### Hurdle Model 
+### Hurdle Model
 
 -   <https://data.library.virginia.edu/getting-started-with-hurdle-models/>
 -   <https://en.wikipedia.org/wiki/Hurdle_model#:~:text=A%20hurdle%20model%20is%20a,of%20the%20non%2Dzero%20values.>
@@ -772,7 +772,7 @@ test_lrt(h.1, h.2)
 
 ## BETA REGRESSION
 
-### BETA Regression 
+### BETA Regression
 
 Beta regression on % correct (with standard transformation for including \[0,1\])
 
@@ -1067,12 +1067,20 @@ ggbarstats(data = df, x = accuracy, y = condition,
 (po <- pwr.chisq.test( w = 0.1, df=(2-1), N = nrow(df), sig.level = 0.05))
 ```
 
-**A Chi-Square test of independence of Q1 accuracy [correct,incorrect] by condition indicates the question accuracy is not dependent on condition. _However, this test may be underpowered, as with the given sample size it has only 20% power to detect a small effect (w = 0.1)_**
+**A Chi-Square test of independence of Q1 accuracy \[correct,incorrect\] by condition indicates the question accuracy is not dependent on condition. *However, this test may be underpowered, as with the given sample size it has only 20% power to detect a small effect (w = 0.1)***
 
 ### LOGISTIC REGRESSION
 
 *Fit a logistic regression (at the subject-item level), predicting Q1 accuracy (absolute score) by condition.*\
 *note: this example uses the combined dataset rather than lab-only, as learning notes were done with the combined and I don't want to recalcualte all the marginal probabilities by hand for learning purposes.*
+
+-   Fit a logistic regression predicting accuracy (absolute score) (n = r nrow(df)) by condition. (k = 2).
+-   Parameter estimate: $\beta_{0}$ = Log Odds of (correct) responses in CONTROL condition
+    -   $e^{\beta_{0}}$ = ODDS of correct response in CONTROL condition
+-   Parameter estimate: $\beta_{1}$ = $\beta_{1impasse}$ Log Odds (Log OR; change in odds for correct response in impasse (vs) control \[log scale\])
+    -   $e^{\beta_{1}}$ = ODDS RATIO of correct response in IMPASSE (vs) CONTROL
+-   Null hypothesis:$\beta_{impasse} \le 0$ the odds for a correct response does not change, or decreases
+-   Alternative hypothesis: $\beta_{impasse} \gt 0$ the odds of a correct response increases
 
 #### Fit Model
 
@@ -1130,9 +1138,45 @@ confint(m1)
 print("Coefficients —- ODDS RATIOS")
 e <- cbind( exp(coef(m1)), exp(confint(m1))) #exponentiate
 e
+
+
+# MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
+
+# one-sided (right tail) z test for B COEFFICIENT
+#https://stats.stackexchange.com/questions/330655/strategy-for-a-one-sided-test-of-glms-coefficients
+
+#SANITY CHECK 2-tailed test should match the model output
+tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("p value for two-tailed test, null B = 0 : ",round(tt,3))
+ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,3))
+paste("adjusted confint for directional hypothesis")
+(dcint <- confint(m1, level = 0.90)) # get 90% for right side))
+# https://stats.stackexchange.com/questions/20734/is-a-1-sided-90-prediction-interval-equivalent-to-a-2-sided-95-prediction-inte
+
+
+#:::::::: INTERPRET COEFFICIENTS [directional]
+
+# print("Confidence Interval —- LOG ODDS")
+# confint(m1) #not adjusted for 1-tailed
+# print("Coefficients —- ODDS RATIOS")
+# (e <- cbind( exp(coef(m1)), exp(confint(m1)))) #exponentiated, not adjusted
+# (e <- cbind( exp(coef(m1)), exp(dcint))) #exponentiated, adjusted
 ```
 
 **Understanding the logistic regression model**
+
+```{r}
+#::::::::::::DESCRIPTIVES
+
+table(df$accuracy, df$condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+
+table(df$accuracy, df$condition) %>% addmargins(2) %>% #display sum for row
+      addmargins(1) #sanity check sum of columns
+```
 
 *The logistic regression intercept gives the log odds of the outcome for the reference level of the predictor variable*
 
@@ -1147,7 +1191,7 @@ e
 
 **\[a dichotomous predictor\]**
 
-natural log (odds of +) = -1.822 + 0.901(x1) ; x1 = 0 for control, 1 for impasse
+natural log (odds of +) = -1.822 + 0.901(x1) ; x1 = 0 for control, 1 for impasse - b0 intercept is ODDS OF CORRECT RESPONSE IN REFERENCE (control) - b1 intercept is ODDS RATIO (difference in odds) FOR CORRECT RESPONSE IN IMPASSE
 
 -   INTERCEPT: log odds of (+ response) in control condition
     -   log odds of (+) in control : -1.822 + 0.9(0) = -1.822
@@ -1165,11 +1209,8 @@ natural log (odds of +) = -1.822 + 0.901(x1) ; x1 = 0 for control, 1 for impasse
         probaility of (+) in impasse = \~ 29%
 -   ODDS RATIO : exponentiated B1 COEFFICIENT
     -   B1 = (slope of logit model = difference in log odds = log odds ratio
-
     -   B1 = 0.901 is log odds ratio of (+) in impasse vs control
-
     -   exp(b1) = exp(0.901) = 2.46
-
     -   Ratio of odds in impasse are 2.46 times higher than in control. Bein in the impasse condition yields odds athat are 2.46 X higher than in control.
 
 +:----------------------------------------------------------------------+
@@ -1190,55 +1231,47 @@ natural log (odds of +) = -1.822 + 0.901(x1) ; x1 = 0 for control, 1 for impasse
 #### Visualize
 
 ```{r}
-print("MODEL PERFORMANCE")
-performance(m1)
-print("SANITY CHECK REPORTING")
-report(m1)
-
-print("MODEL PREDICTIONS")
-# Retrieve predictions as probabilities 
-# (for each level of the predictor)
-p.control <- predict(m1,data.frame(pretty_condition="control"),type="response")
-paste("Probability of success in control,", p.control)
-p.impasse <- predict(m1,data.frame(pretty_condition="impasse"),type="response")
-paste("Probability of success in impasse,", p.impasse)
-
-#: PLOT
+#:::::::: PLOT
 
 #GGSTATS | MODEL | LOG ODDS 
-# library(ggstatsplot)
-# ggcoefstats(m1, output = "plot") + labs(x = "Log Odds Estimate")
+ggcoefstats(m1, output = "plot", 
+              conf.level = 0.90) + 
+  labs(x = "Log Odds Estimate", 
+       subtitle = "p is for two tailed test")
 
 #SJPLOT | MODEL | ODDS RATIO
 #library(sjPlot)
-plot_model(m1, type="std2", vline.color = "red", 
+plot_model(m1, vline.color = "red", 
            show.intercept = TRUE, 
-           show.values = TRUE) +  
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
   labs(title = "Model Predicted Odds Ratio",
        subtitle = "",
        x = "Condition")
 
 #SJPLOT | MODEL | PROBABILITIES
-# plot_model(m1, type="pred",
-#            show.intercept = TRUE, 
-#            show.values = TRUE,
-#            title = "Model Predicted Probability of Accuracy",
-#            axis.title = c("Condition","Probability of Accurate Response"))
+plot_model(m1, type="eff",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Predicted Probability of Accuracy",
+           axis.title = c("Condition","Probability of Accurate Response"))
 
-#GGEFFECTS | MODEL | PROBABILITIES
-# library(ggeffects)
-ggeffect(model = m1) %>% plot()
-
-
-#SANITY CHECK SJPLOT
-# library(effects)
-# plot(allEffects(m))
+#SJPLOT | MODEL | TABLE
+# tab_model(m1)
 
 ```
 
 #### Diagnostics
 
 ```{r}
+print("SANITY CHECK REPORTING")
+report(m1)
+
+print("MODEL PERFORMANCE")
+performance(m1)
+
+print("MODEL DIAGNOSTICS")
 check_model(m1)
 binned_residuals(m1)
 
@@ -1454,7 +1487,7 @@ Thus, an alternative approach may be more appropriate:
 
 \*Note: for multiple regression, the ordinal package offers a parameter (nominal = \~predictors) that allow you to designate some predictors as nominal rather than ordinal. But this is not appropriate for this use case.\_
 
-## CATEGORICAL OUTCOME 
+## CATEGORICAL OUTCOME
 
 **Does CONDITION affect the Q1 \[ordered\] type of response given?**
 
@@ -1496,7 +1529,9 @@ df <- df_items %>% filter(q==1)  %>% filter(mode == "lab-synch")
 #scaled has already been set as an ordered factor of score_SCALED
 
 #::::::::::::DESCRIPTIVES
-prop.table(table(df$state, df$condition))
+table(df$state, df$condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
 
 #::::::::::::VISUALIZE DISTRIBUTIONS
 gf_props(~state, fill= ~condition, data = df) %>% 
@@ -1515,6 +1550,10 @@ df %>%
        x = "Condition",
        fill = "",
        subtitle="")
+
+#GGSTATSPLOT
+ggbarstats(df, state, condition)
+
 ```
 
 ### CHI SQUARE
@@ -1560,16 +1599,55 @@ df %>%
 
 **TODO INFERENCE**
 
-### MULTINOMIAL REGRESSION 
+### MULTINOMIAL REGRESSION
+
+**TODO** RECONCILE actual predictions with coefficients and visualization of predictions
 
 *Does condition affect the response state of Q1?*
 
 -   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
+-   <https://bookdown.org/chua/ber642_advanced_regression/multinomial-logistic-regression.html>
 -   <https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK>
+
+*Fit a logistic regression predicting interpretation (n = r nrow(df), k=5) by condition. (k = 2).*
+
+-   4 equations will be estimated (# categories - 1); each representing the odds of answering in that particular interpretation (vs) the reference category (orthogonal answer)
+
+-   (from experience, seems) Each cell must have at least one observation (if one cell is blank, then it seems to be incorrectly estimated, see predicting high_interpretation vs. state. suggests nonsignificant OR for 'unknown' category, when infact that difference drives the effect
+
+-   For *each* equation:
+
+    -   $\beta_{0}$ *= Log Odds of \[this category type vs. reference category type) response in CONTROL condition*
+
+        -   $e^{\beta_{0}}$ *= ODDS of \[this category type vs. reference category type\] response in CONTROL condition*
+
+    -   $\beta_{1}$ *=* $\beta_{1impasse}$ *Log Odds (Log OR; change in odds for \[this category\] type response in impasse (vs) control \[log scale\])*
+
+    -   $e^{\beta_{1}}$ *= ODDS RATIO of \[this. vs reference category type\] response in IMPASSE (vs) CONTROL*
+
+    -   *Null hypothesis:* $\beta_{impasse} \le 0$ *the odds for \[this category of response vs. reference\] does not change, or decreases*
+
+    -   *Alternative hypothesis:* $\beta_{impasse} \gt 0$ *the odds of \[this category of response vs. reference\] increases*
+
+    -   
+
+```{r}
+#::::::::::::DESCRIPTIVES RESPONSE STATE
+
+table(df$state, df$condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+
+(t <- table(df$state, df$condition) %>% addmargins(2) %>% #display sum for row
+      addmargins(1)) #sanity check sum of columns
+
+```
 
 #### Fit Model
 
 ```{r}
+
 library(nnet)
 
 #check reference level 
@@ -1625,6 +1703,8 @@ odds_ratios <- data.frame(OR = exp(summary(catm)$coefficients))
 -   Model estimates encompass two equations:
 -   effect of predictor on log odds of being in \[unknown\] instead of reference category \[orth-like\]
 -   effect of predictor on log odds of being in \[tri-like\] instead of reference category \[orth-like\]
+-   \[need to to double check interpretation, but I *think* that the OR intercepts converted to probabilities equate to the marginal probability of being in each state in the \[reference\] control condition. which makes sense. I think\]
+-   IF I change reference category for condition... then the intercepts should no longer be significant. The b1 coefficients should still be significant, but with changed sign (much less likely) \[Yup! this works!\]
 
 #### Inference
 
@@ -1825,9 +1905,6 @@ We fit a mixed-effect binomial logistic regression model with random intercepts 
 tab_model(mm.CrS)
 ```
 
-
-
-
 ## MIXED --- ORDINAL
 
 ## MIXED --- CATEGORICAL
@@ -1847,11 +1924,9 @@ tab_model(mm.CrS)
 # plot(rope(mm1))
 ```
 
-
-
 ## WIP UNKNOWN
 
-### Cummulative Ordinal (Bayesian) — Equal Variance
+### Cummulative Ordinal (Bayesian) --- Equal Variance
 
 https://journals.sagepub.com/doi/full/10.1177/2515245918823199
 
@@ -1890,8 +1965,7 @@ report(cumord)
 # plot(cumord)
 ```
 
-
-### Cummulative Ordinal (Bayesian) — Unequal Variance
+### Cummulative Ordinal (Bayesian) --- Unequal Variance
 
 https://journals.sagepub.com/doi/full/10.1177/2515245918823199
 
@@ -1932,7 +2006,7 @@ report(u.cumord)
 # plot(cumord)
 ```
 
-In brms, the parameter related to latent variances is called disc (short for “discrimination”), following conventions in item response theory. Note that disc is not the variance itself, but the inverse of the standard deviation, s. That is, s = 1/disc. Further, because disc must be strictly positive, it is by default modeled on the log scale.
+In brms, the parameter related to latent variances is called disc (short for "discrimination"), following conventions in item response theory. Note that disc is not the variance itself, but the inverse of the standard deviation, s. That is, s = 1/disc. Further, because disc must be strictly positive, it is by default modeled on the log scale.
 
 ### Adjacent-Category Ordinal (Bayesian)
 
@@ -1970,4 +2044,5 @@ plot(adjcat)
 report(adjcat)
 
 ```
-_Converges, but estimates are unreliable?_
+
+*Converges, but estimates are unreliable?*
