@@ -49,6 +49,8 @@ library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer 
 library(ggeffects) #visualization log regr models
 library(nnet) #multinomial logistic regression [not mixed]
+library(mclogit) #frequentist mixed multinomial logistic regression [mblogit]
+library(brms) #bayesian mixed multinomials [+ other bayesian reg models]
 
 library(tidyverse) #ALL THE THINGS
 
@@ -621,10 +623,18 @@ test_lrt(catm.0, catm)
 
 ##compare bayesian version
 #library(brms)
-# m1 <- brm( state ~ condition, data = df, family = "categorical")
-# summary(m1)
-# plot_model(m1)
-# report(m1)
+# bm1 <- brm( state ~ pretty_condition, data = df, family = "categorical")
+# summary(bm1)
+# plot_model(bm1)
+# report(bm1)
+# coefficient estimates are very simliar to catm. super cool!
+
+##compare mclogit version
+#"baseline-category logit model
+# https://www.elff.eu/software/mclogit/manual/mblogit/
+# blm1 <- mblogit(state ~ pretty_condition , data = df)
+# summary(blm1)
+#identical to catm. super cool!
 
 ```
 
@@ -651,6 +661,10 @@ paste("ODDS RATIOS")
 odds_ratios <- data.frame(OR = exp(summary(catm)$coefficients))
 options(scipen = 2)
 (results <- cbind(odds_ratios, p_values))
+```
+
+```{r}
+
 ```
 
 ##### Inference
@@ -1308,7 +1322,7 @@ While absolute accuracy score tells us whether a participant successfully interp
 +-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ```{r}
-#| label: SETUP-Q1-INTERPRETATION
+#| label: SETUP-TEST-INTERPRETATION
 
 #:::::::: PREP DATA
 df = df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% mutate(
@@ -1372,101 +1386,156 @@ table(df$state, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
     -   Two-tailed NHST *Null hypothesis:* $\beta_{impasse} = 0$ *the odds for \[this category of response vs. reference\] are not different for IMPASSE condition*
     -   *Alternative hypothesis:* $\beta_{impasse} \ne 0$ *the odds of \[this category of response vs. reference\] increases or decreases for IMPASSE condition*
     
-#### Fit Model [manual] 
-
-_Because nlme, lme4 don't support mixed multinomial, manually fit 2 mixed binomials comparing response states to reference response category [orthogonal].  [alternative: figure out syntax for reformatting data for mclogit [[poorly documented], framed as choice models] _
     
-    
-#### Fit Model [mblogit]
-
+##### Fit Model [mblogit]
 
 ```{r}
-library(MASS) # For 'housing' data
-library(nnet)
-library(mclogit)
-(house.mblogit <- mblogit(Sat ~ Infl + Type + Cont, weights = Freq,
-                        data = housing))
 
+#https://www.elff.eu/software/mclogit/manual/mblogit/
+#"baseline category logit" model matches multinom()
 
-(mc1 <- mblogit(state ~ pretty_condition + subject, weights = Freq,
-                        data = df))
+#check reference level 
+print("Categories (first is reference)")
+levels(df$state)
 
-#TODO... DO I NEED TO SUMMARIZE?
+#FIT EMPTY MODEL
+# print("EMPTY MODEL")
+m.mbl0 <- mblogit(state ~ pretty_condition ,  #no random intercepts; fixed only model 
+                  data = df)
+#summary(m.mbl0)
+
+#FIT PREDICTOR MODEL
+# print("PREDICTOR MODEL")
+m.mbl1 <- mblogit(state ~ pretty_condition , 
+                  random = ~ 1 | subject , 
+                  data = df)
+# summary(m.mbl1)
+
+#COMPARE MODEL FIT
+paste("AIC wth predictor is lower than empty model?", AIC(m.mbl0) > AIC(m.mbl1))
+test_lrt(m.mbl0, m.mbl1)
+
+#DESCRIBE MODEL
+summary(m.mbl1)
+
+#INTERPRET COEFFICIENTS
+cint <- confint(m.mbl1, level = 0.95)
+print("ODDS RATIO")
+(e <- cbind( exp(coef(m.mbl1)), exp(cint))) #exponentiated, adjusted
+
+#VISUALIZE
+plot_model(m.mbl1)
+performance(m.mbl1)
+
+#TABLE
+tab_model(m.mbl1, transform = "exp", title = "Model Predicted Odds Ratio")
 ```
-
-
-
-
-    
-
-##### Fit Model
-
-```{r}
-library(brms) #bayesian mixed regression models
-
-#BAYESIAN MIXED VERSION
-mixcat.1 <- brm( state ~ condition + (1|subject), data = df, family = "categorical", 
-                                             file = "analysis/models/sgc3a_brms_mixedcat_teststate_LAB.rds") # cache model (can be removed)))
-summary(mixcat.1)
-
-performance(mixcat.1)
-plot(mixcat.1)
-report(mixcat.1)
-check_posterior_predictions(mixcat.1, draws=100)
-library(bayesplot)
-library(bayestestR)
-plot(rope(mixcat.1))
-```
-
-##### Describe
-
-
 
 ##### Inference
 
--   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 45 (z = 3.58, p \< 0.001) . **Participants in the impasse condition were 45x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control**.
+-   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 4.7 (z = 3.92, p \< 0.001) . **Participants in the impasse condition were 4.7x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control**.
 
--   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 5.90 (z = 3.98, p \< 0.001 ). **Participants in the impasse condition were almost 6x as likely to give an a triangular response rather than an orthogonal response compared to participants in control**.
+-   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 8.61 (z = 3.30, p \< 0.001 ). **Participants in the impasse condition were more than 8.6x as likely to give an a triangular response rather than an orthogonal response compared to participants in control**.
 
 -   As with the (binary) logistic regression on accuracy \~ condition, significant model intercepts indicate that the odds of being in any particular response state (vs) orthogonal are significantly different than 1 *in the control condition.* (i.e. not 1:1 odds or 50% chance of being in that response state. Orthogonal is a much more probable response state in control)
-
--   \[need to to double check interpretation, but I *think* that the OR intercepts converted to probabilities equate to the marginal probability of being in each state in the control condition. which makes sense. I think.?\]
-
--   IF I change reference category for condition... then the intercepts should no longer be significant. The b1 coefficients should still be significant, but with changed sign (much less likely) \[Yup! this works!\]
 
 ##### Visualize
 
 ```{r}
-#| label: VIS-Q1INTERPRETATION-LAB
+#| label: VIS-TEST-INTERPRETATION-LAB
 
 #:::::::: PLOT
 
-#GGSTATS | MODEL | LOG ODDS 
-ggcoefstats(catm, output = "plot", 
-              # conf.level = 0.90,
-              exclude.intercept = FALSE) + 
-  labs(x = "Log Odds Estimate", 
-       title = "LOGODDS | Q1 State ~ condition",
-       subtitle = "(p is for two tailed test)")
-
 #SJPLOT | MODEL | ODDS RATIO
 #library(sjPlot)
-plot_model(catm, vline.color = "red", 
+plot_model(m.mbl1, vline.color = "red", 
            show.intercept = TRUE, 
            show.values = TRUE,
            p.threshold = 0.05, #can manually adjust to account for directional test
            ci.lvl = 0.95 ) +  #can manually adjusted for directional test   
-  labs(title = "ODDS RATIO | Q1 State ~ condition",
-       subtitle = "(p for one two test)",
-       x = "Condition")
-
-#SJPLOT | MODEL | PROBABILITIES
-plot_model(catm, type="eff",
-           title = "MODEL PREDICTION | Q1 State ~ condition",
-           axis.title = c("Condition","Probability of Response State"))
+  labs(title = "ODDS RATIO | Test Phase State ~ condition",
+       subtitle = "(p for one two-tailed test)")
 
 #SJPLOT | MODEL | TABLE
-#tab_model(catm)
+tab_model(m.mbl1)
+
+```
+
+##### Diagnostics
+
+```{r}
+
+print("MODEL PERFORMANCE")
+performance(m.mbl1)
+
+#General Goodness of Fit
+#library(generalhoslem)
+#logitgof(df$state, catm$fitted.values, g = 3)
+#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
+#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
+
+# print("MODEL DIAGNOSTICS")
+# check_model(m.mbl1) can't do overall diagnostics, have to do them on individual model equations
+
+```
+
+
+
+##### Fit Model [brms]
+
+```{r}
+
+
+#library(brms) #bayesian mixed regression models
+
+#BAYESIAN MIXED VERSION
+mixcat.1 <- brm( state ~ condition + (1|subject), data = df, family = "categorical",
+                                          file = "analysis/models/sgc3a_brms_mixedcat_teststate_LAB.rds") # cache model (can be removed)))
+
+#DESCRIBE MODEL
+summary(mixcat.1)
+# report(mixcat.1)
+
+#VISUALIZE
+
+plot(mixcat.1)
+plot_model(mixcat.1)
+check_posterior_predictions(mixcat.1, draws=1000)
+library(bayesplot)
+library(bayestestR)
+plot(rope(mixcat.1, ci = 0.89))
+
+
+#PERFORMANCE
+performance(mixcat.1)
+
+#TABLE
+tab_model(mixcat.1) #, transform = "exp", title = "Model Predicted Odds Ratio")
+```
+
+##### Inference
+-   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 43.86. 
+
+-   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 6.64. 
+
+**TODO RECONCILE:: brms model provides _substantially_ higher estimate for blank/uncertain response (vs) the mblogit frequentist model
+
+
+##### Visualize
+
+```{r}
+
+#:::::::: PLOT
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(mixcat.1, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.05, #can manually adjust to account for directional test
+           ci.lvl = 0.95 ) +  #can manually adjusted for directional test   
+  labs(title = "ODDS RATIO | Test Phase State ~ condition",
+       subtitle = "(p for one two test)")
 
 ```
 
@@ -1476,10 +1545,6 @@ plot_model(catm, type="eff",
 
 ##### TODO
 
--   interpretation/reporting of model fit?
--   sanity check correct interpretation of coefficients & reporting
--   diagnostics on individual model equations
+-   diagnostics on random effects 
+-   reconcilliation of mblogit() vs brms versions of the model; seems like they should yield similar estimates
 
-## RESOURCES
-
-reset plot margins par(mar=c(1,1,1,1))

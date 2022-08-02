@@ -1608,10 +1608,11 @@ df %>%
 -   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
 -   <https://bookdown.org/chua/ber642_advanced_regression/multinomial-logistic-regression.html>
 -   <https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK>
+-   Can use nnet package multinom() or mclogit package mblogit() \["baseline logit model"\] or brms with family = "categorical"
 
-*Fit a logistic regression predicting interpretation (n = r nrow(df), k=5) by condition. (k = 2).*
+*Fit a logistic regression predicting interpretation (k=#response categories) by condition. (k = 2).*
 
--   4 equations will be estimated (# categories - 1); each representing the odds of answering in that particular interpretation (vs) the reference category (orthogonal answer)
+-   2 equations will be estimated (# categories - 1); each representing the odds of answering in that particular interpretation (vs) the reference category (orthogonal answer)
 
 -   (from experience, seems) Each cell must have at least one observation (if one cell is blank, then it seems to be incorrectly estimated, see predicting high_interpretation vs. state. suggests nonsignificant OR for 'unknown' category, when infact that difference drives the effect
 
@@ -1666,10 +1667,18 @@ test_lrt(catm.0, catm)
 
 ##compare bayesian version
 #library(brms)
-# m1 <- brm( state ~ condition, data = df, family = "categorical")
-# summary(m1)
-# plot_model(m1)
-# report(m1)
+# bm1 <- brm( state ~ pretty_condition, data = df, family = "categorical")
+# summary(bm1)
+# plot_model(bm1)
+# report(bm1)
+# coefficient estimates are very simliar to catm. super cool!
+
+##compare mclogit version
+#"baseline-category logit model
+# https://www.elff.eu/software/mclogit/manual/mblogit/
+# blm1 <- mblogit(state ~ pretty_condition , data = df)
+# summary(blm1)
+#identical to catm. super cool!
 
 ```
 
