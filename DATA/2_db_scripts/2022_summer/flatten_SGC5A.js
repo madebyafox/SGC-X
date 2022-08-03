@@ -1,5 +1,4 @@
 //FLATTEN.JS ———————————————————————————————————————————————————
-//REFACTOR to handle entries_new [delta entries for summer22]
 //refactor to fit new data format for SGCX
 // —————————————————————————————————————————————————————————————
 
@@ -9,7 +8,7 @@
 
 
 //CREATE A COLLECTION OF ALL SUBJECTS
-db.entries_new.aggregate(
+db.entries.aggregate(
  [
      //select only successful participants 
     {$match: {"data.trials.status": {$in: ["success"] }}},  
@@ -17,11 +16,11 @@ db.entries_new.aggregate(
     {$match: {'data.trials.study' : 'SGC5A'}},
     {$unwind: "$data"},
     {$replaceRoot: { newRoot: "$data" }},
-    {$out: "delta_SGC5A_BY_SUBJECT"}
+    {$out: "SGC5A_BY_SUBJECT"}
 ]);
 
 //CREATE A COLLECTION OF ALL FAILED SUBJECTS    
-db.entries_new.aggregate(
+db.entries.aggregate(
  [
      //select only successful participants 
     {$match: {"data.trials.status": {$nin: ["success"] }}},  
@@ -29,19 +28,19 @@ db.entries_new.aggregate(
     {$match: {'data.trials.study' : 'SGC5A'}},
     {$unwind: "$data"},
     {$replaceRoot: { newRoot: "$data" }},
-    {$out: "delta_SGC5A_FAILS"}
+    {$out: "SGC5A_FAILS"}
 ]);
 //CREATE A COLLECTION OF ALL TRIALS
-db.delta_SGC5A_BY_SUBJECT.aggregate([
+db.SGC5A_BY_SUBJECT.aggregate([
        {$unwind: "$trials"},
        {$replaceRoot: { newRoot: "$trials" }},
-       {$out: "delta_SGC5A_BY_TRIAL"}
+       {$out: "SGC5A_BY_TRIAL"}
 ]);
        
 
 // //COLLECTION OF PARTICIPANT-LEVEL DATA 
 // //limited by subjects who finished the study AND attention check
-db.entries_new.aggregate([  
+db.entries.aggregate([  
     //select relevant trials
     {$match: {"data.trials.status": {$in: ["success"] }}},  
         //only in SGC5A
@@ -109,11 +108,11 @@ db.entries_new.aggregate([
     {$project: {"P0_Q0":0, "P0_Q1":0, }},
     //set id to subject
     {$set: {_id : "$subject"}},
-    {$out: "delta_SGC5A_final_participants"}
+    {$out: "SGC5A_final_participants"}
   ]);   
 
 //SONA RECONCILIATION LIST
-db.delta_SGC5A_final_participants.aggregate([
+db.SGC5A_final_participants.aggregate([
     {$project:{
         _id:"$subject",
         subject:1,
@@ -124,11 +123,11 @@ db.delta_SGC5A_final_participants.aggregate([
         discriminant_score:1,
         status: 1
     }},
-    {$out:"delta_SGC5A_final_sona_data"}
+    {$out:"SGC5A_final_sona_data"}
 ]);
 
 //CREATE A COLLECTION OF TEST ITEMS [with mouse data]
-db.delta_SGC5A_BY_TRIAL.aggregate([
+db.SGC5A_BY_TRIAL.aggregate([
     {$match: {block: {$in: ["item_scaffold","item_nondiscriminant","item_test"] }}},
     //supress unecessary fields
     {$project: {
@@ -137,11 +136,11 @@ db.delta_SGC5A_BY_TRIAL.aggregate([
         trial_index:0,
         internal_node_id: 0
     }},
-    {$out: "delta_SGC5A_final_items_mouse"}
+    {$out: "SGC5A_final_items_mouse"}
 ]);
 
 //CREATE A COLLECTION OF TEST ITEMS [no mouse data]
-db.delta_SGC5A_final_items_mouse.aggregate([
+db.SGC5A_final_items_mouse.aggregate([
     //suppress mouse-related data
     {$project: {
         response : 0,
@@ -149,7 +148,7 @@ db.delta_SGC5A_final_items_mouse.aggregate([
         mouse_tracking_targets:0,
         mouselog:0
     }},
-    {$out: "delta_SGC5A_final_items"}
+    {$out: "SGC5A_final_items"}
 ]);
  
 

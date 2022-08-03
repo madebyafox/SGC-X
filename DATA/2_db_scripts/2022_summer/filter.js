@@ -12,50 +12,44 @@
 
 //CREATE A COLLECTION OF entries FOR GIVEN STUDY
 //EG change string match for title of desired study
-db.entries_new.aggregate([
+db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC3A'}},
-    {$out: "delta_SGC_3A"}
+    {$out: "SGC_3A"}
 ]);
     
-db.entries_new.aggregate([
+db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC3B'}},
-    {$out: "delta_SGC_3B"}
+    {$out: "SGC_3B"}
 ]);    
     
-db.entries_new.aggregate([
+db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC4A'}},
-    {$out: "delta_SGC_4A"}
-]);        
-    
-db.entries_new.aggregate([
-    //select relevant entries for this study
-    {$match: {'data.trials.study' : 'SGC4B'}},
-    {$out: "delta_SGC_4B"}
-]);            
+    {$out: "SGC_4A"}
+]); 
 
-db.entries_new.aggregate([
-    //select relevant entries for this study
-    {$match: {'data.trials.study' : 'SGC4B'}},
-    {$out: "delta_SGC_4B"}
-]);            
-
-db.entries_new.aggregate([
+db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC4C'}},
-    {$out: "delta_SGC_4C"}
+    {$out: "SGC_4C"}
+]); 
+    
+db.entries.aggregate([
+    //select relevant entries for this study
+    {$match: {'data.trials.study' : 'SGC4B'}},
+    {$out: "SGC_4B"}
 ]);            
     
-db.entries_new.aggregate([
+db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC5A'}},
-    {$out: "delta_SGC_5A"}
-]);      
+    {$out: "SGC_5A"}
+]); 
 
-db.entries_new.aggregate([
+db.entries.aggregate([
     //select relevant entries for this study
-    {$match: {'data.trials.study' : 'SGCX'}},
-    {$out: "delta_SGC_X"}
-]);    
+    {$match: {'data.trials.study' : 'SGC5X'}},
+    {$out: "SGC_X"}
+]); 
