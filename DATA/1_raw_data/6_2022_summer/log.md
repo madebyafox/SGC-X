@@ -16,6 +16,15 @@
 
 ## WRANGLE
 
+### 08/02/22 WRANGLE DOWN FROM SERVER
+- DOWNLOAD from server to local file (179 entries in server side collection)
+- LOCAL file is 80MB nearing github file size limit; so delete server data and run ss2 separantely
+
+>> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out su22_session1.json
+
+- now that this file is checked on (and previously loaded on IMAC to analyze_SGCXSU22 db), I drop all entries from server 
+
+
 ### 08/02/22 WRANGLE 4A on IMAC
 - leave all data on server
 - download complete file from server
