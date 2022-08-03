@@ -6,7 +6,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-
+library(jsonlite)
 library(mousetrap)
 library(tidyverse) 
 ```
@@ -16,8 +16,154 @@ library(tidyverse)
 ```{r}
 
 #EXPLORE the mouse trajectory format example
-test_raw <- mt_example_raw #example raw dataset format
-test <- mt_example #provided with mousetrap package
+SAMPLE_RAW <- mt_example_raw #example raw dataset format
+SAMPLE_MT <- mt_example #provided with mousetrap package
+
+mt_data_long <- mt_export_long(mt_example,
+  use2_variables=c("subject_nr","Condition"))
+
+
+```
+
+## SGC3 Mouse Sample
+
+```{r}
+
+#import SGC3 mouse file 
+df <- fromJSON("winter22_sgc3a_final_items_mouse.json")
+
+# DESIRED
+# 1 row per subject
+# 1 column with all timestamps
+# 1 column with all xpos
+# 1 column with all ypos 
+
+#MT EXAMPLE DATA WITH LONG IMPORT 
+mt_sample <- mt_import_long(
+  mt_data_long, 
+  xpos = "xpos",
+  ypos = "ypos", 
+  mt_id_label = "mt_id")
+  
+  
+#  mt_import_long(
+#   raw_data,
+#   xpos_label = "xpos",
+#   ypos_label = "ypos",
+#   zpos_label = NULL,
+#   timestamps_label = "timestamps",
+#   add_labels = NULL,
+#   mt_id_label = "mt_id",
+#   mt_seq_label = "mt_seq",
+#   reset_timestamps = TRUE,
+#   verbose = TRUE
+# )
+
+
+#THIS ONE IS THE BEST 
+# df_items <- df_participants %>% select(
+#   subject, study, condition, correct, mouselog, mouse_tracking_data
+# ) %>% head(2) %>% unnest_wider(mouse_tracking_data)
+
+# df_items <- df %>% select(
+#   subject, study, condition, correct, mouselog, mouse_tracking_data
+# ) %>% head(2) %>% unnest_wider(mouse_tracking_data) %>% 
+#   mutate(
+#     x = toString(unlist(x)),
+#     y = toString(unlist(y))
+#   )
+
+
+q1.control <- df %>% filter(q == 1 & condition == '111') %>% 
+  select(subject, q, correct, mouse_tracking_data) %>% 
+  unnest(cols=mouse_tracking_data) %>% 
+  mutate(
+    subject = as.factor(subject),
+    mt_id = q,
+    xpos = x,
+    ypos = y, 
+    timestamps = t) %>% select(-x,-y,-t, -event) %>% 
+  #create mt sequence number to order rows within subject-trial
+  group_by(subject, q) %>% 
+  mutate(
+    mt_seq = row_number()
+  )
+
+
+MT_q1.control <- mt_import_long(q1.control,
+    xpos = "xpos",
+    ypos_label = "ypos",
+    timestamps_label = "timestamps",
+    add_labels = c("correct"),
+    mt_id_label = "mt_id",
+    mt_seq_label = "mt_seq",
+    reset_timestamps = TRUE
+    # verbose = TRUE
+)
+
+#select needed columns from imported df, take first couple records, unnesst and rename cols for mt import fn
+df_sgc3_long <- df %>% 
+  select(subject, q, correct, mouse_tracking_data) %>% 
+  head(10) %>% unnest(cols=mouse_tracking_data) %>% 
+  mutate(
+    subject = as.factor(subject),
+    mt_id = q,
+    xpos = x,
+    ypos = y, 
+    timestamps = t) %>% select(-x,-y,-t, -event) %>% 
+  #create mt sequence number to order rows within subject-trial
+  group_by(subject, q) %>% 
+  mutate(
+    mt_seq = row_number()
+  )
+glimpse(df_sgc3_long)
+
+df_sgc3_mt <- mt_import_long(df_sgc3_long,
+    xpos = "xpos",
+    ypos_label = "ypos",
+    timestamps_label = "timestamps",
+    add_labels = c("correct"),
+    mt_id_label = "mt_id",
+    mt_seq_label = "mt_seq"
+    # reset_timestamps = TRUE,
+    # verbose = TRUE
+)
+
+```
+
+### HEATMAP
+```{r}
+mt_heatmap_ggplot(
+  MT_q1.control
+  # use = "trajectories",
+  # dimensions = c("xpos", "ypos")
+  # use2 = "data",
+  # facet_row = NULL,
+  # facet_col = NULL,
+  # ...
+)
+
+mt_heatmap_ggplot(df_sgc3_mt)
+
+mt_plot(MT_q1.control)
+```
+
+##ANIMATION
+```{r}
+if (FALSE) {
+# Preprocess trajectory data
+mt_example <- mt_align_start(df_sgc3_mt)
+mt_example <- mt_remap_symmetric(df_sgc3_mt) 
+
+# Create animated trajectory gif
+# (under Linux / OSX)
+mt_animate(mt_example,filename = "SGC3.gif")
+
+# Increase duration and density while decreasing speed
+mt_animate(mt_example, filename = "MyMovie2.gif",
+  seconds = 10, speed = .3, density = 10)
+
+}
 ```
 
 ## SAMPLE animation
