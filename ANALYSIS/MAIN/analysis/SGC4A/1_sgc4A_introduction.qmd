@@ -159,11 +159,13 @@ First we import participant-level data, selecting only the columns relevant for 
 fall17 <- "analysis/SGC4A/data/0-session-level/fall17_sgc4a_participants.csv"
 spring18 <- "analysis/SGC4A/data/0-session-level/spring18_sgc4a_participants.csv"
 winter22 <- "analysis/SGC4A/data/0-session-level/winter22_sgc4a_participants.rds"
+summer22 <- "analysis/SGC4A/data/0-session-level/su22_sgc4a_participants.rds"
 
 #read datafiles, set mode and term
 df_subjects_fall17 <- read_csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_subjects_spring18 <- read_csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
 df_subjects_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
+df_subjects_summer22 <- read_rds(summer22) #use RDS file as it contains metadata
 
 #SAVE METADATA FROM WINTER, but no rows 
 df_subjects <- df_subjects_winter22 %>% filter(condition=='X') %>% 
@@ -223,8 +225,25 @@ df_winter22_q16 <- df_subjects_winter22 %>%
     response = explanation
   ) %>% dplyr::select(-explanation)
 
+
 #reduce data collected using NEW webapp to useful columns
 df_subjects_winter22 <- df_subjects_winter22 %>% 
+  mutate(score = absolute_score) %>% 
+  #select only columns we'll be analyzing, discard others
+  dplyr::select( subject, condition, pretty_condition, term, mode, 
+                 #demographics
+                 gender, age, language, schoolyear, country,
+                 #effort survey
+                 effort, difficulty, confidence, enjoyment, 
+                 #explanations
+                 other,disability,
+                 #response characteristics
+                 totaltime_m, 
+                 # absolute_score, #drop absolute score as this is re-scored [though should be the same]
+                 #exploratory factors 
+                 violations, browser, width, height)
+
+df_subjects_summer22 <- df_subjects_summer22 %>% 
   mutate(score = absolute_score) %>% 
   #select only columns we'll be analyzing, discard others
   dplyr::select( subject, condition, pretty_condition, term, mode, 
@@ -246,13 +265,13 @@ effort_labels <- c("I tried my best on each question", "I tried my best on most 
 # janitor::compare_df_cols(df_subjects, df_subjects_winter22, df_subjects_before)
 
 #combine dataframes from old and new webapps
-df_subjects <- rbind(df_subjects, df_subjects_winter22, df_subjects_before) %>% 
+df_subjects <- rbind(df_subjects, df_subjects_winter22, df_subjects_summer22, df_subjects_before) %>% 
   #refactor factors
   mutate (
     subject = factor(subject),
     condition = factor(condition),
     pretty_mode = recode_factor(mode, "lab-synch" = "laboratory", "asynch" =  "online-replication"),
-    term = factor(term, levels= c("fall17","spring18","fall21","winter22")),
+    term = factor(term, levels= c("fall17","spring18","fall21","winter22","summer22")),
     mode = factor(mode, levels=c("lab-synch","asynch")),
     gender = factor(gender),
     schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
@@ -275,8 +294,8 @@ df_subjects <- df_subjects %>% mutate(
 ) 
 
 #CLEANUP
-rm(df_subjects_fall17, df_subjects_spring18, df_subjects_winter22,df_subjects_before)
-rm(fall17,spring18,winter22)
+rm(df_subjects_fall17, df_subjects_spring18, df_subjects_winter22,df_subjects_before, df_subjects_summer22)
+rm(fall17,spring18,winter22, summer22)
 
 #FINALLY DROP CONDITION 112 (partial orthog with y axis lines extending only to right end of triangle)
 #this was an incomplete [pilot only] condition collected in FA17 SP18 for pilot purposes
@@ -286,55 +305,6 @@ df_subjects <- df_subjects %>% filter(condition != "112") %>%
     pretty_condition = droplevels(pretty_condition)
   )
 
-#IMPORT PARTICIPANT DATA
-
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
-
-#import file
-# df_subjects <- read_rds("analysis/SGC4A/data/0-session-level/sgc4a_participants.rds") #use RDS file as it contains metadata
-# 
-# #save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp
-# df_q16 <- df_subjects %>% 
-#   select(subject, condition, term , mode, explanation) %>% 
-#   mutate(
-#     q = 16,
-#     response = explanation
-#   ) %>% select(-explanation)
-# 
-# #reduce data collected using NEW webapp to useful columns
-# df_subjects <- df_subjects %>% 
-#   mutate(score = absolute_score) %>% 
-#   #select only columns we'll be analyzing, discard others
-#   dplyr::select( subject, condition, pretty_condition, term, mode, 
-#                  #demographics
-#                  gender, age, language, schoolyear, country,
-#                  #effort survey
-#                  effort, difficulty, confidence, enjoyment, 
-#                  #explanations
-#                  other,disability,
-#                  #response characteristics
-#                  totaltime_m,
-#                  #exploratory factors
-#                  violations, browser, width, height
-#                  )
-# 
-# 
-# effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
-# 
-# #set factors
-# df_subjects <- df_subjects %>% 
-#   #refactor factors
-#   mutate (
-#     subject = factor(subject),
-#     condition = factor(condition),
-#     term = factor(term),
-#     mode = factor(mode),
-#     gender = factor(gender),
-#     schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
-#   )
 
 ```
 
@@ -355,11 +325,13 @@ Next we import item-level data from each data collection period, selecting only 
 fall17 <- "analysis/SGC4A/data/0-session-level/fall17_sgc4a_blocks.csv"
 spring18 <- "analysis/SGC4A/data/0-session-level/spring18_sgc4a_blocks.csv"
 winter22 <- "analysis/SGC4A/data/0-session-level/winter22_sgc4a_items.rds"
+summer22 <- "analysis/SGC4A/data/0-session-level/su22_sgc4a_items.rds"
 
 #read datafiles, set mode and term
 df_items_fall17 <- read_csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_items_spring18 <- read_csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
 df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
+df_items_summer22 <- read_rds(summer22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
 map_relations <- df_items_winter22 %>% group_by(q) %>% select(q,relation) %>% unique()
@@ -387,13 +359,25 @@ df_items_winter22 <- df_items_winter22 %>%
     correct = as.logical(correct)
   )
 
+df_items_summer22 <- df_items_summer22 %>% 
+  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  mutate(
+    subject = as.character(subject),
+    condition = as.character(condition),
+    term = as.character(term),
+    mode = as.character(mode),
+    q = as.integer(q),
+    correct = as.logical(correct)
+  )
+
+
 #combine dataframes from old and new webapps
-df_items <- rbind(df_items, df_items_winter22,df_items_before) %>% 
+df_items <- rbind(df_items, df_items_winter22, df_items_summer22, df_items_before) %>% 
   #refactorize columns
   mutate(
     subject = factor(subject),
     condition = factor(condition),
-    term = factor(term, levels= c("fall17","spring18","fall21","winter22")),
+    term = factor(term, levels= c("fall17","spring18","fall21","winter22","summer22")),
     mode = factor(mode, levels=c("lab-synch","asynch")),
     q = as.integer(q)) %>% 
   #rename answer column to RESPONSE 
@@ -443,8 +427,8 @@ df_items <- df_items %>% mutate(
 ) 
 
 #CLEANUP
-rm(df_items_fall17, df_items_spring18, df_items_winter22, df_items_before, df_winter22_q16)
-rm(fall17,spring18,winter22, map_relations)
+rm(df_items_fall17, df_items_spring18, df_items_winter22, df_items_before, df_winter22_q16, df_items_summer22)
+rm(fall17,spring18,winter22, map_relations, summer22)
 
 #FINALLY DROP CONDITION 112 (partial orthog with y axis lines extending only to right end of triangle)
 #this was an incomplete [pilot only] condition collected in FA17 SP18 for pilot purposes
@@ -453,37 +437,6 @@ df_items <- df_items %>% filter(condition != "112") %>%
     condition = droplevels(condition),
     pretty_condition = droplevels(pretty_condition)
   )
-
-##OLD WITH ONLY WI22
-
-# # HACK WD FOR LOCAL RUNNING?
-# # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# #mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# #setwd(mbp)
-# 
-# #read datafiles
-# df_items <- read_rds("analysis/SGC4A/data/0-session-level/sgc4a_items.rds") #use RDS file as it contains metadata
-# 
-# #reduce data collected using new webapp
-# df_items <- df_items %>% 
-#   select(subject, condition, pretty_condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
-#   mutate(
-#     subject = as.character(subject),
-#     condition = as.character(condition),
-#     term = as.character(term),
-#     mode = as.character(mode),
-#     q = as.integer(q),
-#     correct = as.logical(correct)
-#   ) %>% 
-#   mutate(
-#     response = str_remove_all(as.character(answer), ","),
-#     num_o = str_length(response)
-#   ) %>% 
-#   # handle NA values (why are some empty responses blank and others NA?) 
-#   mutate(
-#     response = replace_na(response, ""),
-#     num_o = replace_na(num_o, 0)
-#   )
 
 ```
 
