@@ -35,7 +35,7 @@ library(tidyverse) #ALL THE THINGS
 
 ```
 
-## SCORE SGC DATA 
+## SCORE SGC DATA
 
 To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
 
@@ -176,7 +176,6 @@ df_items <- temp
 
 ```
 
-
 ### Derive Scaled Score {#sec-SGC3A-scaledScore}
 
 The `interpretation` response variable gives us the finest grain indication of the reader's understanding of the graph for a particular question. However, it is a categorical variable, which poses a challenge for analyzing cumulative performance at the subject level. To address this challenge, we derive a *scaled_score* that converts each possible interpretation to a numeric value on a scale from -1 to +1. This scaling takes advantage of the observation that each interpretation can be positioned along a spectrum of understanding from completely incorrect (orthogonal) to completely correct (triangular). Alternative interpretations lay somewhere between.
@@ -198,13 +197,13 @@ df_items$score_SCALED <- calc_scaled(df_items$interpretation)
 
 ### Derive State Score
 
-The scaled score represents a 5-category ordering of understanding. We also derive a 3-category ordering that gives higher grained access to "orthogonal-like" vs "uncertain" vs "triangle-like" responses. 
+The scaled score represents a 5-category ordering of understanding. We also derive a 3-category ordering that gives higher grained access to "orthogonal-like" vs "uncertain" vs "triangle-like" responses.
 
 Specifically, we assign the following values to each interpretation:
 
 -   (orth-like) : orthogonal, satisfice
 -   (unknown) : unidentified alternatives, blank, both tri&orth, and reference point responses
--   (tri-like) : Tverskian and triangular responses 
+-   (tri-like) : Tverskian and triangular responses
 
 ```{r}
 
@@ -218,7 +217,6 @@ df_items <- df_items %>% mutate (
   score_STATE = as.ordered(score_STATE))
   
 ```
-
 
 ## SUMMARIZE BY SUBJECT
 
@@ -244,8 +242,7 @@ df_subjects <- test_subs
 
 ```
 
-
-We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task. 
+We also summarize absolute and scaled score progress at each question in the task, to explore cumulative performance over the task.
 
 ```{r}
 #| label: SUMMARIZE-PROGRESS
@@ -257,7 +254,6 @@ df_absolute_progress <- progress_Absolute(df_items)
 df_scaled_progress <- progress_Scaled(df_items)
 
 ```
-
 
 ## EXPLORE DISTRIBUTIONS
 
@@ -602,13 +598,13 @@ We see that nearly all of the subjects selected a response consistent with one o
 
 Three responses were given that were not consistent with any of the identified interpretations. *Note that options highlighted in light grey are considered within the range of 'visual error', defined by 0.5hr offset from the interpretation-specific projection.*
 
-+---------------------------------------------------------+------------------------------------------+----------------------------------------------------------------+
-| **D I J**                                               | **X**                                    | **Z**                                                          |
-|                                                         |                                          |                                                                |
-|                                                         |                                          | TODO find this person, did they subsequently give tri answers? |
-+=========================================================+==========================================+================================================================+
-| ![](static/interpretations/Q1_111_IJD.png){width="500"} | ![](static/interpretations/Q1_111_X.png) | ![](static/interpretations/Q1_111_Z.png)                       |
-+---------------------------------------------------------+------------------------------------------+----------------------------------------------------------------+
++---------------------------------------------------------+------------------------------------------+------------------------------------------------------------------------------------------------------------------------+
+| **D I J**                                               | **X**                                    | **Z**                                                                                                                  |
+|                                                         |                                          |                                                                                                                        |
+|                                                         |                                          | \[**found this subject F86ZM, thought maybe this was a missed 'F', but they have a series of other unknown answers\]** |
++=========================================================+==========================================+========================================================================================================================+
+| ![](static/interpretations/Q1_111_IJD.png){width="500"} | ![](static/interpretations/Q1_111_X.png) | ![](static/interpretations/Q1_111_Z.png)                                                                               |
++---------------------------------------------------------+------------------------------------------+------------------------------------------------------------------------------------------------------------------------+
 
 : {tbl-colwidths="\[30,30,30\]"}
 
@@ -2378,7 +2374,8 @@ sessionInfo()
 # unique(alt_scored$score_niceABS == trad_scored$score_niceABS)
 ```
 
-**Prior inline version of derive interpretation, before externalizing to a function in the scoring script**. 
+**Prior inline version of derive interpretation, before externalizing to a function in the scoring script**.
+
 ```{r}
 
 # threshold_range = 0.5 #set required variance in subscores to be discriminant
@@ -2505,6 +2502,7 @@ sessionInfo()
 ```
 
 **Old inline calculation of score_SCALED before externalizing as function**
+
 ```{r}
 # df_items$score_SCALED <- recode(df_items$interpretation,
 #                           "Orthogonal" = -1,
@@ -2520,6 +2518,7 @@ sessionInfo()
 ```
 
 **Original summary by subject before externalizing as function**
+
 ```{r}
 
 # #prep items
