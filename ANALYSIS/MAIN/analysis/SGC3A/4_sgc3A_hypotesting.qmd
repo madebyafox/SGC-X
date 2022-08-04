@@ -8,8 +8,7 @@ subtitle: 'Study SGC3A | Hypothesis Testing'
 
 **TODO**
 
--   HURDLE MODEL? (mixture model w/ 0 + count)
--   review models already created in ARCHIVE?
+-   run (online replication models) for item-level data, once approach is reviewed for the lab-based data
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC3A study.*
 
@@ -233,6 +232,7 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
 
 print("PREDICTOR MODEL [default two-tailed sig test]")
 summary(m1)
+car::Anova(m1)
 
 # MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
 
@@ -409,6 +409,7 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
 
 print("PREDICTOR MODEL [default two-tailed sig test]")
 summary(m1)
+car::Anova(m1)
 
 # MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
 
@@ -652,6 +653,7 @@ test_lrt(catm.0, catm)
 #::::::::INTERPRETATION
 paste("MODEL SUMMARY")
 summary(catm)
+car::Anova(catm)
 
 # calculate z-statistics of coefficients
 z_stats <- summary(catm)$coefficients/summary(catm)$standard.errors
@@ -828,6 +830,7 @@ test_lrt(catm.0, catm)
 #::::::::INTERPRETATION
 paste("MODEL SUMMARY")
 summary(catm)
+car::Anova(catm)
 
 # calculate z-statistics of coefficients
 z_stats <- summary(catm)$coefficients/summary(catm)$standard.errors
@@ -1120,6 +1123,7 @@ m1 <- mm.CrS
 
 print("PREDICTOR MODEL")
 summary(m1)
+car::Anova(m1)
 
 #:::::::: MANUAL ONE-SIDED SIGTEST 
 
@@ -1415,6 +1419,7 @@ test_lrt(m.mbl0, m.mbl1)
 
 #DESCRIBE MODEL
 summary(m.mbl1)
+# car::Anova(m.mbl1)
 
 #INTERPRET COEFFICIENTS
 cint <- confint(m.mbl1, level = 0.95)

@@ -15,32 +15,48 @@ subtitle: 'Study SGC3A | 5 Exploratory Analyses'
 
 *The purpose of this notebook is exploratory analyses of data collected for study SGC3A.*
 
-+------------------------+
-| Pre-Requisite          |
-+========================+
-| 1_sgc3A_harmonize.qmd\ |
-| 2_sgc3A_scoring.qmd    |
-+------------------------+
 
 ```{r}
 #| label: SETUP
 #| warning : false
 #| message : false
 
-library(multimode) #mode mass tests
+#misc utilities
 library(Hmisc) # %nin% operator
+library(broom)
+library(modelr)
+library(distributional)
+library(jtools)
+library(pwr) #power analysis
+library(mosaic) #favstats
+
+#visualization
 library(ggpubr) #arrange plots
+library(cowplot) #arrange shift function plots
 library(ggformula) #easy graphs
-library(report) #easystats reporting
-library(see) #easystats visualization
-library(performance) #easystats model diagnostics
-library(gmodels) #contingency table and CHISQR
 library(vcd) #mosaic plots
 library(vcdExtra) #mosaic plots
 library(kableExtra) #printing tables 
-library(tidyverse) #ALL THE THINGS
-library(equatiomatic) #equation printing
+library(sjPlot) #visualize model coefficients
+library(ggdist) #uncertainty viz 
+library(ggstatsplot) #plots with stats
 
+#models and performance
+library(report) #easystats reporting
+library(see) #easystats visualization
+library(performance) #easystats model diagnostics
+library(qqplotr) #confint on qq plot
+library(gmodels) #contingency table and CHISQR
+library(equatiomatic) #extract model equation
+library(pscl) #zeroinfl / hurdle models 
+library(lme4) #mixed effects models 
+library(lmerTest) #for CIs in glmer 
+library(ggeffects) #visualization log regr models
+library(nnet) #multinomial logistic regression [not mixed]
+library(mclogit) #frequentist mixed multinomial logistic regression [mblogit]
+library(brms) #bayesian mixed multinomials [+ other bayesian reg models]
+
+library(tidyverse) #ALL THE THINGS
 
 #OUTPUT OPTIONS
 library(dplyr, warn.conflicts = FALSE)
@@ -48,6 +64,8 @@ options(dplyr.summarise.inform = FALSE)
 options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
+#GRAPH THEMEING
+theme_set(theme_minimal()) 
 ```
 
 ```{r}
@@ -58,12 +76,8 @@ options(scipen=1, digits=3)
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
 df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds')
+#weird... doesn't respect project level execute dir in yml unless included in index; otherwise breaks render
 
-
-#SEPARATE ITEM DATA BY QUESTION TYPE
-df_scaffold <- df_items %>% filter(q < 6)
-df_test <- df_items %>% filter(q > 6) %>% filter (q %nin% c(6,9))
-df_nondiscrim <- df_items %>% filter (q %in% c(6,9))
 ```
 
 Exploratory Questions
@@ -80,9 +94,775 @@ TODO: - does impasse yield different exploration behavior? (characterize mouse) 
 
 TODO: Think about characterizing how variable the interpretations are across a participant. Do they form an interpretation and hold it constant? Or do they change question to question.
 
+## WORKING MEMORY 
+
+During the 2021-2022 online replication study, participants completed a working memory task —the OSPAN task- after completing the SGC3A study.  We added this task to explore possible sources of variance between individuals on the graph comprehension task.  
+
+**Here we address the question: Does working memory (as measured by the OSPAN task) help explain performance on the interval graph comprehension task?**
+
+_First we join the load data for the subset of SGC3A participants who completed the OSPAN task. Note that this is a slightly lower n than the online replication, as a couple of participants failed to finish the OSPAN task, and will be excluded from this analysis._
+
+```{r}
+
+#LOAD OSPAN PARTICIPANTS
+df_ospan <- read_csv("analysis/SGC3A/data/1-study-level/sgc3a_ospan.csv") #not scored
+sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") #not scored
+sgc3a_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") #not scored
+
+##ADD OSPAN DATA TO SUBJECT LEVEL DATA
+
+#select needed ospan columns
+df_ospan <- df_ospan %>% rename( OSPAN.weighted = weighted, OSPAN.math_acc = math_acc,
+                                 OSPAN.order_acc = order_acc) %>% dplyr::select(
+                                 subject, OSPAN.weighted, OSPAN.math_acc, OSPAN.order_acc) %>% 
+  mutate(
+      z_ospan = zscore(OSPAN.weighted),
+      ospan_split = as.factor(OSPAN.weighted > median(OSPAN.weighted)),
+      ospan_split = recode_factor(ospan_split, "FALSE" = "low-memory", "TRUE" = "high-memory")
+    
+  )
+
+#get only the participants for whom we have ospan data 
+df_sgc3a <- sgc3a %>% filter(subject %in% df_ospan$subject)
+
+#add q1 state field [3 category summary of interepretation]
+df_sgc3a <- df_sgc3a %>% mutate(
+  item_q1_state =  recode_factor(item_q1_SCALED, 
+                         "-1" = "orth-like",
+                         "-0.5" = "unknown",
+                         "0" = "unknown",
+                         "0.5" = "tri-like",
+                         "1" = "tri-like"),
+)
+
+#join the ospan columns to the scored sgc3a data 
+df_sgc3a <- merge(df_sgc3a, df_ospan)
 
 
-## Q1 ACCURACY 
+##ADD OSPAN DATA TO ITEM LEVEL DATA
+#get only the participants for whom we have ospan data 
+df_sgc3a_items <- sgc3a_items %>% filter(subject %in% df_ospan$subject) 
+df_sgc3a_items <- merge(df_sgc3a_items, df_ospan)
+
+
+#define dataset
+df_s <- df_sgc3a
+df_i <- df_sgc3a_items
+```
+
+_What is the distribution of performance on the OSPAN task?_
+
+
+```{r}
+#| label: DESC-SUBJ-OSPAN
+ 
+title = "Descriptive Statistics of OSPAN Task Accuracy"
+ospan.stats <- rbind(
+  "MATH" = df_s %>% dplyr::select(OSPAN.math_acc) %>% unlist() %>% favstats(),
+  "ORDER" = df_s %>%  dplyr::select(OSPAN.order_acc) %>% unlist() %>% favstats(),
+  "WEIGHTED" = df_s %>% dplyr::select(OSPAN.weighted) %>% unlist() %>% favstats()
+
+)
+ospan.stats %>% kbl (caption = title) %>% kable_classic() %>%
+  footnote(general = "MATH = %correct of all math questions;
+           ORDER = % correct of OSPAN ordering (out of 30); WEIGHTED = math*ospan number correct", general_title = "Note: ",footnote_as_chunk = T)
+
+```
+
+
+```{r}
+#| label: VIS-SUBJ-OSPAN
+
+# #GGFORMULA | DENSITY HISTOGRAM 
+  gf_dhistogram(~z_ospan, data = df_s) +
+  labs(x = "OSPAN (weighted) score",
+       y = "% of subjects",
+       title = "Distribution of OSPAN SCORE",
+       subtitle = "")
+ 
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_s, x = "z_ospan", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition")) +
+  labs( title = "Distribution of OSPAN Score",
+        subtitle ="The shape of the distribution of OSPAN scores is similar across conditions",
+        x = "OSPAN (weighted) score", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+
+#GGSTATS
+ggbetweenstats(y = z_ospan, x = pretty_condition, data = df_s,
+               type = "parametric", var.equal = FALSE,
+               title = "Independent Samples T-Test indicates little difference between means by Condition")
+
+
+#PROPORTIONAL BAR CHART OF MED SPLIT BY CONDITION
+ggbarstats( x = pretty_condition, y = ospan_split, data = df_s) + labs(
+  title = "The Proportion of high (vs) low WM scores by does appear to differ by condition"
+)
+
+
+
+```
+_As we would expect, there is not a meaningful difference between the means (or shape of distribution) of the outcome weighted OSPAN by condition, nor between the proportions of high (vs) low scores after taking a median split of the weighted OSPAN score._
+
+
+
+### OSPAN ~ Q1 Accuracy
+
+**Does the OSPAN score help explain variance in Q1 Accuracy?**
+
+```{r}
+
+#SETUP DATA
+df_s = df_s #just for reference
+
+
+##STATSPLOT
+ggstatsplot::grouped_ggbarstats(data = df_s, 
+                                    y = ospan_split, x = item_q1_NABS, 
+                                    grouping.var = pretty_condition,
+                                    type = "nonparametric", equal.var = FALSE,
+                                    annotation.args = list(
+    title = "Potential INTERACTION between condition and WM Score"))
+```
+
+_It appears as though there may be an interaction between WM score and CONDITION, such that in the control condition, participants perform equally well (or poorly, as the case may be), regardless of of WM score. In the impasse condition, readers with the impasse condition have a higher proportion of correct responses than readers with low WM scores. One possible explanation of these observations is that perhaps higher WM capacity enables readers to take advantage of the implicit scaffolding the impasse provides._
+
+#### Statistical Tests
+
+
+To explore the relationship between ACCURACY, CONDITION and OSPAN score, we can run two separate CHI square tests evaluating independence of condition and accuracy, one for each level of working memory (the groups are roughly equal due to the median split). If WM interacts with condition, we should expect to see one chi square indicate independence (low working memory) and one not (high working memory).  Additionally, we can compute a Breslow-Day test for Homogeneity of Odds Ratios, to test the null hypothesis that the odds ratios for accuracy by condition do not differ across levels of working memory. 
+```{r}
+
+#IS ACCURACY INDEPENDENT OF CONDITION for low WM?
+paste("Accuracy independent of CONDITION for LOW WM?")
+x <- df_s %>% filter(ospan_split == "low-memory")
+(t <- table(x$item_q1_NABS, x$condition))
+# chisq.test(t)
+chiSquare(item_q1_NABS ~ condition, data = x)
+# YES, IT IS (EXPECTED)
+
+#IS ACCURACY INDEPENDENT OF CONDITION for low WM?
+paste("Accuracy independent of CONDITION for HIGH WM?")
+x <- df_s %>% filter(ospan_split == "high-memory")
+(t <- table(x$item_q1_NABS, x$condition))
+# chisq.test(t)
+chiSquare(item_q1_NABS ~ condition, data = x)
+# YES, IT IS (EXPECTED)
+
+library(DescTools)
+#Calculates the Breslow-Day test of homogeneity for a 2 \times 2 \times k2×2×k table, in order to investigate if all #kk strata have the same OR. If OR is not given, the Mantel-Haenszel estimate is used.
+t <- table(df_s$item_q1_NABS, df_s$ospan_split, df_s$condition)
+BreslowDayTest(t, OR = 1)
+
+
+```
+
+_A Brewslow-Day Test of homogeneity of Odds Ratios allows us to test the null hypothesis that the odds for each response outcome (correct, incorrect) are the same for each condition across each level of working memory. Essentially, that the odds ratio of a positive response for each condition does not differ by working memory.  The significant p-value for this test allows us to reject this null hypothesis and conclude we have evidence that working memory score changes the odds ratio of a correct vs incorrect response across conditions. 
+
+#### Logistic Regression
+
+**Logistic Regression** Q1 Accuracy ~ Condition + OSPAN
+
+##### Fit Model
+
+```{r}
+
+#DATASETUP
+df <- df_i %>% filter(q==1) %>% mutate(
+  accuracy = as.factor(score_niceABS),
+  l_condition = fct_relevel(condition, "121"),
+  l_split = fct_relevel(ospan_split, "high-memory")
+)
+
+
+#:::::::: FIT MODELS
+
+#fit empty model
+m.0 <- glm(  accuracy ~ 1, data = df, family = "binomial")
+# summary(m.0)
+
+#fit condition as predictor 
+m.c <- glm( accuracy ~ pretty_condition, data = df, family = "binomial")
+#summary(m.c)
+
+#is condition better than empty model?
+print("Is Condition model better than empty model?")
+print("Expect YES")
+test_lrt(m.0, m.c)
+
+#fit OSPAN as predictor 
+m.o <- glm( accuracy ~ ospan_split, data = df, family = "binomial")
+#summary(m.o)
+
+#is ospan better than empty model?
+print("Is OSPAN model better than empty model?")
+print("Expect NO")
+test_lrt(m.0, m.o)
+
+
+# fit condition AND OSPAN MAIN EFFECTS
+m.co <- glm( accuracy ~ pretty_condition + ospan_split, data = df, family = "binomial")
+summary(m.co)
+# car::Anova(m.cw)
+
+#is CONDITION + OSPAN better than CONDITION model?
+print("Is CONDITION + OSPAN model better than CONDITION model?")
+print("Expect NO")
+test_lrt(m.c, m.co)
+
+# fit condition AND OSPAN with INTERACTION 
+m.cio <- glm( accuracy ~  pretty_condition:ospan_split + pretty_condition + ospan_split , data = df, family = "binomial")
+# summary(m.cio)
+# car::Anova(m.ciw)
+
+#is CONDITION + OSPAN IXN better than CONDITION model?
+print("Is CONDITION + OSPAN IXN model better than CONDITION model?")
+print("Expect YES")
+test_lrt(m.cio, m.c)
+
+# MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
+
+# one-sided (right tail) z test for B COEFFICIENT
+#https://stats.stackexchange.com/questions/330655/strategy-for-a-one-sided-test-of-glms-coefficients
+
+#SANITY CHECK 2-tailed test should match the model output
+# tt <- 2*pnorm(m.3$coefficients, lower.tail = F)
+# paste("p value for two-tailed test, null B = 0 : ",round(tt,3))
+# ot <- pnorm(m.3$coefficients, lower.tail = F)
+# paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,3))
+# paste("adjusted confint for directional hypothesis")
+# (dcint <- confint(m1, level = 0.90)) # get 90% for right side))
+# # https://stats.stackexchange.com/questions/20734/is-a-1-sided-90-prediction-interval-equivalent-to-a-2-sided-95-prediction-inte
+
+```
+
+##### Describe
+
+```{r}
+
+summary(m.cio)
+car::Anova(m.cio)
+```
+##### Inference
+
+Significant main effect condition, non significant main effect of OSPAN, non significant interaction.
+
+Although we can see (ref plots below) that high_working memory participants were more likely to correctly answer Q1, the difference in proportions for this sample size (~30 per cell in the 2x2 contingency table of condition X OSPAN score) failed to reach statistical significance at the 0.05 alpha level.
+
+##### Visualize
+```{r}
+plot_model(m.c, type = "eff")
+plot_model(m.cio, type = "int")
+```
+
+##### Diagnostics
+```{r}
+
+#PERFORMANCE
+performance(m.cio)
+
+#DIAGNOSTICS
+check_model(m.cio)
+```
+
+
+### OSPAN ~ Q1 Interpretation
+
+**Does the OSPAN score help explain variance in Q1 interpetation?**
+
+```{r}
+##STATSPLOT
+ggstatsplot::grouped_ggbarstats(data = df_s, 
+                                    y = ospan_split, x = item_q1_state, 
+                                    grouping.var = pretty_condition,
+                                    type = "nonparametric", equal.var = FALSE,
+                                    annotation.args = list(
+    title = "Potential INTERACTION between condition and WM Score"))
+```
+_Again we see a potential interaction between WM score and CONDITION looking at the interpretation indicated by responses on the first question. In the control condition, low and high working memory participants offered very similar proportions of each type of interpretation (with the high working memory subjects offering slightly more unknown and tri-like interpretations). Alternatively in the impasse condition, high working memory Ss have substantially fewer orthogonal interpretations, with far more triangular and unknown interpretations._
+
+#### Statistical Tests
+
+
+To explore the relationship between INTERPREATION STATE, CONDITION and OSPAN score, we can run two separate CHI square tests evaluating independence of condition and interpretation, one for each level of working memory (the groups are roughly equal due to the median split). If WM interacts with condition, we should expect to see one chi square indicate independence (low working memory) and one not (high working memory).  Additionally, we can compute a Breslow-Day test for Homogeneity of Odds Ratios, to test the null hypothesis that the odds ratios for accuracy by condition do not differ across levels of working memory. 
+```{r}
+
+#IS INTERPRETATION STATE INDEPENDENT OF CONDITION for low WM?
+paste("Accuracy independent of CONDITION for LOW WM?")
+x <- df_s %>% filter(ospan_split == "low-memory")
+(t <- table(x$item_q1_state, x$condition))
+# chisq.test(t)
+chiSquare(item_q1_state ~ condition, data = x)
+# NOT expected
+
+#IS ACCURACY INDEPENDENT OF CONDITION for HIGH WM?
+paste("Accuracy independent of CONDITION for HIGH WM?")
+x <- df_s %>% filter(ospan_split == "high-memory")
+(t <- table(x$item_q1_state, x$condition))
+# chisq.test(t)
+chiSquare(item_q1_state ~ condition, data = x)
+# YES, IT IS (EXPECTED)
+
+library(DescTools)
+#Calculates the Breslow-Day test of homogeneity for a 2 \times 2 \times k2×2×k table, in order to investigate if all #kk strata have the same OR. If OR is not given, the Mantel-Haenszel estimate is used.
+t <- table(df_s$item_q1_state, df_s$ospan_split, df_s$condition)
+BreslowDayTest(t, OR = 1)
+
+
+```
+
+A Brewslow-Day Test of homogeneity of Odds Ratios allows us to test the null hypothesis that the odds for each response outcome (orth-like, unknown, tri-like) are the same for each condition across each level of working memory. Essentially, that the odds ratio of a positive response for each condition does not differ by working memory.  
+
+_We must reject the null hypothesis that (for low-working memory participants) condition and interpretation are independent. They do appear to be related, such that even for low-working memory participants, the impasse condition yields many more unknown and triangle-like responses than the control condition.  Together with the non-significant p-value for that does not allow us to reject the null hypothesis of homogeneous odds ratios across levels of working memory score, we do not have evidence of an interaction between working memory score and INTERPRETATION on question 1. 
+
+#### Logistic Regression
+
+**Logistic Regression** Q1 Accuracy ~ Condition + OSPAN
+
+##### Fit Model
+
+```{r}
+
+#DATASETUP
+df <- df_i %>% filter(q==1) %>% mutate(
+  accuracy = as.factor(score_niceABS),
+  l_condition = fct_relevel(condition, "121"),
+  l_split = fct_relevel(ospan_split, "high-memory")
+)
+
+#:::::::: FIT MODELS
+
+#fit empty model
+m.0 <- glm(  accuracy ~ 1, data = df, family = "binomial")
+# summary(m.0)
+
+#fit condition as predictor 
+m.c <- glm( accuracy ~ pretty_condition, data = df, family = "binomial")
+#summary(m.c)
+
+#is condition better than empty model?
+print("Is Condition model better than empty model?")
+print("Expect YES")
+test_lrt(m.0, m.c)
+
+#fit OSPAN as predictor 
+m.o <- glm( accuracy ~ ospan_split, data = df, family = "binomial")
+#summary(m.o)
+
+#is ospan better than empty model?
+print("Is OSPAN model better than empty model?")
+print("Expect NO")
+test_lrt(m.0, m.o)
+
+
+# fit condition AND OSPAN MAIN EFFECTS
+m.co <- glm( accuracy ~ pretty_condition + ospan_split, data = df, family = "binomial")
+summary(m.co)
+# car::Anova(m.cw)
+
+#is CONDITION + OSPAN better than CONDITION model?
+print("Is CONDITION + OSPAN model better than CONDITION model?")
+print("Expect NO")
+test_lrt(m.c, m.co)
+
+# fit condition AND OSPAN with INTERACTION 
+m.cio <- glm( accuracy ~  pretty_condition:ospan_split + pretty_condition + ospan_split , data = df, family = "binomial")
+# summary(m.cio)
+# car::Anova(m.ciw)
+
+#is CONDITION + OSPAN IXN better than CONDITION model?
+print("Is CONDITION + OSPAN IXN model better than CONDITION model?")
+print("Expect YES")
+test_lrt(m.cio, m.c)
+
+# MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
+
+# one-sided (right tail) z test for B COEFFICIENT
+#https://stats.stackexchange.com/questions/330655/strategy-for-a-one-sided-test-of-glms-coefficients
+
+#SANITY CHECK 2-tailed test should match the model output
+# tt <- 2*pnorm(m.3$coefficients, lower.tail = F)
+# paste("p value for two-tailed test, null B = 0 : ",round(tt,3))
+# ot <- pnorm(m.3$coefficients, lower.tail = F)
+# paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,3))
+# paste("adjusted confint for directional hypothesis")
+# (dcint <- confint(m1, level = 0.90)) # get 90% for right side))
+# # https://stats.stackexchange.com/questions/20734/is-a-1-sided-90-prediction-interval-equivalent-to-a-2-sided-95-prediction-inte
+
+```
+
+##### Describe
+
+```{r}
+summary(m.cio)
+car::Anova(m.cio)
+```
+##### Inference
+
+Main effect of condition, no main effect of OSPAN and non significant interaction. 
+
+Although we can see (ref plots below) that high_working memory participants were more likely to correctly answer Q1, the difference in proportions for this sample size (~30 per cell in the 2x2 contingency table of condition X OSPAN score) failed to reach statistical significance at the 0.05 alpha level.
+
+##### Visualize
+```{r}
+plot_model(m.c, type = "eff")
+plot_model(m.cio, type = "int")
+```
+
+##### Diagnostics
+```{r}
+
+#PERFORMANCE
+performance(m.cio)
+
+#DIAGNOSTICS
+check_model(m.cio)
+```
+
+
+
+
+
+### OSPAN ~ Test Phase Accuracy 
+
+**Does the OSPAN score help explain variance in test phase accuracy?**
+
+```{r}
+
+##SETUP DATA
+df <- df_s
+
+##STATSPLOT
+ggstatsplot::grouped_ggbetweenstats(data = df, 
+                                    y = item_test_NABS, x = ospan_split, 
+                                    grouping.var = pretty_condition,
+                                    type = "nonparametric", equal.var = FALSE,
+                                    annotation.args = list(
+    title = "Potential INTERACTION between condition and WM Score"))
+```
+_There appears to be an interaction between CONDITION and OSPAN score such that only participants with high working memory scores had better performance in the impasse condition. This could potential be driving the effect of the impasse condition._
+
+#### Linear Regression
+
+##### Fit Model
+```{r}
+
+#PREP DATA
+df_s <- df_s %>% mutate(
+  c_acc = scale(item_test_NABS), #mean centered accuracy score
+  med_acc = scale(item_test_NABS, center = median(item_test_NABS), scale = F)
+)
+
+#:::::::: FIT MODELS
+
+#empty model
+m.0 <- lm( data = df_s, item_test_NABS ~ 1)
+# summ(m.0)
+
+#condition predictor
+m.c <- lm( data = df_s, item_test_NABS ~ pretty_condition)
+#summ(m.c)
+
+paste("Condition predictor improves fit?")
+test_lrt(m.c, m.0)
+
+#add ospan predictor
+m.co <- lm( data = df_s, item_test_NABS ~ pretty_condition + ospan_split)
+summary(m.co)
+
+paste("Condition + OSPAN improves fit?")
+test_lrt(m.c, m.co)
+
+#add interaction term  
+m.cio <- lm( data = df_s, item_test_NABS ~ pretty_condition + ospan_split + pretty_condition:ospan_split)
+summary(m.cio)
+
+paste("Condition : OSPAN interaction improves fit?")
+test_lrt(m.co, m.cio)
+```
+##### Describe 
+
+```{r}
+
+#Describe 
+summary(m.cio)
+anova(m.cio)
+```
+
+$\beta_0$ intercept is MEAN when both predictors are at reference: (control condition low memory) [M = 1.129]
+$\beta_{1impasse}$ intercept is DIFFERENCE to (IMPASSE condition low memory) [M 1.72 - 1.129 = 0.591]
+$\beta_{1high}$ intercept is DIFFERENCE to (CONTROL condition HIGH memory) [M 1.21 - 1.129 = 0.079]
+$\beta_{1 impasse : high}$ is DIFFERENCE to ?? no idea can't figure this one out. its not to reference levels
+
+BUT don't fret re: significance of predictors in the model, rather, to see if effects are significant, just run anova on the model. 
+
+##### Visualize
+
+**By comparing the average performance by condition ...**
+```{r}
+#PLOT EFFECTS
+plot_model(m.c, type = "pred")
+#TODO GET + ylim(0,8) to work
+```
+
+**...to the average by condition broken out by working memory, we see that perhaps working memory score drives some of the effect of improved performance in the impasse condition.**
+
+```{r}
+plot_model(m.cio, type = "int") 
+#+ ylim(0,8)
+```
+##### Diagnostics
+```{r}
+
+#PERFORMANCE
+performance(m.cio)
+
+#DIAGNOSTICS
+check_model(m.cio)
+
+```
+
+
+
+#### Mixed Logistic Regression
+
+```{r}
+#PREP DATA
+df_i <- df_sgc3a_items %>% filter(q %nin% c(6,9)) %>% mutate(
+  accuracy = as.factor(score_niceABS),
+  ospan = as.factor(ospan_split)
+) #test phase discrim only
+
+```
+##### Fit Model
+
+```{r}
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
+# summary(m0)
+
+#:: RANDOM INTERCEPT SUBJECT
+print("Subject intercept random model")
+mm.rS <- glmer(accuracy ~ (1|subject), data = df_i, family = "binomial",
+               control=glmerControl(optimizer="bobyqa",
+            optCtrl=list(maxfun=100000)))
+# summary(mm.rS)
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
+test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+
+
+## 2 | ADD RANDOM INTERCEPT ITEM?
+
+#:: RANDOM INTERCEPT SUBJECT + INTERCEPT Q
+# print("Subject & Question random intercepts")
+# mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
+# # summary(mm.rSQ)
+# 
+# # :: TEST random effect
+# paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)) )
+# test_lrt(mm.rS,mm.rSQ) #same as anova(m0, m1, test = "Chi")
+# paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.rSQ))$p[2])
+
+## 3 | ADD FIXED EFFECT CONDITION
+
+# print("FIXED Condition + Subject & Question random intercepts")
+# mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q), 
+#                 data = df_i, family = "binomial")
+# summary(mm.CrSQ)
+# 
+# paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
+# test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
+# paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
+
+print("FIXED Condition + Subject random intercepts")
+mm.CrS <- glmer(accuracy ~ pretty_condition + (1|subject) ,
+                data = df_i, family = "binomial")
+# summary(mm.CrS)
+
+paste("AIC decreases w/ new model", AIC(logLik(mm.rS)) > AIC(logLik(mm.CrS)) )
+test_lrt(mm.rS,mm.CrS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.CrS))$p[2])
+
+
+## 4 | ADD FIXED EFFECT OSPAN only 
+print("FIXED OSPAN + Subject random intercepts")
+mm.OrS <- glmer(accuracy ~ ospan + (1|subject) ,
+                data = df_i, family = "binomial")
+# summary(mm.OrS)
+paste("OSPAN decreases AIC over random?", AIC(logLik(mm.rS)) > AIC(logLik(mm.OrS)) )
+test_lrt(mm.rS,mm.OrS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.OrS))$p[2])
+
+## 5 | MODEL OF INTEREST! OSPAN + CONDITION + suject
+
+print("FIXED OSPAN + CONDITION + IXN + Subject random intercepts")
+mm.COrS <- glmer(accuracy ~ pretty_condition + ospan + (1|subject) ,
+                data = df_i, family = "binomial")
+# summary(mm.COrS)
+paste("OSPAN decreases AIC over CONDITION alone?", AIC(logLik(mm.COrS)) > AIC(logLik(mm.CrS)) )
+test_lrt(mm.COrS,mm.CrS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.COrS,mm.CrS))$p[2])
+
+
+print("FIXED OSPAN + CONDITION + IXN + Subject random intercepts")
+mm.CIOrS <- glmer(accuracy ~ pretty_condition + ospan + pretty_condition:ospan + (1|subject) ,
+                data = df_i, family = "binomial")
+
+paste("IXN decreases AIC over main effects alone?", AIC(logLik(mm.CIOrS)) > AIC(logLik(mm.COrS)) )
+test_lrt(mm.CIOrS,mm.COrS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.CIOrS,mm.COrS))$p[2])
+
+```
+
+##### Describe
+
+```{r}
+
+# best model
+m1 <- mm.CIOrS
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m1)
+car::Anova(m1)
+
+#:::::::: MANUAL ONE-SIDED SIGTEST 
+
+# one-sided (right tail) z test for B COEFFICIENT
+#SANITY CHECK 2-tailed test should match the model output
+# tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+# paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
+# ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+# paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,5))
+
+#:::::::: INTERPRET COEFFICIENTS
+
+se <- sqrt(diag(stats::vcov(m1)))
+# table of estimates with 95% CI
+paste("LOG ODDS")
+(tab <- cbind(Est = fixef(m1), LL = fixef(m1) - 1.96 * se, UL = fixef(m1) + 1.96 *
+    se))
+paste("ODDS RATIOS")
+(e <- exp(tab))
+
+```
+
+##### Inference
+
+TODO
+
+##### Visualize
+
+```{r}
+#:::::::: PLOT
+
+#GGSTATS | MODEL | LOG ODDS 
+ggcoefstats(m1, output = "plot", 
+              conf.level = 0.90) + 
+  labs(x = "Log Odds Estimate", 
+       subtitle = "p is for two tailed test")
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m1, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
+  labs(title = "Model Predicted Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m1, type="int",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Predicted Probability of Accuracy",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+#SJPLOT | MODEL | TABLE
+#tab_model(m1)
+
+```
+
+##### Narrative
+
+**By comparing the average performance by condition ...**
+```{r}
+#PLOT EFFECTS
+plot_model(mm.CrS, type = "pred")
+#TODO GET + ylim(0,8) to work
+```
+
+**...to the average by condition broken out by working memory, we see that perhaps working memory score drives some of the effect of improved performance in the impasse condition.**
+
+```{r}
+plot_model(mm.CIOrS, type = "int") 
+#+ ylim(0,8)
+```
+
+_It is compelling to see that only high_working memory participants achieved the high probabilites of correct response in impasse_.
+
+
+
+
+##### Diagnostics
+
+```{r}
+#| warning: false
+#| message: false
+
+print("SANITY CHECK REPORTING")
+report(m1)
+
+print("MODEL PERFORMANCE")
+performance(m1)
+
+print("DIAGNOSTICS")
+check_model(m1)
+```
+
+
+
+
+### TODO OSPAN ~ Test Phase Interpretation 
+
+**Does the OSPAN score help explain variance in test phase interpretation?**
+
+```{r}
+##STATSPLOT
+ggstatsplot::grouped_ggbarstats(data = df_i, 
+                                    y = ospan_split, x = pretty_condition, 
+                                    grouping.var = score_STATE,
+                                    type = "nonparametric", equal.var = FALSE,
+                                    annotation.args = list(
+    title = "Potential INTERACTION between condition and WM Score"))
+```
+
+
+
+
+
+
+
+
+## TODO SEQUENCE
+## TODO BEST FIT
+
+## ARCHIVE
+### Q1 ACCURACY 
 
 **What explains Q1 Accuracy?**
 
@@ -138,24 +918,24 @@ Considering only families of unimodal distributions, the most probably distribut
 
 ```{r}
 #| label: MASS-111
-df <- df_subjects %>% filter(condition==111)
-multimode::modetest(df$s_NABS)
-n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
-multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
+# df <- df_subjects %>% filter(condition==111)
+# multimode::modetest(df$s_NABS)
+# n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
+# multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
 
 ```
 
 ```{r}
 #| label: MASS-121
-df <- df_subjects %>% filter(condition==121)
-multimode::modetest(df$s_NABS)
-n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
-multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
+# df <- df_subjects %>% filter(condition==121)
+# multimode::modetest(df$s_NABS)
+# n_modes = multimode::nmodes(data = df$s_NABS, bw=2)
+# multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
 
 ```
 
 
-## RESPONSE LATENCY
+### RESPONSE LATENCY
 
 -   [TODO: Investigate super high and super low response times.]{style="color: red;"}.
 -   [TODO: Investigate appropriate models for response time data. (see: https://lindeloev.github.io/shiny-rt/)]{style="color: red;"}.
@@ -183,18 +963,18 @@ multimode::locmodes(df$s_NABS,mod0 =  n_modes, display = TRUE)
 
 ```{r}
 #| label: VIS-TEST-Q1TIME
-
-df_lab <- df_subjects %>% filter(mode == "lab-synch")
- 
-#HISTOGRAM
-stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
-gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
-  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(title = "(LAB) First Question Response Time",,
-       # x = "Response Time (seconds)",
-       # y = "proportion of participants",
-       subtitle = "") + 
-  theme_minimal()
+# 
+# df_lab <- df_subjects %>% filter(mode == "lab-synch")
+#  
+# #HISTOGRAM
+# stats = df_lab %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
+# gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
+#   # gf_vline(data = stats, xintercept = ~mean, color = "red") +
+#   labs(title = "(LAB) First Question Response Time",,
+#        # x = "Response Time (seconds)",
+#        # y = "proportion of participants",
+#        subtitle = "") + 
+#   theme_minimal()
 
 ```
 
@@ -202,18 +982,18 @@ gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_
 
 ```{r}
 #| label: MODEL-Q1TIME-LAB
-
-#SCORE predicted by CONDITION
-lab.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_lab)
-paste("Model")
-summary(lab.q1t.lm1)
-paste("Partition Variance")
-anova(lab.q1t.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(lab.q1t.lm1)
-report(lab.q1t.lm1) #sanity check
-#print model equation
-eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
+# 
+# #SCORE predicted by CONDITION
+# lab.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_lab)
+# paste("Model")
+# summary(lab.q1t.lm1)
+# paste("Partition Variance")
+# anova(lab.q1t.lm1)
+# paste("Confidence Interval on Parameter Estimates")
+# confint(lab.q1t.lm1)
+# report(lab.q1t.lm1) #sanity check
+# #print model equation
+# eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
 ```
 
 ```{r}
@@ -256,16 +1036,12 @@ eq <- extract_eq(lab.q1t.lm1, use_coefs = TRUE)
 
 ```{r}
 #| label: DIAG-Q1TIME-lab
-
-#model diagnostics
-check_model(lab.q1t.lm1, panel = TRUE)
+# 
+# #model diagnostics
+# check_model(lab.q1t.lm1, panel = TRUE)
 ```
 
-(1) RESIDUAL DISTRIBUTION: `r check_normality(lab.q1t.lm1)`
-(2) HOMOGENEITY: `r check_homogeneity(lab.q1t.lm1)`
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(lab.q1t.lm1)`
-(4) AUTOCORRELATION: `r check_autocorrelation(lab.q1t.lm1)`
-(5) OUTLIERS: `r check_outliers(lab.q1t.lm1)`
+
 
 ###### Inference
 
@@ -277,18 +1053,18 @@ OLS Linear Regression on Q1 response time shows that condition explains a small 
 
 ```{r}
 #| label: VIS-TEST-Q1TIME-online
-
-df_online <- df_subjects %>% filter(mode == "asynch")
- 
-#HISTOGRAM
-stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
-gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
-  # gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(title = "(ONLINE) First Question Response Time",
-       # x = "Response Time (seconds)",
-       # y = "proportion of participants",
-       subtitle = "") + 
-  theme_minimal()
+# 
+# df_online <- df_subjects %>% filter(mode == "asynch")
+#  
+# #HISTOGRAM
+# stats = df_online %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_q1_rt))
+# gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_facet_grid(~pretty_condition) +
+#   # gf_vline(data = stats, xintercept = ~mean, color = "red") +
+#   labs(title = "(ONLINE) First Question Response Time",
+#        # x = "Response Time (seconds)",
+#        # y = "proportion of participants",
+#        subtitle = "") + 
+#   theme_minimal()
 
 ```
 
@@ -297,17 +1073,17 @@ gf_dhistogram(~log(item_q1_rt), fill = ~pretty_condition, data = df_lab) %>% gf_
 ```{r}
 #| label: MODEL-Q1TIME-online
 
-#SCORE predicted by CONDITION
-rep.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_online)
-paste("Model")
-summary(rep.q1t.lm1)
-paste("Partition Variance")
-anova(rep.q1t.lm1)
-paste("Confidence Interval on Parameter Estimates")
-confint(rep.q1t.lm1)
-report(rep.q1t.lm1) #sanity check
-#print model equation
-eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
+# #SCORE predicted by CONDITION
+# rep.q1t.lm1 <- lm(log(item_q1_rt) ~ pretty_condition, data = df_online)
+# paste("Model")
+# summary(rep.q1t.lm1)
+# paste("Partition Variance")
+# anova(rep.q1t.lm1)
+# paste("Confidence Interval on Parameter Estimates")
+# confint(rep.q1t.lm1)
+# report(rep.q1t.lm1) #sanity check
+# #print model equation
+# eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
 ```
 
 ```{r}
@@ -352,20 +1128,14 @@ eq <- extract_eq(rep.q1t.lm1, use_coefs = TRUE)
 #| label: DIAG-Q1TIME-online
 
 #model diagnostics
-check_model(rep.q1t.lm1, panel = TRUE)
+# check_model(rep.q1t.lm1, panel = TRUE)
 ```
 
-(1) RESIDUAL DISTRIBUTION: `r check_normality(rep.q1t.lm1)`
-(2) HOMOGENEITY: `r check_homogeneity(rep.q1t.lm1)`
-(3) HETERSCEDASTICITY: `r check_heteroscedasticity(rep.q1t.lm1)`
-(4) AUTOCORRELATION: `r check_autocorrelation(rep.q1t.lm1)`
-(5) OUTLIERS: `r check_outliers(rep.q1t.lm1)`
+
 
 ###### Inference
 
 OLS Linear Regression on Q1 response time shows that condition explains a small but statistically significant amount of variance (impasse \> control). However, the model violates the assumption of normally distributed residuals.
 
-
-
-## TODO RESPONSE CONSISTENCY
+### TODO RESPONSE CONSISTENCY
 
