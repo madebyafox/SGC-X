@@ -6,6 +6,7 @@ output:
   html_document: default
   pdf_document: default
 ---
+
 *The purpose of this file is processing the combined data files for Fall 2017 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
 
 ```{r SETUP, include=FALSE}
@@ -35,7 +36,7 @@ df_blocks$term <- "fall17"
 
 #create factors in PARTICIPANTS
 df_participants <- df_participants %>%  
-  select(subject,session,term,condition,  #re-arrange columns
+  dplyr::select(subject,session,term,condition,  #re-arrange columns
          ts_n, tt_n,triangular_score,
          os_n, ot_n,orthogonal_score,
          explicit,impasse,axis,
@@ -63,7 +64,7 @@ df_participants <- df_participants %>%
 
 ```{r BLOCKS-SETUP}
 df_blocks <- df_blocks %>% 
-  select( #reorder columns
+  dplyr::select( #reorder columns
     subject, session, term, condition,
     q,question,answer,rt,
     correct, orth_correct,
@@ -81,12 +82,41 @@ df_blocks <- df_blocks %>%
   )
 ```
 
+### Reconciling Submissions
+
+In Fall 2017, exclusion criteria were implemented in the database data wrangling step. To reconcile number of submissions (vs) number of successfully completed we compare the number of entries in the analysis database, (vs) the number of entries in the imported analysis file (post-db-wrangling).
+
+```{r STUDIES}
+#MANUALLY INSPECT studies
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
+
+-   A total of 54 subjects (111 : 27, 121: 27) successfully completed study SGC3A (in person).
+-   A total of 10 subjects (113 : 10) successfully completed a pilot of study SGC4A (in person).
+-   A total of 10 subjects (211 : 30, 221:30, 311:30, 321:30) successfully completed study SGC3B (in person). Note that the 111 and 121 conditions of study SGC3A are included in SGC3B for analysis.
+
+**NOTE** Manual inspection of database after importing Fall 2017 data indicates:
+
+-   SGC3A: 68 subjects submitted study
+    -   33 subjects completed condition 111; 35 subjects completed condition 121
+    -   **thus**; 68 - 54 = 14 subjects were excluded during wrangling, for failing the attention check question. (Exclusion took part in database wrangling process)
+-   SGC4A: 16 subjects submitted pilot SGC4A
+    -   113 : 6 112: 10
+    -   thus no participants were excluded in wrangling
+-   SGC3B : 130 subjects submitted SGC3B [not including SGC3A 111 and 121 conditions, above]
+    -   211: 36, 221:32, 311: 32, 321: 30
+
+    -   thus 130 - 120 = 10 subjects were excluded during wrangling
+
 ### Sessions
-The (string) session code is entered by the participant based on instructions given by the experimenter, and documents the data-collection session (eg. in-person at a particular time). This code is also used by the experimenter to differentiate test or expert data collection runs.  
+
+The (string) session code is entered by the participant based on instructions given by the experimenter, and documents the data-collection session (eg. in-person at a particular time). This code is also used by the experimenter to differentiate test or expert data collection runs.
+
 ```{r SESSIONS}
 
 #MANUALLY INSPECT sessions
-df_participants %>% group_by(session) %>% 
+df_participants %>% dplyr::group_by(session) %>% 
   summarize(n=n())
 
 #manually recode sessions in participants
@@ -103,12 +133,14 @@ df_participants %>% group_by(session) %>%
   arrange(desc(session)) %>% 
   summarize(n=n())
 ```
-In Fall 2017, 14 data collection sessions were used, from ALFA -> PINECONE. Participants who mispelled their sessions have been manually recoded, and one participant erroneously entered their condition code as their session code, and this entry is corrected to 'XTRA'. 
+
+In Fall 2017, 14 data collection sessions were used, from ALFA -\> PINECONE. Participants who mispelled their sessions have been manually recoded, and one participant erroneously entered their condition code as their session code, and this entry is corrected to 'XTRA'.
 
 **No data need to be excluded based on SESSION CODE.**
 
 ### Conditions
-The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study. 
+
+The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study.
 
 ```{r CONDITIONS}
 df_participants %>% group_by(condition) %>% 
@@ -126,8 +158,7 @@ f_sgc3b <- c(111,121,211,221,311,321)
 f_sgc4 <- c(111,112,113)
 ```
 
-
-In Fall 2017, data were gathered for three study designs: SGC3A (simple insight vs. control), SGC3B (partial data collected: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
+In Fall 2017, data were gathered for three study designs: SGC3A (simple insight vs. control), SGC3B (partial data collected: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines).
 
 Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition.
 

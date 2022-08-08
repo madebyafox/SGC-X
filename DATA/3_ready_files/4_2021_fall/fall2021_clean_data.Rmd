@@ -5,10 +5,6 @@ date: "1/26/2022"
 always_allow_html: true  
 geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm"
 output:
-  pdf_document: 
-    toc: true
-    toc_depth: 2
-    latex_engine: xelatex
   html_document:
     theme: yeti
     code_folding: hide
@@ -19,6 +15,10 @@ output:
       collapsed: yes
       smooth_scroll: yes
     toc_depth: 4
+  pdf_document: 
+    toc: true
+    toc_depth: 2
+    latex_engine: xelatex
 font-family: "DejaVu Sans"
 mainfont: "DejaVu Sans"
 ---
@@ -42,6 +42,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(jsonlite)
 library(tidyjson)
+library(Hmisc) # %nin% operator
 library(tidyverse)
 ```
 
@@ -79,7 +80,7 @@ df_blocks$term <- "fall21"
 
 #create factors in PARTICIPANTS
 df_participants <- df_participants %>%  
-  select(subject,session,term,condition,  #re-arrange columns
+  dplyr::select(subject,session,term,condition,  #re-arrange columns
          ts_n, tt_n,triangular_score,
          os_n, ot_n,orthogonal_score,
          explicit,impasse,axis,
@@ -107,7 +108,7 @@ df_participants <- df_participants %>%
 
 ```{r BLOCKS-SETUP}
 df_blocks <- df_blocks %>% 
-  select( #reorder columns
+  dplyr::select( #reorder columns
     subject, session, term, condition,
     q,question,answer,rt,
     correct, orth_correct,
@@ -125,7 +126,50 @@ df_blocks <- df_blocks %>%
   )
 ```
 
+
+# Inspection
+
+We start by inspecting the number of participants who submitted (ie. completed the study), before applying exclusion criteria. 
+
+### SGC_3A
+```{r}
+
+df_participants %>% filter (condition %in% f_sgc3a) %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+
+n_sgc3a_submit <- nrow(df_participants %>% filter (condition %in% f_sgc3a))
+```
+A total of `r n_sgc3a_submit` subjects completed study SGC3A
+
+### SGC_3B
+
+In addition to the subjects run for SGC3A four additional factorial conditions were run as a pilot for SGC3B. 
+
+Data collected for the factorial SGC_3B are incomplete (ran out of time before end of SONA collection period), and considered a pilot. 
+```{r }
+df_participants %>% filter (condition %in% f_sgc3b) %>% filter(condition %nin% f_sgc3a) %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+
+n_sgc3b_submit <- nrow(df_participants %>% filter (condition %in% f_sgc3b & condition %nin% f_sgc3a))
+```
+
+An additional `r n_sgc3b_submit` subjects completed the factorial conditions of study SGC3B.
+
+
 # Data Validation
+
+Summary by study
+
+```{r STUDIES}
+#MANUALLY INSPECT studies
+df_participants %>% group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
+_A total of 156 [80 condition 111; 76 condition 121] participants completed study SGC3A - online replication._
+The remaining participants were recruited as an online pilot for study SGC3B (factorial design).
+
+
+
 
 ## Exclusions
 ### Sessions
@@ -265,6 +309,9 @@ df_sgc3a %>% group_by(condition) %>%
 
 df_sgc3a_blocks <- df_blocks %>% filter (condition %in% f_sgc3a)
 ```
+
+After applying exclusion criteria, we see that `r n_sgc3a_submit - nrow(df_sgc3a)` subjects were excluded from analysis for SGC3A. 
+
 ```{r SGC3A-VERIFY}
 #number of items = number of subjects * 16 
 nrow(df_sgc3a) * 16 == nrow(df_sgc3a_blocks)
@@ -291,6 +338,9 @@ nrow(df_sgc3b) * 16 == nrow(df_sgc3b_blocks)
 (df_sgc3b_blocks %>% group_by(subject) %>% summarize(n = n()) %>% filter(n != 16) %>% nrow() ) == (0 )
 ```
 
+
+
+After applying exclusion criteria, we see that an additional `r n_sgc3b_submit - nrow(df_sgc3b %>% filter(condition %nin% f_sgc3a))` subjects were excluded from analysis for the factorial conditions of SGC3B. (note, not including those already excluded in 3A) 
 
 # Data Export 
 

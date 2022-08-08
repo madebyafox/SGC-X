@@ -6,6 +6,7 @@ output:
   pdf_document: default
   html_document: default
 ---
+
 *The purpose of this file is processing the combined data files for Spring 2018 into study-level files that contain only valid data for analysis, excluding invalid sessions and conditions.*
 
 ```{r SETUP, include=FALSE}
@@ -19,6 +20,7 @@ library(tidyjson)
 ```
 
 Data is imported from 2 files, indicating two levels of analysis: participants and blocks (item-level). **Note: mouse-cursor data contained in final_mouse_blocks.json file is not handled here.**
+
 ```{r IMPORT}
 #IMPORT DATA
 df_participants <- fromJSON("combined_files/final_participants.json")
@@ -34,7 +36,7 @@ df_blocks$term <- "spring18"
 
 #create factors in PARTICIPANTS
 df_participants <- df_participants %>%  
-  select(subject,session,term,condition,  #re-arrange columns
+  dplyr::select(subject,session,term,condition,  #re-arrange columns
          ts_n, tt_n,triangular_score,
          os_n, ot_n,orthogonal_score,
          explicit,impasse,axis,
@@ -62,7 +64,7 @@ df_participants <- df_participants %>%
 
 ```{r BLOCKS-SETUP}
 df_blocks <- df_blocks %>% 
-  select( #reorder columns
+  dplyr::select( #reorder columns
     subject, session, term, condition,
     q,question,answer,rt,
     correct, orth_correct,
@@ -80,14 +82,39 @@ df_blocks <- df_blocks %>%
   )
 ```
 
+### Reconciling Submissions 
+
+In Spring 2018, exclusion criteria were implemented in the database data wrangling step. To reconcile number of submissions (vs) number of successfully completed we compare the number of entries in the analysis database, (vs) the number of entries in the imported analysis file (post-db-wrangling).
+
+```{r STUDIES}
+#MANUALLY INSPECT studies
+
+
+df_participants %>% 
+  dplyr::group_by(condition) %>% 
+  dplyr::summarize(n=n())
+```
+
+Manual inspection of database after importing Spring 2018 data indicates:
+
+-   SGC3A
+
+    -   90 submitted (111: 41, 121: 50)
+    -   84 wrangled (imported 111:39; imported 121: 45)
+    -   thus 90 - 84 = 6 were excluded for failing the attention check
+    -   note that 12 of the remaining 84 successful SGC3A records are for test or narrative interview sessions ("strategy-connecting","strategy-satisficing","mouse"). Only 72 participants are included in the SGC3A analysis.
+
 ### Sessions
-The (string) session code is entered by the participant based on instructions given by the experimenter, and documents the data-collection session (eg. in-person at a particular time). This code is also used by the experimenter to differentiate test or expert data collection runs.  
+
+The (string) session code is entered by the participant based on instructions given by the experimenter, and documents the data-collection session (eg. in-person at a particular time). This code is also used by the experimenter to differentiate test or expert data collection runs.
+
 ```{r SESSIONS}
 #MANUALLY INSPECT sessions
 df_participants %>% group_by(session) %>% 
   summarize(n=n())
 ```
-In Spring 2018, 36 (regular)data collection sessions were used, from ALFA -> ZULU.
+
+In Spring 2018, 36 (regular)data collection sessions were used, from ALFA -\> ZULU.
 
 ```{r recode-SESSIONS}
 
@@ -110,10 +137,11 @@ df_participants %>% group_by(session) %>%
   summarize(n=n())
 ```
 
-Participants who mispelled their sessions have been manually recoded, and one participant erroneously entered their condition code as their session code, and this entry is corrected to 'XTRA'. 
+Participants who mispelled their sessions have been manually recoded, and one participant erroneously entered their condition code as their session code, and this entry is corrected to 'XTRA'.
 
 ### Conditions
-The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study. 
+
+The three digit condition code is entered by the participant based on instructions given by the experimenter, and determines the stimulus that the participant experiences during the study.
 
 ```{r CONDITIONS}
 df_participants %>% group_by(condition) %>% 
@@ -131,9 +159,9 @@ f_sgc3b <- c(111,121,211,221,311,321)
 f_sgc4 <- c(111,112,113)
 ```
 
-In Spring 2018, data were gathered for three study designs: SGC3B (continued data collection: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines). 
+In Spring 2018, data were gathered for three study designs: SGC3B (continued data collection: full factorial insight vs. explicit) and SGC4(partial data collected:gridlines).
 
-A few students duplicate-entered their condition codes. I verified that these codes still yield valid experimental stimuli. These codes are now manually recoded. 
+A few students duplicate-entered their condition codes. I verified that these codes still yield valid experimental stimuli. These codes are now manually recoded.
 
 ```{r recode-CONDITIONS}
 
@@ -154,10 +182,10 @@ df_participants %>% group_by(condition) %>%
   summarize(n=n())
 ```
 
-Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition. 
+Finally, data from the master participants and blocks files are segregated into separate files for each individual study, separated by condition.
 
-The session 'MOUSE' was used for participants in the retrospective-narrative SGC3N study. 
-The sessions 'strategy-connecting' and 'strategy-satisficing' were used to demonstrate strategies arising from the SGC3N study. 
+The session 'MOUSE' was used for participants in the retrospective-narrative SGC3N study. The sessions 'strategy-connecting' and 'strategy-satisficing' were used to demonstrate strategies arising from the SGC3N study.
+
 ```{r REMOVE-SGC3N}
 
 #CREATE SGC3N dataframes
@@ -184,8 +212,7 @@ df_blocks <- df_blocks %>%
 
 ```
 
-These sessions are removed from the main dataframe and stored as separate files prefixed SGC3N_. 
-
+These sessions are removed from the main dataframe and stored as separate files prefixed SGC3N\_.
 
 ```{r GENERATE FILES}
 

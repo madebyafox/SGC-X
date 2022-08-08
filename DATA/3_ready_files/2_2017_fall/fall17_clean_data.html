@@ -385,7 +385,7 @@ df_participants$term &lt;- &quot;fall17&quot;
 df_blocks$term &lt;- &quot;fall17&quot;</code></pre>
 <pre class="r"><code>#create factors in PARTICIPANTS
 df_participants &lt;- df_participants %&gt;%  
-  select(subject,session,term,condition,  #re-arrange columns
+  dplyr::select(subject,session,term,condition,  #re-arrange columns
          ts_n, tt_n,triangular_score,
          os_n, ot_n,orthogonal_score,
          explicit,impasse,axis,
@@ -409,7 +409,7 @@ df_participants &lt;- df_participants %&gt;%
     native_language = gsub(&#39;&quot;&#39;,&quot;&quot;,native_language),
 ) </code></pre>
 <pre class="r"><code>df_blocks &lt;- df_blocks %&gt;% 
-  select( #reorder columns
+  dplyr::select( #reorder columns
     subject, session, term, condition,
     q,question,answer,rt,
     correct, orth_correct,
@@ -425,6 +425,28 @@ df_participants &lt;- df_participants %&gt;%
     q=factor(q),
     question=factor(question)
   )</code></pre>
+<div id="studies" class="section level3">
+<h3>Studies</h3>
+<pre class="r"><code>#MANUALLY INSPECT studies
+df_participants %&gt;% group_by(condition) %&gt;% 
+  dplyr::summarize(n=n())</code></pre>
+<pre><code>## # A tibble: 8 × 2
+##   condition     n
+##   &lt;fct&gt;     &lt;int&gt;
+## 1 111          27
+## 2 112          10
+## 3 113           6
+## 4 121          27
+## 5 211          30
+## 6 221          30
+## 7 311          30
+## 8 321          30</code></pre>
+<p>A total of 54 subjects (111 : 27, 121: 27) completed study SGC3A (in
+person). A total of 10 subjects (113 : 10) completed a pilot of study
+SGC4A (in person). A total of 10 subjects (211 : 30, 221:30, 311:30,
+321:30) completed study SGC3B (in person). Note that the 111 and 121
+conditions of study SGC3A are included in SGC3B for analysis.</p>
+</div>
 <div id="sessions" class="section level3">
 <h3>Sessions</h3>
 <p>The (string) session code is entered by the participant based on
@@ -433,7 +455,7 @@ data-collection session (eg. in-person at a particular time). This code
 is also used by the experimenter to differentiate test or expert data
 collection runs.</p>
 <pre class="r"><code>#MANUALLY INSPECT sessions
-df_participants %&gt;% group_by(session) %&gt;% 
+df_participants %&gt;% dplyr::group_by(session) %&gt;% 
   summarize(n=n())</code></pre>
 <pre><code>## # A tibble: 16 × 2
 ##    session      n
