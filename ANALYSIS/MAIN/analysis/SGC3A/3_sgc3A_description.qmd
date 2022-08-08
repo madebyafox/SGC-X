@@ -54,8 +54,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 #IMPORT DATA 
 df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
@@ -99,10 +99,23 @@ subject.stats <- rbind(
   "online" = df_online %>% filter(mode == "asynch") %>% dplyr::select(age) %>% unlist() %>% favstats(),
   "combined" = df_subjects %>% dplyr::select(age) %>% unlist() %>% favstats()
 ) 
+
+subject.stats$percent.male <- c(
+  (df_lab %>%  filter(gender=="Male") %>% count())$n/count(df_lab) %>% unlist(),
+  (df_online %>% filter(gender=="Male") %>% count())$n/count(df_online) %>% unlist(),
+  (df_subjects %>% filter(gender=="Male") %>% count())$n/count(df_subjects) %>% unlist()
+)
+
 subject.stats$percent.female <- c(
   (df_lab %>%  filter(gender=="Female") %>% count())$n/count(df_lab) %>% unlist(),
   (df_online %>% filter(gender=="Female") %>% count())$n/count(df_online) %>% unlist(),
   (df_subjects %>% filter(gender=="Female") %>% count())$n/count(df_subjects) %>% unlist()
+)
+
+subject.stats$percent.other <- c(
+  (df_lab %>%  filter(gender %nin% c("Female","Male")) %>% count())$n/count(df_lab) %>% unlist(),
+  (df_online %>% filter(gender %nin% c("Female","Male")) %>% count())$n/count(df_online) %>% unlist(),
+  (df_subjects %>% filter(gender %nin% c("Female","Male")) %>% count())$n/count(df_subjects) %>% unlist()
 )
 
 title = "Descriptive Statistics of Participant Age and Gender"
@@ -111,11 +124,11 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
-For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round((subject.stats["lab",]$percent.female),2) * 100` % female ) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
+For **in-person** collection, `r subject.stats["lab",]$n` participants (`r round((subject.stats["lab",]$percent.male),2) * 100` % male, `r round((subject.stats["lab",]$percent.female),2) * 100` % female, `r round((subject.stats["lab",]$percent.other),2) * 100` % other) undergraduate STEM majors at a public American University participated *in person* in exchange for course credit (age: `r (subject.stats['lab','min'])` - `r (subject.stats['lab','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-For **online replication** `r subject.stats["online",]$n` participants (`r  round((subject.stats["online",]$percent.female),2) * 100` % female ) undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
+For **online replication** `r subject.stats["online",]$n` participants (`r round((subject.stats["online",]$percent.male),2) * 100` % male, `r round((subject.stats["online",]$percent.female),2) * 100` % female, `r round((subject.stats["online",]$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated *online, asynchronously* in exchange for course credit (age: `r (subject.stats['online','min'])` - `r (subject.stats['online','max'])` years). Participants were randomly assigned to one of two experimental groups.
 
-Combined **overall** `r subject.stats["combined",]$n` participants (`r  round((subject.stats["combined",]$percent.female),2) * 100` % female ) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years).
+Combined **overall** `r subject.stats["combined",]$n` participants (`r round((subject.stats["combined",]$percent.male),2) * 100` % male, `r round((subject.stats["combined",]$percent.female),2) * 100` % female, `r round((subject.stats["combined",]$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats['combined','min'])` - `r (subject.stats['combined','max'])` years).
 
 ## RESPONSE ACCURACY
 
