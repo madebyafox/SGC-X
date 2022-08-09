@@ -74,8 +74,8 @@ theme_set(theme_minimal())
 #| message : false
 
 #IMPORT DATA 
-df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
-df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds')
+# df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
+# df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds')
 #weird... doesn't respect project level execute dir in yml unless included in index; otherwise breaks render
 
 ```
@@ -106,8 +106,8 @@ _First we join the load data for the subset of SGC3A participants who completed 
 
 #LOAD OSPAN PARTICIPANTS
 df_ospan <- read_csv("analysis/SGC3A/data/1-study-level/sgc3a_ospan.csv") #not scored
-sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") #not scored
-sgc3a_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") #not scored
+sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") 
+sgc3a_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") 
 
 ##ADD OSPAN DATA TO SUBJECT LEVEL DATA
 
@@ -124,6 +124,8 @@ df_ospan <- df_ospan %>% rename( OSPAN.weighted = weighted, OSPAN.math_acc = mat
 
 #get only the participants for whom we have ospan data 
 df_sgc3a <- sgc3a %>% filter(subject %in% df_ospan$subject)
+df_no_ospan <- sgc3a %>% filter(subject %nin% df_ospan$subject)
+online_no_ospan <- df_no_ospan %>% filter(mode == "asynch")
 
 #add q1 state field [3 category summary of interepretation]
 df_sgc3a <- df_sgc3a %>% mutate(
@@ -143,6 +145,8 @@ df_sgc3a <- merge(df_sgc3a, df_ospan)
 #get only the participants for whom we have ospan data 
 df_sgc3a_items <- sgc3a_items %>% filter(subject %in% df_ospan$subject) 
 df_sgc3a_items <- merge(df_sgc3a_items, df_ospan)
+
+
 
 
 #define dataset
@@ -436,6 +440,8 @@ BreslowDayTest(t, OR = 1)
 A Brewslow-Day Test of homogeneity of Odds Ratios allows us to test the null hypothesis that the odds for each response outcome (orth-like, unknown, tri-like) are the same for each condition across each level of working memory. Essentially, that the odds ratio of a positive response for each condition does not differ by working memory.  
 
 _We must reject the null hypothesis that (for low-working memory participants) condition and interpretation are independent. They do appear to be related, such that even for low-working memory participants, the impasse condition yields many more unknown and triangle-like responses than the control condition.  Together with the non-significant p-value for that does not allow us to reject the null hypothesis of homogeneous odds ratios across levels of working memory score, we do not have evidence of an interaction between working memory score and INTERPRETATION on question 1. 
+
+
 
 #### Logistic Regression
 

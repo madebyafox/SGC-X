@@ -63,6 +63,11 @@ df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_particip
 df_absolute_progress <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress.csv')
 df_scaled_progress <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress.csv')
 
+#SETUP PERCENTAGE SCORE FOR TEST PHASE ONLY
+df_subjects <- df_subjects %>% mutate(
+  DV_ptest_NABS = item_test_NABS /8
+) 
+
 #SEPARATE ITEM AND SUBJECTS BY MODALITY
 df_lab <- df_subjects %>% filter(mode == "lab-synch")
 df_online <- df_subjects %>% filter(mode == "asynch")
@@ -248,6 +253,99 @@ The excess mass test for multimodality suggests the distribution is infact multi
 ::: callout-note
 **Condition appears (through visual inspection) to yield a positive influence on Total Absolute Score in the TEST Phase, across data collection modalities.**
 :::
+
+
+#### Test Phase Absolute Percentage
+
+Test Phase Score converted to percentage. 
+
+```{r}
+
+title = "Descriptive Statistics of TEST PHASE Response Accuracy (% Accuracy Absolute Score)"
+abs.stats <- rbind(
+  "lab"= df_lab %>% dplyr::select(DV_ptest_NABS) %>% unlist() %>% favstats(),
+  "online" = df_online %>% dplyr::select(DV_ptest_NABS) %>% unlist() %>% favstats(),
+  "combined" = df_subjects %>% dplyr::select(DV_ptest_NABS) %>% unlist() %>% favstats()
+) 
+abs.stats %>% kbl (caption = title) %>% kable_classic() %>% 
+  footnote(general = "% questions correct [0 - 100%]", 
+           general_title = "Note: ",footnote_as_chunk = T) 
+
+```
+
+For *in person* collection, total absolute scores in the TEST phase (n = `r abs.stats["lab",]$n`) range from `r round(abs.stats["lab",]$min,2)` to `r round(abs.stats["lab",]$max,2)` with a mean score of (M = `r round(abs.stats["lab",]$mean,2)`, SD = `r round(abs.stats["lab",]$sd,2)`).
+
+For *online replication*, (online) total absolute scores in the TEST phase (n = `r abs.stats["online",]$n`) range from `r round(abs.stats["online",]$min,2)` to `r round(abs.stats["online",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["online",]$mean,2)`, SD = `r round(abs.stats["online",]$sd,2)`).
+
+When combined *overall*, total absolute accuracy scores in the TEST phase (n = `r abs.stats["combined",]$n`) range from `r round(abs.stats["combined",]$min,2)` to `r round(abs.stats["combined",]$max,2)` with a slightly lower mean score of (M = `r round(abs.stats["combined",]$mean,2)`, SD = `r round(abs.stats["combined",]$sd,2)`).
+
+```{r}
+
+#GGFORMULA | DENSITY HISTOGRAM SUBJECT TOTAL ABSOLUTE
+  gf_props(~DV_ptest_NABS, data = df_subjects) + 
+  labs(x = "number of correct responses (test phase)",
+       y = "% of subjects",
+       title = "Distribution of TEST Absolute Score ",
+       subtitle = "Modes at high and low ends of scale suggest concentration of high (vs) low understanding") 
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "DV_ptest_NABS",
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+  labs( title = "Distribution of TEST Absolute Score",
+        subtitle ="Pattern of response is similar across data collection modes but differs by condition",
+        x = "Total Absolute Score (Test Phase)", y = "number of subjects") +
+  theme_minimal() + theme(legend.position = "blank")
+
+##VERTICAL RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = DV_ptest_NABS,
+                        fill = pretty_condition) ) + 
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.1,
+    width = 1, 
+    point_colour = NA
+   ) + 
+  geom_boxplot(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = DV_ptest_NABS),
+    width = .15, 
+    outlier.shape = NA
+  ) + 
+  geom_point(
+    inherit.aes = FALSE, #supress fill
+    mapping = aes(x=pretty_condition, y = DV_ptest_NABS, color = pretty_condition),
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter( 
+      seed = 1, width = .05
+  )) + labs( 
+    title = "Distribution of TEST Absolute Score ",
+    x = "Condition", y = "Total Absolute Score (Test Phase)") +
+  theme(legend.position = "blank") + 
+  coord_cartesian(xlim = c(0.5, NA), clip = "off")
+
+#STATSPLOT
+ggbetweenstats(y = DV_ptest_NABS, x = pretty_condition, data = df_subjects,
+               type = "nonparametric", var.equal = FALSE,
+               pairwide.display = "significant", )
+
+
+#PLOT EMPIRICIAL CUMULATIVE DISTRIBUTION FUNCTION
+ggplot(data = df_subjects, aes(DV_ptest_NABS)) + 
+  stat_ecdf(geom = "step") +
+  facet_grid(pretty_condition~pretty_mode) + 
+  labs( title = "Empirical Cumulative Density Function — TEST Absolute Score ",
+        x = "Total Absolute Score (Test Phase) [0,8]", 
+        y = "Cumulative Probability")
+
+#NOTE this is clobbered by the shift function imports; so I load those later
+  
+
+
+```
 
 #### Test Phase Scaled Scores
 
