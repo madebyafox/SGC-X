@@ -24,6 +24,7 @@ library(ggpubr) #arrange plots
 library(ggstatsplot) #sanity checks 
 library(sjPlot) #model plots
 library(ggeasy) #easy plot changes
+library(modelsummary)
 
 #modelling
 library(lme4)
@@ -54,8 +55,8 @@ theme_set(theme_minimal())
 
 # HACK WD FOR LOCAL RUNNING?
 # imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(mbp)
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
 
 ##:::::::: IMPORT SUBJECT DATA 
 
@@ -241,6 +242,212 @@ table(sgc4a_B$term, sgc4a_B$condition) %>% addmargins()
 # n_dist ==  x_dist + n_discard 
 
 ```
+
+
+## MODEL SGC4A
+
+```{r}
+table(in_sgc4a$condition)
+
+df_s <- in_sgc4a
+df_i <- in_sgc4a_items %>% filter(q %nin% c(6,9)) %>% mutate(
+  q = as.factor(q),
+  accuracy = as.factor(score_niceABS)
+)
+```
+
+
+#### MIXED LOGISTIC REGRESSION
+
+*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
+
+##### Fit Model
+
+```{r}
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#confirm 13 items [all discriminating items]
+nrow(df_i) / nrow(df_s) == 13
+#confirm all factors 
+is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy)
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
+# summary(m0)
+
+#:: RANDOM INTERCEPT SUBJECT
+print("Subject intercept random model")
+mm.rS <- glmer(accuracy ~ (1|subject), data = df_i, family = "binomial")
+# summary(mm.rS)
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
+test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+
+#:: RANDOM INTERCEPT SUBJECT + ITEM
+print("Subject Intercept + Item intercept random model")
+mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial",
+                control=glmerControl(optimizer="bobyqa",
+            optCtrl=list(maxfun=100000)))
+summary(mm.rSQ)
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)))
+test_lrt(mm.rS, mm.rSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS, mm.rSQ))$p[2])
+
+```
+
+*A likelihood ratio test indicates that a logistic regression model including random intercepts for SUBJECT and QUESTION explains more variance in the data than an empty \[intercept only\] model.*
+
+```{r}
+
+## 2 | ADD FIXED EFFECT CONDITION + 
+
+print("FIXED Condition + Subject & Item random intercepts")
+mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
+                data = df_i, family = "binomial")
+summary(mm.CrSQ)
+
+
+print("FIXED Condition + Subject ONLY random intercepts")
+mm.CrS <- glmer(accuracy ~ pretty_condition + (1|subject),
+                data = df_i, family = "binomial")
+summary(mm.CrS)
+
+compare_performance(mm.CrSQ, mm.CrS)
+
+```
+
+
+##### Describe
+
+```{r}
+
+# best model
+m1 <- mm.CrSQ
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m1)
+print("SIGNIFICANCE TEST [non directional]")
+car::Anova(m1)
+
+#:::::::: MANUAL ONE-SIDED SIGTEST 
+#note: anova and chi square are always one-tailed, but that is independent of being one-sided
+#https://www.ibm.com/support/pages/can-one-get-one-tailed-tests-logistic-regression-dividing-significance-levels-half
+
+# one-sided (right tail) z test for B COEFFICIENT
+#SANITY CHECK 2-tailed test should match the model output
+tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
+ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("BUT we want a one  directional, null: B <= 0: ",round(ot,5))
+
+#:::::::: INTERPRET COEFFICIENTS
+
+se <- sqrt(diag(stats::vcov(m1)))
+# table of estimates with 95% CI
+paste("LOG ODDS")
+(tab <- cbind(Est = fixef(m1), LL = fixef(m1) - 1.96 * se, UL = fixef(m1) + 1.96 *
+    se))
+paste("ODDS RATIOS")
+(e <- exp(tab))
+
+```
+
+##### Inference
+
+***In dissertation***
+
+To investigate the effect of condition on overall accuracy, we fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items. The model including a fixed effect of condition performed significantly better than an intercepts-only baseline model (χ2(4): 18.66, p \< 0.001). The explanatory power of the entire model is substantial (conditional R2 = 0.89) with the part related to the fixed effects (marginal R2) 0.15. Consistent with the pattern of results for the first question only, across the entire task, being in the impasse condition increases the odds of a correct response by a factor of 76 over the control condition $e^{\beta_1}$ = 75.5, p \< 0.001, one-tailed, 90% CI \[8.46, 673.79\].
+
+##### Visualize
+
+```{r}
+#:::::::: PLOT
+
+#GGSTATS | MODEL | LOG ODDS 
+ggcoefstats(m1, output = "plot", 
+              conf.level = 0.90) + 
+  labs(x = "Log Odds Estimate", 
+       subtitle = "p is for two tailed test")
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m1, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
+  labs(title = "Model Predicted Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m1, type="eff",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Predicted Probability of Accuracy",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+#SJPLOT | MODEL | TABLE
+tab_model(m1)
+
+
+# #save table for latex in dissertation
+models <- list("odds ratios" = m1, "(log odds)" = m1)
+notes = list('N(subject) = 126 $\tau_{00}$(subject) = 22.22',
+             'N(question) = 13 $\tau_{00}$(question) = 0.31',
+               "*** indicates p < 0.001")
+
+modelsummary(models,
+             exponentiate = c(TRUE, FALSE),
+             shape = term + statistic ~ model,
+             fmt = 2, #two digits w/ trailing zero
+             estimate  = "{estimate} {stars}",
+             statistic = c(
+                           "s.e. = {std.error}"),
+             coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
+             # coef_omit = "Intercept",
+             gof_omit = 'AIC|RMSE|ICC|BIC',
+             title = 'Accuracy ~ Condition (Mixed Logistic Regression)', notes = notes,
+             output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
+
+
+```
+
+##### Diagnostics
+
+```{r}
+#| warning: false
+#| message: false
+
+print("SANITY CHECK REPORTING")
+report(m1)
+
+print("MODEL PERFORMANCE")
+performance(m1)
+
+print("DIAGNOSTICS")
+check_model(m1)
+binned_residuals(m1)
+```
+
+
+
+##### TODO
+
+-   DIAGNOSTICS: What in the world is happening with the normality of random effects plot? Do the fixed effects residuals need to be normally distributed?
+-   What else needs to be interpreted with respect to the item and subject random effects?
+
+
+
+
 
 ## MODEL SGC3A _ ONLINE REPLICATION
 

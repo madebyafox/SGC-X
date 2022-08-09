@@ -40,6 +40,7 @@ library(equatiomatic) #extract model equation
 library(pwr) #power analyses
 
 #modelling
+library(rstatix) #helpful basic stats & non parametrics
 library(WRS2) #robust and nonparametric tests 
 library(lmerTest) #for CIs in glmer 
 library(qqplotr) #confint on qq plot
@@ -268,6 +269,8 @@ ggbetweenstats(y = test_score, x = condition, data = df,
 -   Does not assume normality
 -   Does not assume equal variance of samples (homogeneity of variance)
 -   **Appropriate for SGC accuracy data**
+-   https://www.datanovia.com/en/lessons/wilcoxon-test-in-r/#two-sample-wilcoxon-test
+-   https://data.library.virginia.edu/the-wilcoxon-rank-sum-test/
 
 ```{r}
 #| label: WILCOXON RANK SUM
@@ -275,6 +278,9 @@ ggbetweenstats(y = test_score, x = condition, data = df,
 (w <- wilcox.test(df$test_score ~ df$condition,
                  paired = FALSE, alternative = "two.sided")) #less, greater
 report(w)
+
+#effect size
+df_s %>% wilcox_effsize(test_percent ~ condition)
 
 ```
 
@@ -1145,6 +1151,7 @@ e
 
 # one-sided (right tail) z test for B COEFFICIENT
 #https://stats.stackexchange.com/questions/330655/strategy-for-a-one-sided-test-of-glms-coefficients
+#https://www.ibm.com/support/pages/can-one-get-one-tailed-tests-logistic-regression-dividing-significance-levels-half
 
 #SANITY CHECK 2-tailed test should match the model output
 tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
