@@ -26,8 +26,11 @@ library(sjPlot) #visualize model coefficients
 library(ggeasy) #the way it should be
 library(statsExpressions) #expressions to add to plots
 library(ggstatsplot) #plots with expressions
-library(ggdist)
+library(ggdist) #uncertainty viz 
 library(ggeffects) #visualization log regr models
+library(modelsummary) #tables
+library(broom) #tidy models
+library(broom.mixed) #tidy mixed and mixture models
 
 #misc utilities
 library(broom)
@@ -110,6 +113,9 @@ df_items <- df_items %>% mutate(
 ```
 
 # INDEPENDENT SAMPLES
+
+-   test-equivalents of GLM models: https://rpubs.com/palday/glm-test
+-   models as test :https://lindeloev.github.io/tests-as-linear/
 
 ## CONTINUOUS OUTCOME
 
@@ -280,7 +286,7 @@ ggbetweenstats(y = test_score, x = condition, data = df,
 report(w)
 
 #effect size
-df_s %>% wilcox_effsize(test_percent ~ condition)
+df %>% wilcox_effsize(test_score ~ condition)
 
 ```
 
@@ -779,11 +785,136 @@ test_lrt(h.1, h.2)
 
 ## BETA REGRESSION
 
-### BETA Regression
+### BETA Distribution
 
 Beta regression on % correct (with standard transformation for including \[0,1\])
 
 <https://stats.stackexchange.com/questions/63350/how-to-interpret-the-coefficients-from-a-beta-regression>
+
+https://www.andrewheiss.com/blog/2021/11/08/beta-regression-guide/#2-fractional-logistic-regression
+
+If a test score is conceptualized as correct (a) and b (incorrect) score = correct / (correct + incorrect) = a/ (a + b)
+
+In the beta distribution, a and b are the shape parameters!
+
+```{r}
+theme_clean <- function() {
+  theme_minimal(base_family = "Barlow Semi Condensed") +
+    theme(panel.grid.minor = element_blank(),
+          plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
+          axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
+          strip.text = element_text(family = "BarlowSemiCondensed-Bold",
+                                    size = rel(1), hjust = 0),
+          strip.background = element_rect(fill = "grey80", color = NA))
+}
+
+
+ggplot() +
+  geom_function(fun = dbeta, args = list(shape1 = 6, shape2 = 4),
+                aes(color = "Beta(shape1 = 6, shape2 = 4)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom")+ labs(
+    title = "Beta a = 6, b = 4"
+  )
+
+
+ggplot() +
+  geom_function(fun = dbeta, args = list(shape1 = 8, shape2 = 0.001),
+                aes(color = "Beta(shape1 = 8, shape2 = 0.001)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom") + labs(
+    "ALL CORRECT"
+  )
+
+ggplot() +
+  geom_function(fun = dbeta, args = list(shape1 = 0.001, shape2 = 8),
+                aes(color = "Beta(shape1 = 0.001, shape2 = 8)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom") + labs(
+    "ALL WRONG"
+  )
+
+ggplot() +
+  geom_function(fun = dbeta, args = list(shape1 = 4, shape2 = 4),
+                aes(color = "Beta(shape1 = 4, shape2 = 4)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom") + labs(
+    "FIGURED IT OUT HALFWAY "
+  )
+
+```
+
+ALTERNATIVE conceptualization of a and b is as mean MU and precision PHI (same idea as variance).
+
+a = mu \* phi b = (1 - mu) \* phi
+
+MU = a / (a+b) \[the score\] PHI = a + b \[ the total \# items \]
+
+The `extraDistr::dprop` function can also handle mu and phi parameters, named as mean and size
+
+```{r}
+library(extraDistr)
+ggplot() +
+  geom_function(fun = dprop, args = list(mean = 0.999, size = 8),
+                aes(color = "Beta(mean = 0.99, size = 8)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom") + labs(
+    "ALL CORRECT"
+  )
+
+ggplot() +
+  geom_function(fun = dprop, args = list(mean = 0.001, size = 8),
+                aes(color = "Beta(mean = 0.001, size = 8)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom") + labs(
+    "ALL WRONG"
+  )
+
+ggplot() +
+  geom_function(fun = dprop, args = list(mean = 0.5, size = 8),
+                aes(color = "Beta(mean = 0.5, size = 8)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom") + labs(
+    "FIGURED IT OUT HALFWAY "
+  )
+
+
+ggplot() +
+  geom_function(fun = dbeta, args = list(shape1 = 0.001, shape2 = 1),
+                aes(color = "Beta(shape1 = 6, shape2 = 4)"),
+                size = 1) +
+  scale_color_viridis_d(option = "plasma", name = "") +
+  theme_clean() +
+  theme(legend.position = "bottom")
+
+
+```
+
+**Note that in all cases, we have to slightly adjust the parameters because the distribution can't handle values at 0 or 1. So we scrunch the data in just a bit.**
+
+### BETA Regression
+
+https://www.andrewheiss.com/blog/2021/11/08/beta-regression-guide/#2-fractional-logistic-regression
+
+The syntax is just like all other formula-based regression functions, but with an added bit: the first part of the equation (x \~ y) models the mean, or MU, while anything that comes after a \| in the formula will explain variation in the precision, or PHI.
+
+The link parameter determines the link function for the mu estimate?.
+
+#### Setup
 
 ```{r}
 # 
@@ -796,17 +927,635 @@ n = nrow(sub) %>% unlist()
 sub$dv_transformed = (sub$DV_percent_NABS * (n-1) + 0.5)/n
  
 #VISUALIZE VARIABLES
+paste("Slightly squished data")
 histogram(sub$dv_transformed)
-gf_histogram(~dv_transformed, fill = ~condition, data = sub) %>% gf_facet_wrap(~condition)
+
 
 #FIT MODEL
-mb <- betareg(dv_transformed ~ condition, data = sub)
-summary(mb)
-plot(mb)
+mb1 <- betareg(dv_transformed ~ condition | condition, 
+              data = sub)
+
+summary(mb1)
+plot(mb1)
+
 
 ```
 
-### BETA HURDLE Regression
+-   Which link function should be used for each? We now have two sets of coefficients, one set for each parameter (the mean and precision). The parameters for the mean are measured on the logit scale, just like with logistic regression previously, and we can calculate the marginal effect of having a quota by using plogis() and piecing together the coefficient and the intercept:
+
+#### Interpret
+
+```{r}
+
+beta_mu_intercept <- mb1 %>% 
+  tidy() %>% 
+  filter(component == "mean", term == "(Intercept)") %>% 
+  pull(estimate)
+
+beta_mu_condition <- mb1 %>% 
+  tidy() %>% 
+  filter(component == "mean", term == "conditionimpasse") %>% 
+  pull(estimate)
+
+
+print("Coefficients —- PROBABILITIES")
+print("[these should math pred plots]")
+print("Probability at reference level")
+plogis(beta_mu_intercept)
+print("Probability at coefficient level")
+plogis(beta_mu_intercept + beta_mu_condition)
+print("CHANGE in probability by coefficient")
+plogis(beta_mu_intercept + beta_mu_condition) - plogis(beta_mu_intercept)
+
+plot_model(mb1, type = "pred")
+```
+
+Impasse increases the average of the distribution of accuracy by 12% percentage points, on average. This should match the value we get with fractional regression. (logistic regression with count variable instead of binomial)
+
+-   The intercept of MU indicates the average of the distribution of score proportion in the control condition
+-   The coefficient of MU indicates the change in the average distribution of score proportion in the impasse condition
+
+The PHI parameter estimates are not measured on a logit scale. Instead, they're log values. We can invert them by exponentiating them with exp(). - The phi intercept indicates the precision of the distribution of score proportion in the control condition - The phi coefficient indicates the change in the precision of the distribution of score proportion in the impasse condition
+
+-   CONDITION is a significant predictor of MEAN (location) but not PHI (precision). Put another way, the shape of both distributions is similar, but the impasse condition distribution is shift to the right (higher) than the control distribution.
+
+
+
+#### Compare
+
+```{r}
+# COMPARE MODELS
+
+
+#PREP DATA 
+df <- df_subjects %>% filter(mode == "lab-synch")
+n = nrow(df) %>% unlist()
+df <- df %>%  mutate(
+    accuracy = item_test_NABS/8,
+    test_trans = (accuracy * (n-1) + 0.5)/n,
+    all_trans = (DV_percent_NABS * (n-1) + 0.5)/n
+  )
+
+# LINEAR REGRESSION
+lm1 <- lm( test_trans ~ pretty_condition    , data = df)
+# summary(lm1)
+
+# LINEAR REGRESSION on LOGTRANSFORMED
+qlm1 <- lm( qlogis(test_trans) ~ pretty_condition    , data = df)
+# summary(qlm1)
+
+# FRACTIONAL REGRESSION
+#uses quasibinomial [like binomial] on proportion 
+#instead of binomial data. coeffs on logit scale
+flm1 <- glm( test_trans ~ pretty_condition, data = df, family = quasibinomial())
+summary(flm1)
+
+# BETA REGRESSION predictor phi
+bm1 <- betareg(test_trans ~ pretty_condition | pretty_condition, 
+              data = df, link = "logit")
+summary(bm1)
+
+
+models = list("LM" = lm1, 
+              "LM log transform" = qlm1, 
+              "GLM Quasibinomial" = flm1, 
+              "beta" = bm1)
+modelsummary(models)
+
+```
+
+
+```{r}
+
+#GET ESTIMATES
+model_beta <- bm1
+
+beta_mu_intercept <- model_beta %>% 
+  tidy() %>% 
+  filter(component == "mean", term == "(Intercept)") %>% 
+  pull(estimate)
+
+beta_mu_condition <- model_beta %>% 
+  tidy() %>% 
+  filter(component == "mean", term == "pretty_conditionimpasse") %>% 
+  pull(estimate)
+
+beta_phi_intercept <- model_beta %>% 
+  tidy() %>% 
+  filter(component == "precision", term == "(Intercept)") %>% 
+  pull(estimate)
+
+beta_phi_condition <- model_beta %>% 
+  tidy() %>% 
+  filter(component == "precision", term == "pretty_conditionimpasse") %>% 
+  pull(estimate)
+
+
+mu_control = plogis(beta_mu_intercept)
+phi_control = plogis(beta_phi_intercept)
+#when you don’t explicitly model the precision, the resulting coefficient in the table isn’t on the log scale—it’s a regular non-logged number, so there’s no need to exponentiate
+
+#PLOT ESTIMATES
+
+control_title <- paste0("dprop(mean = plogis(", round(beta_mu_intercept, 2),
+                         "), size = exp(", round(beta_phi_intercept, 2), "))")
+
+impasse_title <- paste0("dprop(mean = plogis(", round(beta_mu_intercept, 2),
+                      " + ", round(beta_mu_condition, 2), 
+                      "), size = exp(", round(beta_phi_intercept, 2),
+                      " + ", round(beta_phi_condition, 2), "))")
+
+ggplot(data = tibble(x = 0:1), aes(x = x)) +
+  stat_function(fun = dprop, size = 1,
+                args = list(size = exp(beta_phi_intercept), 
+                            mean = plogis(beta_mu_intercept)),
+                aes(color = control_title)) + 
+  stat_function(fun = dprop, size = 1,
+                args = list(size = exp(beta_phi_intercept + beta_phi_condition), 
+                            mean = plogis(beta_mu_intercept + beta_mu_condition)),
+                aes(color = impasse_title)) +
+  geom_density(data = df, 
+               aes(x = test_trans, fill = pretty_condition), 
+               alpha = 0.5, color = NA) +
+  labs(x = "Beta Regression Predictions") +
+  theme_clean() +
+  theme(legend.position = "right")
+
+```
+
+We can also convert the parameter estimates back to A and B. for the impasse condition, MU = 0.397 SIZE = 0.666
+
+a = mu \* phi = 0.397 \* 0.66 = 0.264 b = (1 - mu) \* phi = (1 - 0.397) \* 0.666 = 0.402
+
+we should expect it to look more like ... (for 50% ) a = correct = 3 b = incorrect = 10 a + b = total = 13
+
+MU = a / (a+b) \[the score\] = 3 / 13 = 0.23 PHI = a + b \[ the total \# items \] = 13
+
+mu = 0.277 = a / (a + b) phi = 0.395 = a + b let b = 13
+
+```{r}
+#RECOVER A AND B FROM MU AND PHI
+muphi_to_shapes <- function(mu, phi) {
+  shape1 <- mu * phi
+  shape2 <- (1 - mu) * phi
+  return(list(shape1 = shape1, shape2 = shape2))
+}
+
+shapes_to_muphi <- function(shape1, shape2) {
+  mu <- shape1 / (shape1 + shape2)
+  phi <- shape1 + shape2
+  return(list(mu = mu, phi = phi))
+}
+
+paste("model predicts control A and B ")
+muphi_to_shapes(mu_control, phi_control)
+paste("should be something like ")
+shapes_to_muphi(5,13)
+```
+
+It seems like the although the (shrinkled) beta regression model is working, it is really messing up the estimate of the PHI parameter, such that we can't even recover the A and B. I expect whole numbers, and instead I'm geting values less than 1. I think this might be because the phi value is so low (note that phi = precision, so like inverse of variance. Lower values are more less precise (more variance)). Since I have so many values near 0 and near 1 (even though I've shrunk the estimates to be in the open interval (0,1) rather than \[0,1\], I think it causing problems with the estimation. )
+
+#### bayesian version
+
+```{r}
+library(brms)
+model_beta_bayes <- brm(
+  bf(test_trans ~ pretty_condition,
+     phi ~ pretty_condition),
+  data = df,
+  family = Beta(),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234,
+  # Use the cmdstanr backend for Stan because it's faster and more modern than
+  # the default rstan You need to install the cmdstanr package first
+  # (https://mc-stan.org/cmdstanr/) and then run cmdstanr::install_cmdstan() to
+  # install cmdstan on your computer.
+  backend = "cmdstanr"
+)
+```
+
+```{r}
+summary(model_beta_bayes)
+paste("Cool! parameters are almost identical to betareg")
+```
+
+```{r}
+library(tidybayes)
+posterior_beta <- model_beta_bayes %>% 
+  gather_draws(`b_.*`, regex = TRUE) %>% 
+  mutate(component = ifelse(str_detect(.variable, "phi_"), "Precision", "Mean"),
+         intercept = str_detect(.variable, "Intercept"))
+
+ggplot(posterior_beta, aes(x = .value, y = fct_rev(.variable), fill = component)) +
+  geom_vline(xintercept = 0) +
+  stat_halfeye(aes(slab_alpha = intercept), 
+               .width = c(0.8, 0.95), point_interval = "median_hdi") +
+  scale_fill_viridis_d(option = "viridis", end = 0.6) +
+  scale_slab_alpha_discrete(range = c(1, 0.4)) +
+  guides(fill = "none", slab_alpha = "none") +
+  labs(x = "Coefficient", y = "Variable",
+       caption = "80% and 95% credible intervals shown in black; RAW COEFF") +
+  facet_wrap(vars(component), ncol = 1, scales = "free_y") +
+  theme_clean()
+
+
+
+##GET USEFUL ESTIMATES
+paste("TRANSFORMED ESTIMATES")
+model_beta_bayes %>% 
+  spread_draws(`b_.*`, regex = TRUE) %>% 
+  mutate(across(starts_with("b_phi"), ~exp(.))) %>%
+  mutate(across((!starts_with(".") & !starts_with("b_phi")), ~plogis(.))) %>%
+  gather_variables() %>% 
+  median_hdi()
+# now phi is a raw value indicating precision
+# now mu is an odds ratio for median? of the distribution
+```
+
+#### Bayesian predictions
+
+```{r}
+
+# Plug a dataset where quota is FALSE and TRUE into the model
+beta_bayes_pred <- model_beta_bayes %>% 
+  epred_draws(newdata = tibble(pretty_condition = c("control", "impasse")))
+
+ggplot(beta_bayes_pred, 
+       aes(x = .epred, y = pretty_condition, fill = pretty_condition)) +
+  stat_halfeye(.width = c(0.8, 0.95), point_interval = "median_hdi") +
+  scale_fill_viridis_d(option = "plasma", end = 0.8) +
+  guides(fill = "none") +
+  labs(x = "Predicted Comprehension Task Score Percentage Correct", y = NULL,
+       caption = "80% and 95% credible intervals shown in black") +
+  theme_clean()
+
+```
+```{r}
+#TODO POSTERIOR PREDICTIVE CHECKS 
+
+# describe_posterior(model_beta_bayes, test = c("p_direction", "rope", "bayesfactor"))
+
+# library(rstanarm)
+# pp_check(model_beta_bayes, plotfun = "boxplot", nreps = 10, notch = FALSE)
+# pp_check(model_beta_bayes, plotfun = "stat_grouped", stat = "median", group = "pretty_condition")
+
+```
+### ZERO INFLATED BETA 
+
+1. logistic regression for zero inflated $\alpha$ (logit scale)
+2. beta regression for proportion $\mu$ (logit scale) and $\phi$ (log scale)
+
+```{r}
+df <- df_subjects %>% dplyr::select(pretty_condition, DV_percent_NABS) %>% 
+  mutate(
+    condition = pretty_condition,
+    accuracy = DV_percent_NABS
+  )
+#shrink accuracy just a tiny bit from 1 for testing purposes 
+library(tidyfst)
+df <- df %>% mutate_when(accuracy == 1, accuracy = 0.99)
+
+#INTERCEPT ONLY model for alpha
+zinb <- brm(
+  bf(accuracy ~ condition, #mean of (0,1) values, mu
+     phi ~ condition, #precision of (0,1) values, phi
+     zi ~ condition), #zero inflated is extreme? alpha
+  data = df,
+  family = zero_inflated_beta(),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234
+  # backend = "cmdstanr"
+)
+```
+```{r}
+summary(zinb)
+performance(zinb)
+# plot(rope(zinb))
+```
+
+
+```{r}
+
+tidy(zinb, effects = "fixed")
+
+
+paste("INTERPRET ALPHA")
+zi_intercept <- tidy(zinb, effects = "fixed") %>% 
+  filter(component == "zi", term == "(Intercept)") %>% 
+  pull(estimate)
+
+# Logit scale intercept
+zi_intercept
+## b_zi_Intercept 
+##          0.525
+
+# Transformed to a probability/proportion
+plogis(zi_intercept)
+## b_zi_Intercept 
+##         0.628
+
+nrow(df %>% filter(accuracy == 0 & condition == "control"))/nrow(df %>% filter(condition == "control"))
+
+```
+The value of the z_intercept should be the same as the proportion of 0s in the control condition. 
+
+VISUALIZE ZERO INFLATED COMPONENT
+```{r}
+beta_zi_pred_int <- zinb %>% 
+  predicted_draws(newdata = tibble(condition = c("control", "impasse"))) %>% 
+  mutate(is_zero = .prediction == 0,
+         .prediction = ifelse(is_zero, .prediction - 0.01, .prediction))
+
+ggplot(beta_zi_pred_int, aes(x = .prediction)) +
+  geom_histogram(aes(fill = is_zero), binwidth = 0.025, 
+                 boundary = 0, color = "white") +
+  geom_vline(xintercept = 0) +
+  scale_fill_viridis_d(option = "plasma", end = 0.5,
+                       guide = guide_legend(reverse = TRUE)) +
+  labs(x = "Predicted proportion of Correct Responses", 
+       y = "Count", fill = "Is zero?") +
+  facet_wrap(vars(condition), ncol = 2,
+             labeller = labeller(condition = c(`control` = "Control", 
+                                           `impasse` = "Impasse"))) + 
+  theme_clean() +
+  theme(legend.position = "bottom")
+```
+
+
+### ZERO-ONE INFLATED BETA Regression
+
+https://sometimesir.com/posts/2019-02-18-analyze-analog-scale-ratings-with-zero-one-inflated-beta-models/#zoib-regression
+https://www.andrewheiss.com/blog/2021/11/08/beta-regression-guide/#2-fractional-logistic-regression
+
+**TODO** 
+- explore priors
+- explore random effects
+- explore non-beta distribution; once the 1s and zeros are gone, do we need the beta? 
+
+A zero-inflated beta regression allows us to model a separate data generating process for the 0s and 1s and the rest.
+
+A ZOINB is a mixture of:
+
+1.  A logistic regression model that predicts if an outcome is either 0 or 1 or not 0 or 1, defined by (or alternatively, a model that predicts if outcomes are extreme (0 or 1) or not (between 0 and 1); "IS EXTREME" model; defined by $\alpha$
+
+2.  A logistic regression model that predicts if any of the 0 or 1 outcomes are actually 1s, defined by (or alternatively, a model that predicts if the extreme values are 1) "WHICH EXTREME" model defined by $\gamma$
+
+3.  A beta regression model that predicts if an outcome is between 0 and 1 if it's not zero or not one, defined by and (or alternatively, a model that predicts the non-extreme (0 or 1) values) "THE REST" model $\mu$ and $\phi$
+
+Can also do mixed! (but no reason do this here, as the item level data is not beta reg )
+
+```{r}
+
+#DATA SETUP
+# sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS) 
+# don't need to transform anymore
+df <- df_subjects %>% filter(mode == "lab-synch") %>% 
+  mutate(
+    condition = pretty_condition,
+    scaled = (s_SCALED + 13)/26,  #transform scaled onto 0-1 scale
+    accuracy = item_test_NABS/8
+  ) %>% dplyr::select(condition, scaled, accuracy)
+
+
+#INTERCEPT ONLY model for alpha
+zoinb <- brm(
+  bf(accuracy ~ condition, #mean of (0,1) values, mu
+     phi ~ condition, #precision of (0,1) values, phi
+     zoi ~ condition, #is extreme? alpha
+     coi ~ condition), #is 1? gamma
+  data = df,
+  family = zero_one_inflated_beta(),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234,
+  backend = "cmdstanr"
+)
+
+
+zoinb_scaled <- brm(
+  bf(scaled ~ condition, #mean of (0,1) values, mu
+     phi ~ condition, #precision of (0,1) values, phi
+     zoi ~ condition, #is extreme? alpha
+     coi ~ condition), #is 1? gamma
+  data = df,
+  family = zero_one_inflated_beta(),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234,
+  backend = "cmdstanr"
+)
+
+```
+```{r}
+summary(zoinb)
+
+plot(rope(zoinb))
+plot_model(zoinb)
+plot(rope(zoinb_scaled))
+plot_model(zoinb_scaled)
+```
+
+More plots 
+
+```{r}
+
+tidy(zoinb, effects = "fixed")
+
+paste("INTERPRET ALPHA")
+zoi_intercept <- tidy(zoinb, effects = "fixed") %>% 
+  filter(component == "cond", term == "zoi_(Intercept)") %>% 
+  pull(estimate)
+
+# Logit scale intercept
+zoi_intercept
+
+# Transformed to a probability/proportion
+plogis(zoi_intercept)
+
+nrow(df %>% filter(accuracy %in% c(0,1) & condition == "control"))/nrow(df %>% filter(condition == "control"))
+
+```
+The value of the zoi_intercept should be the same as the proportion of 0s and 1s (vs non 0s and 1s) in the control condition... and it does!
+
+VISUALIZE ZERO INFLATED COMPONENT
+```{r}
+beta_zoi_pred_int <- zoinb %>% 
+  predicted_draws(newdata = tibble(condition = c("control", "impasse"))) %>% 
+  mutate(is_extreme = .prediction %in% c(0,1),
+         is_one = .prediction ==1, 
+         .prediction = ifelse(is_extreme & !is_one, .prediction - 0.01, .prediction),
+         .prediction = ifelse(is_one, .prediction + 0.01, .prediction))
+
+ggplot(beta_zoi_pred_int, aes(x = .prediction)) +
+  geom_histogram(aes(fill = is_extreme), binwidth = 0.05, 
+                 boundary = 0, color = "white") +
+  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 1) +
+  scale_fill_viridis_d(option = "plasma", end = 0.5,
+                       guide = guide_legend(reverse = TRUE)) +
+  labs(x = "Predicted proportion of Correct Responses", 
+       y = "Count", fill = "Is extreme?") +
+  facet_wrap(vars(condition), ncol = 2,
+             labeller = labeller(condition = c(`control` = "Control", 
+                                           `impasse` = "Impasse"))) + 
+  theme_clean() +
+  theme(legend.position = "bottom")
+```
+```{r}
+beta_zoi_pred_int <- zoinb_scaled %>% 
+  predicted_draws(newdata = tibble(condition = c("control", "impasse"))) %>% 
+  mutate(is_extreme = .prediction %in% c(0,1),
+         is_one = .prediction ==1, 
+         .prediction = ifelse(is_extreme & !is_one, .prediction - 0.01, .prediction),
+         .prediction = ifelse(is_one, .prediction + 0.01, .prediction))
+
+ggplot(beta_zoi_pred_int, aes(x = .prediction)) +
+  geom_histogram(aes(fill = is_extreme), binwidth = 0.05, 
+                 boundary = 0, color = "white") +
+  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 1) +
+  scale_fill_viridis_d(option = "plasma", end = 0.5,
+                       guide = guide_legend(reverse = TRUE)) +
+  labs(x = "Predicted proportion of Correct Responses", 
+       y = "Count", fill = "Is extreme?") +
+  facet_wrap(vars(condition), ncol = 2,
+             labeller = labeller(condition = c(`control` = "Control", 
+                                           `impasse` = "Impasse"))) + 
+  theme_clean() +
+  theme(legend.position = "bottom")
+
+```
+
+
+```{r}
+pp_check(zoinb, draws = 8000 )
+
+```
+
+### HURDLE + NEG BINOM (bayesian)
+
+Rather than transform score to a proportion correct, keep it in native count form, and model as negative binomial. 
+hurdle model : 
+
+(1) A logistic regression model that predicts if an outcome is 0 or not (this is the hurdle part)
+(2) A lognormal (hurdle_lognormal()), gamma (hurdle_gamma()), Poisson (hurdle_poisson()), or negative binomial (hurdle_negbinomial()) model for outcomes that are not zero
+
+
+```{r}
+
+#SETUP DATA 
+df <- df_subjects %>% filter(mode == "lab-synch") %>% 
+  mutate(
+    score = item_test_NABS,
+    condition = pretty_condition
+  )
+
+#PLOT
+gf_histogram(~score, fill = ~ condition, data = df) %>% gf_facet_wrap(~condition)
+
+#FIT MODEL
+hln <- brm(
+  bf(score ~ condition,
+     hu ~ condition),
+  data = df,
+  family = hurdle_lognormal(),
+  chains = 4, iter = 2000, warmup = 1000, seed = 1234,
+  silent = 2, cores = 4, 
+  backend = "cmdstanr"
+)
+
+hnb <- brm(
+  bf(score ~ condition,
+     hu ~ condition),
+  data = df,
+  family = hurdle_negbinomial(),
+  chains = 4, iter = 2000, warmup = 1000, seed = 1234,
+  silent = 2, cores = 4, 
+  backend = "cmdstanr"
+)
+
+hpoi <- brm(
+  bf(score ~ condition,
+     hu ~ condition),
+  data = df,
+  family = hurdle_poisson(),
+  chains = 4, iter = 2000, warmup = 1000, seed = 1234,
+  silent = 2, cores = 4, 
+  backend = "cmdstanr"
+)
+
+
+summary(hln)
+summary(hnb)
+summary(hpoi)
+plot_model(hln)
+plot_model(hnb)
+plot_model(hpoi)
+
+
+compare_performance(hln, hnb, hpoi)
+
+# Exponential
+p1 <- pp_check(hpoi) + labs(title="Poisson Hurdle")
+p2 <- pp_check(hnb) + labs(title="NegBinom Hurdle")
+p3 <- pp_check(hln) + labs(title="LogNorm Hurdle")
+cowplot::plot_grid( p1 + p2 + p3)
+
+# Logged
+pred <- posterior_predict(hpoi)
+bayesplot::ppc_dens_overlay(y = log1p(df$score), 
+                            yrep = log1p(pred[1:10,])) + 
+  labs(title = "Posterior Predictive Checks")
+```
+```{r}
+pred_gdp_hurdle <- hpoi |> 
+  predicted_draws(newdata = tibble(condition = c("control","impasse"))) |>
+  mutate(is_zero = .prediction == 0,
+         .prediction = ifelse(is_zero, .prediction - 0.1, .prediction))
+
+ggplot(pred_gdp_hurdle, aes(x = .prediction)) +
+  geom_histogram(aes(fill = is_zero), binwidth = 1, 
+                 boundary = 0, color = "white") +
+  geom_vline(xintercept = 0) +
+  labs(x = "test phase correct", y = "Count", fill = "Is zero?",
+       title = "Predicted number correct from hurdle model") +
+  # coord_cartesian(xlim = c(-2500, 75000)) +
+  theme_nice() +
+  theme(legend.position = "bottom")
+
+```
+This model is making predictions outside the bounds of the data (beyond 8)
+**TODO**
+https://jsdajournal.springeropen.com/articles/10.1186/s40488-021-00121-4
+consider motivation of hurdle vs zero inflated 
+
+### MIXED ZERO-ONE-INFLATED BETA Regression
+
+Next we'll explore doing a beta regression on a proportion transformed scaled score at the item level, as a zero one inflated mixed beta reg 
+```{r}
+df <- df_items %>% filter(mode == "lab-synch") %>% 
+  filter(q %nin% c(6,9)) %>% 
+  mutate(scaled = (score_SCALED + 1)/2,
+         condition = pretty_condition) %>% 
+  dplyr::select(subject, scaled, condition)
+
+
+zoinb_scaled <- brm(
+  bf(scaled ~ condition + (1|subject) , #mean of (0,1) values, mu
+     phi ~ condition , #precision of (0,1) values, phi
+     zoi ~ condition , #is extreme? alpha
+     coi ~ condition ), #is 1? gamma
+  data = df,
+  family = zero_one_inflated_beta(),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234,
+  backend = "cmdstanr"
+)
+
+summary(zoinb_scaled)
+plot_model(zoinb_scaled)
+```
+
+
+### BETA HURDLE Regression (Frequentist)
 
 <https://github.com/markhwhiteii/beta_hurdle/blob/master/manuscript/beta_hurdle.pdf>
 
@@ -893,9 +1642,9 @@ df <- df_subjects %>% mutate(
   accuracy = s_NABS,
   R_acc = (accuracy-min)/(max-min), #as %
   T_acc = (accuracy * (nrow(df)-1) + 0.5)/nrow(df)/max, #transform for no 0 and 1
-  perm = shuffle(condition),
+  # perm = shuffle(condition),
   scaffold_rt = item_scaffold_rt
-) %>% dplyr::select(accuracy,R_acc, T_acc, condition, perm,scaffold_rt)
+) %>% dplyr::select(accuracy,R_acc, T_acc, condition,scaffold_rt)
 
 #VISUALIZE DISTRIBUTION
 gf_histogram(~R_acc, fill = ~condition, data = df) %>% gf_facet_wrap(~condition) + labs(title = "Histogram of accuracy")
@@ -903,7 +1652,7 @@ gf_histogram(~R_acc, fill = ~condition, data = df) %>% gf_facet_wrap(~condition)
 #VISUALIZE DISTRIBUTION
 gf_histogram(~T_acc, fill = ~condition, data = df) %>% gf_facet_wrap(~condition) + labs(title = "Histogram of [rescaled] accuracy")
 
-gf_histogram(~R_acc, fill = ~perm, data = df) %>% gf_facet_wrap(~perm) + labs(title = "Histogram of shuffled accuracy")
+# gf_histogram(~R_acc, fill = ~perm, data = df) %>% gf_facet_wrap(~perm) + labs(title = "Histogram of shuffled accuracy")
 
 #SUMMARIZE SAMPLE
 paste("Grand mean", mean(df$R_acc))
@@ -952,7 +1701,10 @@ paste("P1: ",m0_p1)
 
 
 #CREATE PREDICTOR MODEL
-m1 <- gamlss(R_acc ~ condition, ~ condition, ~ condition, ~ condition, 
+m1 <- gamlss(R_acc ~ condition, 
+             ~ condition, 
+             ~ condition, 
+             ~ condition, 
             data = df, family = BEINF())
 paste("THE PREDICTOR MODEL")
 summary(m1)
@@ -964,19 +1716,18 @@ m <- gamlss(R_acc ~ condition ,
             ~ condition , 
             data = df, family = BEINF())
 paste("THE PREDICTOR MODEL")
-
 summary(m)
 
 
 #CREATE PREDICTOR MODEL ON SHUFFLED [PERMUTATION TEST]
-mperm <- gamlss(R_acc ~ perm, ~ perm, ~ perm, ~ perm, 
-            data = df, family = BEINF())
-summary(mperm)
+# mperm <- gamlss(R_acc ~ perm, ~ perm, ~ perm, ~ perm, 
+#             data = df, family = BEINF())
+# summary(mperm)
 
 #sanity check with scaled outcome, no zeros ones
-m3 <- gamlss(T_acc ~ condition, ~ condition, ~ condition, ~ condition, 
-            data = df, family = BEINF())
-summary(m3)
+# m3 <- gamlss(T_acc ~ condition, ~ condition, ~ condition, ~ condition, 
+#             data = df, family = BEINF())
+# summary(m3)
 #m3 shouldn't show condition as significant for nu and tau, because T_acc was scaled to not include any 0s and 1s
 
 #investigate beta negative binomial distribution
@@ -1078,6 +1829,8 @@ ggbarstats(data = df, x = accuracy, y = condition,
 
 ### LOGISTIC REGRESSION
 
+-   http://post8000.svmiller.com/lab-scripts/logistic-regression-lab.html
+
 *Fit a logistic regression (at the subject-item level), predicting Q1 accuracy (absolute score) by condition.*\
 *note: this example uses the combined dataset rather than lab-only, as learning notes were done with the combined and I don't want to recalcualte all the marginal probabilities by hand for learning purposes.*
 
@@ -1139,12 +1892,19 @@ print("PREDICTOR MODEL")
 summary(m1)
 
 #: INTERPRET COEFFICIENTS
-
 print("Coefficients —- LOG ODDS")
 confint(m1)
 print("Coefficients —- ODDS RATIOS")
-e <- cbind( exp(coef(m1)), exp(confint(m1))) #exponentiate
-e
+(e <- cbind( exp(coef(m1)), exp(confint(m1)))) #exponentiate)
+
+print("Coefficients —- PROBABILITIES")
+print("[these should math pred plots]")
+print("Probability at reference level")
+plogis(m1$coefficients[[1]])
+print("Probability at coefficient level")
+plogis(m1$coefficients[[1]] + m1$coefficients[[2]])
+print("CHANGE in probability by coefficient")
+plogis(m1$coefficients[[1]] + m1$coefficients[[2]]) - plogis(m1$coefficients[[1]])
 
 
 # MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
@@ -1265,8 +2025,21 @@ plot_model(m1, type="eff",
            title = "Model Predicted Probability of Accuracy",
            axis.title = c("Condition","Probability of Accurate Response"))
 
+
 #SJPLOT | MODEL | TABLE
 # tab_model(m1)
+
+#MODELSUMMARY | MODEL | PROBABILITIES
+# modelsummary(m1, exponentiate = TRUE)
+
+#MARGINALEFFECTS | MODEL | PROBABILITIES
+library(marginaleffects)
+#plot adjusted predictions, conditional on the CONDITION variable using the plot_cap
+#interactions plot_cap(mod, condition = c("length", "style"))
+plot_cap(m1, condition = "pretty_condition")
+# The plot_cme function can be used to draw “Conditional Marginal Effects.” 
+#use for ixns 
+# plot_cme(m1, effect = "var1", condition = "pretty_condition")
 
 ```
 
