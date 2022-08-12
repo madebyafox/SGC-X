@@ -1116,6 +1116,7 @@ shapes_to_muphi(5,13)
 It seems like the although the (shrinkled) beta regression model is working, it is really messing up the estimate of the PHI parameter, such that we can't even recover the A and B. I expect whole numbers, and instead I'm geting values less than 1. I think this might be because the phi value is so low (note that phi = precision, so like inverse of variance. Lower values are more less precise (more variance)). Since I have so many values near 0 and near 1 (even though I've shrunk the estimates to be in the open interval (0,1) rather than \[0,1\], I think it causing problems with the estimation. )
 
 #### bayesian version
+https://www.bayesrulesbook.com/
 
 ```{r}
 library(brms)
@@ -1906,6 +1907,16 @@ plogis(m1$coefficients[[1]] + m1$coefficients[[2]])
 print("CHANGE in probability by coefficient")
 plogis(m1$coefficients[[1]] + m1$coefficients[[2]]) - plogis(m1$coefficients[[1]])
 
+print("MODEL PREDICTIONS")
+# Retrieve predictions as probabilities 
+# (for each level of the predictor)
+pred.control <- predict(m1,data.frame(pretty_condition="control"),type="response")
+#this should match : plogis(intercept coefficient)
+paste("Probability of success in control,", pred.control)
+pred.impasse <- predict(m1,data.frame(pretty_condition="impasse"),type="response")
+#this should match : plogis(intercept coefficient + predictor coeff)
+paste("Probability of success in impasse,", pred.impasse)
+
 
 # MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
 
@@ -2381,6 +2392,9 @@ df %>%
 **TODO INFERENCE**
 
 ### MULTINOMIAL REGRESSION
+
+on interpreting coefficients (marginal probability)
+- https://data.princeton.edu/wws509/stata/mlogit
 
 **TODO** RECONCILE actual predictions with coefficients and visualization of predictions
 

@@ -1,0 +1,302 @@
+---
+subtitle: 'COMBINED | Cheat Sheet'
+---
+
+\newpage
+
+# Combined Study Data {#sec-combined}
+
+```{r}
+#| label: SETUP
+#| warning : false
+#| message : false
+
+
+library(Hmisc) # %nin% operator
+
+# library(janitor) #compare df cols 
+# library(mosaic) #simple descriptives [favstats]
+# library(multimode) #test for multimodality
+# library(fitdistrplus) #fitting distributions
+# library(performance) #multimodality
+# library(kableExtra) #printing tables 
+# library(vcd) #mosaicplots
+# library(ggpubr) #arrange plots
+# library(ggstatsplot) #sanity checks 
+library(sjPlot) #model plots
+# library(ggeasy) #easy plot changes
+# library(modelsummary)
+# 
+# #modelling
+library(broom)
+library(tidybayes)
+# library(lme4)
+# library(ordinal) #ordinal and mixed ordinal models
+library(nnet) #multinomial regression
+library(mclogit) #multinomial regression
+# library(jtools) # misc helpers 
+# library(brms) #bayesian regression models
+# 
+# #all the things
+library(tidyverse) #ALL THE THINGS
+# 
+# #OUTPUT OPTIONS
+# library(dplyr, warn.conflicts = FALSE)
+# options(dplyr.summarise.inform = FALSE)
+# options(ggplot2.summarise.inform = FALSE)
+# options(scipen=1, digits=3)
+
+#SET THEME
+# theme_set(theme_minimal())
+```
+
+## SETUP
+
+```{r}
+#| label: IMPORT-SUBJECTS
+#| warning : false
+#| message : false
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+##:::::::: IMPORT SUBJECT DATA 
+
+in_sgc3a <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") %>% mutate(
+  study = "SGC3A"
+) #%>% dplyr::select(-absolute_score)
+
+in_sgc3b <- read_rds("analysis/SGC3B/data/2-scored-data/sgc3b_scored_participants.rds") %>% mutate(
+  study = "SGC3B"
+) #%>% dplyr::select(-absolute_score)
+
+in_sgc4a <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") %>% mutate(
+  study = "SGC4A",
+  pretty_mode = "online-replication"
+)
+in_sgc4b <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds") %>% mutate(
+  study = "SGC4B",
+  pretty_mode = "online-replication"
+)
+
+# TODO TEMPORARY ONLY REPLACE WITH SCORED DATA 
+in_sgc4c <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_participants.rds") %>% mutate(
+  pretty_mode = "online-replication"
+)
+
+in_sgc5 <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5_scored_participants.rds") %>% mutate(
+  study = "SGC5A",
+  pretty_mode = "online-replication"
+) %>% dplyr::select(-absolute_score)
+
+#COMPARE DF COLUMNS
+# janitor::compare_df_cols(sgc3a, sgc4c)
+#SGC5 HAS ABSOLUTE SCORE BUT THEY SHOULDN'T 
+
+##:::::::: IMPORT ITEM DATA 
+
+in_sgc3a_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") %>% mutate(study = "SGC3A")
+  
+in_sgc3b_items <- read_rds("analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.rds") %>% mutate(study = "SGC3B")
+  
+in_sgc4a_items <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds") %>% mutate(study = "SGC4A")
+  
+in_sgc4b_items <- read_rds("analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds") %>% mutate(study = "SGC4B")
+
+# TODO TEMPORARY ONLY REPLACE WITH SCORED DATA 
+in_sgc4c_items <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_items.rds") %>% mutate(study = "SGC4C")
+  
+in_sgc5_items <- read_rds("analysis/SGC5A/data/2-scored-data/sgc5a_scored_items.rds") %>% mutate(study = "SGC5")
+  
+##:::::::: IMPORT OSPAN DATA 
+ospan <- read_csv("analysis/combined/data/fall21_scored_ospan.csv") %>% mutate(
+  subject = SUBJECTID
+)
+
+# MERGE #TODO ADD IN SGC4C
+df_all <- rbind(in_sgc3a, in_sgc3b, in_sgc4a, in_sgc4b, in_sgc5) %>%  dplyr::select(subject,term,study,condition,pretty_condition)
+```
+
+
+## TEMPLATE
+
+### Setup 
+```{r}
+
+df_s <- in_sgc4a %>% 
+  # filter(mode == "lab-synch") %>% 
+  mutate(
+    task_percent = DV_percent_NABS
+  ) 
+# %>% filter(pretty_condition %in% c("Orth-Full", "Tri-Sparse")) %>% droplevels()
+
+df_i <- in_sgc4a_items %>% filter(subject %in% df_s$subject) %>% 
+  filter(q %nin% c(6,9)) %>% mutate(
+    q = as.factor(q),
+    accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+    state = recode_factor(score_SCALED, #for ordinal
+    # CODES TVERSKY AS OTHER
+                         "-1" = "orthogonal",
+                         "-0.5" = "other",
+                         "0" = "other",
+                         "0.5" = "tri-like",
+                         "1" = "triangular"),
+    state = as.ordered(state)) %>% droplevels()
+
+df_1 <- df_i %>% filter(q == 1) %>% dplyr::select(pretty_condition, accuracy, state)
+  
+#check right number of rows 
+nrow(df_i)/nrow(df_s) == 13
+```
+
+
+### Q1 Accuracy 
+
+```{r}
+
+table(df_1$pretty_condition)
+table(df_1$pretty_condition, df_1$accuracy)
+
+#fit model 
+q1.acc  <- glm(formula = accuracy ~ pretty_condition, data = df_1, 
+               family = binomial())
+
+#describe 
+summary(q1.acc)
+car::Anova(q1.acc)
+
+#visualize 
+plot_model(q1.acc, show.intercept = TRUE,
+           show.values = TRUE)
+plot_model(q1.acc, type = "eff")[[1]]
+
+df_1 <- df_1 %>% mutate(
+  accuracy = recode(accuracy, "incorrect"=0, "correct"=1)
+)
+
+#BAYESIAN
+Bq1.acc <- brm( accuracy ~ pretty_condition, 
+                data = df_1, family = "binomial",
+                chains = 4, iter = 2000, warmup = 1000,
+                cores = 4, seed = 1234,
+                backend = "cmdstanr")
+
+tidy(Bq1.acc)
+summary(Bq1.acc)
+plot(rope(Bq1.acc))
+plot(equivalence_test(Bq1.acc))
+
+```
+
+### Q1 State 
+
+```{r}
+
+table(df_1$pretty_condition, df_1$state)
+
+#fit model 
+q1.cat  <- multinom(formula = state ~ pretty_condition, data = df_1, model = TRUE)
+# q1.cat  <- mblogit(formula = state ~ pretty_condition, data = df_1, model = TRUE) #gives pvalue
+
+#describe 
+summary(q1.cat)
+car::Anova(q1.cat)
+# summary(q1.cat)
+
+#visualize 
+plot_model(q1.cat, show.intercept = TRUE,
+           show.values = TRUE)
+
+plot_model(q1.cat, type = "eff")[[1]]
+
+```
+
+### Overall Accuracy
+
+Wilcoxon Rank Sum
+```{r}
+
+# (w <- wilcox.test(df_s$task_percent ~ df_s$pretty_condition,
+                 paired = FALSE, alternative = "less")) #less, greater
+# report(w)
+
+ggbetweenstats( x = pretty_condition, y = task_percent, data = df_s, 
+                type = "nonparametric", var.equal = FALSE)
+
+```
+*MIXED LOGISTIC REGRESSION*
+
+```{r}
+
+table(df_i$pretty_condition, df_i$accuracy)
+
+#fit maximal model 
+mm.CrSQ  <- glmer(formula = accuracy ~ pretty_condition + (1|subject) + (1|q), 
+                  data = df_i, family = binomial())
+
+#describe 
+summary(mm.CrSQ)
+car::Anova(mm.CrSQ)
+
+#visualize 
+plot_model(mm.CrSQ, show.intercept = TRUE,
+           show.values = TRUE)
+plot_model(mm.CrSQ, type = "re")
+plot_model(mm.CrSQ, type = "eff")[[1]]
+
+```
+
+
+
+
+### Overall Interpretation
+
+*MIXED MULTINOMIAL REGRESSION*
+
+```{r}
+
+table(df_i$pretty_condition, df_i$state)
+
+
+#FREQUENTIST
+mm.multi <- mblogit(state ~ pretty_condition , 
+                  random = list(~ 1 | subject , ~ 1|q), 
+                  data = df_i)
+#describe 
+summary(mm.multi)
+
+
+#visualize 
+plot_model(mm.multi, show.intercept = TRUE,
+           show.values = TRUE)
+# plot_model(mm.multi, type = "re")
+# plot_model(mm.multi, type = "eff")[[1]]
+
+
+#BAYESIAN
+Bmm.multi  <- brm( state ~ condition + (1|subject) + (1 | q), 
+                   data = df_i, family = "categorical",
+                   chains = 4, iter = 2000, warmup = 1000,
+                   cores = 4, seed = 1234,
+                   backend = "cmdstanr")
+
+#describe
+summary(Bmm.multi)
+tidy(Bmm.multi)
+
+#visualize 
+plot_model(Bmm.multi, show.intercept = TRUE,
+           show.values = TRUE) 
+# plot_model(Bmm.multi, type = "re")
+plot_model(Bmm.multi, type = "pred")[[1]]
+
+pp_check(Bmm.multi)
+plot(estimate_density(Bmm.multi), stack = FALSE)
+plot(describe_posterior(Bmm.multi), stack = FALSE)
+plot(p_direction(Bmm.multi))
+plot(equivalence_test(Bmm.multi))
+plot(rope(Bmm.multi))
+```
+
