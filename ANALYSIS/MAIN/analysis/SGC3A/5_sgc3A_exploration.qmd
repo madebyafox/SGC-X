@@ -94,6 +94,471 @@ TODO: - does impasse yield different exploration behavior? (characterize mouse) 
 
 TODO: Think about characterizing how variable the interpretations are across a participant. Do they form an interpretation and hold it constant? Or do they change question to question.
 
+#### Special Visualizations
+
+**SPLIT SIDE BY SIDE**
+```{r}
+# quota_halves <- ggplot(vdem_2015, aes(x = quota, y = prop_fem)) +
+# boxes <- ggplot(df_s, aes(x = pretty_condition, y = task_percent)) +
+#   
+#   
+#   geom_half_point(aes(color = pretty_condition),
+#                   transformation = position_quasirandom(width = 0.1),
+#                   side = "l", size = 1.5, alpha = 0.5) +
+#   geom_half_boxplot(aes(fill = pretty_condition), side = "r", width = 0.5) +
+#   scale_fill_viridis_d(option = "plasma", end = 0.8) +
+#   scale_color_viridis_d(option = "plasma", end = 0.8) +
+#   guides(color = "none", fill = "none") +
+#   labs(x = "Condition", y = "Proportion of correct responses (test phase)") +
+#   theme_clean()
+# 
+# # quota_densities <- ggplot(vdem_2015, aes(x = prop_fem, fill = quota)) +
+# densities <- ggplot(df_s, aes(x = task_percent, fill = pretty_condition)) +
+#   geom_density(alpha = 0.6) +
+#   scale_fill_viridis_d(option = "plasma", end = 0.8) +
+#   labs(x = "proportion of correct responses (test phase)", y = "Density", fill = "Condition") +
+#   theme_clean() +
+#   theme(legend.position = "bottom")
+# 
+# boxes | densities
+
+
+```
+
+
+**CUSTOM ONLY**
+```{r}
+
+# ggplot(df_s, # data we are using
+#        aes(x = task_percent,
+#            y = pretty_condition)) +
+#   stat_slab(aes(fill = pretty_condition), # slab geometry
+#             geom = "slab",
+#             position = position_nudge(y = .20), # nudged up by .20
+#             scale = .5,
+#             # color = "grey",
+#             alpha = 1.0) + # transparency
+#   geom_boxplot(# boxplot geometry; grey contrast w/ points
+#                width = .20,
+#                size = 0.5,
+#                show.legend = FALSE,
+#                alpha = .25) + # transparency
+#   geom_point(aes(color = pretty_condition), # point geometry
+#              position = position_jitter(width = .01, height = .05), # 
+#              size = 1.0,
+#              shape = 19, # circles
+#              alpha = .5) + # transparency
+#   labs(title = "Distribution of Test Phase Accuracy",
+#        y = "Test Phase Proportion Correct", x = "Condition") +
+#   theme_clean() + theme(legend.position = "blank") +
+#   ggeasy::easy_rotate_y_labels(angle = 90)
+```
+**WIP CUSTOM + STATSEXPRESSIONS LABELS ONLY**
+```{r}
+
+#WORKING.. THE ONE
+# ggplot(df_s, aes(x = task_percent, y = pretty_condition, fill=pretty_condition)) +
+#   stat_slab(
+#             geom = "slab",
+#             position = position_nudge(y = .20), # nudged up by .20
+#             scale = .5) + 
+#   geom_boxplot(aes(fill = NULL),
+#                width = .20,
+#                size = 0.5,
+#                show.legend = FALSE,
+#                alpha = .25) + 
+#   geom_point(aes(color = pretty_condition), 
+#              position = position_jitter(width = .01, height = .05), 
+#              size = 1.0,
+#              shape = 19, # circles
+#              alpha = .5) + 
+#   labs(title = "Distribution of Total Accuracy",
+#        x = "Total Proportion Correct", y = "Condition") +
+#   theme(legend.position = "blank") 
+
+
+#NOT WORKING, post on github issues
+# centrality_description(df_s, y = task_percent, x = pretty_condition) |>
+#   ggplot(aes(y = task_percent, x = pretty_condition)) +
+#   geom_point() +
+#   geom_label(aes(label = expression), parse = TRUE, nudge_y = -0.05) + 
+#   coord_flip()+
+#   stat_slab(
+#             geom = "slab",
+#             position = position_nudge(y = .20), # nudged up by .20
+#             scale = .5) + 
+#   geom_boxplot(aes(fill = NULL),
+#                width = .20,
+#                size = 0.5,
+#                show.legend = FALSE,
+#                alpha = .25) + 
+#   geom_point(aes(color = pretty_condition), 
+#              position = position_jitter(width = .01, height = .05), 
+#              size = 1.0,
+#              shape = 19, # circles
+#              alpha = .5) + 
+#   labs(title = "Distribution of Test Phase Accuracy",
+#        x = "Test Phase Proportion Correct", y = "Condition") +
+#   theme(legend.position = "blank") 
+```
+
+**CUSTOM + BETWEEN, WORKING** 
+```{r}
+  
+p <-   ggbetweenstats(data = df_s, x = pretty_condition, y = task_percent,
+               plot.type = "box", type = "nonparametric",
+               centrality.type = "parametric",
+               package = "RColorBrewer",
+               palette = "PRGn",
+               centrality.point.args = list(color="black", size = 3, shape = 1),
+               point.args = list(alpha=0), #suppress points
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  aes(color = pretty_condition, fill = pretty_condition),
+                  scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  scale_fill_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  theme(axis.text.x = element_text(angle = 90)))
+               ) +
+  ggdist::stat_halfeye(
+    alpha = 0.7, 
+    point_colour = NA,
+    adjust = .5, 
+    width = .5, .width = 0, 
+    justification = -.5) +
+  geom_boxplot(
+    alpha = 0.1,
+    width = .2, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 2,
+    alpha = .5,
+    position = position_jitter(
+      seed = 1, width = .05, height = .02
+    )
+  )  +
+coord_flip() + theme_clean() + theme(legend.position = "blank")
+p$layers[[3]]=NULL #remove default boxplot
+e <- statsExpressions::oneway_anova(data = df_s, x = pretty_condition, y = task_percent,
+               type = "nonparametric") #gen stats test
+#labels are layer 4
+p + labs(title = "Distribution of Total Accuracy",
+         y = "Proportion of correct responses in test phase", x = "",
+         subtitle = "Impasse condition yields higher scores and greater variance",
+         caption=e$expression[[1]])
+
+
+```
+
+```{r}
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct)"
+tbl1 <- mosaic::favstats(~task_percent, data = df_s) 
+tbl1 %>% kbl (caption = title) %>% kable_classic()
+
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY CONDITION"
+tbl2 <- mosaic::favstats(task_percent ~ pretty_condition, data = df_s) 
+tbl2 %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+Across both conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. We see that the distribution of this outcome variable is clearly bimodal: with modes near the floor (0% correct) and ceiling (100% correct) of the scale. This bimodality is sensical considering the nature of the task, where each item in the task indexes a different information extraction operation over the same coordinate system.
+
+A score of 100% indicates that the participant correctly interpreted the interval-coordinate system throughout the task, *starting at the first question*. A score of 0% indicates the individual *never* correctly interpreted the coordinate system. A score somewhere inbetween indicates that an individual deciphered the coordinate system *sometime over the course the task*.
+
+
+
+### WIP ZERO INFLAED BETA REGRESSION
+
+```{r}
+#DATA SETUP
+# 
+# library(tidyfst) #conditional mutate
+# 
+# df <- df_subjects %>% 
+#   mutate(
+#     condition = pretty_condition,
+#     scaled = (s_SCALED + 13)/26,  #transform scaled onto 0-1 scale
+#     accuracy = DV_percent_NABS,
+#     shifted_acc = accuracy, #a left shifted only to get rid of 1s
+#     shifted_scaled = scaled #a left shifted only to get rid of 1s
+#   ) %>% mutate_when(
+#   (accuracy == 1) , shifted_acc = 0.999
+# )  %>% mutate_when(
+#   scaled ==1, shifted_scaled = 0.999
+# )
+# 
+# 
+# #ZERO INFLATED [allows zeros, but not ones] 
+# zinb_scaled <- brm(
+#   bf(shifted_scaled ~ condition, #mean of (0,1) values, mu
+#      phi ~ condition, #precision of (0,1) values, phi
+#      zi ~ condition), #zero inflated is extreme? alpha
+#   data = df,
+#   family = zero_inflated_beta(),
+#   chains = 4, iter = 2000, warmup = 1000,
+#   cores = 4, seed = 1234,
+#   backend = "cmdstanr"
+# )
+# summary(zinb_scaled)
+# plot_model(zinb_scaled, vline.color="red")
+
+
+```
+
+
+
+
+### WIP ZERO-ONE INFLATED BETA Regression
+
+https://sometimesir.com/posts/2019-02-18-analyze-analog-scale-ratings-with-zero-one-inflated-beta-models/#zoib-regression
+https://www.andrewheiss.com/blog/2021/11/08/beta-regression-guide/#2-fractional-logistic-regression
+
+**TODO** 
+- explore priors
+- explore random effects
+- explore non-beta distribution; once the 1s and zeros are gone, do we need the beta? 
+
+A zero-inflated beta regression allows us to model a separate data generating process for the 0s and 1s and the rest.
+
+A ZOINB is a mixture of:
+
+1.  A logistic regression model that predicts if an outcome is either 0 or 1 or not 0 or 1, defined by (or alternatively, a model that predicts if outcomes are extreme (0 or 1) or not (between 0 and 1); "IS EXTREME" model; defined by $\alpha$
+
+2.  A logistic regression model that predicts if any of the 0 or 1 outcomes are actually 1s, defined by (or alternatively, a model that predicts if the extreme values are 1) "WHICH EXTREME" model defined by $\gamma$
+
+3.  A beta regression model that predicts if an outcome is between 0 and 1 if it's not zero or not one, defined by and (or alternatively, a model that predicts the non-extreme (0 or 1) values) "THE REST" model $\mu$ and $\phi$
+
+Can also do mixed! (but no reason do this here, as the item level data is not beta reg )
+
+```{r}
+
+#DATA SETUP
+# sub <- df_subjects %>% dplyr::select(condition, DV_percent_NABS) 
+# don't need to transform anymore
+# library(tidyfst)
+# df <- df_subjects %>% 
+#   mutate(
+#     condition = pretty_condition,
+#     scaled = (s_SCALED + 13)/26,  #transform scaled onto 0-1 scale
+#     accuracy = DV_percent_NABS,
+#     shifted_acc = accuracy, #a left shifted only to get rid of 1s
+#     shifted_scaled = scaled #a left shifted only to get rid of 1s
+#   ) %>% mutate_when(
+#   (accuracy == 1) , shifted_acc = 0.999
+# )  %>% mutate_when(
+#   scaled ==1, shifted_scaled = 0.999
+# )
+# 
+# 
+# #ZERO INFLATED [allows zeros, but not ones]
+# zinb <- brm(
+#   bf(shifted_acc ~ condition, #mean of (0,1) values, mu
+#      phi ~ condition, #precision of (0,1) values, phi
+#      zi ~ condition), #zero inflated is extreme? alpha
+#   data = df,
+#   family = zero_inflated_beta(),
+#   chains = 4, iter = 2000, warmup = 1000,
+#   cores = 4, seed = 1234,
+#   backend = "cmdstanr"
+# )
+# summary(zinb)
+# plot_model(zinb, vline.color="red")
+# 
+# #ZERO INFLATED [allows zeros, but not ones] THIS ONE HERE 
+# zinb_scaled <- brm(
+#   bf(shifted_scaled ~ condition, #mean of (0,1) values, mu
+#      phi ~ condition, #precision of (0,1) values, phi
+#      zi ~ condition), #zero inflated is extreme? alpha
+#   data = df,
+#   family = zero_inflated_beta(),
+#   chains = 4, iter = 2000, warmup = 1000,
+#   cores = 4, seed = 1234,
+#   backend = "cmdstanr"
+# )
+# summary(zinb_scaled)
+# plot_model(zinb_scaled, vline.color="red")
+# 
+# 
+# #ZERO ONE INFLATED [allows zeros and 1s]
+# zoinb <- brm(
+#   bf(accuracy ~ condition, #mean of (0,1) values, mu
+#      phi ~ condition, #precision of (0,1) values, phi
+#      zoi ~ condition, #is extreme? alpha
+#      coi ~ condition), #is 1? gamma
+#   data = df,
+#   family = zero_one_inflated_beta(),
+#   chains = 4, iter = 2000, warmup = 1000,
+#   cores = 4, seed = 1234,
+#   backend = "cmdstanr"
+# )
+# summary(zoinb)
+# plot_model(zoinb, vline.color="red")
+# 
+# #ZERO ONE INFLATED [allows zeros and 1s ]
+# zoinb_scaled <- brm(
+#   bf(scaled ~ condition, #mean of (0,1) values, mu
+#      phi ~ condition, #precision of (0,1) values, phi
+#      zoi ~ condition, #is extreme? alpha
+#      coi ~ condition), #is 1? gamma
+#   data = df,
+#   family = zero_one_inflated_beta(),
+#   chains = 4, iter = 2000, warmup = 1000,
+#   cores = 4, seed = 1234,
+#   backend = "cmdstanr"
+# )
+# summary(zoinb_scaled)
+# plot_model(zoinb_scaled, vline.color="red")
+
+```
+
+```{r}
+# library(extraDistr)
+# 
+# ggplot() +
+#   geom_function(fun = dprop, args = list(mean = 0.999, size = 8),
+#                 aes(color = "Beta(mean = 0.99, size = 8)"),
+#                 size = 1) +
+#   scale_color_viridis_d(option = "plasma", name = "") +
+#   theme_clean() +
+#   theme(legend.position = "bottom") + labs(
+#     "ALL CORRECT"
+#   )
+# 
+# ggplot() +
+#   geom_function(fun = dprop, args = list(mean = 0.001, size = 8),
+#                 aes(color = "Beta(mean = 0.001, size = 8)"),
+#                 size = 1) +
+#   scale_color_viridis_d(option = "plasma", name = "") +
+#   theme_clean() +
+#   theme(legend.position = "bottom") + labs(
+#     "ALL WRONG"
+#   )
+# 
+# #todo PLOT ACTUAL ESTIMATES
+# ggplot() +
+#   geom_function(fun = dprop, args = list(mean = 0.577, size = 0.565),
+#                 aes(color = "IMPASSE"),
+#                 size = 1) +
+#   geom_function(fun = dprop, args = list(mean = 0.473, size = 0.411),
+#                 aes(color = "INTERCEPT"),
+#                 size = 1) +
+#   scale_color_viridis_d(option = "plasma", name = "") +
+#   theme_clean() +
+#   theme(legend.position = "bottom") + labs(
+#     "FIGURED IT OUT HALFWAY "
+#   )
+# 
+# pp_check(zinb_scaled)
+```
+      
+
+
+```{r}
+# summary(zoinb)
+# plot_model(zoinb, vline.color = "red")
+# plot(model_parameters(zoinb))
+# plot(rope(zoinb))
+# 
+# 
+# #MAKES SENSE! 
+# #CONDITION shifts mu to the right (increases); no effect on PHI, decreases extreme, but increases 1s
+# summary(zoinb_scaled)
+# plot_model(zoinb_scaled,  vline.color = "red")
+# plot(model_parameters(zoinb_scaled))
+# plot(rope(zoinb_scaled))
+
+```
+
+More plots 
+
+```{r}
+# 
+# tidy(zoinb, effects = "fixed")
+# 
+# paste("INTERPRET ALPHA")
+# zoi_intercept <- tidy(zoinb, effects = "fixed") %>% 
+#   filter(component == "cond", term == "zoi_(Intercept)") %>% 
+#   pull(estimate)
+# 
+# # Logit scale intercept
+# zoi_intercept
+# 
+# # Transformed to a probability/proportion
+# plogis(zoi_intercept)
+# 
+# nrow(df %>% filter(accuracy %in% c(0,1) & condition == "control"))/nrow(df %>% filter(condition == "control"))
+
+```
+The value of the zoi_intercept should be the same as the proportion of 0s and 1s (vs non 0s and 1s) in the control condition... and it does!
+
+VISUALIZE ZERO INFLATED COMPONENT
+```{r}
+# beta_zoi_pred_int <- zoinb %>% 
+#   predicted_draws(newdata = tibble(condition = c("control", "impasse"))) %>% 
+#   mutate(is_extreme = .prediction %in% c(0,1),
+#          is_one = .prediction ==1, 
+#          .prediction = ifelse(is_extreme & !is_one, .prediction - 0.01, .prediction),
+#          .prediction = ifelse(is_one, .prediction + 0.01, .prediction))
+# 
+# ggplot(beta_zoi_pred_int, aes(x = .prediction)) +
+#   geom_histogram(aes(fill = is_extreme), binwidth = 0.05, 
+#                  boundary = 0, color = "white") +
+#   geom_vline(xintercept = 0) +
+#   geom_vline(xintercept = 1) +
+#   scale_fill_viridis_d(option = "plasma", end = 0.5,
+#                        guide = guide_legend(reverse = TRUE)) +
+#   labs(x = "Predicted proportion of Correct Responses", 
+#        y = "Count", fill = "Is extreme?") +
+#   facet_wrap(vars(condition), ncol = 2,
+#              labeller = labeller(condition = c(`control` = "Control", 
+#                                            `impasse` = "Impasse"))) + 
+#   theme_clean() +
+#   theme(legend.position = "bottom")
+# ```
+# ```{r}
+# beta_zoi_pred_int <- zoinb_scaled %>% 
+#   predicted_draws(newdata = tibble(condition = c("control", "impasse"))) %>% 
+#   mutate(is_extreme = .prediction %in% c(0,1),
+#          is_one = .prediction ==1, 
+#          .prediction = ifelse(is_extreme & !is_one, .prediction - 0.01, .prediction),
+#          .prediction = ifelse(is_one, .prediction + 0.01, .prediction))
+# 
+# ggplot(beta_zoi_pred_int, aes(x = .prediction)) +
+#   geom_histogram(aes(fill = is_extreme), binwidth = 0.05, 
+#                  boundary = 0, color = "white") +
+#   geom_vline(xintercept = 0) +
+#   geom_vline(xintercept = 1) +
+#   scale_fill_viridis_d(option = "plasma", end = 0.5,
+#                        guide = guide_legend(reverse = TRUE)) +
+#   labs(x = "Predicted proportion of Correct Responses", 
+#        y = "Count", fill = "Is extreme?") +
+#   facet_wrap(vars(condition), ncol = 2,
+#              labeller = labeller(condition = c(`control` = "Control", 
+#                                            `impasse` = "Impasse"))) + 
+#   theme_clean() +
+#   theme(legend.position = "bottom")
+
+```
+
+
+```{r}
+# pp_check(zoinb, draws = 8000 )
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 ## WORKING MEMORY 
 
 During the 2021-2022 online replication study, participants completed a working memory task —the OSPAN task- after completing the SGC3A study.  We added this task to explore possible sources of variance between individuals on the graph comprehension task.  
@@ -1483,3 +1948,768 @@ OLS Linear Regression on Q1 response time shows that condition explains a small 
 
 ### TODO RESPONSE CONSISTENCY
 
+
+### H1B \| TEST PHASE ACCURACY
+
+DECISION: There is no need to differentiate between test phase and scaffold phase; can just consider all items, BECAUSE even during the scaffold phase, incorrect responses are available in the control condition. The satisfice stragey yields a 0 absolute score, just like an orthogonal. Including all items (i=13) rather than just test phase(i=8) gives a little more statistical power in the mixed effects models. 
+
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Do Ss in the IMPASSE condition score higher across the test phase than those in the CONTROL group?                                                                                                                                                                                 |
++=======================+====================================================================================================================================================================================================================================================================================+
+| **Hypothesis**        | (H1B) Participants in the IMPASSE condition will have higher test phase performance than those in the CONTROL condition.                                                                                                                                                           |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | **data**: `df_items` where `q nin 1,2,3,4,5,6,9` (the 8 discriminating test phase Qs ), `df_subjects`                                                                                                                                                                              |
+|                       |                                                                                                                                                                                                                                                                                    |
+|                       | **outcome**:                                                                                                                                                                                                                                                                       |
+|                       |                                                                                                                                                                                                                                                                                    |
+|                       | -   \[at item level\] : *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                                                                                                                             |
+|                       | -   \[subject level\]: accuracy (number of test phase qs correct from total `s_NABS`)                                                                                                                                                                                              |
+|                       |                                                                                                                                                                                                                                                                                    |
+|                       | **predictor**: `condition` \[between-subjects factor\]                                                                                                                                                                                                                             |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  Wilcoxon-Rank Sum (Mann-Whitney) test on subject-level total accuracy of test phase (`item_test_NABS`)                                                                                                                                                                         |
+|                       | 2.  Mixed Logistic Regression\                                                                                                                                                                                                                                                     |
+|                       |     `accuracy` \~ `condition` + (1 \| `subject` )\                                                                                                                                                                                                                                 |
+|                       |     model effect of condition on probability of correct response \[during test phase\] while accounting for subject (and item-level?) effects                                                                                                                                      |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Alternatives**      | -   Ordinal Mixed Logistic Regression\                                                                                                                                                                                                                                             |
+|                       |     `interpretation` \~ `condition` + (1 \| `subject` )\                                                                                                                                                                                                                           |
+|                       |     model effect of condition on \[ordered correctness of interpretation\] \[during test phase\] while accounting for subject (and item-level?) effects                                                                                                                            |
+|                       | -   Shift in Modal Mass (descriptive)\                                                                                                                                                                                                                                             |
+|                       |     describe & visualize shift in deciles between conditions for `scaled_score` (at subject level)                                                                                                                                                                                 |
+|                       | -   OLS Linear Regression: bimodal distribution at tails makes the mean a poor predictor; LMs violate assumptions of normally distributed residuals; both absolute and scaled scores yield non-normal residuals; no transformation of the outcome variables yield normal residuals |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Notes**             | **Also exploring:**                                                                                                                                                                                                                                                                |
+|                       |                                                                                                                                                                                                                                                                                    |
+|                       | -   Hurdle model (mixture model w/ binomial + \[poisson or negbinom count; 0s from 1 DGP)                                                                                                                                                                                          |
+|                       | -   Zero Inflated model (mixture model w/ binomial + poisson or negbinom count; 0s from 2 DGPs)                                                                                                                                                                                    |
+|                       | -   Beta regression hurdle model? (mixture with location and scale parameters \[mean, variance\] and hurdles for floor and ceiling effects)                                                                                                                                        |
+|                       | -   Other way to account for the severe bimodality?                                                                                                                                                                                                                                |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+```{r}
+#| label: SETUP-TEST-ACC
+
+
+#item level
+df = df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% mutate(
+  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+  q = as.factor(q)
+)
+
+#:::::::: STACKED PROPORTIONAL BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(title = "Test Phase Accuracy",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
+
+
+#:::::::: FACETED HISTOGRAM
+stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_NABS))
+gf_props(~item_test_NABS, 
+         fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_grid(pretty_condition ~ pretty_mode) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "# Correct in Test Phase",
+       y = "proportion of subjects",
+       title = "Test Phase Absolute Score (# Correct)",
+       subtitle = "") + theme(legend.position = "blank")
+
+#:::::::: FACETED HISTOGRAM
+stats = df_subjects %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(item_test_NABS/8))
+gf_props(~item_test_NABS/8, 
+         fill = ~pretty_condition, data = df_subjects) %>% 
+  gf_facet_grid(pretty_condition ~ pretty_mode) %>% 
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "% Correct in Test Phase",
+       y = "proportion of subjects",
+       title = "Test Phase Absolute Score (% Correct)",
+       subtitle = "") + theme(legend.position = "blank")
+
+```
+
+
+```{r}
+
+#:::::::: IN PERSON ONLY
+df_i <- df_items %>% filter(mode == "lab-synch") %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% mutate(
+  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
+) 
+
+df_s <- df_subjects %>% filter(mode == "lab-synch") %>% mutate(
+  test_score = item_test_NABS,
+  test_percent = item_test_NABS/8
+)
+
+
+```
+
+#### Describe
+
+```{r}
+
+title = "Descriptive Statistics of Response Accuracy (Test Phase % Correct)"
+tbl1 <- mosaic::favstats(~test_percent, data = df_s) 
+tbl1 %>% kbl (caption = title) %>% kable_classic()
+
+
+title = "Descriptive Statistics of Response Accuracy (Test Phase % Correct) BY CONDITION"
+tbl2 <- mosaic::favstats(test_percent ~ condition, data = df_s) 
+tbl2 %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+Across both conditions, overall accuracy on the test phase ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. We see that the distribution of this outcome variable is clearly bimodal: with modes near the floor (0% correct) and ceiling (100% correct) of the scale. This bimodality is sensical considering the nature of the task, where each item in the task indexes a different information extraction operation over the same coordinate system.
+
+A score of 100% indicates that the participant correctly interpreted the interval-coordinate system throughout the task, *starting at the first question*. A score of 0% indicates the individual *never* correctly interpreted the coordinate system. A score somewhere inbetween indicates that an individual deciphered the coordinate system *sometime over the course the task*.
+
+#### WILCOXON RANK SUM (Mann-Whitney Test) --- SCORE
+
+-   **Non parametric alternative** to t-test; compares median rather than mean by ranking data
+-   Does not assume normality
+-   Does not assume equal variance of samples (homogeneity of variance)
+
+##### Test
+
+```{r}
+
+
+(w <- wilcox.test(df_s$test_score ~ df_s$condition,
+                 paired = FALSE, alternative = "less")) #less, greater
+report(w)
+
+```
+
+##### Visualize
+
+```{r}
+
+
+#[manual one-sided test]
+(results <- statsExpressions::two_sample_test(y = test_score, x = condition, data = df_s,
+                                type = "nonparametric", alternative = "less",
+                                var.equal = FALSE))
+
+
+#:::::::: STATSPLOT | VIOLIN
+ggbetweenstats(y = test_score, x = condition, data = df_s,
+               results.subtitle = FALSE, #override default [two tailed] test dsiplay
+               subtitle = results$expression[[1]]
+              )
+
+```
+
+##### Inference
+
+A Mann-Whitney (Wilcoxon Rank Sum) test evaluating the difference in median accuracy score in the test phase of the graph comprehension task indicates that performance was better in the impasse (vs) control condition. \[report stats\]
+
+#### WILCOXON RANK SUM (Mann-Whitney Test) --- PERCENTAGE
+
+-   same as above, but on percentage rather than \# correct
+
+##### Test
+
+```{r}
+
+
+(w <- wilcox.test(df_s$test_percent ~ df_s$condition,
+                 paired = FALSE, alternative = "less")) #less, greater
+report(w)
+
+# df_s %>% wilcox_effsize(test_percent ~ condition)
+
+
+```
+
+##### Visualize
+
+```{r}
+
+
+#[manual one-sided test]
+(results <- statsExpressions::two_sample_test(y = test_percent, x = condition, data = df_s,
+                                type = "nonparametric", alternative = "less",
+                                var.equal = FALSE))
+
+
+#:::::::: STATSPLOT | VIOLIN
+ggbetweenstats(y = test_percent, x = condition, data = df_s,
+               results.subtitle = FALSE, #override default [two tailed] test dsiplay
+               subtitle = results$expression[[1]]
+              )
+
+```
+
+##### Inference
+
+**Reported in dissertation**
+
+Because the distribution of the outcome variable is not normally distributed, we evaluate the effect of CONDITION on ACCURACY via a non-parametric test. Consistent with our hypothesis, a Wilcoxon rank sum test (with continuity correction) on ACCURACY by CONDITION indicates that data in each condition likely come from different population distributions (W = 1438.00, p = 0.002; one-tailed), and that the distribution of the control condition is less (i.e. shifted to the left/ lower scores) than the impasse condition (\^{r} = -0.28, 95% CI \[-1.00, -0.11\]), a medium-sized effect.
+
+#### MIXED LOGISTIC REGRESSION
+
+*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
+
+##### Fit Model
+
+```{r}
+#| label: MODEL-MLOG-ABS-LAB
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
+# summary(m0)
+
+#:: RANDOM INTERCEPT SUBJECT
+print("Subject intercept random model")
+mm.rS <- glmer(accuracy ~ (1|subject), data = df_i, family = "binomial")
+# summary(mm.rS)
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
+test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+```
+
+*A likelihood ratio test indicates that a logistic regression model including SUBJECT as a random effect explains more variance in the data than an empty \[intercept only\] model.*
+
+```{r}
+
+## 2 | ADD FIXED EFFECT CONDITION
+
+print("FIXED Condition + Subject random intercepts")
+mm.CrS <- glmer(accuracy ~ pretty_condition + (1|subject) ,
+                data = df_i, family = "binomial")
+summary(mm.CrS)
+
+
+paste("AIC decreases w/ new model", AIC(logLik(mm.rS)) > AIC(logLik(mm.CrS)) )
+test_lrt(mm.rS,mm.CrS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.CrS))$p[2])
+
+```
+
+```{r}
+# print("FIXED Condition + Subject & Item random intercepts")
+# mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
+#                 data = df_i, family = "binomial")
+# summary(mm.CrSQ)
+```
+
+##### Describe
+
+```{r}
+
+# best model
+m1 <- mm.CrS
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m1)
+car::Anova(m1)
+
+#:::::::: MANUAL ONE-SIDED SIGTEST 
+
+# one-sided (right tail) z test for B COEFFICIENT
+#SANITY CHECK 2-tailed test should match the model output
+tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
+ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,5))
+
+#:::::::: INTERPRET COEFFICIENTS
+
+se <- sqrt(diag(stats::vcov(m1)))
+# table of estimates with 95% CI
+paste("LOG ODDS")
+(tab <- cbind(Est = fixef(m1), LL = fixef(m1) - 1.96 * se, UL = fixef(m1) + 1.96 *
+    se))
+paste("ODDS RATIOS")
+(e <- exp(tab))
+
+```
+
+
+##### Visualize
+
+```{r}
+#:::::::: PLOT
+
+#GGSTATS | MODEL | LOG ODDS 
+ggcoefstats(m1, output = "plot", 
+              conf.level = 0.90) + 
+  labs(x = "Log Odds Estimate", 
+       subtitle = "p is for two tailed test")
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m1, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
+  labs(title = "Model Predicted Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m1, type="eff",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Predicted Probability of Accuracy",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+```
+
+```{r}
+#SJPLOT | MODEL | TABLE
+# tab_model(m1)
+
+
+# #MODEL SUMMARY | save latex table
+# models <- list("odds ratios" = m1, "(log odds)" = m1)
+# notes = list('N(subject) = 126 $\tau_{00}$(subject) = 22.22',
+#              'N(question) = 13 $\tau_{00}$(question) = 0.31',
+#                "*** indicates p < 0.001")
+# # 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"))
+
+#              # coef_omit = "Intercept",
+#              gof_omit = 'AIC|RMSE|ICC|BIC',
+#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)', notes = notes,
+#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
+
+```
+
+##### Diagnostics
+
+```{r}
+#| warning: false
+#| message: false
+
+print("SANITY CHECK REPORTING")
+# report(m1)
+
+print("MODEL PERFORMANCE")
+performance(m1)
+
+print("DIAGNOSTICS")
+check_model(m1)
+binned_residuals(m1)
+```
+
+##### TODO
+
+-   sanity check interpretation
+-   sanity check random effects structure :
+    -   do I need to have ITEM as random intercept? What does it mean to have two random intercepts?
+-   DIAGNOSTICS: What in the world is happening with the normality of random effects plot? Do the fixed effects residuals need to be normally distributed?
+-   Are there other plots or recommended diagnostics for mixed log regression
+-   consider multiple regression with rt, sequence cluster, confidence, etc.
+-   What else needs to be interpreted with respect to the item and subject random effects?
+-   Double check: can't have condition by subject or item slope bc subjects are nested in conditions, not crossed
+
+### SHIFT IN MODAL MASS
+
+The Effect of Condition on Total Scaled Score can be described as a 'shift' in mass between the low and high modes of each distribution.
+
+*First, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
+
+```{r}
+#| label: COMPARE-DIST-NABS-comb
+
+# HACK WD FOR LOCAL RUNNING?
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(mbp)
+
+#(requires shift function files loaded)
+#LOAD MODAL SHIFT FUNCTION RESOURCES
+source("analysis/utils/shift_function/Rallfun-v30.txt")
+source("analysis/utils/shift_function/wilcox_modified.txt")
+source("analysis/utils/shift_function/rgar_visualisation.txt")
+source("analysis/utils/shift_function/rgar_utils.txt")
+#NOTE: something in these breaks the stat_ecdf in ggplot2
+
+#PREP DATA 
+df <- df_subjects %>%
+  dplyr::select(s_SCALED, pretty_condition) %>%
+  mutate(
+    data = as.numeric(s_SCALED),
+    #flip order levels to correctly orient graph
+    # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
+    gr = as.character(pretty_condition)
+  ) %>% dplyr::select(data,gr)
+
+
+g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
+g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
+
+
+#COMPARE DISTRIBUTIONS WITH ROBUST TESTS
+
+#What do common tests say about the difference?
+
+# Kolmogorov-Smirnov test
+#If y is numeric, a two-sample (Smirnov) test of the null hypothesis that x and y 
+#were drawn from the same continuous distribution is performed. Alternatively, y ...
+
+#null is X is drawn from CDF EQUAL TO Y
+ks.test(g1,g2) 
+print("SUGGESTS that impasse and control come from different population distributions")
+
+# #null is X is NOT LESS THAN Y
+ks.test(g1,g2, alternative = "greater") 
+print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consistent with higher probability of low scores]")
+
+#REGULAR T-TEST
+t.test(g1,g2) # regular Welsh t-test
+
+```
+
+```{r}
+#| label: SHIFT-FN-NABS-comb
+#| warnings: false
+#| messages: false
+
+#IF THIS ERRORS, consider loadling plyr (older than dplyr)
+# kernel density estimate + rug plot + superimposed deciles
+kde <- plot.kde_rug_dec2(df)
+# kde
+
+# compute shift function
+out <- shifthd( g1, g2, nboot=200)
+
+# plot shift function
+sf <- plot.sf(data=out) # function from rgar_visualisation.txt
+# sf
+
+# combine KDE + SF
+cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
+
+```
+
+### H1B \| TEST PHASE INTERPRETATION STATE
+
+**Do Ss in the IMPASSE condition offer less-orthogonal interpretations across the test phase questions?**
+
+While absolute accuracy score tells us whether a participant successfully interpreted the coordinate system, it doesn't allow us to differentiate between different kinds of incorrect interpretations. Here we examine the (categorical) interpretation state type based on the nature of subject's response, and determine if these interpretations differ by experimental condition. State is a 3-category variable that groups the following interpretations:
+
+-   **"orthogonal-like"** \[reference category\] includes orthogonal and satisficing responses ==\> indicates a primarily *orthogonal* state of coordinate system understanding
+-   **"unknown"** includes: blank, reference point, responses that can't be classified (including selecting all datapoints) =\> indicates an uncertain or unidentifiable state of coordinate system understanding, but one that is distinctly *not* orthogonal nor triangular
+-   **"triangle-like"** includes correct triangular and 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
+
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does Ss in the impasse condition produce less orthogonal responses across questions in the test phase?                                          |
++=======================+=================================================================================================================================================+
+| **Hypothesis**        | H1A \| Ss in the IMPASSE condition will have a higher likelihood of producing unknown and triangle-like response states across test phase items |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | -   data: `df_items` where `q nin 1,2,3,4,5,6,9` (8 discriminant test phase items)                                                              |
+|                       | -   outcome: `state` ( 3 level factor from high_interpretation )                                                                                |
+|                       | -   predictor: `condition` \[between-subjects factor\]                                                                                          |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  MIXED Multinomial (Logistic) Regression on state predicted by condition                                                                     |
+|                       |                                                                                                                                                 |
+|                       | Alternative:                                                                                                                                    |
+|                       |                                                                                                                                                 |
+|                       | -   MIXED Ordinal regression on state (doesn't meet proportional odds assumption-I think)                                                       |
+|                       | -   MIXED Multinomial or Ordinal regression on high_interpretation (some cells are 0, produces problems)                                        |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+
+```{r}
+#| label: SETUP-TEST-INTERPRETATION
+
+#:::::::: PREP DATA
+df = df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% mutate(
+  q = as.factor(q),
+  subject = as.factor(subject)
+)
+
+#:::::::: STACKED BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~pretty_mode) + 
+   labs(title = "Test Phase Interpretation",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+```
+
+A proportional bar chart visualizing the proportion of each interpretations type by condition for each data collection modality (left/right facet) reveals that the pattern of responses are similar regardless of the data collection modality, by differ by condition. In the impasse condition, there are more triangular responses than in control. In the impasse condition, there are also more positive transition (i.e. triangle-like) and neutral (ie. blank or uncertain response types) than in the control condition.
+
+
+```{r}
+
+#:::::::: IN PERSON ONLY
+df <- df_items %>% filter(mode == "lab-synch") %>% filter(q %nin% c(1,2,3,4,5,6,9)) 
+
+#::::::::::::DESCRIPTIVES
+
+table(df$state, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+
+(t <- table(df$state, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      addmargins(1)) #sanity check sum of columns
+
+```
+
+#### MIXED MULTINOMIAL REGRESSION
+
+**TODO** - add a 1 to the empty cell and re-run mblogit to show that estimates are more similar to the brms results - run individual mixed models to show results are similar to mblogit vs brms
+
+*Does condition affect the response state of of items in the test phase?*
+
+*Fit a MIXED logistic regression predicting interpretation state (k=3) by condition(k = 2).*
+
+-   Can use mclogit mblogit() with random effect *or* bayesian brms package b/c nlme, lme4 don't support random effects on multinomial (ie no categorical family on glmer())
+
+-   Alternative would be to manually run 2 X binomial mixed models \[should compare outcomes\]
+
+-   2 equations will be estimated (# categories - 1); each representing the odds of answering in that particular interpretation (vs) the reference category (orthogonal answer) \[essentially a series of binary logistic regressions, but instead of incorrect/correct, comparing \[reference category\] vs \[this category\])
+
+-   For *each* equation:
+
+    -   $\beta_{0}$ *= Log Odds of \[this category type vs. reference category type) response in CONTROL condition*
+    -   $e^{\beta_{0}}$ *= ODDS of \[this category type vs. reference category type\] response in CONTROL condition*
+    -   $\beta_{1}$ *=* $\beta_{1impasse}$ *Log Odds (Log OR; change in odds for \[this category\] type response in impasse (vs) control \[log scale\])*
+    -   $e^{\beta_{1}}$ *= ODDS RATIO of \[this. vs reference category type\] response in IMPASSE (vs) CONTROL*
+    -   Two-tailed NHST *Null hypothesis:* $\beta_{impasse} = 0$ *the odds for \[this category of response vs. reference\] are not different for IMPASSE condition*
+    -   *Alternative hypothesis:* $\beta_{impasse} \ne 0$ *the odds of \[this category of response vs. reference\] increases or decreases for IMPASSE condition*
+
+##### Fit Model \[MANUAL INDIVIDUAL BINOMIALS\]
+
+```{r}
+
+#VERIFY RESULTS BELOW VIA MULTIPLE INDIVIDUAL MODELS
+
+paste("ORTH vs. UNKNOWN")
+
+d1 <- df %>% filter(state %nin% c("tri-like")) %>% droplevels()
+table(d1$condition, d1$state)
+plot(d1$condition, d1$state)
+
+m.unknown <- glmer(state ~ pretty_condition + ( 1 | subject), family = "binomial", data = d1)
+summary(m.unknown)
+```
+
+*Being in the IMPASSE condition increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 7.7 ( logodds = 2.041, z = 0.559, p \< 0.001) . Participants in the impasse condition were 7.7x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control. (Conditional R2 = 0.59, marginal R2 = 0.13; SD(subject) = 1.93)
+
+```{r}
+
+paste("ORTH vs. TRIANGULAR")
+
+d2 <- df %>% filter(state %nin% c("unknown")) %>% droplevels()
+table(d2$condition, d2$state)
+plot(d2$condition, d2$state)
+
+m.tri <- glmer(state ~ pretty_condition + ( 1 | subject), family = "binomial", data = d2)
+summary(m.tri)
+
+```
+
+*Being in the IMPASSE condition increases* the odds of giving an triangle-like response by a factor of 1604 ( logodds = 7.38, z = 1.86, p \< 0.001) . Participants in the impasse condition were 1604x as likely to give an triangle-like response rather than an orthogonal response compared to participants in control. (Conditional R2 = 0.96, marginal R2 = 0.0.16; SD(subject) = 8.29)
+
+##### Fit Model \[mblogit\]
+
+```{r}
+
+#https://www.elff.eu/software/mclogit/manual/mblogit/
+#"baseline category logit" model matches multinom()
+
+#check reference level 
+print("Categories (first is reference)")
+levels(df$state)
+
+#FIT EMPTY MODEL
+# print("EMPTY MODEL")
+m.mbl0 <- mblogit(state ~ pretty_condition ,  #no random intercepts; fixed only model 
+                  data = df)
+#summary(m.mbl0)
+
+#FIT PREDICTOR MODEL
+# print("PREDICTOR MODEL")
+m.mbl1 <- mblogit(state ~ pretty_condition , 
+                  random = ~ 1 | subject , 
+                  data = df)
+# summary(m.mbl1)
+
+#COMPARE MODEL FIT
+paste("AIC wth predictor is lower than empty model?", AIC(m.mbl0) > AIC(m.mbl1))
+test_lrt(m.mbl0, m.mbl1)
+
+#DESCRIBE MODEL
+summary(m.mbl1)
+# car::Anova(m.mbl1)
+
+#INTERPRET COEFFICIENTS
+cint <- confint(m.mbl1, level = 0.95)
+print("ODDS RATIO")
+(e <- cbind( exp(coef(m.mbl1)), exp(cint))) #exponentiated, adjusted
+
+#PERFORMANCE
+performance(m.mbl1)
+
+#TABLE
+tab_model(m.mbl1, transform = "exp", title = "Model Predicted Odds Ratio")
+```
+
+##### Inference
+
+-   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 4.7 (z = 3.92, p \< 0.001) . **Participants in the impasse condition were 4.7x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control**.
+
+-   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 8.61 (z = 3.30, p \< 0.001 ). **Participants in the impasse condition were more than 8.6x as likely to give an a triangular response rather than an orthogonal response compared to participants in control**.
+
+-   As with the (binary) logistic regression on accuracy \~ condition, significant model intercepts indicate that the odds of being in any particular response state (vs) orthogonal are significantly different than 1 *in the control condition.* (i.e. not 1:1 odds or 50% chance of being in that response state. Orthogonal is a much more probable response state in control)
+
+-   TODO: these estimates seem low to me, given the estimates for the Q1 only model. Also different from brms estimates (below) Suspect NaNs error thrown with mblogit() may be relevant
+
+##### Visualize
+
+```{r}
+#| label: VIS-TEST-INTERPRETATION-LAB
+
+#:::::::: PLOT
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m.mbl1, vline.color = "red", 
+           transform = "exp", #for some reason have to manually add for mixed?
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.05, #can manually adjust to account for directional test
+           ci.lvl = 0.95) +  #can manually adjusted for directional test   
+  labs(title = "ODDS RATIO | Test Phase State ~ condition",
+       subtitle = "(p for  two-tailed test)")
+
+#SJPLOT | MODEL | TABLE
+tab_model(m.mbl1)
+
+```
+
+##### Diagnostics
+
+```{r}
+
+print("MODEL PERFORMANCE")
+performance(m.mbl1)
+
+#General Goodness of Fit
+#library(generalhoslem)
+#logitgof(df$state, catm$fitted.values, g = 3)
+#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
+#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
+
+# print("MODEL DIAGNOSTICS")
+# check_model(m.mbl1) can't do overall diagnostics, have to do them on individual model equations
+
+```
+
+##### Fit Model \[brms\]
+
+```{r}
+
+
+#library(brms) #bayesian mixed regression models
+
+#BAYESIAN MIXED VERSION
+mixcat.1 <- brm( state ~ condition + (1|subject), 
+                 data = df, family = "categorical",
+                 file = "analysis/SGC3A/models/sgc3a_brms_mixedcat_teststate_LAB.rds") # cache model (can be removed)))
+
+#DESCRIBE MODEL
+summary(mixcat.1)
+# report(mixcat.1)
+
+#VISUALIZE
+
+plot(mixcat.1)
+plot_model(mixcat.1)
+check_posterior_predictions(mixcat.1, draws=1000)
+library(bayesplot)
+library(bayestestR)
+plot(rope(mixcat.1, ci = 0.89))
+
+#PERFORMANCE
+performance(mixcat.1)
+
+#TABLE
+tab_model(mixcat.1,
+          show.r2 = FALSE) #, transform = "exp", title = "Model Predicted Odds Ratio")
+
+# modelsummary(mixcat.1, s)
+#TODO OUTPUT TABLE 
+#https://arelbundock.com/posts/modelsummary_multinomial_logit/
+```
+
+##### Inference
+
+-   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 43.86.
+
+-   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 6.64.
+
+-   TODO RECONCILE:: brms model provides *substantially* higher estimate for blank/uncertain response (vs) the mblogit frequentist model. I think these should be similar, as they were for the non-mixed veresions. Suspect NaNs error thrown with mblogit() may be relevant
+
+##### Visualize
+
+```{r}
+
+# #:::::::: PLOT
+# 
+# #SJPLOT | MODEL | ODDS RATIO
+# #library(sjPlot)
+# plot_model(mixcat.1, vline.color = "red", 
+#            show.intercept = TRUE, 
+#            show.values = TRUE,
+#            p.threshold = 0.05, #can manually adjust to account for directional test
+#            ci.lvl = 0.95 ) +  #can manually adjusted for directional test   
+#   labs(title = "ODDS RATIO | Test Phase State ~ condition",
+#        subtitle = "(p for one two test)")
+# 
+# 
+# result <- estimate_density(mixcat.1)
+# plot(result, stack = FALSE, priors = TRUE)
+# 
+# result <- describe_posterior(mixcat.1)
+# plot(result, stack = FALSE, priors = TRUE)
+# 
+# result <- p_direction(mixcat.1)
+# plot(result, stack = FALSE)
+# 
+# prior_summary(mixcat.1)
+# 
+# # hypothesis(mixcat.1, "muunknown_condition121 > 0 ")
+
+
+```
+
+##### Diagnostics
+
+##### TODO
+
+-   priors? used default flat priors... ok?
+-   posterior predictive checks
+-   diagnostics on random effects
+-   reconcilliation of mblogit() vs brms versions of the model; seems like they should yield similar estimates
