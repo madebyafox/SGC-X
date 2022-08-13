@@ -15,36 +15,50 @@ subtitle: 'Study SGC4A | Hypothesis Testing'
 #| warning : false
 #| message : false
 
-#misc utilities
+#UTILITIES
 library(Hmisc) # %nin% operator
-library(broom)
-library(modelr)
+library(broom) #tidy model output
+library(mosaic) #favstats
+# library(modelr)
 library(distributional)
-library(jtools)
-library(pwr) #power analysis
+# library(jtools)
+# library(pwr) #power analysis
 
-#visualization
-library(ggpubr) #arrange plots
-library(cowplot) #arrange shift function plots
+#VISUALIZATION
+# library(ggpubr) #arrange plots
+# library(cowplot) #arrange shift function plots
 library(ggformula) #easy graphs
-library(vcd) #mosaic plots
-library(vcdExtra) #mosaic plots
-library(kableExtra) #printing tables 
+# # library(vcd) #mosaic plots
+# # library(vcdExtra) #mosaic plots
+library(kableExtra) #printing tables
 library(sjPlot) #visualize model coefficients
-library(ggdist) #uncertainty viz 
+library(ggdist) #uncertainty viz
+library(gghalves) # plots. in half
+library(ggbeeswarm) # violin plot stuffs
+library(statsExpressions)
 library(ggstatsplot) #plots with stats
+library(modelsummary) #latex tables for models!
 
-#models and performance
+#MODELLING
+# library(rstatix) #helpful testing functions incl wilcoxon, etc
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
-library(qqplotr) #confint on qq plot
-library(gmodels) #contingency table and CHISQR
-library(equatiomatic) #extract model equation
-library(pscl) #zeroinfl / hurdle models 
-library(lme4) #mixed effects models 
-library(lmerTest) #for CIs in glmer 
-library(ggeffects) #visualization log regr models
+library(parameters) #easystats model summary and vis
+# library(qqplotr) #confint on qq plot
+# library(gmodels) #contingency table and CHISQR
+# library(equatiomatic) #extract model equation
+# library(pscl) #zeroinfl / hurdle models 
+library(lme4) #mixed effects models
+library(lmerTest) #for CIs in glmer
+# library(ggeffects) #visualization log regr models
+#MULTINOMIAL 
+library(nnet) #multinomial logistic regression [not mixed] #no p values
+library(mclogit) #frequentist mixed multinomial logistic regression [mblogit] #gives p values
+#BAYESIAN
+library(cmdstanr) #executing stan
+library(brms) #bayesian mixed multinomials [+ other bayesian reg models]
+library(bayestestR) 
 
 library(tidyverse) #ALL THE THINGS
 
@@ -55,8 +69,21 @@ options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
 #GRAPH THEMEING
-theme_set(theme_minimal()) 
+# theme_set(theme_minimal()) 
 
+# Custom ggplot theme to make pretty plots
+# Get the font at https://fonts.google.com/specimen/Barlow+Semi+Condensed
+theme_clean <- function() {
+  theme_minimal(base_family = "Barlow Semi Condensed") +
+    theme(panel.grid.minor = element_blank(),
+          plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
+          axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
+          strip.text = element_text(family = "BarlowSemiCondensed-Bold",
+                                    size = rel(1), hjust = 0),
+          strip.background = element_rect(fill = "grey80", color = NA))
+}
+
+set_theme(base = theme_clean())
 ```
 
 **Research Questions**
@@ -70,22 +97,34 @@ theme_set(theme_minimal())
 #| warning : false
 #| message : false
 
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
 
 #IMPORT DATA 
-df_subjects <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds')
+df_subjects <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds') %>% 
+  mutate(
+    task_percent = DV_percent_NABS
+  ) %>% droplevels()
+
+
 df_items <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds') %>% 
    mutate (
+    q = as.factor(q), 
+    subject = as.factor(subject),
+    accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+    # CODES TVERSKY AS TRI-LIKE
+    # state = recode_factor(score_SCALED, #for ordinal
+    #                      "-1" = "orth-like",
+    #                      "-0.5" = "unknown",
+    #                      "0" = "unknown",
+    #                      "0.5" = "tri-like",
+    #                      "1" = "tri-like"),
+    # CODES TVERSKY AS OTHER
     state = recode_factor(score_SCALED, #for ordinal
-                         "-1" = "orth-like",
-                         "-0.5" = "unknown",
-                         "0" = "unknown",
+                         "-1" = "orthogonal",
+                         "-0.5" = "other",
+                         "0" = "other",
                          "0.5" = "tri-like",
-                         "1" = "tri-like"),
-    state = as.ordered(state))
+                         "1" = "triangular"),
+    state = as.ordered(state)) 
 
 #SEPARATE INTO PARTS 1 AND 2
 sgc4a <- df_subjects %>% filter(condition %in% c(111,113)) %>% droplevels()
@@ -96,6 +135,499 @@ sgc4b_items <- df_items %>% filter( subject %in% sgc4b$subject) %>% droplevels()
 ```
 
 # 4A PART ONE AXES
+
+
+## H1A \| OVERALL TASK  ACCURACY
+
+#### Setup
+```{r}
+#| label: SETUP-ACC
+
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
+  dplyr::select(pretty_condition, accuracy, subject,q)
+
+df_s <- df_subjects %>% 
+   dplyr::select(pretty_condition, task_percent)
+
+```
+
+
+#### Describe
+```{r}
+#| label: DESC-ACC
+
+#:::::::: STACKED PROPORTIONAL BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  # facet_wrap(~pretty_mode) + 
+   labs(title = "Overall Accuracy",
+       x = "Condition",
+       fill = "",
+       subtitle="Impasse Condition yields a greater proportion of correct responses")
+
+#:::::::: STACKED BAR CHART BY QUESTION
+df_items %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~q) +
+   labs(title = "Accuracy by Question",
+       x = "Condition",
+       fill = "",
+       subtitle="Q6 and Q9 are non-discriminative")
+
+#:::::::: FACETED HISTOGRAM
+stats = df_s %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(task_percent))
+gf_props(~task_percent,
+         fill = ~pretty_condition, data = df_s) %>%
+  # gf_facet_grid(pretty_condition ~ pretty_mode) %>%
+  gf_facet_grid(~pretty_condition) %>%
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "% Correct",
+       y = "proportion of subjects",
+       title = "Overall Absolute Score (% Correct)",
+       subtitle = "") + theme(legend.position = "blank")
+
+```
+```{r}
+#| label: DESC2-ACC
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct)"
+tbl1 <- mosaic::favstats(~task_percent, data = df_s) 
+tbl1 %>% kbl (caption = title) %>% kable_classic()
+
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY CONDITION"
+tbl2 <- mosaic::favstats(task_percent ~ pretty_condition, data = df_s) 
+tbl2 %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+
+
+#### KRUSKAL-WALLIS
+
+##### Test
+```{r}
+#| label: TEST-ACC
+
+(k <- kruskal.test(df_s$task_percent ~ df_s$pretty_condition))
+
+```
+
+##### Visualize
+
+```{r}
+#| label: TEST-VIZ-ACC
+
+(results <- statsExpressions::oneway_anova(data = df_s, 
+          x = pretty_condition, y = task_percent,
+          type = "nonparametric", alternative = "less"))
+
+#:::::::: STATSPLOT | VIOLIN
+ggbetweenstats(y = task_percent, x = pretty_condition, 
+               data = df_s, type = "nonparametric")
+
+```
+
+#### NO MIXED LOGISTIC REGRESSION
+
+*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
+
+##### Fit Model
+
+TODO model with item as random doesn't converge unless use bobyqa optimizer. 
+```{r}
+#| label: MODEL-FIT-ACC
+
+## 0 | SETUP
+#confirm 13 items [all discriminating items]
+nrow(df_i) / nrow(df_s) == 13
+#confirm all factors 
+is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy)
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
+# summary(m0)
+
+#:: RANDOM INTERCEPT SUBJECT
+print("Subject intercept random model")
+mm.rS <- glmer(accuracy ~ (1|subject), data = df_i, family = "binomial")
+# summary(mm.rS)
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
+test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
+
+#:: RANDOM INTERCEPT SUBJECT + ITEM
+print("Subject Intercept + Item intercept random model")
+mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial",
+                control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+#summary(mm.rSQ)
+
+# :: TEST random effect
+paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)))
+test_lrt(mm.rS, mm.rSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS, mm.rSQ))$p[2])
+
+
+## 2 | ADD FIXED EFFECT CONDITION
+
+print("FIXED Condition + Subject & Item random intercepts")
+mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
+                data = df_i, family = "binomial")
+# summary(mm.CrSQ)
+
+paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
+test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
+```
+
+
+##### Describe
+
+```{r}
+#| label: MODEL-DESC-ACC
+
+# best model
+m <- mm.CrSQ
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m)
+print("SIGNIFICANCE TEST [non directional]")
+car::Anova(m, type = 2)
+
+#:::::::: MANUAL ONE-SIDED SIGTEST 
+#note: anova and chi square are always one-tailed, but that is independent of being one-sided
+#https://www.ibm.com/support/pages/can-one-get-one-tailed-tests-logistic-regression-dividing-significance-levels-half
+# one-sided (right tail) z test for B COEFFICIENT
+#SANITY CHECK 2-tailed test should match the model output
+tt <- 2*pnorm(summary(m)$coefficients[2,3], lower.tail = F)
+paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
+ot <- pnorm(summary(m)$coefficients[2,3], lower.tail = F)
+paste("BUT we want a one  directional, null: B <= 0: ",round(ot,5))
+
+#:::::::: INTERPRET COEFFICIENTS
+
+se <- sqrt(diag(stats::vcov(m)))
+# table of estimates with 95% CI
+paste("LOG ODDS")
+(tab <- cbind(Est = fixef(m), 
+              LL = fixef(m) - 1.96 * se, 
+              UL = fixef(m) + 1.96 * se))
+paste("ODDS RATIOS")
+(e <- exp(tab))
+
+```
+
+
+##### TODO Inference
+
+**TODO REDO UPDATE THIS**
+
+We fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items; to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(4): 11.02, p \< 0.001); and the total explanatory power is substantial (conditional R2 = 0.82) and the part related to the fixed effects (marginal R2) is 0.02. Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 2.8 over the control condition $e^{\beta_1}$ = 2.80, 95% CI \[1.54, 5.09\], p \< 0.001.
+
+
+##### Visualize
+
+```{r}
+#| label: MODEL-VIS-ACC
+
+## | PLOT PARAMETERS 
+
+#SJPLOT | MODEL | ODDS RATIO
+plot_model(m, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
+  labs(title = "Model Estimate | Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+
+#EASYSTATS | MODEL | ODDS RATIO
+result <- model_parameters(m, exponentiate = TRUE, component = "all")
+plot(result)
+
+
+## | PLOT TESTS
+
+result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+plot(result)
+
+
+## | PLOT PREDICTIONS
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m, type="eff",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Prediction | Probability of Accurate Response",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+#PLOT MODEL PREDICTION
+plot_model(m, type = "pred")  
+  # ylim(0,1) + 
+  # labs(
+  #   title = "Model Prediction | Probability of Accurate Response",
+  #   subtitle = "Impasse increases Probability of Correct Response"
+  # )
+
+```
+
+
+
+##### Diagnostics
+
+```{r}
+print("SANITY CHECK REPORTING")
+# report(m)
+
+print("DIAGNOSTICS")
+check_model(m)
+
+```
+
+## H1A \| OVERALL INTERPRETATION STATE
+
+-   **"orthogonal"** \[reference category\] includes orthogonal and satisficing responses ==\> indicates a primarily *orthogonal* state of coordinate system understanding
+
+-   **"other"** includes: blank, reference point, responses that can't be classified (including selecting all datapoints), =\> indicates an uncertain or unidentifiable state of coordinate system understanding, but one that is distinctly *not* orthogonal nor triangular
+
+-   **"angular"** includes 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
+
+-   **"triangular"** includes correct triangular and 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
+
+
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does Ss in the impasse condition produce less orthogonal responses across questions?                                          |
++=======================+=================================================================================================================================================+
+| **Hypothesis**        | H1A \| Ss in the IMPASSE condition will have a higher likelihood of producing unknown and triangle-like response states across all items |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | -   data: `df_items` where `q nin 6,9` (13 discriminant test phase items)                                                              |
+|                       | -   outcome: `state` ( 3 level factor from high_interpretation )                                                                                |
+|                       | -   predictor: `condition` \[between-subjects factor\]                                                                                          |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  MIXED Multinomial (Logistic) Regression on state predicted by condition                                                                     |
+|                       |                                                                                                                                                 |
+|                       | Alternative:                                                                                                                                    |
+|                       |                                                                                                                                                 |
+|                       | -   MIXED Ordinal regression on state (doesn't meet proportional odds assumption-I think)                                                       |
+|                       | -   MIXED Multinomial or Ordinal regression on high_interpretation (some cells are 0, produces problems)                                        |
++-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
+
+#### Setup
+
+```{r}
+#| label: SETUP-STATE
+
+#:::::::: PREP DATA
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
+```
+
+```{r}
+#:::::::: STACKED BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  # facet_wrap(~pretty_mode) + 
+   labs(title = "Interpretation across all Questions",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+#:::::::: STACKED BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~q) +
+   labs(title = "Interpretation by Question",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+```
+
+
+```{r}
+
+#::::::::::::DESCRIPTIVES
+
+table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+
+(t <- table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      addmargins(1)) #sanity check sum of columns
+
+```
+
+#### MIXED MULTINOMIAL REGRESSION
+
+
+*Does condition affect the response state of of items across the task?*
+
+
+##### TODO Fit Model \[mblogit\]
+
+```{r}
+#| label: FIT-MBLOGIT-STATE
+
+# TRY AGAIN... MAYBE HUNG? 
+
+# #https://www.elff.eu/software/mclogit/manual/mblogit/
+# #"baseline category logit" model matches multinom()
+# 
+# #check reference level 
+# print("Categories (first is reference)")
+# levels(df_i$state)
+# 
+# #FIT EMPTY MODEL
+# # print("EMPTY MODEL")
+# m.mbl0 <- mblogit(state ~ pretty_condition ,  #no random intercepts; fixed only model 
+#                   data = df_i)
+# #summary(m.mbl0)
+# 
+# #FIT PREDICTOR MODEL
+# # print("PREDICTOR MODEL")
+# m.mbl1 <- mblogit(state ~ pretty_condition , 
+#                   random = list( ~ 1|subject, ~1|q), 
+#                   data = df_i)
+# # summary(m.mbl1)
+# 
+# #COMPARE MODEL FIT
+# paste("AIC wth predictor is lower than empty model?", AIC(m.mbl0) > AIC(m.mbl1))
+# test_lrt(m.mbl0, m.mbl1)
+# 
+# #DESCRIBE MODEL
+# summary(m.mbl1)
+# 
+# #INTERPRET COEFFICIENTS
+# cint <- confint(m.mbl1, level = 0.95)
+# print("ODDS RATIO")
+# (e <- cbind( exp(coef(m.mbl1)), exp(cint))) #exponentiated, adjusted
+# 
+# #PERFORMANCE
+# performance(m.mbl1)
+# 
+# #TABLE
+# tab_model(m.mbl1, transform = "exp", title = "Model Predicted Odds Ratio")
+
+```
+
+
+##### TODO Inference
+
+
+##### Fit Model \[brms\]
+
+```{r}
+#| label: FIT-BRMS-STATE
+
+#BAYESIAN MIXED VERSION
+mm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
+                 data = df_i, 
+                 family = "categorical",
+                 chains = 4, iter = 2000, warmup = 1000,
+                 cores = 4, seed = 1234,
+                 backend = "cmdstanr",
+                 file ="analysis/SGC4A/models/sgc4a_brms_mixedcat_state.rds")
+```
+
+
+```{r}
+#| label: VIS-BRMS-STATE
+
+#set model 
+m <- mm.cat.CrSQ
+summary(m)
+
+## | PLOT PARAMETERS 
+
+#SJPLOT | MODEL | ODDS RATIO
+# plot_model(m, vline.color = "red", 
+#            show.intercept = TRUE, 
+#            show.values = TRUE,
+#            p.threshold = 0.1, #manually adjust to account for directional test
+#            ci.lvl = 0.90 ) + #manually adjusted for directional test   
+#   labs(title = "Model Estimate | Odds Ratio",
+#        subtitle = "",
+#        x = "Condition")
+
+
+#EASYSTATS | MODEL | ODDS RATIO
+result <- model_parameters(m, exponentiate = TRUE, component = "all")
+plot(result)
+
+# result <- simulate_parameters(m)
+# plot(result, stack = FALSE)
+
+#check posterior
+pp_check(m, ndraws=1000)
+
+## | PLOT TESTS
+result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+plot(result)
+
+result <- rope(m)
+plot(result)
+
+result <- pd(m)
+plot(result)
+
+## | PLOT PREDICTIONS
+
+#SJPLOT | MODEL | PROBABILITIES
+# plot_model(m, type="eff",
+#            show.intercept = TRUE,
+#            show.values = TRUE,
+#            title = "Model Prediction | Probability of Accurate Response",
+#            axis.title = c("Condition","Probability of Accurate Response"))
+# 
+# #PLOT MODEL PREDICTION
+plot_model(m, type = "pred")
+
+
+#TODO EMMEANS for the estimated marginal means
+
+#TODO OUTPUT TABLE 
+#https://arelbundock.com/posts/modelsummary_multinomial_logit/
+# modelsummary(m)
+
+```
+
+##### TODO Inference
+
+
+##### COMPARE
+
+```{r}
+#| label: COMPARE-STATE-MODELS
+# compare_models(m.mbl1, mm.cat.CrSQ)
+```
+The predictions of the manual, frequentist mixed multinomial and bayesian mixed multinomial models are comparable. 
+
+
 
 ## H1A \| Q1 ACCURACY
 
@@ -576,322 +1108,6 @@ DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
 ```
 
 
-
-
-
-
-
-## H1B \| OVERALL TASK  ACCURACY
-
-
-```{r}
-
-#:::::::: PREP DATA
-df <- sgc4a_items %>% filter(q %nin% c(6,9)) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
-
-
-#:::::::: STACKED PROPORTIONAL BAR CHART
-df %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-   labs(title = "Task Accuracy",
-       x = "Condition",
-       fill = "",
-       subtitle="Impasse Condition yields a greater proportion of correct responses")
-
-
-#:::::::: FACETED HISTOGRAM
-stats = sgc4a %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(s_NABS))
-gf_props(~s_NABS, 
-         fill = ~pretty_condition, data = sgc4a) %>% 
-  gf_facet_grid(~pretty_condition) %>% 
-  gf_vline(data = stats, xintercept = ~mean, color = "red") +
-  labs(x = "# Correct",
-       y = "proportion of subjects",
-       title = "Task Absolute Score (# Correct)",
-       subtitle = "") + theme(legend.position = "blank")
-
-
-```
-
-
-
-```{r}
-
-#:::::::: SGC4A only
-df_i <- sgc4a_items %>% filter(q %nin% c(6,9)) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
-
-df_s <- sgc4a  %>% mutate(
-  test_score = s_NABS
-)
-
-```
-
-#### WILCOXON RANK SUM (Mann-Whitney Test)
-
--   **Non parametric alternative** to t-test; compares median rather than mean by ranking data
--   Does not assume normality
--   Does not assume equal variance of samples (homogeneity of variance)
-
-```{r}
-#| label: WILCOX-ONLINE
-
-(w <- wilcox.test(df_s$test_score ~ df_s$condition,
-                 paired = FALSE, alternative = "less")) #less, greater
-report(w)
-
-```
-
-```{r}
-
-(results <- statsExpressions::two_sample_test(data = df_s, x = condition, y = test_score,
-                                    type = "nonparametric",
-                                  alternative = "less"))
-
-#:::::::: STATSPLOT | VIOLIN
-ggbetweenstats(y = test_score, x = condition, data = df_s,
-               results.subtitle = FALSE,
-               subtitle = results$expression[[1]]
-               )
-
-```
-
-#### MIXED LOGISTIC REGRESSION
-
-*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
-
-##### Fit Model
-
-```{r}
-#| label: MODEL-MLOG-ABS-ONLINE
-
-## 1 | SETUP RANDOM INTERCEPT SUBJECT
-
-#:: EMPTY MODEL (baseline, no random effect)
-print("Empty fixed model")
-m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
-# summary(m0)
-
-#:: RANDOM INTERCEPT SUBJECT
-print("Subject intercept random model")
-mm.rS <- glmer(accuracy ~ (1|subject), data = df_i,family = "binomial")
-# summary(mm.rS)
-
-# :: TEST random effect
-paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
-test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
-
-
-# ## 2 | ADD RANDOM RANDOM INTERCEPT ITEM
-# 
-# #:: RANDOM INTERCEPT SUBJECT + INTERCEPT Q
-# print("Subject & Question random intercepts")
-# mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i,family = "binomial")
-# # summary(mm.rSQ)
-# 
-# # :: TEST random effect
-# paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)) )
-# test_lrt(mm.rS,mm.rSQ) #same as anova(m0, m1, test = "Chi")
-# paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.rSQ))$p[2])
-
-## 3 | ADD FIXED EFFECT
-
-# SUBJECT INTERCEPT | FIXED CONDITION 
-print("FIXED Condition + Subject & Question random intercepts")
-mm.CrS <- glmer(accuracy ~ pretty_condition + (1|subject) , 
-                data = df_i,family = "binomial",
-                control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-# summary(mm.CrSQ)
-
-paste("AIC decreases w/ new model", AIC(logLik(mm.rS)) > AIC(logLik(mm.CrS)) )
-test_lrt(mm.rS,mm.CrS) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS,mm.CrS))$p[2])
-
-```
-
-##### Visualize
-
-```{r}
-
-m <- glmer(accuracy ~ pretty_condition + as.factor(q)+ (1|subject) , 
-                data = df_i,family = "binomial",
-                control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-
-
-m1 <- mm.CrSQ
-
-#::::::::: PRINT MODEL 
-
-print("PREDICTOR MODEL")
-summary(m1)
-
-#:::::::: MANUAL ONE-SIDED SIGTEST 
-
-# one-sided (right tail) z test for B COEFFICIENT
-#SANITY CHECK 2-tailed test should match the model output
-tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
-paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
-ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
-paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,5))
-
-#:::::::: INTERPRET COEFFICIENTS
-
-print("MODEL PERFORMANCE")
-performance(m1)
-
-se <- sqrt(diag(stats::vcov(m1)))
-# table of estimates with 95% CI
-(tab <- cbind(Est = fixef(m1), LL = fixef(m1) - 1.96 * se, UL = fixef(m1) + 1.96 *
-    se))
-(e <- exp(tab))
-
-#:::::::: PLOT
-
-#GGSTATS | MODEL | LOG ODDS 
-ggcoefstats(m1, output = "plot", 
-              conf.level = 0.90) + 
-  labs(x = "Log Odds Estimate", 
-       subtitle = "p is for two tailed test")
-
-#SJPLOT | MODEL | ODDS RATIO
-#library(sjPlot)
-plot_model(m1, vline.color = "red", 
-           show.intercept = TRUE, 
-           show.values = TRUE,
-           p.threshold = 0.1, #manually adjust to account for directional test
-           ci.lvl = 0.90 ) + #manually adjusted for directional test   
-  labs(title = "Model Predicted Odds Ratio",
-       subtitle = "",
-       x = "Condition")
-
-#SJPLOT | MODEL | PROBABILITIES
-plot_model(m1, type="eff",
-           show.intercept = TRUE,
-           show.values = TRUE,
-           title = "Model Predicted Probability of Accuracy",
-           axis.title = c("Condition","Probability of Accurate Response"))
-
-#SJPLOT | MODEL | TABLE
-# tab_model(m1)
-
-```
-
-##### Diagnostics
-
-```{r}
-print("SANITY CHECK REPORTING")
-report(m1)
-check_model(m1)
-binned_residuals(m1)
-```
-
-##### Inference
-
-We fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items; to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(4): 11.02, p \< 0.001); and the total explanatory power is substantial (conditional R2 = 0.82) and the part related to the fixed effects (marginal R2) is 0.02. Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 2.8 over the control condition $e^{\beta_1}$ = 2.80, 95% CI \[1.54, 5.09\], p \< 0.001.
-
-```{r}
-# PRETTY TABLE SJPLOT
-tab_model(mm.CrSQ)
-```
-
-##### TODO
-
--   sanity check interpretation
--   sanity check random effects structure : ITEM appropriate as random intercept? What does it mean to have two random intercepts?
--   DIAGNOSTICS: What in the world is happening with the normality of random effects plot? Do the fixed effects residuals need to be normally distributed?
--   Are there other plots or recommended diagnostics for mixed log regression
--   consider multiple regression with rt, sequence cluster, confidence, etc.
--   What else needs to be interpreted with respect to the item and subject random effects?
--   Double check: can't have condition by subject or item slope bc subjects are nested in conditions, not crossed
-
-
-### SHIFT IN MODAL MASS
-
-The Effect of Condition on Total Scaled Score can be described as a 'shift' in mass between the low and high modes of each distribution.
-
-*First, we use the Kolmogorov-Smirnov test as a Robust alternative to the t-test to test if the two distributions likely come from different populations.*
-
-```{r}
-#| label: COMPARE-DIST-NABS-comb
-
-# HACK WD FOR LOCAL RUNNING?
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(mbp)
-
-#(requires shift function files loaded)
-#LOAD MODAL SHIFT FUNCTION RESOURCES
-source("analysis/utils/shift_function/Rallfun-v30.txt")
-source("analysis/utils/shift_function/wilcox_modified.txt")
-source("analysis/utils/shift_function/rgar_visualisation.txt")
-source("analysis/utils/shift_function/rgar_utils.txt")
-#NOTE: something in these breaks the stat_ecdf in ggplot2
-
-#PREP DATA 
-df <- df_subjects %>%
-  dplyr::select(s_SCALED, pretty_condition) %>%
-  mutate(
-    data = as.numeric(s_SCALED),
-    #flip order levels to correctly orient graph
-    # gr = recode_factor(pretty_condition, "impasse" = "impasse", "control"="control")
-    gr = as.character(pretty_condition)
-  ) %>% dplyr::select(data,gr)
-
-
-g1 <- df %>% filter(gr == "control") %>% dplyr::pull(data)
-g2 <- df %>% filter(gr == "impasse") %>% dplyr::pull(data)
-
-
-#COMPARE DISTRIBUTIONS WITH ROBUST TESTS
-
-#What do common tests say about the difference?
-
-# Kolmogorov-Smirnov test
-#If y is numeric, a two-sample (Smirnov) test of the null hypothesis that x and y 
-#were drawn from the same continuous distribution is performed. Alternatively, y ...
-
-#null is X is drawn from CDF EQUAL TO Y
-ks.test(g1,g2) 
-print("SUGGESTS that impasse and control come from different population distributions")
-
-# #null is X is NOT LESS THAN Y
-ks.test(g1,g2, alternative = "greater") 
-print("SUGGESTS that true CDF of CONTROL is greater than that of IMPASSE [consistent with higher probability of low scores]")
-
-#REGULAR T-TEST
-t.test(g1,g2) # regular Welsh t-test
-
-```
-
-```{r}
-#| label: SHIFT-FN-NABS-comb
-#| warnings: false
-#| messages: false
-
-#IF THIS ERRORS, consider loadling plyr (older than dplyr)
-# kernel density estimate + rug plot + superimposed deciles
-kde <- plot.kde_rug_dec2(df)
-# kde
-
-# compute shift function
-out <- shifthd( g1, g2, nboot=200)
-
-# plot shift function
-sf <- plot.sf(data=out) # function from rgar_visualisation.txt
-# sf
-
-# combine KDE + SF
-cowplot::plot_grid(kde, sf, labels=c("A", "B"), ncol = 1, nrow = 2, rel_heights = c(1.5, 1),label_size = 18,hjust = -1,scale=.95)
-
-```
 
 
 
