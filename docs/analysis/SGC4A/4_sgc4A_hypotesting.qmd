@@ -211,9 +211,21 @@ tbl2 %>% kbl (caption = title) %>% kable_classic()
 
 
 
-#### KRUSKAL-WALLIS
+#### TESTS
 
-##### Test
+####Aligned Ranks Transformation
+<!-- https://rcompanion.org/handbook/F_16.html -->
+```{r}
+
+# library(ARTool)
+
+m.art = art(task_percent ~ pretty_condition, data = df_s)
+car::Anova(m.art)
+
+
+```
+
+##### Kruskal Wallis Test
 ```{r}
 #| label: TEST-ACC
 
@@ -235,6 +247,9 @@ ggbetweenstats(y = task_percent, x = pretty_condition,
                data = df_s, type = "nonparametric")
 
 ```
+
+
+
 
 #### NO MIXED LOGISTIC REGRESSION
 
@@ -608,8 +623,6 @@ plot(result)
 plot_model(m, type = "pred")
 
 
-#TODO EMMEANS for the estimated marginal means
-
 #TODO OUTPUT TABLE 
 #https://arelbundock.com/posts/modelsummary_multinomial_logit/
 # modelsummary(m)
@@ -625,7 +638,245 @@ plot_model(m, type = "pred")
 #| label: COMPARE-STATE-MODELS
 # compare_models(m.mbl1, mm.cat.CrSQ)
 ```
-The predictions of the manual, frequentist mixed multinomial and bayesian mixed multinomial models are comparable. 
+
+
+
+## H1B \| Q1 ACCURACY
+
+
+The graph comprehension task includes 15 questions completed in sequence. But the first question the reader encounters (Q1) is the most important, as it is their *first exposure* to the unconventional triangular coordinate system.
+
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does the frequency of correct (vs) incorrect responses on the first question differ by condition? \[Is response accuracy independent of condition?\]                                                                                   |
++=======================+========================================================================================================================================================================================================================================+
+| **Hypothesis**        | H1A \| Ss in the TRI condition will have a higher likelihood of correctly responding to the first question than those in the CONTROL condition                                                                                     |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | -   data: `df_items` where `q == 1`                                                                                                                                                                                                    |
+|                       | -   outcome: *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                                                                                            |
+|                       | -   predictor: `condition` \[between-subjects factor\]                                                                                                                                                                                 |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  Logistic Regression on `accuracy` predicted by `condition`                                                                                                                                                                         |
+|                       |     -   account for difference in odds of correct score by condition                                                                                                                                                                   |
+|                       |                                                                                                                                                                                                                                        |
+|                       | Alternatives:                                                                                                                                                                                                                          |
+|                       |                                                                                                                                                                                                                                        |
+|                       | -   Chi-Square test of independence on outcome `accuracy` by `condition`                                                                                                                                                               |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Notes**             | -   CHIQ SQR is simplest method to examine independence of two categorical factors; LOGISTIC REGRESSION is recommended for binomial \~ continuous; though with regression we can quantify the size of the effect and overall model fit |
+|                       | -   independence assumption : (CHI SQR) as we only consider responses on the first question, each observation corresponds to an individual subject, and are thus independent                                                           |
+|                       | -   cell frequency : (CHI SQR) expected frequency in each cell of the contingency table is greater than 5 (more than 5 correct , more than 5 incorrect responses)                                                                      |
++-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+#### Setup
+```{r}
+#| label: SETUP-Q1ACC
+
+#:::::::: PREP DATA
+df <- df_items %>% filter(q==1)  %>% dplyr::select(accuracy, pretty_condition)
+
+```
+
+#### Describe 
+```{r}
+#| label: VIS-Q1ACC
+
+#:::::::: STACKED BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  # facet_wrap(~pretty_mode) + 
+   labs(#y = "Correct Response on Q 1",
+       title = "Q1 Accuracy",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+```
+
+
+```{r}
+#| label: DESC-Q1ACC
+
+#::::::::::::DESCRIPTIVES
+
+paste("Proportions of Correct Responses by Condition")
+table(df$accuracy, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+paste("Number of Correct Responses by Condition")
+table(df$accuracy, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      addmargins(1) #sanity check sum of columns
+```
+
+#### LOGISTIC REGRESSION
+
+Fit a logistic regression predicting accuracy (absolute score) (n = `r nrow(df)`) by condition (k = 2).\
+
+-   Parameter estimate: $\beta_{0}$ = Log Odds of (correct) responses in CONTROL condition
+-   $e^{\beta_{0}}$ = ODDS of correct response in CONTROL condition
+-   Parameter estimate: $\beta_{1}$ = $\beta_{1impasse}$ Log Odds (Log OR; change in odds for correct response in impasse (vs) control \[log scale\])
+-   $e^{\beta_{1}}$ = ODDS RATIO of correct response in IMPASSE (vs) CONTROL
+-   **Null hypothesis**:$\beta_{impasse} \le 0$ the odds for a correct response does not change, or decreases
+-   **Alternative hypothesis:** $\beta_{impasse} \gt 0$ the odds of a correct response increases
+
+##### Fit Model
+
+*First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.*
+
+```{r}
+#| label: MODEL-FIT-Q1ACC
+#| warning: false
+#| message: false
+
+# MODEL FITTING ::::::::
+
+#: 1 EMPTY MODEL baseline glm model intercept only
+m0 = glm(accuracy ~ 1, data = df, family = "binomial")
+# print("EMPTY MODEL")
+# summary(m0)
+
+#: 2 CONDITION model
+m1 <- glm( accuracy ~ pretty_condition, data = df, family = "binomial")
+# print("PREDICTOR MODEL")
+summary(m1)
+car::Anova(m1)
+
+#: 3 TEST SUPERIOR FIT
+paste("AIC wth predictor is lower than empty model?", m0$aic > m1$aic)
+test_lrt(m0,m1) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
+```
+
+*The Condition predictor decreases AIC, but the Likelihood Ratio Test is marginal. We proceed to examine the predictor model, as we plan to do a 1-tailed NHST .*
+
+##### Describe
+
+```{r}
+#| label: MODEL-DESC-Q1ACC
+
+# DESCRIBE MODEL ::::::::::::::::::::::::::::::::::::: 
+
+print("PREDICTOR MODEL [default two-tailed sig test]")
+summary(m1)
+car::Anova(m1)
+
+# MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
+
+# one-sided (right tail) z test for B COEFFICIENT
+#https://stats.stackexchange.com/questions/330655/strategy-for-a-one-sided-test-of-glms-coefficients
+
+#SANITY CHECK 2-tailed test should match the model output
+tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("p value for two-tailed test, null B = 0 : ",round(tt,3))
+ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
+paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,3))
+paste("adjusted confint for directional hypothesis")
+(dcint <- confint(m1, level = 0.90)) # get 90% for right side))
+# https://stats.stackexchange.com/questions/20734/is-a-1-sided-90-prediction-interval-equivalent-to-a-2-sided-95-prediction-inte
+
+#:::::::: INTERPRET COEFFICIENTS
+
+# print("Confidence Interval —- LOG ODDS")
+# confint(m1) #not adjusted for 1-tailed
+print("Coefficients —- ODDS RATIOS")
+# (e <- cbind( exp(coef(m1)), exp(confint(m1)))) #exponentiated, not adjusted
+(e <- cbind( exp(coef(m1)), exp(dcint))) #exponentiated, adjusted
+
+print("MODEL PREDICTIONS")
+# Retrieve predictions as probabilities 
+# (for each level of the predictor)
+# pred.control <- predict(m1,data.frame(pretty_condition="control"),type="response")
+# #this should match : plogis(intercept coefficient)
+# paste("Probability of success in control,", pred.control)
+# pred.impasse <- predict(m1,data.frame(pretty_condition="impasse"),type="response")
+# #this should match : plogis(intercept coefficient + predictor coeff)
+# paste("Probability of success in impasse,", pred.impasse)
+```
+##### TODO Inference
+
+
+
+##### Visualize
+
+```{r}
+#| label: MODEL-VIS-Q1ACC
+#| message: false
+#| warning : false
+
+#SET MODEL
+m <- m1
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m, type = "est",
+           vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) +  #manually adjusted for directional test   
+  scale_y_continuous() + #remove to put on log scale x axis 
+  scale_x_discrete(labels=c("control","impasse"))+
+  labs(title = "MODEL ESTIMATE | Q1 Accuracy ~ condition",
+       subtitle = "Impasse increases odds of correct response on Q1",
+       x = "Condition") + theme_clean()
+
+  
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m, type="pred")[[1]] +
+  ylim(0,1) + #scale y axis to actual range
+  labs(title = "MODEL PREDICTION  | Q1 Accuracy ~ condition",
+       subtitle = "Impasse increases probability of correct response on Q1",
+       x = "Condition") + theme_clean()
+
+```
+
+```{r}
+#| label: MODEL-TBL-Q1ACC
+#SJPLOT | MODEL | TABLE
+tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+# models <- list("odds ratios" = m1, "(log odds)" = m1)
+# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
+#              '$sigma^{2}$ = 3.29" N(subject) = 126 $\tau_{00}$(subject) = 22.22 N(question) = 13 $\tau_{00}$(question) = 0.31'
+#                )
+# 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              gof_map = c("AIC", "sigma"),
+#              gof_omit = 'RMSE|ICC|BIC',
+#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
+#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)', 
+#              notes = notes,
+#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
+# #              # coef_omit = "Intercept",
+
+```
+
+##### Diagnostics
+
+```{r}
+#| label: MODEL-DIAG-Q1ACC
+#| message: false
+#| warning: false
+
+# print("SANITY CHECK REPORTING")
+# report::report(m1)
+
+#print("MODEL PERFORMANCE")
+# performance(m1)
+
+print("MODEL DIAGNOSTICS")
+check_model(m1)
+```
 
 
 
@@ -638,9 +889,11 @@ The predictions of the manual, frequentist mixed multinomial and bayesian mixed 
 #| label: SETUP-Q1ACC
 
 #:::::::: PREP DATA
-df <- sgc4a_items %>% filter(q==1) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
+# df <- sgc4a_items %>% filter(q==1) %>% mutate(
+#   accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
+# ) 
+
+df <- df_items %>% filter(q==1)
 
 #:::::::: STACKED BAR CHART
 df %>% 
@@ -657,7 +910,7 @@ df %>%
 
 
 #:::::::: STATSPLOT
-ggbarstats(data = df %>% filter(q==1), x = accuracy, y = condition,
+ggbarstats(data = d, x = accuracy, y = pretty_condition,
                title = "Q1 Accuracy")
 
 ```
