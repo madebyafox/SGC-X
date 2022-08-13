@@ -39,6 +39,7 @@ library(distributional)
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
+library(parameters) #viz and compare models
 library(equatiomatic) #extract model equation
 library(pwr) #power analyses
 
@@ -55,6 +56,7 @@ library(MASS) # polyr ordinal regression
 library(VGAM) #censored, zero infl, etc
 library(brant) #brant test for ordinal regression
 library(nnet) #multinomial logistic regression 
+library(mclogit) #multinomial logistic regression
 library(bayestestR)
 
 #one package to rule them all
@@ -1224,8 +1226,9 @@ zinb <- brm(
   data = df,
   family = zero_inflated_beta(),
   chains = 4, iter = 2000, warmup = 1000,
-  cores = 4, seed = 1234
-  # backend = "cmdstanr"
+  cores = 4, seed = 1234,
+  backend = "cmdstanr",
+  file ="analysis/utils/models/zinb.rds"
 )
 ```
 ```{r}
@@ -1328,7 +1331,8 @@ zoinb <- brm(
   family = zero_one_inflated_beta(),
   chains = 4, iter = 2000, warmup = 1000,
   cores = 4, seed = 1234,
-  backend = "cmdstanr"
+  backend = "cmdstanr",
+  file ="analysis/utils/models/zoinb.rds"
 )
 
 
@@ -1341,7 +1345,8 @@ zoinb_scaled <- brm(
   family = zero_one_inflated_beta(),
   chains = 4, iter = 2000, warmup = 1000,
   cores = 4, seed = 1234,
-  backend = "cmdstanr"
+  backend = "cmdstanr",
+  file ="analysis/utils/models/zoinb_scaled.rds"
 )
 
 ```
@@ -1460,7 +1465,8 @@ hln <- brm(
   family = hurdle_lognormal(),
   chains = 4, iter = 2000, warmup = 1000, seed = 1234,
   silent = 2, cores = 4, 
-  backend = "cmdstanr"
+  backend = "cmdstanr",
+  file ="analysis/utils/models/hln.rds"
 )
 
 hnb <- brm(
@@ -1470,7 +1476,8 @@ hnb <- brm(
   family = hurdle_negbinomial(),
   chains = 4, iter = 2000, warmup = 1000, seed = 1234,
   silent = 2, cores = 4, 
-  backend = "cmdstanr"
+  backend = "cmdstanr",
+  file ="analysis/utils/models/hnb.rds"
 )
 
 hpoi <- brm(
@@ -1480,7 +1487,8 @@ hpoi <- brm(
   family = hurdle_poisson(),
   chains = 4, iter = 2000, warmup = 1000, seed = 1234,
   silent = 2, cores = 4, 
-  backend = "cmdstanr"
+  backend = "cmdstanr",
+  file ="analysis/utils/models/hpoi.rds"
 )
 
 
@@ -1548,7 +1556,8 @@ zoinb_scaled <- brm(
   family = zero_one_inflated_beta(),
   chains = 4, iter = 2000, warmup = 1000,
   cores = 4, seed = 1234,
-  backend = "cmdstanr"
+  backend = "cmdstanr",
+  file ="analysis/utils/models/zoinb_scaled_2.rds"
 )
 
 summary(zoinb_scaled)
@@ -2626,6 +2635,9 @@ m0 = glm(accuracy ~ 1, family = "binomial", data = df)
 #:: RANDOM INTERCEPT SUBJECT
 mm.rS <- glmer(accuracy ~ (1|subject), data = df,family = "binomial")
 
+#:: RANDOM INTERCEPT SUBJECT ITEM
+mm.rS <- glmer(accuracy ~ (1|subject) + (1|q), data = df,family = "binomial")
+
 # :: TEST random effect
 paste("AIC with random effect is lower than glm empty model?", m0$aic > AIC(logLik(mm.rS)))
 test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
@@ -2636,6 +2648,10 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
 
 # SUBJECT INTERCEPT | FIXED CONDITION 
 mm.CrS <- glmer(accuracy ~ pretty_condition + (1|subject), 
+                data = df,family = "binomial")
+
+# SUBJECT INTERCEPT | FIXED CONDITION 
+mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q), 
                 data = df,family = "binomial")
 
 # :: TEST fixed factor 
@@ -2709,9 +2725,459 @@ We fit a mixed-effect binomial logistic regression model with random intercepts 
 tab_model(mm.CrS)
 ```
 
+
+#### BAYESIAN Mixed Lostistic Regression
+
+**Sanity Check** Compare frequentist model with bayesian alternative
+
+```{r}
+#| label: MODEL-BAYES-ACC
+
+df_i = df_items %>% filter(q %nin% c(6,9)) 
+
+
+##:::::::: FLAT PRIORS
+#fit matching bayesian model [flat priors]
+FLAT_B.mm.CrSQ <-  brm(
+  bf(accuracy ~ pretty_condition + (1|subject) + (1|q)),
+  data = df_i,
+  family = bernoulli(link = "logit"),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234,
+  backend = "cmdstanr",
+  file = "analysis/utils/models/FLAT_B.mm.CrSQ.rds"
+)
+
+#describe model
+summary(FLAT_B.mm.CrSQ)
+
+#compare to frequentist model
+paste("COMPARE TO FREQUENTIST")
+compare_models(mm.CrSQ, FLAT_B.mm.CrSQ)
+
+
+#_Here we see that the model with default priors yields estimates comparable to the frequentist mixed model, though slightly smaller for fixed effects condition, with tighter credible intervals._
+
+
+##:::::::: INFORMATIVE PRIORS
+
+#describe priors that were used
+paste("DEFAULT PRIORS")
+prior_summary(FLAT_B.mm.CrSQ)
+
+#set informative priors for fixed effects
+#parameters normally distributed around the mean of the expected log coefficient
+#we expect low probability of accuracy in control [intercept] and in impasse, but higher variance in impasse
+priors <- c(
+  prior(normal(-1, 2), class = b),
+  prior(normal(-1, 4), class = b, coef="pretty_conditionimpasse")
+)
+
+#fit model with informative priors
+B.mm.CrSQ <-  brm(
+  accuracy ~ pretty_condition + (1|subject) + (1|q),
+  prior = priors,
+  data = df_i,
+  family = bernoulli(link = "logit"),
+  chains = 4, iter = 2000, warmup = 1000,
+  cores = 4, seed = 1234,
+  backend = "cmdstanr",
+  file = "analysis/utils/models/B.mm.CrSQ.rds"
+)
+
+#describe model
+summary(B.mm.CrSQ)
+
+#compare to frequentist model
+paste("COMPARE TO UNFINFORMATIVE PRIOR")
+compare_models(FLAT_B.mm.CrSQ, B.mm.CrSQ)
+
+```
+_Here we see tha the model with the informative prior makes predictions similar to the uninformative prior model_. 
+
+```{r}
+#| label: MODEL-DESC-ACC
+
+
+#DIAGNOSTICS
+
+#set model 
+m <- B.mm.CrSQ
+
+summary(m)
+
+#POSTERIOR CHECKS
+library(bayestestR)
+diagnostic_posterior(m)
+pp_check(m, ndraws = 500)
+
+plot(m)
+
+
+#INTERPRET
+describe_posterior(m, test = c("p_direction", "rope", "bayesfactor"))
+
+
+#set working model
+m <- B.mm.CrSQ
+
+
+#equivalence test 
+result <- equivalence_test(m, rule = "cet")
+plot(result)
+
+#rope 
+result <- rope(m)
+plot(result)
+
+#direction of effect 
+result <- pd(m)
+plot(result)
+
+
+# all parameters
+m %>% 
+  posterior_samples() %>% 
+  select(-c(lp__, contains("["))) %>%
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "value") %>% 
+  ggplot(data = .,
+         mapping = aes(x = value)) +
+  stat_halfeye(point_interval = mode_hdi,
+               fill = "lightblue") + 
+  facet_wrap(~ variable,
+             ncol = 2,
+             scales = "free") +
+  theme(text = element_text(size = 12))
+
+#plot parameters
+stanplot(m, 
+         type = "areas",
+         prob = 0.95) 
+
+
+#plot model
+plot_model(m)
+
+
+#PLOT PARAMETERS
+result <- model_parameters(m, exponentiate = TRUE, 
+                           component = "all")
+plot(result) + 
+  labs(
+  title = "Accuracy ~ Condition + (1 | subject) + (1 | question)",
+  subtitle = "Logistic Mixed Effects Model"
+)  + theme_clean() +  theme(legend.position = "blank") 
+
+#PLOT MODEL PREDICTION
+plot_model(m, type = "pred")[[1]] + 
+  ylim(0,1) + labs(
+    title = "Model Prediction | Probability of Accurate Response",
+    subtitle = "Impasse increases Probability of Correct Response"
+  )
+```
+```{r}
+#report(m)
+```
+
+
+
+
 ## MIXED --- ORDINAL
 
-## MIXED --- CATEGORICAL
+## MIXED --- CATEGORICAL 
+### Mixed Multinomial Regression
+
+
+*Does condition affect the response state of of items across the task?*
+
+*Fit a MIXED logistic regression predicting interpretation state (k=3) by condition(k = 2).*
+
+-   Can use mclogit mblogit() with random effect *or* bayesian brms package b/c nlme, lme4 don't support random effects on multinomial (ie no categorical family on glmer())
+
+-   Alternative would be to manually run [k-1] X binomial mixed models \[should compare outcomes\]
+
+-   [k-1] equations will be estimated (# categories - 1); each representing the odds of answering in that particular interpretation (vs) the reference category (orthogonal answer) \[essentially a series of binary logistic regressions, but instead of incorrect/correct, comparing \[reference category\] vs \[this category\])
+
+-   For *each* equation:
+
+    -   $\beta_{0}$ *= Log Odds of \[this category type vs. reference category type) response in CONTROL condition*
+    -   $e^{\beta_{0}}$ *= ODDS of \[this category type vs. reference category type\] response in CONTROL condition*
+    -   $\beta_{1}$ *=* $\beta_{1impasse}$ *Log Odds (Log OR; change in odds for \[this category\] type response in impasse (vs) control \[log scale\])*
+    -   $e^{\beta_{1}}$ *= ODDS RATIO of \[this. vs reference category type\] response in IMPASSE (vs) CONTROL*
+    -   Two-tailed NHST *Null hypothesis:* $\beta_{impasse} = 0$ *the odds for \[this category of response vs. reference\] are not different for IMPASSE condition*
+    -   *Alternative hypothesis:* $\beta_{impasse} \ne 0$ *the odds of \[this category of response vs. reference\] increases or decreases for IMPASSE condition*
+
+##### Fit Model \[MANUAL INDIVIDUAL BINOMIALS\]
+
+```{r}
+
+#VERIFY RESULTS BELOW VIA MULTIPLE INDIVIDUAL MODELS
+
+paste("ORTH vs. UNKNOWN")
+
+d1 <- df_i %>% filter(state %nin% c("tri-like")) %>% droplevels()
+table(d1$pretty_condition, d1$state)
+plot(d1$pretty_condition, d1$state)
+
+m.unknown <- glmer(state ~ pretty_condition + ( 1 | subject) + (1 | q), family = "binomial", data = d1)
+summary(m.unknown)
+```
+
+*Being in the IMPASSE condition increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 19 ( logodds = 2.92, z = 6.89, p \< 0.001) . Participants in the impasse condition were 19x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control. (Conditional R2 = 0.67, marginal R2 = 0.21; SD(subject) = 1.55, SD(question) = 2.22)
+
+```{r}
+
+paste("ORTH vs. TRIANGULAR")
+
+d2 <- df_i %>% filter(state %nin% c("unknown")) %>% droplevels()
+table(d2$pretty_condition, d2$state)
+plot(d2$pretty_condition, d2$state)
+
+m.tri <- glmer(state ~ pretty_condition + ( 1 | subject) + (1 | q), family = "binomial", data = d2)
+summary(m.tri)
+
+```
+
+*Being in the IMPASSE condition increases* the odds of giving an triangle-like response by a factor of 305 ( logodds = 5.72, z = 4.14, p \< 0.001) . Participants in the impasse condition were 305 times as likely to give an triangle-like response rather than an orthogonal response compared to participants in control. (Conditional R2 = 0.91, marginal R2 = 0.21; SD(subject) = 5.05, SD(q) = 1.09)
+
+##### Fit Model \[mblogit\]
+
+```{r}
+
+#https://www.elff.eu/software/mclogit/manual/mblogit/
+#"baseline category logit" model matches multinom()
+
+#check reference level 
+print("Categories (first is reference)")
+levels(df_i$state)
+
+#FIT EMPTY MODEL
+# print("EMPTY MODEL")
+m.mbl0 <- mblogit(state ~ pretty_condition ,  #no random intercepts; fixed only model 
+                  data = df_i)
+#summary(m.mbl0)
+
+#FIT PREDICTOR MODEL
+# print("PREDICTOR MODEL")
+m.mbl1 <- mblogit(state ~ pretty_condition , 
+                  random = list( ~ 1|subject, ~1|q), 
+                  data = df_i)
+# summary(m.mbl1)
+
+#COMPARE MODEL FIT
+paste("AIC wth predictor is lower than empty model?", AIC(m.mbl0) > AIC(m.mbl1))
+test_lrt(m.mbl0, m.mbl1)
+
+#DESCRIBE MODEL
+summary(m.mbl1)
+
+#INTERPRET COEFFICIENTS
+cint <- confint(m.mbl1, level = 0.95)
+print("ODDS RATIO")
+(e <- cbind( exp(coef(m.mbl1)), exp(cint))) #exponentiated, adjusted
+
+#PERFORMANCE
+performance(m.mbl1)
+
+#TABLE
+tab_model(m.mbl1, transform = "exp", title = "Model Predicted Odds Ratio")
+
+```
+
+
+##### Inference
+
+-   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 12 (z = 6.48, p \< 0.001) . **Participants in the impasse condition were 12x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control**.
+
+-   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 29 (z = 4.63, p \< 0.001 ). **Participants in the impasse condition were more than 29x as likely to give an a triangular response rather than an orthogonal response compared to participants in control**.
+
+-   As with the (binary) logistic regression on accuracy \~ condition, significant model intercepts indicate that the odds of being in any particular response state (vs) orthogonal are significantly different than 1 *in the control condition.* (i.e. not 1:1 odds or 50% chance of being in that response state. Orthogonal is a much more probable response state in control)
+
+##### Visualize
+
+```{r}
+
+
+#set model 
+m <- m.mbl1
+
+#:::::::: PLOT
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m, vline.color = "red", 
+           transform = "exp", #for some reason have to manually add for mixed?
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.05, #can manually adjust to account for directional test
+           ci.lvl = 0.95) +  #can manually adjusted for directional test   
+  labs(title = "ODDS RATIO | State ~ condition",
+       subtitle = "(p for  two-tailed test)")
+
+library(parameters)
+
+#PLOT PARAMETER ESTIMATES
+result <- simulate_parameters(m)
+plot(result, stack = FALSE)
+
+result <- equivalence_test(m, rule = "cet")
+plot(result)
+
+#raw coefficients
+plot_model(m)
+
+
+#PLOT PARAMETERS
+result <- model_parameters(m, exponentiate = TRUE, 
+                           component = "all")
+plot(result) + 
+  labs(
+  title = "Accuracy ~ Condition + (1 | subject) + (1 | question)",
+  subtitle = "Logistic Mixed Effects Model"
+)  + theme_clean() +  theme(legend.position = "blank") 
+
+s
+#TODO CAN'T SEEM TO COMPUTE MARGINAL EFFECTS PLOT FOR THE MIXED MODEL
+# pr <- ggpredict(m, "pretty_condition", type = "fixed")
+# plot(pr)
+#PLOT MODEL PREDICTION
+# plot_model(m, type = "pred")
+# plot_model(m, type = "eff")
+
+# TERNARY PLOT
+# library(plot3logit)
+# field3logit(ggpredict(m))
+#https://cran.r-project.org/web/packages/plot3logit/vignettes/plot3logit-overview.html
+
+
+#SJPLOT | MODEL | TABLE
+tab_model(m)
+
+```
+
+##### Diagnostics
+
+**COMPARE TO MANUAL MODELS**
+```{r}
+compare_models(m, m.unknown, m.tri)
+```
+
+##### Fit Model \[brms\]
+
+```{r}
+
+#BAYESIAN MIXED VERSION
+mixcat.1 <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
+                 data = df_i, 
+                 family = "categorical",
+                 chains = 4, iter = 2000, warmup = 1000,
+                 cores = 4, seed = 1234,
+                 backend = "cmdstanr",
+                 file ="analysis/utils/models/mixcat1.rds")
+```
+
+
+```{r}
+
+m <- mixcat.1
+
+#DESCRIBE MODEL
+summary(m)
+# report(mixcat.1)
+
+#TABLE
+# tab_model(m,
+          # show.r2 = FALSE) #, transform = "exp", title = "Model Predicted Odds Ratio")
+
+
+#TODO OUTPUT TABLE 
+#https://arelbundock.com/posts/modelsummary_multinomial_logit/
+# modelsummary(m)
+
+```
+
+##### Inference
+
+-   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 43.86.
+
+-   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 6.64.
+
+
+##### Visualize
+
+```{r}
+# 
+# #:::::::: PLOT
+# 
+# #SJPLOT | MODEL | ODDS RATIO
+# #library(sjPlot)
+# plot_model(m, vline.color = "red", 
+#            show.intercept = TRUE, 
+#            show.values = TRUE,
+#            p.threshold = 0.05, #can manually adjust to account for directional test
+#            ci.lvl = 0.95 ) +  #can manually adjusted for directional test   
+#   labs(title = "ODDS RATIO | State ~ condition",
+#        subtitle = "(p for one two test)")
+# 
+# 
+# result <- estimate_density(m)
+# plot(result, stack = FALSE, priors = TRUE)
+# 
+# result <- describe_posterior(m)
+# plot(result, stack = FALSE, priors = TRUE)
+# 
+# result <- p_direction(m)
+# plot(result, stack = FALSE)
+# 
+# #ROPE
+# result <- rope(m, ci = 0.89)
+# plot(result) + theme_clean()
+# 
+# result <- equivalence_test(m)
+# plot(result)
+# 
+# #ERROR incompatible arguments to calculate multivariate normal distribution
+# # result <- simulate_parameters(m)
+# # plot(result)
+# 
+# #check posterior
+# pp_check(m, ndraws=1000)
+# 
+# #PERFORMANCE
+# # performance(m)
+# 
+# #Plot parameters
+# plot(model_parameters(m, exponentiate = TRUE))
+# 
+# #plot marginal predictions of model
+# plot_model(m, type = "pred")[[1]] + 
+#   labs(
+#     title = "Model Predicted Marginal Probabilities",
+#     x = "Condition", 
+#     y = "probability of being in each state"
+#   ) + theme_clean() 
+```
+
+##### COMPARE
+
+```{r}
+# compare_models(m.unknown, m.tri, m.mbl1, mixcat.1)
+```
+The predictions of the manual, frequentist mixed multinomial and bayesian mixed multinomial models are comparable. 
+
+DECISION: Report bayesian model, because for some reason the visualization of the marginal predictions is actually working?
+
+##### TODO
+
+-   priors? used default flat priors... ok?
+-   posterior predictive checks
+-   diagnostics on random effects
+-   reconcilliation of mblogit() vs brms versions of the model; seems like they should yield similar estimates
+
+
+
 
 ```{r}
 #BAYESIAN MIXED VERSION
@@ -2745,7 +3211,7 @@ df <- df_items %>% filter(q==1) %>% filter(mode =="lab-synch")
 cumord <- brm( formula = state ~ condition,
                data = df,
                family = cumulative("probit"),
-               file = "analysis/models/sgc3a_brms_cumord_q1state.rds" # cache model (can be removed)
+               file = "analysis/utils/models/sgc3a_brms_cumord_q1state.rds" # cache model (can be removed)
 )
 
 summary(cumord)
@@ -2786,7 +3252,7 @@ u.cumord <- brm(
                lf(disc ~ 0 + condition, cmc = FALSE),
                data = df,
                family = cumulative("probit"),
-               file = "analysis/models/sgc3a_brms_ucumord_q1state.rds" # cache model (can be removed)
+               file = "analysis/utils/models/sgc3a_brms_ucumord_q1state.rds" # cache model (can be removed)
 )
 
 summary(u.cumord)
@@ -2823,7 +3289,7 @@ df <- df_items %>% filter(q==1) %>% filter(mode =="lab-synch")
 adjcat <- brm( formula = state ~ cs(condition),
                data = df,
                family = acat("probit"),
-               file = "analysis/models/sgc3a_brms_adjcat_q1state.rds" # cache model (can be removed)
+               file = "analysis/utils/models/sgc3a_brms_adjcat_q1state.rds" # cache model (can be removed)
 )
  
 summary(adjcat)
