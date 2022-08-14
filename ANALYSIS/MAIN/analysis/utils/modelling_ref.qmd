@@ -3316,3 +3316,132 @@ report(adjcat)
 ```
 
 *Converges, but estimates are unreliable?*
+
+
+## HELPERS
+
+### Odds and Probabilities 
+```{r}
+
+# t <- table( df$pretty_condition, df$accuracy)
+# 
+# print("AS FREQUENCY")
+# t %>% addmargins()
+# 
+# print("AS PROBABILITY")
+# prop.table(t) %>% addmargins()
+# 
+# print("GRAND PROBABILITY")
+# (p_grand <-  sum(t[,2]) / sum(t))
+# print("GRAND ODDS")
+# (odds_grand <- sum(t[,2]) / sum(t[,1]))
+# 
+# print("P_control")
+# (p_control <- t[1,2]/sum(t[1,]))
+# print("ODDS_control") # correct:incorrect
+# (odds_control <- t[1,2] / t[1,1])
+# 
+# print("P_impasse")
+# (p_impasse <- t[2,2] / sum(t[2,]))
+# print("ODDS_impasse") # correct:incorrect
+# (odds_impasse <- t[2,2] / t[2,1])
+# # 
+# paste("ODDS RATIO FOR IMPASSE", odds_impasse-odds_control)
+
+# to calculate odds from odds ratio ... ODDS = OR * [denominator of ratio]
+#eg.  ODDS [impasse] = OR[impasse] * ODDS[control] = [b_impasse] * [intercept] #for dummy coding 
+
+```
+
+## GGDist bayesian posterior vis
+
+```{r}
+
+# df <- df_i %>% filter(q %nin% c(6,9)) %>% droplevels()
+# 
+# #WORKING visualize post dist of prediction
+# #create df of 'draws' from the 
+# draws <- df %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_predicted_draws(Bmm.CrSQ) 
+# 
+# #visualize the predictions
+# x <- draws %>% 
+#   ggplot(aes(x = .prediction, y = pretty_condition)) +
+#   stat_slab() + labs(title = "Posterior Predictions??")
+
+# 
+# #WORKING visualize parameter distribution?
+# #create df of 'draws' from the 
+# draws2 <- df %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_linpred_draws(Bmm.CrSQ,
+#                       re_formula = NA) %>%     # zero out random effects (condition on average subj avg q)) %>% 
+#   ungroup() 
+#   # filter(!duplicated(.)) 
+#   # mutate(probs = exp(.prediction)/(1+ exp(.prediction)))
+# 
+# #visualize the predictions
+# draws2 %>% 
+#   ggplot(aes(x = .linpred, y = pretty_condition)) +
+#   stat_slab()
+# 
+# 
+# #WORKING visualize posterior distribution as probabilities?
+# #create df of 'draws' from the 
+# draws2 <- df %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_epred_draws(Bmm.CrSQ,
+#                    re_formula = NA)
+#                 
+# #visualize the predictions
+# draws2 %>% 
+#   ggplot(aes(x = .epred, y = pretty_condition)) +
+#   stat_slab()
+# 
+# 
+# 
+# #WORKING visualize posterior distribution as probabilities?
+# #create df of 'draws' from the 
+# draws3 <- df %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_fitted_draws(Bmm.CrSQ,
+#                    # scale = "linear", without scale linear, .value is probability of %
+#                    re_formula = NA) %>% 
+#   ungroup() 
+#   # filter(!duplicated(.)) 
+#   # mutate(probs = exp(.value)/(1+ exp(.value))) #same as scale = linear and doing the transformation manually
+# 
+# #visualize the predictions
+# draws3 %>% 
+#   ggplot(aes(x = .value, y = pretty_condition)) +
+#   stat_slab() 
+# #x = .value plots the distribution of the ODDS ratios?
+# #without the scale = linear... gives probabilities of correct response?
+# 
+# 
+# THE GOOD ONE
+
+##WORKING
+## VIS probability of correct response
+# draws <- df %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_linpred_draws(Bmm.CrSQ,
+#                    transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA) 
+# 
+# #visualize the predictions
+# #TODO adjust bandwidth/smoothing? + put on same line + 
+# draws %>%  
+#   ggplot(aes(x = .linpred,  y = 0, fill = pretty_condition)) +
+#   stat_halfeye(width = c(.95), alpha = 0.5) + 
+#   xlim(0,1) + labs(
+#     title = "Model Predicted Probability of Correct Response",
+#     x = "probability of correct response",
+#     y = "condition"
+#   ) +  theme_clean() + ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
+# #TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
+# 
+# #equivalent to...this! 
+# # plot_model(Bmm.CrSQ, type  = "pred")[[1]]+ylim(0,1) + coord_flip()
+```
