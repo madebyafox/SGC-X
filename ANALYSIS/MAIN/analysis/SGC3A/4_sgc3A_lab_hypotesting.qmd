@@ -23,6 +23,7 @@ library(Hmisc) # %nin% operator
 library(broom) #tidy model output
 library(broom.mixed) #tidy mixed models
 library(mosaic) #favstats
+library(svglite) #saving plots as svg
 
 library(distributional)
 # library(jtools)
@@ -428,11 +429,11 @@ glance(m)
 
 ```
 
-##### Inference
+##### INFERENCE
 
 ***(In Dissertation)***
 
-To quantify the effect of CONDITION on ACCURACY, we fit a mixed-effect binomial logistic regression model with random intercepts for subjects and questions. The structure of this model allows us to differentiate between random variance introduced by individual subjects and questions, versus the expected systematic variance of CONDITION. A likelihood ratio test indicates that a model including a fixed effect of CONDITION is explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3) = 18.66, p < 0.001$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.89$) and the part related to the fixed effect CONDITION ($marginal \ R^2$) explains 15% of variance. Consistent with our hypothesis, the impasse condition substantially increased the odds of a correct response.  Across the entire task participants in the impasse condition were 75 times as likely to offer a correct response, compared with those in the control condition ( $e^{\beta_1} = 75.51, p < 0.001$ , one-tailed $90 \% \  CI [8.46, 673.79]$).
+We fit a mixed effects binomial logistic regression model with random intercepts for subjects and questions.  Note that we choose to model these data at the item (i.e. question) rather than than subject (i.e. total score) level because the structure of a mixed effects model allows us to differentiate between random variance introduced by individual subjects and questions, versus the expected systematic variance of CONDITION. A likelihood ratio test indicates that a model including a fixed effect of CONDITION explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3) = 18.66, p < 0.001$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.89$) and the part related to the fixed effect CONDITION ($marginal \ R^2$) explains 15\% of variance. **Consistent with our hypothesis, the impasse condition substantially increases the odds of a correct response.** Across the entire task participants in the impasse condition were 75 times more likely to offer a correct response, compared with those in the control condition ( $e^{\beta_1} = 75.51, p < 0.001$, $95 \% \  CI [8.46, 674]$). 
 
 ```{r}
 #| label: MODEL-TBL-ACC
@@ -548,64 +549,99 @@ check_model(m)
 #| label: BAYES-MODEL-FIT-ACC
 
 
-## 0 | SETUP
-#confirm 13 items [all discriminating items]
-nrow(df_i) / nrow(df_s) == 13
-#confirm all factors 
-is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy)
-
-
-
-#EMPTY (random only)
-Bmm.rSQ <- brm( accuracy ~  (1|subject) + (1|q), 
-                 data = df_i, 
-                 family = "bernoulli",
-                 chains = 4, iter = 2000, warmup = 1000,
-                 cores = 4, seed = 1234,
-                 backend = "cmdstanr",
-                 file ="analysis/SGC3A/models/sgc3a_brms_acc_Bmm.rSQ_LAB.rds")
-
-
-
-print("FIXED Condition + Subject & Item random intercepts")
-Bmm.CrSQ <- brm( accuracy ~ pretty_condition + (1|subject) + (1|q), 
-                 data = df_i, 
-                 family = "bernoulli",
-                 chains = 4, iter = 2000, warmup = 1000,
-                 cores = 4, seed = 1234,
-                 backend = "cmdstanr",
-                 file ="analysis/SGC3A/models/sgc3a_brms_acc_Bmm.CrSQ_LAB.rds")
-
-
-
-#get Priors 
-# describe_priors(Bmm.CrSQ)
-
-#GRAPHICAL POSTERIOR PREDICTION CHECKS
-pp_check(Bmm.CrSQ)
-
-#DESCRIBE MODEL
-(d <- describe_posterior(ci=.95, Bmm.CrSQ))
-
-#SEE MODEL
-plot(pd(B.mm.CrSQ))
-#convert to a pd value
-(pds <- pd_to_p(d$pd))
-
-#TEST MODEL
-#Evidence in FAVOR of Condition
+# ## 0 | SETUP
+# #confirm 13 items [all discriminating items]
+# nrow(df_i) / nrow(df_s) == 13
+# #confirm all factors 
+# is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy)
+# 
+# 
+# 
+# #EMPTY (random only)
+# Bmm.rSQ <- brm( accuracy ~  (1|subject) + (1|q), 
+#                  data = df_i, 
+#                  family = "bernoulli",
+#                  chains = 4, iter = 2000, warmup = 1000,
+#                  cores = 4, seed = 1234,
+#                  backend = "cmdstanr",
+#                  file ="analysis/SGC3A/models/sgc3a_brms_acc_Bmm.rSQ_LAB.rds")
+# 
+# 
+# 
+# print("FIXED Condition + Subject & Item random intercepts")
+# Bmm.CrSQ <- brm( accuracy ~ pretty_condition + (1|subject) + (1|q), 
+#                  data = df_i, 
+#                  family = "bernoulli",
+#                  chains = 4, iter = 2000, warmup = 1000,
+#                  cores = 4, seed = 1234,
+#                  backend = "cmdstanr",
+#                  file ="analysis/SGC3A/models/sgc3a_brms_acc_Bmm.CrSQ_LAB.rds")
+# 
+# 
+# 
+# #get Priors 
+# # describe_priors(Bmm.CrSQ)
+# 
+# #GRAPHICAL POSTERIOR PREDICTION CHECKS
+# pp_check(Bmm.CrSQ)
+# 
+# #DESCRIBE MODEL
+# (d <- describe_posterior(ci=.95, Bmm.CrSQ))
+# 
+# #SEE MODEL
+# plot(pd(Bmm.CrSQ))
+# #convert to a pd value
+# (pds <- pd_to_p(d$pd))
+# 
+# #TEST MODEL
+# #Evidence in FAVOR of Condition
 # (b <- bayes_factor(Bmm.CrSQ, Bmm.rSQ))
 
 
 ```
 
-
-
-
-
-
 *A likelihood ratio test indicates adding CONDITION as a fixed effect to a logistic regression model including a fixed effect random intercepts for SUBJECT and QUESTION explains more variance in the data than random-effects only model.*
 
+
+```{r}
+
+# #::::: GGDIST POSTERIOR PROBABILITY OF RESPONSE
+# ##WORKING
+# ## VIS probability of correct response
+# #TAKES A REALLY LONG TIME
+# 
+# #1 | get draws
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>%
+#   add_fitted_draws(Bmm.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
+# # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# #OR load from file
+# # draws <- read_rds("analysis/SGC3A/models/draws_BB.catCrSQ.rds")
+# 
+# #2| VISUALIZE PREDICTIONS | GGDIST
+# ##TODO figure out height normalization.
+# ##do it with much smaller number of draws 
+# #TODO adjust bandwidth/smoothing? + put on same line + 
+# #TAKES A REAAALY LONG TIME
+# # draws %>% sample_n(1000) %>% 
+# #   ggplot(aes(x = .value,  y = 0, fill = pretty_condition)) +
+# #   stat_slab(width = c(.95), alpha = 1, normalize="xy") +
+# #   #normalize = all, panels, xy, groups, none
+# #   xlim(0,1) + labs(
+# #     title = "Model Predicted Probability of Correct Response",
+# #     x = "probability of correct response",
+# #     y = "Interpretation"
+# #   ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
+# # #TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
+
+
+
+```
 
 ## H1A \| OVERALL INTERPRETATION STATE
 
@@ -758,11 +794,12 @@ m <- mm.cat.CrSQ
 #DESCRIBE MODEL
 summary(m)
 
-#:::::::: INTERPRET COEFFICIENTS
+#INTERPRET COEFFICIENTS
 paste("LOG ODDS")
 tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
 paste("ODDS RATIOS")
 tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
+
 # paste("MODEL INFO")
 # glance(m)
 
@@ -872,27 +909,22 @@ print
 
 ```
 
+##### TODO PRIORS
+https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
+
 ##### Fit Model \[brms\]
 
 ```{r}
 #| label: FIT-BRMS-STATE
 
-#BAYESIAN EMPTY
-Bmm.0 <- brm( state ~ 1 , 
-                 data = df_i, 
-                 family = "categorical",
-                 chains = 4, iter = 2000, warmup = 1000,
-                 cores = 4, seed = 1234,
-                 backend = "cmdstanr",
-                 file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.0.rds")
-
 #BAYESIAN RANDOM ONLY
 Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q), 
                  data = df_i, 
                  family = "categorical",
-                 chains = 4, iter = 2000, warmup = 1000,
+                 chains = 4, iter = 2500, warmup = 1000,
                  cores = 4, seed = 1234,
-                 backend = "cmdstanr",
+                 save_pars = save_pars(all = TRUE),
+                 # backend = "cmdstanr",
                  file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.rSQ_LAB.rds")
 
 
@@ -900,10 +932,24 @@ Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q),
 Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
                  data = df_i, 
                  family = "categorical",
-                 chains = 4, iter = 2000, warmup = 1000,
+                 chains = 4, iter = 2500, warmup = 1000,
                  cores = 4, seed = 1234,
-                 backend = "cmdstanr",
+                 save_pars = save_pars(all = TRUE),
+                 # backend = "cmdstanr",
                  file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.CrSQ_LAB.rds")
+
+```
+
+
+##### Diagnostics
+
+```{r}
+
+#CHECK Fit of posterior predictive to data
+pp_check(Bmm.cat.CrSQ, ndraws=1000)
+
+#CHECK model
+plot(Bmm.cat.CrSQ)
 
 ```
 
@@ -924,16 +970,20 @@ summary(m)
 print("BAYES FACTOR [comparison to null]")
 #think of this like the anova(model) to get p values for each predictor
 #has to recompile the models with rstan. total drag
-(b <- bayes_factor(Bmm.cat.rSQ, Bmm.cat.CrSQ))
+(b <- bayesfactor(Bmm.cat.rSQ,m))
 
-print("SIGNIFICANCE TEST [non directional]")
-(d <- describe_posterior(m))
+print("DESCRIBE POSTERIOR")
+# (d <- describe_posterior(m))
+(d <- model_parameters(m, exponentiate = TRUE))
 
 #:::::::: INTERPRET COEFFICIENTS
+# se <- sqrt(diag(stats::vcov(m)))
+# # table of estimates with 95% CI
+paste("LOG ODDS")
 # (tab <- cbind(Est = fixef(m),
 #               LL = fixef(m) - 1.96 * se,
 #               UL = fixef(m) + 1.96 * se))
-# exp(tab)
+
 paste("LOG ODDS")
 (tm <- tidy(m,   conf.int = TRUE))
 paste("ODDS RATIOS")
@@ -943,13 +993,20 @@ tm %>% mutate(
   exp.low = exp(conf.low),
   exp.high = exp(conf.high)
 ) %>% dplyr::select(effect, component, group, term, OR.est, exp.low, exp.high)
-paste("MODEL INFO")
-# glance(m)
+
 
 ```
 
 
-##### TODO INFERENCE
+##### INFERENCE
+
+[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 \% credible interval, \% probability of direction]
+
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 1.95e+17). 
+**Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
+
+Across the entire task participants in the impasse condition were 13 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.44, 95 \% CI [6.50, 26.65], pd = 100\%$). Participants in the impasse condition were 23 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 23.34, 95 \% CI [6.22, 122.37], pd = 100\%$), and 68 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 67.60, 95 \% CI [10.28, 612], pd = 100\%$). 
+
 
 ```{r}
 #| label: TBL-BRMS-STATE
@@ -976,9 +1033,51 @@ tab_model(m)
 #              notes = notes)
 #              # output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
 # #              # coef_omit = "Intercept",
+# 
+# 
+# ## POINT ESTIMATES IN PROBABILITY
+# #1 | get draws
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>%
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
+# draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# #2 | visualize draws 
+# k <- kable(draws %>%
+#   select(pretty_condition, .category, .value) %>%
+#   group_by(pretty_condition, .category) %>%
+#   median_hdci(.value), digits = 2, col.names = 
+#     c("Condition","Category", "Probability","Lower Cred.I","Upper Cred.I", "CI Width", "Point Type", "Interval Type")) %>% 
+#   kable_styling()
+# k
 
-
-
+#COMPARISONS
+# c <- draws %>% 
+#   # dplyr::select(pretty_condition, .category, .value) %>%
+#   compare_levels(variable = .value, by = pretty_condition, 
+#                  comparison = list(c("control","impasse"))) 
+#                                    # c("adots","interval"),
+#                                    # c("adots","mean"),
+#                                    # c("adots","text"),
+#                                    # c("density","interval"),
+#                                    # c("density","mean"),
+#                                    # c("density","text"),
+#                                    # c("interval","mean"),
+#                                    # c("interval","text"),
+#                                    # c("mean","text")
+#                                    
+# c %>%
+#   ggplot(aes(x = .value, y = reorder(x =pretty_condition, X = .value)))+
+#   stat_interval(.width = .95, color = "black") +
+#   geom_vline(xintercept = 0)+
+#   theme_bw()+
+#   # coord_cartesian(xlim = c(-.5,1)) +
+#   theme_tidybayes() 
+# comps
 
 ```
 ##### Visualize
@@ -1005,11 +1104,9 @@ result <- model_parameters(Bmm.cat.CrSQ, exponentiate = TRUE, component = "all")
 plot(result, show_intercept = TRUE, show_labels = TRUE) 
 # + theme_clean()
 
-result <- estimate_density(m,exponentiate = TRUE)
-plot(result,  stack = FALSE, priors = TRUE)
-
-#check posterior
-pp_check(m, ndraws=1000)
+# 
+# result <- estimate_density(m,exponentiate = TRUE)
+# plot(result,  stack = FALSE, priors = TRUE)
 
 ## | PLOT TESTS
 result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
@@ -1033,7 +1130,6 @@ plot(result, show_intercept = TRUE, show_labels = TRUE)
 # #PLOT MODEL PREDICTION
 plot_model(m, type = "pred")
 
-
 #TODO EMMEANS for the estimated marginal means
 
 #TODO OUTPUT TABLE 
@@ -1045,6 +1141,7 @@ plot_model(m, type = "pred")
 ```{r}
 #::::: GGDIST POSTERIOR PROBABILITY OF RESPONSE
 ##WORKING
+# https://mjskay.github.io/ggdist/reference/stat_slab.html
 ## VIS probability of correct response
 #TAKES A REALLY LONG TIME
 
@@ -1059,24 +1156,26 @@ plot_model(m, type = "pred")
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 
 #OR load from file
-# draws <- read_rds("analysis/SGC3A/models/draws_BB.catCrSQ.rds")
+# draws <- read_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 
 #2| VISUALIZE PREDICTIONS | GGDIST
 ##TODO figure out height normalization.
 ##do it with much smaller number of draws 
 #TODO adjust bandwidth/smoothing? + put on same line + 
 #TAKES A REAAALY LONG TIME
-# draws %>%  
-#   ggplot(aes(x = .value,  y = .category, fill = pretty_condition)) +
-#   stat_slab(width = c(.95), alpha = 1) + 
+# d <- draws %>%
+#   ggplot(aes(x = .value,  y = pretty_condition, fill = .category)) +
+#   stat_slab(width = c(.95), alpha = 1, normalize="xy") +
+#   #   #normalize = all, panels, xy, groups, none
 #   xlim(0,1) + labs(
 #     title = "Model Predicted Probability of Correct Response",
 #     x = "probability of correct response",
 #     y = "Interpretation"
 #   ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
-#TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
-
-
+# # #TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
+# # 
+# # ggsave(d, filename = "figures/sgc3a_BBm.cat.CrSQ_lab_posterior.svg", width = 6, height =4)
+# d
 ```
 
 
