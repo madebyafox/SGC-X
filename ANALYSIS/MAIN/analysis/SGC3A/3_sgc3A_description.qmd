@@ -677,6 +677,54 @@ ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, 
 
 ## RESPONSE LATENCY
 
+### Time on Task
+
+Here we consider the time spent on the graph comprehension task portion of the study.
+
+```{r DESCRIBE-TOTALTIME}
+#DESCRIBE distribution of response time
+time.stats <- rbind(
+  "lab"= df_lab%>% dplyr::select(totaltime_m) %>% unlist()  %>%  favstats(),
+  "online"= df_online %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats(),
+  "combined"= df_subjects %>% dplyr::select(totaltime_m) %>% unlist() %>% favstats()
+)
+
+title = "Descriptive Statistics of First Response Time (seconds)"
+time.stats %>% kbl(caption = title) %>% kable_classic()
+```
+
+Response time _on the graph comprehension task_  for *in person* subjects (n = `r time.stats["lab",]$n`) ranged from `r round(time.stats["lab",]$min,2)` to `r round(time.stats["lab",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["lab",]$mean,2)`, SD = `r round(time.stats["lab",]$sd,2)`).
+
+Response time _on the graph comprehension task_ for *online replication* subjects (n = `r time.stats["online",]$n`) ranged from `r round(time.stats["online",]$min,2)` to `r round(time.stats["online",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["online",]$mean,2)`, SD = `r round(time.stats["online",]$sd,2)`).
+
+Response time _on the graph comprehension task_ for *combined* subjects (n = `r time.stats["combined",]$n`) ranged from `r round(time.stats["combined",]$min,2)` to `r round(time.stats["combined",]$max,2)` minutes with a mean duration of (M = `r round(time.stats["combined",]$mean,2)`, SD = `r round(time.stats["combined",]$sd,2)`).
+
+```{r}
+#| label : VIS-TOTALTIME
+#| message : false
+#| warning : false
+
+
+#HISTOGRAM
+gf_dhistogram(~totaltime_m, data = df_subjects) %>%
+  gf_vline(xintercept = ~time.stats["lab",]$mean, color = "black") %>% 
+  gf_fitdistr(dist="gamma", color="red")+
+  labs(title="Distribution of Task Time (minutes)", subtitle = "fit by gamma distribution", x = "Task Time (minutes)", y = "% items")
+
+
+##GGPUBR | HIST+DENSITY SCORE BY CONDITION/MODE
+p <- gghistogram(df_subjects, x = "totaltime_m", binwidth = 0.5,
+   add = "mean", rug = TRUE,
+   fill = "pretty_condition", #, palette = c("#00AFBB", "#E7B800"),
+   add_density = TRUE)
+facet(p, facet.by=c("pretty_condition","pretty_mode")) +
+   labs(title="Distribution of Task Time (minutes)", subtitle = "fit by gamma distribution", x = "Task Time (minutes)", y = "% items") + 
+  theme_minimal() + theme(legend.position = "blank")
+                
+```
+
+
+
 ### Time on First Item 
 
 Here we consider the time spent on just the first individual item (first exposure to graph).

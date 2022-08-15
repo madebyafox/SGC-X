@@ -9,7 +9,7 @@ subtitle: 'Study SGC3A | (Lab) Hypothesis Testing'
 
 \newpage
 
-# (Lab) Hypothesis Testing {#sec-SGC3A-lab-hypotesting}
+# SGC3A (Lab) Hypothesis Testing {#sec-SGC3A-lab-hypotesting}
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC3A study.*
 
@@ -24,10 +24,7 @@ library(broom) #tidy model output
 library(broom.mixed) #tidy mixed models
 library(mosaic) #favstats
 library(svglite) #saving plots as svg
-
 library(distributional)
-# library(jtools)
-# library(pwr) #power analysis
 
 #VISUALIZATION
 # library(ggpubr) #arrange plots
@@ -56,6 +53,7 @@ library(parameters) #easystats model summary and vis
 # library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
+library(merTools) #prediction intervalus for glmers 
 # library(ggeffects) #visualization log regr models
 #MULTINOMIAL 
 library(nnet) #multinomial logistic regression [not mixed] #no p values
@@ -188,7 +186,7 @@ df_s <- df_subjects %>%
 
 ```
 
-#### Describe
+#### Visualize
 ```{r}
 #| label: DESC-ACC
 
@@ -198,11 +196,12 @@ df_i %>%
          mapping = aes(x = pretty_condition,
                        fill = accuracy)) +
   geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set2")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 2))+
+  scale_fill_brewer(palette = "Set1")  +
   # facet_wrap(~pretty_mode) + 
   # coord_flip() +
   theme(legend.position="bottom")+
-   labs(title = "DISTRIBUTION of Accuracy",
+   labs(title = "DISTRIBUTION | Question Accuracy",
        x = "Condition",
        y = "Proportion of Questions",
        fill = "",
@@ -216,7 +215,7 @@ df_items %>%
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_brewer(palette = "Set1")  +
   facet_wrap(~q) +
-   labs(title = "Accuracy by Question",
+   labs(title = "DISTRIBUTION | Accuracy by Question",
        x = "Condition",
        fill = "",
        subtitle="Q6 and Q9 are non-discriminative")
@@ -230,52 +229,10 @@ gf_props(~task_percent,
   gf_vline(data = stats, xintercept = ~mean, color = "red") +
   labs(x = "% Correct",
        y = "proportion of subjects",
-       title = "Overall Absolute Score (% Correct)",
+       title = "DISTRIBUTION | Total Absolute Score (% Correct)",
        subtitle = "") + theme(legend.position = "blank")
 
-```
-```{r}
-#| label: DESC2-ACC
-
-title = "Descriptive Statistics of Response Accuracy (Total % Correct)"
-tbl1 <- mosaic::favstats(~task_percent, data = df_s) 
-tbl1 %>% kbl (caption = title) %>% kable_classic()
-
-
-title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY CONDITION"
-tbl2 <- mosaic::favstats(task_percent ~ pretty_condition, data = df_s) 
-tbl2 %>% kbl (caption = title) %>% kable_classic()
-
-```
-
-#### WILCOXON RANK SUM (Mann-Whitney Test) 
-
--   **Non parametric alternative** to t-test; compares median rather than mean by ranking data
--   Does not assume normality
--   Does not assume equal variance of samples (homogeneity of variance)
-
-##### Test
-
-```{r}
-#| label: TEST-ACC
-
-(w <- wilcox.test(df_s$task_percent ~ df_s$pretty_condition,
-                 paired = FALSE, alternative = "less")) #less, greater
-report(w)
-
-```
-
-
-##### Inference
-
-**(not reported)**
-
-Because the distribution of the outcome variable is not normally distributed, we evaluate the effect of CONDITION on ACCURACY via a non-parametric test. Consistent with our hypothesis, a Wilcoxon rank sum test (with continuity correction) on ACCURACY by CONDITION indicates that data in each condition likely come from different population distributions (W = 1243, p < 0.001; one-tailed), and that the distribution of the control condition is less (i.e. shifted to the left/ lower scores) than the impasse condition (\^{r} = -0.37, 95% CI \[-1.00, -0.22\]), a large-sized effect.
-
-##### Visualize
-
-```{r}
-#| label: TEST-VIZ-ACC_aspercent
+#:::::::: RAINCLOUD WITH STATS
   
 df <- df_s %>% mutate(task_percent = task_percent*100)
 
@@ -317,10 +274,59 @@ e <- statsExpressions::two_sample_test(y = task_percent, x = pretty_condition, d
                                 type = "nonparametric", alternative = "less",
                                 var.equal = FALSE)
 #labels are layer 4
-p + labs(title = "Distribution of Total Score",
+p + labs(title = "DISTRIBUTION of Total Score",
          y = "Percentage of correct responses across task", x = "",
          # caption=e$expression[[1]],
          subtitle = "Impasse condition yields greater variance and more high scores")
+
+```
+
+
+### Describe
+```{r}
+#| label: DESC2-ACC
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct)"
+tbl1 <- mosaic::favstats(~task_percent, data = df_s) 
+tbl1 %>% kbl (caption = title) %>% kable_classic()
+
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY CONDITION"
+tbl2 <- mosaic::favstats(task_percent ~ pretty_condition, data = df_s) 
+tbl2 %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+#### WILCOXON RANK SUM (Mann-Whitney Test) 
+
+-   **Non parametric alternative** to t-test; compares median rather than mean by ranking data
+-   Does not assume normality
+-   Does not assume equal variance of samples (homogeneity of variance)
+
+##### Test
+
+```{r}
+#| label: TEST-ACC
+
+(w <- wilcox.test(df_s$task_percent ~ df_s$pretty_condition,
+                 paired = FALSE, alternative = "less")) #less, greater
+report(w)
+
+```
+
+
+##### Inference
+
+**(not reported)**
+
+Because the distribution of the outcome variable is not normally distributed, we evaluate the effect of CONDITION on ACCURACY via a non-parametric test. Consistent with our hypothesis, a Wilcoxon rank sum test (with continuity correction) on ACCURACY by CONDITION indicates that data in each condition likely come from different population distributions (W = 1243, p < 0.001; one-tailed), and that the distribution of the control condition is less (i.e. shifted to the left/ lower scores) than the impasse condition (\^{r} = -0.37, 95% CI \[-1.00, -0.22\]), a large-sized effect.
+
+##### Visualize
+```{r}
+#| label: VIZ-TEST-ACC
+
+ggbetweenstats( x = pretty_condition, y = task_percent, data = df_s,
+                type = "nonparametric", var.equal = FALSE)
 
 ```
 
@@ -392,7 +398,7 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[
 ```{r}
 #| label: MODEL-DESC-ACC
 
-# best model
+#::::::::: SETUP
 m <- mm.CrSQ
 
 #::::::::: PRINT MODEL 
@@ -401,6 +407,8 @@ print("PREDICTOR MODEL")
 summary(m)
 print("SIGNIFICANCE TEST [non directional]")
 car::Anova(m)
+paste("MODEL INFO")
+glance(m)
 
 #:::::::: MANUAL ONE-SIDED SIGTEST 
 #note: anova and chi square are always one-tailed, but that is independent of being one-sided
@@ -413,19 +421,57 @@ car::Anova(m)
 # paste("BUT we want a one  directional, null: B <= 0: ",round(ot,5))
 
 #:::::::: INTERPRET COEFFICIENTS
-# se <- sqrt(diag(stats::vcov(m)))
-# # table of estimates with 95% CI
+
 paste("LOG ODDS")
+# se <- sqrt(diag(stats::vcov(m)))
 # (tab <- cbind(Est = fixef(m),
 #               LL = fixef(m) - 1.96 * se,
 #               UL = fixef(m) + 1.96 * se))
-
 tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
+
 paste("ODDS RATIOS")
 # (e <- exp(tab))
 tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
-paste("MODEL INFO")
-glance(m)
+
+paste("PROBABILITIES")
+#probability control = plogis(intercept)
+#probability impasse = plogis(intercept + coefficient)
+
+#FROM predict()
+# newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+# preds <- predict(m, newdata = newdata, type = "response")
+# preds <- cbind(newdata, preds)
+# p <- preds %>% 
+#   dplyr::select(pretty_condition, preds) %>% 
+#   group_by(pretty_condition) %>% 
+#   summarise(
+#     median = median(preds),
+#     se = sd(preds)/sqrt(n()),
+#     lwr = median - 1.96*se,
+#     upr = median + 1.96*se)
+    
+  
+#FROM merTools
+#setup df 
+newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+#make predictions
+preds <- predictInterval(m, newdata = newdata,
+                              which = "fixed", #full, fixed or random for those only
+                              type = "probability", #linear.prediction
+                              stat = "median",
+                              n.sims = 1000,
+                              level = 0.80) #width of prediction interval
+#join predictions to the new dataframe
+preds <- cbind(newdata, preds)
+#summarize
+(summ_preds <- preds %>% 
+  dplyr::select(pretty_condition, fit, lwr, upr) %>% 
+  group_by(pretty_condition) %>% 
+  summarise(
+    median = median(fit),
+    lower = median(lwr),
+    upper = median(upr)
+  )) 
 
 ```
 
@@ -433,7 +479,7 @@ glance(m)
 
 ***(In Dissertation)***
 
-We fit a mixed effects binomial logistic regression model with random intercepts for subjects and questions.  Note that we choose to model these data at the item (i.e. question) rather than than subject (i.e. total score) level because the structure of a mixed effects model allows us to differentiate between random variance introduced by individual subjects and questions, versus the expected systematic variance of CONDITION. A likelihood ratio test indicates that a model including a fixed effect of CONDITION explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3) = 18.66, p < 0.001$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.89$) and the part related to the fixed effect CONDITION ($marginal \ R^2$) explains 15\% of variance. **Consistent with our hypothesis, the impasse condition substantially increases the odds of a correct response.** Across the entire task participants in the impasse condition were 75 times more likely to offer a correct response, compared with those in the control condition ( $e^{\beta_1} = 75.51, p < 0.001$, $95 \% \  CI [8.46, 674]$). 
+We fit a mixed effects binomial logistic regression model with random intercepts for subjects and questions.  Note that we choose to model these data at the item (i.e. question) rather than than subject (i.e. total score) level because the structure of a mixed effects model allows us to differentiate between random variance introduced by individual subjects and questions, versus the expected systematic variance of CONDITION. A likelihood ratio test indicates that a model including a fixed effect of CONDITION explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3) = 18.66, p < 0.001$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.89$) and the part related to the fixed effect CONDITION ($marginal \ R^2$) explains 15\% of variance. **Consistent with our hypothesis, the impasse condition substantially increases the odds of a correct response.** Across the entire task participants in the impasse condition were 75 times more likely to offer a correct response, compared with those in the control condition ( $e^{\beta_1} = 75.51, p < 0.001$, $95 \% \  CI [8.46, 674]$). Based on the fixed effect of CONDITION, The model predicts that the probability of a correct response in the control condition is effectively 0% (95% CI [6.8e-4, 0.02]), and the probability of a correct response in the impasse condition increases to 24% (95% CI [0.06, 0.60]). 
 
 ```{r}
 #| label: MODEL-TBL-ACC
@@ -473,8 +519,9 @@ tab_model(m)
 
 ## | PLOT PARAMETERS 
 
-#SJPLOT | MODEL | ODDS RATIO
-plot_model(m, transform = "exp",
+
+#SJPLOT | MODEL | lOG ODDS
+plot_model(m, transform = NULL,
            vline.color = "red", 
            show.intercept = TRUE, 
            show.values = TRUE,
@@ -485,15 +532,26 @@ plot_model(m, transform = "exp",
        x = "Condition")
 
 
-#EASYSTATS | MODEL | ODDS RATIO
-result <- model_parameters(m, exponentiate = TRUE, component = "all")
-plot(result)
+#SJPLOT | MODEL | ODDS RATIO
+plot_model(m, transform = "exp",
+           vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.05, #manually adjust to account for directional test
+           ci.lvl = 0.95 ) + #manually adjusted for directional test   
+  labs(title = "Model ESTIMATE | Log Odds",
+       subtitle = "",
+       x = "Condition")
 
+#EASYSTATS | MODEL | ODDS RATIO
+# result <- model_parameters(m, exponentiate = TRUE, component = "all")
+# plot(result) + labs(
+#     title = "Model ESTIMATE | ODDS RATIO"
+#   )
 
 ## | PLOT TESTS
-
-result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
-plot(result)
+# result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+# plot(result)
 
 ## | PLOT PREDICTIONS
 
@@ -513,7 +571,28 @@ plot_model(m, type = "pred")[[1]]  +
     y = "Probability of Correct Response", x = "Condition"
   )
 
-#TODO EMMEANS for the estimated marginal means
+#GGDIST | MODEL | PREDICTED PROBABILITIES
+preds %>% 
+  ggplot(aes( x = fit, y = pretty_condition, fill = pretty_condition)) + 
+  stat_halfeye(alpha = 0.5, normalize = "xy") + 
+  xlim(0,0.3) + theme_clean() + labs(
+    title = "Model PREDICTION | Probability of Accurate Response",
+    subtitle = "TODO check preds to see if fixed or includes random"
+  )
+
+# SIMULATE FIXED EFFECTS
+# simulate values of fixed effects 
+# (feEx <- FEsim(m,  oddsRatio = FALSE, n.sims = 1000))
+# PLOT estimates of fixed effects
+# plotFEsim(feEx) +
+#   theme_bw() + labs(title = "Coefficient Plot of InstEval Model",
+#                     x = "Median Effect Estimate")
+
+# SIMULATE RANDOM EFFECTS
+# simulate values of random effects
+# reEx <- REsim(m)
+# PLOT estimates of random effects
+# plotREsim(reEx)
 ```
 
 
@@ -536,13 +615,6 @@ check_model(m)
 ```
 
 
-
-
-
-
-
-
-
 ##### Sanity Check :: Bayesian
 
 ```{r}
@@ -555,18 +627,7 @@ check_model(m)
 # #confirm all factors 
 # is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy)
 # 
-# 
-# 
-# #EMPTY (random only)
-# Bmm.rSQ <- brm( accuracy ~  (1|subject) + (1|q), 
-#                  data = df_i, 
-#                  family = "bernoulli",
-#                  chains = 4, iter = 2000, warmup = 1000,
-#                  cores = 4, seed = 1234,
-#                  backend = "cmdstanr",
-#                  file ="analysis/SGC3A/models/sgc3a_brms_acc_Bmm.rSQ_LAB.rds")
-# 
-# 
+#
 # 
 # print("FIXED Condition + Subject & Item random intercepts")
 # Bmm.CrSQ <- brm( accuracy ~ pretty_condition + (1|subject) + (1|q), 
@@ -576,8 +637,6 @@ check_model(m)
 #                  cores = 4, seed = 1234,
 #                  backend = "cmdstanr",
 #                  file ="analysis/SGC3A/models/sgc3a_brms_acc_Bmm.CrSQ_LAB.rds")
-# 
-# 
 # 
 # #get Priors 
 # # describe_priors(Bmm.CrSQ)
@@ -592,11 +651,6 @@ check_model(m)
 # plot(pd(Bmm.CrSQ))
 # #convert to a pd value
 # (pds <- pd_to_p(d$pd))
-# 
-# #TEST MODEL
-# #Evidence in FAVOR of Condition
-# (b <- bayes_factor(Bmm.CrSQ, Bmm.rSQ))
-
 
 ```
 
@@ -680,10 +734,11 @@ While absolute accuracy score tells us whether a participant successfully interp
 ```{r}
 #| label: SETUP-STATE
 
-#:::::::: PREP DATA
 df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
+
 ```
 
+#### Visualize
 ```{r}
 #:::::::: STACKED BAR CHART
 df_i %>% 
@@ -717,6 +772,7 @@ df_i %>%
 
 A proportional bar chart visualizing the proportion of each interpretations type by condition for each data collection modality (left/right facet) reveals that the pattern of responses are similar regardless of the data collection modality, by differ by condition. In the impasse condition, there are more triangular responses than in control. In the impasse condition, there are also more positive transition (i.e. triangle-like) and neutral (ie. blank or uncertain response types) than in the control condition.
 
+#### Describe
 ```{r}
 
 #::::::::::::DESCRIPTIVES
@@ -904,13 +960,11 @@ plot(result)
 
 ```{r}
 
-print
 # check_model(m)
 
 ```
 
-##### TODO PRIORS
-https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
+
 
 ##### Fit Model \[brms\]
 
@@ -928,28 +982,74 @@ Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q),
                  file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.rSQ_LAB.rds")
 
 
-#BAYESIAN MIXED VERSION
+#UNINFORMATIVE PRIOR BAYESIAN MIXED VERSION
+# flat_Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
+#                  data = df_i, 
+#                  family = "categorical",
+#                  chains = 4, iter = 2500, warmup = 1000,
+#                  cores = 4, seed = 1234,
+#                  save_pars = save_pars(all = TRUE),
+#                  # backend = "cmdstanr",
+#                  file ="analysis/SGC3A/models/sgc3a_brms_state_FLAT_Bmm.cat.CrSQ_LAB.rds")
+
+
+# determine default priors 
+# prior_summary(flat_Bmm.cat.CrSQ)
+
+#set priors [see justification, below]
+inf_priors <- c(
+  # too strong?
+  # prior(normal(-6.91, 0.201),  class = "Intercept", dpar = "muangular"),
+  # prior(normal(-6.91, 0.201),  class = "Intercept", dpar = "muother"),
+  # prior(normal(-6.91, 0.201),  class = "Intercept", dpar = "mutriangular"),
+  #prior on INTERCEPTS 
+  #25% chance of each answer in control, scale = from 0.01 to 62%
+  prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muangular"),
+  prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muother"),
+  prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "mutriangular"),
+  #prior on COEFFICIENT
+  #likely to change odds between 0 and 2.4
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "muangular"),
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "muother"),
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "mutriangular")
+)
+
+#INFORMATIVE PRIORS
 Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
                  data = df_i, 
                  family = "categorical",
+                 prior = inf_priors,
                  chains = 4, iter = 2500, warmup = 1000,
                  cores = 4, seed = 1234,
                  save_pars = save_pars(all = TRUE),
+                 control = list(adapt_delta = 0.98),  # to deal with divergent transitions
                  # backend = "cmdstanr",
-                 file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.CrSQ_LAB.rds")
+                 file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.CrSQ_LAB.rds"
+                 )
 
-```
+#a bayes factor model comparison of the flat vs informative prior models suggest convicing evidence that 
+#informative prior model is a better fit
+# bayesfactor(Bmm.cat.CrSQ, flat_Bmm.cat.CrSQ)
+
+# PRIORS LOGIC 
+# https://www.bayesrulesbook.com/chapter-13.html#building-the-logistic-regression-model
+
+#expectation for probability of _better_ response [in control]?
+#very low probability center: 0.1% [very low]; as logodds = logit(0.001) = -6.91
+#range from 0 to 55%  logit(0.55) = 0.201
+#probability of 0.1 to 55% is equivalent to [logodds] -6.91 +/ 2* 0.201
+#therefore... prior for intercept => Normal(−6.91, 0)
 
 
-##### Diagnostics
+#expectation for probability of _better_ response [in impasse]?
+#increases probablity from 0 % 
+# 0 [very low]; as OR  = exp(0) = 1
+#range from 0 to 90%  exp(0.9) = 2.46
+#probability of 0 to 90% is equivalent to [ODDS scale] 1 +/ 2* 2.42
+#on log odds scale ? [0, ]
+#therefore... prior for intercept => Normal(1, 2.42)
+                             # prior = normal(0.07, 0.035),
 
-```{r}
-
-#CHECK Fit of posterior predictive to data
-pp_check(Bmm.cat.CrSQ, ndraws=1000)
-
-#CHECK model
-plot(Bmm.cat.CrSQ)
 
 ```
 
@@ -966,34 +1066,79 @@ m <- Bmm.cat.CrSQ
 
 print("PREDICTOR MODEL")
 summary(m)
+(d <- describe_posterior(ci=.95, Bmm.cat.CrSQ))
 
 print("BAYES FACTOR [comparison to null]")
 #think of this like the anova(model) to get p values for each predictor
 #has to recompile the models with rstan. total drag
-(b <- bayesfactor(Bmm.cat.rSQ,m))
+(b <- bayesfactor(Bmm.cat.rSQ, m))
 
 print("DESCRIBE POSTERIOR")
-# (d <- describe_posterior(m))
-(d <- model_parameters(m, exponentiate = TRUE))
 
 #:::::::: INTERPRET COEFFICIENTS
 # se <- sqrt(diag(stats::vcov(m)))
 # # table of estimates with 95% CI
-paste("LOG ODDS")
 # (tab <- cbind(Est = fixef(m),
 #               LL = fixef(m) - 1.96 * se,
 #               UL = fixef(m) + 1.96 * se))
 
 paste("LOG ODDS")
-(tm <- tidy(m,   conf.int = TRUE))
-paste("ODDS RATIOS")
-# tidy(m,   conf.int = TRUE, exponentiate = TRUE)
-tm %>% mutate(
-  OR.est = exp(estimate),
-  exp.low = exp(conf.low),
-  exp.high = exp(conf.high)
-) %>% dplyr::select(effect, component, group, term, OR.est, exp.low, exp.high)
+(l <- describe_posterior(m))
+# (tm <- tidy(m,   conf.int = TRUE))
 
+paste("ODDS RATIOS")
+(e <- model_parameters(m, exponentiate = TRUE))
+# tidy(m,   conf.int = TRUE, exponentiate = TRUE)
+# tm %>% mutate(
+#   OR.est = exp(estimate),
+#   exp.low = exp(conf.low),
+#   exp.high = exp(conf.high)
+# ) %>% dplyr::select(effect, component, group, term, OR.est, exp.low, exp.high)
+
+paste("PROBABILITIES")
+
+#PREDICT METHOD
+newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+preds <- predict(m, newdata = newdata, type = "response")
+preds <- cbind(newdata, preds)
+#lengthen data frame to handle multinomial
+preds <- preds %>% 
+  dplyr::select(-subject, -q) %>% #marginalize over subject and q
+  pivot_longer(
+  cols = !pretty_condition,
+  values_to = "preds",
+  names_to = "state",
+) 
+
+(p <- preds %>% 
+  group_by(pretty_condition, state ) %>%
+  summarise(
+    median = median(preds),
+    se = sd(preds)/sqrt(n()),
+    lwr = median - 1.96*se,
+    upr = median + 1.96*se))
+
+##DRAWS METHOD
+# GENERATE draws from model
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
+# # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# #OR load from file
+# # draws <- read_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# # SUMMARIZE draws from model
+# (k <- kable(draws %>%
+#   dplyr::select(pretty_condition, .category, .value) %>%
+#   group_by(pretty_condition, .category) %>%
+#   median_hdci(.value), digits = 4, col.names =
+#     c("Condition","Category", "Probability","Lower Cred.I","Upper Cred.I", "CI Width", "Point Type", "Interval Type")) %>%
+#   kable_styling())
 
 ```
 
@@ -1002,10 +1147,19 @@ tm %>% mutate(
 
 [REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 \% credible interval, \% probability of direction]
 
-We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 1.95e+17). 
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 9.31e+15). 
 **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
 
-Across the entire task participants in the impasse condition were 13 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.44, 95 \% CI [6.50, 26.65], pd = 100\%$). Participants in the impasse condition were 23 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 23.34, 95 \% CI [6.22, 122.37], pd = 100\%$), and 68 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 67.60, 95 \% CI [10.28, 612], pd = 100\%$). 
+Across the entire task participants in the impasse condition were 12 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.58, 95 \% CI [6.03, 23.19], pd = 100\%$). Participants in the impasse condition were 15 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 15.30, 95 \% CI [4.89, 54.22], pd = 100\%$), and 35 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 34.71, 95 \% CI [6.72, 223.29], pd = 100\%$). 
+
+The model estimates that probability of an orthogonal response in the control condition is  92% vs only 38% in IMPASSE The probability of an unknown/uncertain response in the control condition is 4%, vs 20% in impasse
+The probability of an angular response in the control condition is less than 1%, vs 2% in impasse.
+The probability of an triangular response in the control condition is 3%, vs 40% in impasse. 
+
+The impasse condition decreases the probability of an orthogonal response by 54%
+The impasse condition increases the probability of an uknown/uncertain response by 16%
+The impasse condition increases the probability of an angular response by 1%
+the impasse condition increase the probability of a triangular response by 37%
 
 
 ```{r}
@@ -1046,7 +1200,7 @@ tab_model(m)
 #                    re_formula = NA)
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 # 
-# #2 | visualize draws 
+# #2 | SUMMARIZE draws 
 # k <- kable(draws %>%
 #   select(pretty_condition, .category, .value) %>%
 #   group_by(pretty_condition, .category) %>%
@@ -1176,6 +1330,24 @@ plot_model(m, type = "pred")
 # # 
 # # ggsave(d, filename = "figures/sgc3a_BBm.cat.CrSQ_lab_posterior.svg", width = 6, height =4)
 # d
+```
+
+
+
+##### Diagnostics
+
+```{r}
+
+#CHECK Fit of posterior predictive to data
+pp_check(Bmm.cat.CrSQ, ndraws=1000)
+
+#CHECK posterior vs. priors
+result <- estimate_density(Bmm.cat.CrSQ)
+plot(result, stack = FALSE, priors= TRUE)
+
+#CHECK model
+plot(Bmm.cat.CrSQ)
+
 ```
 
 
