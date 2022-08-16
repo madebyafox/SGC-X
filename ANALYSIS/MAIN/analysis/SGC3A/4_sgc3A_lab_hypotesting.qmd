@@ -1300,13 +1300,13 @@ plot_model(m, type = "pred")
 #TAKES A REALLY LONG TIME
 
 #1 | get draws
-draws <- df_i %>%
-  data_grid(pretty_condition, subject, q) %>%
-  add_fitted_draws(Bmm.cat.CrSQ,
-                   # n = 100,
-                   # dpar = TRUE,
-                   # transform = TRUE, #gives prob%, otherwise OR
-                   re_formula = NA)
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA) 
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 
 #OR load from file
@@ -1317,20 +1317,19 @@ draws <- df_i %>%
 ##do it with much smaller number of draws 
 #TODO adjust bandwidth/smoothing? + put on same line + 
 #TAKES A REAAALY LONG TIME
-d <- draws %>% sample_n(10) %>% 
-  ggplot(aes(x = .value,  y = .category, fill = pretty_condition)) +
-  stat_slab(width = c(.95), alpha = 0.5, normalize="xy") +
-  # stat_halfeye(.width = c(.95), alpha = .6,interval_alpha = 0,point_alpha = 0, normalize = "groups") +
-  #   #normalize = all, panels, xy, groups, none
-  xlim(0,1) + labs(
-    title = "Model Predicted Probability of Correct Response",
-    x = "probability of correct response",
-    y = "Interpretation"
-  ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
+# d <- draws %>%
+#   ggplot(aes(x = .value,  y = pretty_condition, fill = .category)) +
+#   stat_slab(width = c(.95), alpha = 1, normalize="xy") +
+#   #   #normalize = all, panels, xy, groups, none
+#   xlim(0,1) + labs(
+#     title = "Model Predicted Probability of Correct Response",
+#     x = "probability of correct response",
+#     y = "Interpretation"
+#   ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
 # # #TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
 # # 
 # # ggsave(d, filename = "figures/sgc3a_BBm.cat.CrSQ_lab_posterior.svg", width = 6, height =4)
-d
+# d
 ```
 
 
