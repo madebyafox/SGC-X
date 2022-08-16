@@ -151,7 +151,7 @@ df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
 
 ### Data Collection
 
-Data was collected (online, via SONA) in Fall 2021 and Winter 2022, for the purpose of verifying the use of the graph comprehension task for online, asynchronous data collection. 
+Data was collected (online, via SONA) in Fall 2021 and Winter 2022, for the purpose of verifying the use of the graph comprehension task for online, asynchronous data collection.
 
 ```{r}
 #| label : DESC-DATA-COLLECTION
@@ -181,8 +181,7 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
-**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
-
+**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
 
 ## H1A \| OVERALL ACCURACY
 
@@ -217,6 +216,7 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
 +-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 #### Setup
+
 ```{r}
 #| label: SETUP-ACC
 
@@ -229,6 +229,7 @@ df_s <- df_subjects %>%
 ```
 
 #### Visualize
+
 ```{r}
 #| label: DESC-ACC
 
@@ -323,8 +324,8 @@ p + labs(title = "STUDY 3A (online replication) | DISTRIBUTION of Total Score",
 
 ```
 
-
 ### Describe
+
 ```{r}
 #| label: DESC2-ACC
 
@@ -339,7 +340,7 @@ tbl2 %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-#### WILCOXON RANK SUM (Mann-Whitney Test) 
+#### WILCOXON RANK SUM (Mann-Whitney Test)
 
 -   **Non parametric alternative** to t-test; compares median rather than mean by ranking data
 -   Does not assume normality
@@ -356,11 +357,10 @@ report(w)
 
 ```
 
-
 ##### Inference -- DIRECTIONAL EFFECT
 
-
 ##### Visualize
+
 ```{r}
 #| label: VIZ-TEST-ACC
 
@@ -368,8 +368,6 @@ ggbetweenstats( x = pretty_condition, y = task_percent, data = df_s,
                 type = "nonparametric", var.equal = FALSE)
 
 ```
-
-
 
 #### MIXED LOGISTIC REGRESSION
 
@@ -514,10 +512,9 @@ preds <- cbind(newdata, preds)
 
 ```
 
-##### INFERENCE — DIRECTIONAL EFFECT
+##### INFERENCE --- DIRECTIONAL EFFECT
 
 p = 0.06; but we should be performing a directional test, so actually OK.
-
 
 ```{r}
 #| label: MODEL-TBL-ACC
@@ -633,7 +630,6 @@ preds %>%
 # plotREsim(reEx)
 ```
 
-
 ##### Diagnostics
 
 ```{r}
@@ -651,7 +647,6 @@ print("DIAGNOSTICS")
 check_model(m)
 
 ```
-
 
 ##### Sanity Check :: Bayesian
 
@@ -693,7 +688,6 @@ check_model(m)
 ```
 
 *A likelihood ratio test indicates adding CONDITION as a fixed effect to a logistic regression model including a fixed effect random intercepts for SUBJECT and QUESTION explains more variance in the data than random-effects only model.*
-
 
 ```{r}
 
@@ -749,23 +743,22 @@ While absolute accuracy score tells us whether a participant successfully interp
 
 -   **"triangular"** includes correct triangular and 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
 
-
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does Ss in the impasse condition produce less orthogonal responses across questions?                                          |
-+=======================+=================================================================================================================================================+
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Question     | Does Ss in the impasse condition produce less orthogonal responses across questions?                                                     |
++=======================+==========================================================================================================================================+
 | **Hypothesis**        | H1A \| Ss in the IMPASSE condition will have a higher likelihood of producing unknown and triangle-like response states across all items |
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Data**              | -   data: `df_items` where `q nin 6,9` (13 discriminant test phase items)                                                              |
-|                       | -   outcome: `state` ( 3 level factor from high_interpretation )                                                                                |
-|                       | -   predictor: `condition` \[between-subjects factor\]                                                                                          |
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | 1.  MIXED Multinomial (Logistic) Regression on state predicted by condition                                                                     |
-|                       |                                                                                                                                                 |
-|                       | Alternative:                                                                                                                                    |
-|                       |                                                                                                                                                 |
-|                       | -   MIXED Ordinal regression on state (doesn't meet proportional odds assumption-I think)                                                       |
-|                       | -   MIXED Multinomial or Ordinal regression on high_interpretation (some cells are 0, produces problems)                                        |
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| **Data**              | -   data: `df_items` where `q nin 6,9` (13 discriminant test phase items)                                                                |
+|                       | -   outcome: `state` ( 3 level factor from high_interpretation )                                                                         |
+|                       | -   predictor: `condition` \[between-subjects factor\]                                                                                   |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| **Analysis Strategy** | 1.  MIXED Multinomial (Logistic) Regression on state predicted by condition                                                              |
+|                       |                                                                                                                                          |
+|                       | Alternative:                                                                                                                             |
+|                       |                                                                                                                                          |
+|                       | -   MIXED Ordinal regression on state (doesn't meet proportional odds assumption-I think)                                                |
+|                       | -   MIXED Multinomial or Ordinal regression on high_interpretation (some cells are 0, produces problems)                                 |
++-----------------------+------------------------------------------------------------------------------------------------------------------------------------------+
 
 #### Setup
 
@@ -777,6 +770,7 @@ df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pre
 ```
 
 #### Visualize
+
 ```{r}
 #:::::::: STACKED BAR CHART
 df_i %>% 
@@ -827,7 +821,6 @@ table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for 
 ```
 
 #### MIXED MULTINOMIAL REGRESSION
-
 
 *Does condition affect the response state of of items across the task?*
 
@@ -888,10 +881,7 @@ performance(m)
 
 ```
 
-
 ##### TODO Inference
-
-
 
 ```{r}
 #| label: MODEL-TBL-MBLOGIT-STATE
@@ -984,8 +974,6 @@ plot(result)
 
 ```
 
-
-
 ##### Fit Model \[brms\]
 
 ```{r}
@@ -1073,7 +1061,6 @@ Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q),
 
 ```
 
-
 ##### Describe
 
 ```{r}
@@ -1157,16 +1144,13 @@ preds <- preds %>%
 
 ```
 
+##### INFERENCE --- EFFECT
 
-##### INFERENCE — EFFECT
+\[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 % credible interval, % probability of direction\]
 
-[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 \% credible interval, \% probability of direction]
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 3.65e+04). **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.**
 
-We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 3.65e+04). 
-**Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
-
-Across the entire task participants in the impasse condition were 4 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 4.16, 95 \% CI [2.16, 8.51], pd = 99\%$). Participants in the impasse condition were 4 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 3.84, 95 \% CI [1.23, 13.45], pd = 99\%$), and 9 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 9.07, 95 \% CI [1.39, 60.87], pd = 99\%$). 
-
+Across the entire task participants in the impasse condition were 4 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 4.16, 95 \% CI [2.16, 8.51], pd = 99\%$). Participants in the impasse condition were 4 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 3.84, 95 \% CI [1.23, 13.45], pd = 99\%$), and 9 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 9.07, 95 \% CI [1.39, 60.87], pd = 99\%$).
 
 ```{r}
 #| label: TBL-BRMS-STATE
@@ -1240,6 +1224,7 @@ tab_model(m)
 # comps
 
 ```
+
 ##### Visualize
 
 ```{r}
@@ -1343,8 +1328,6 @@ preds %>%
     stat_slab(width = c(.95), alpha = 0.5, normalize="xy") 
 ```
 
-
-
 ##### Diagnostics
 
 ```{r}
@@ -1361,16 +1344,14 @@ plot(Bmm.cat.CrSQ)
 
 ```
 
-
-
-
 ##### COMPARE MBLOGIT to BRMS
 
 ```{r}
 #| label: COMPARE-STATE-MODELS
 compare_models(mm.cat.CrSQ, Bmm.cat.CrSQ)
 ```
-The predictions of the manual, frequentist mixed multinomial and bayesian mixed multinomial models are comparable. 
+
+The predictions of the manual, frequentist mixed multinomial and bayesian mixed multinomial models are comparable.
 
 ## H1B \| Q1 ACCURACY
 
@@ -1400,6 +1381,7 @@ The graph comprehension task includes 15 questions completed in sequence. But th
 +-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 #### Setup
+
 ```{r}
 #| label: SETUP-Q1ACC
 
@@ -1408,7 +1390,8 @@ df <- df_items %>% filter(q==1)  %>% dplyr::select(accuracy, pretty_condition)
 
 ```
 
-#### Describe 
+#### Describe
+
 ```{r}
 #| label: VIS-Q1ACC
 
@@ -1529,9 +1512,8 @@ pred.impasse <- predict(m1,data.frame(pretty_condition="impasse"),type="response
 #this should match : plogis(intercept coefficient + predictor coeff)
 paste("Probability of success in impasse,", pred.impasse)
 ```
-##### Inference — DIRECTIONAL EFFECT
 
-
+##### Inference --- DIRECTIONAL EFFECT
 
 ##### Visualize
 
@@ -1639,7 +1621,6 @@ print("MODEL DIAGNOSTICS")
 check_model(m1)
 ```
 
-
 ## H1B \| Q1 INTERPRETATION STATE
 
 **Do Ss in the IMPASSE condition offer less-orthogonal interpretations on first question?**
@@ -1671,7 +1652,8 @@ While absolute accuracy score tells us whether a participant successfully interp
 |                       | -   Multinomial or Ordinal regression on high_interpretation (5 category interpretation state which distinguishes between uncertain (blank, reference) unclassifiable, triangle-like and true triangular.) There are some cells with zeros, however (no uncertain responses in control) which means the model can't accurately estimate those comparisons |
 +-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-#### Setup 
+#### Setup
+
 ```{r}
 #| label: SETUP-Q1STATE
 
@@ -1680,8 +1662,8 @@ df <- df_items %>% filter(q==1) %>% dplyr::select(pretty_condition, state)
 
 ```
 
+#### Describe
 
-#### Describe 
 ```{r}
 #| label: VIS-Q1STATE
 
@@ -1702,7 +1684,6 @@ df %>%
 ```
 
 A proportional bar chart visualizing the proportion of each interpretations type by condition for each data collection modality (left/right facet) reveals that the pattern of responses are similar regardless of the data collection modality, by differ by condition. In the impasse condition, there are more triangular responses than in control. We see that around half of the 'incorrect' (i.e. not triangular) responses in the impasse condition are not orthogonal-like, but "other/unknown".
-
 
 ```{r}
 #| label: DESC-Q1STATE
@@ -1805,8 +1786,9 @@ options(scipen = 2)
 (results <- cbind(odds_ratios, p_values))
 ```
 
-##### Inference — CAN'T MODEL, SPARSE CELLS
-sample size is too low to estimate this model. There are no participants in the control condition with 'other' or 'angular' answers. 
+##### Inference --- CAN'T MODEL, SPARSE CELLS
+
+sample size is too low to estimate this model. There are no participants in the control condition with 'other' or 'angular' answers.
 
 ##### Visualize
 
@@ -1935,5 +1917,3 @@ DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
 # check_model(m) can't do overall diagnostics, have to do them on individual model equations
 
 ```
-
-
