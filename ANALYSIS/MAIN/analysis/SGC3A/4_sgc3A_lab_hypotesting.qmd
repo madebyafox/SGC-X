@@ -141,6 +141,44 @@ df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds')
 
 ```
 
+## SAMPLE
+
+### Data Collection
+
+
+```{r}
+#| label : DESC-DATA-COLLECTION
+
+title = "Participants by Condition and Data Collection Period"
+cols = c("Control Condition","Impasse Condition","Total for Period")
+cont <- table(df_subjects$term, df_subjects$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
+
+```
+
+### Participants
+
+```{r}
+#| label: DESC-PARTICIPANTS
+
+#Describe participants
+subject.stats <-df_subjects %>% dplyr::select(age) %>% unlist() %>% favstats()
+subject.stats$percent.male <- ((df_subjects %>% filter(gender=="Male") %>% count())/count(df_subjects))$n
+subject.stats$percent.female <- ((df_subjects %>% filter(gender=="Female") %>% count())/count(df_subjects))$n
+subject.stats$percent.other <- ((df_subjects %>% filter(gender %nin% c("Female","Male")) %>% count())/count(df_subjects))$n
+
+
+title = "Descriptive Statistics of Participant Age and Gender"
+subject.stats %>% kbl (caption = title) %>% kable_classic()%>% 
+  footnote(general = "Age in Years", 
+           general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+
+
+
+
 
 ## H1A \| OVERALL ACCURACY
 
@@ -274,7 +312,7 @@ e <- statsExpressions::two_sample_test(y = task_percent, x = pretty_condition, d
                                 type = "nonparametric", alternative = "less",
                                 var.equal = FALSE)
 #labels are layer 4
-p + labs(title = "DISTRIBUTION of Total Score",
+p + labs(title = "STUDY 3A | DISTRIBUTION of Total Score",
          y = "Percentage of correct responses across task", x = "",
          # caption=e$expression[[1]],
          subtitle = "Impasse condition yields greater variance and more high scores")
@@ -1293,6 +1331,8 @@ plot_model(m, type = "pred")
 ```
 
 ```{r}
+#| label: GGDIST-STATE
+
 #::::: GGDIST POSTERIOR PROBABILITY OF RESPONSE
 ##WORKING
 # https://mjskay.github.io/ggdist/reference/stat_slab.html
@@ -1300,13 +1340,13 @@ plot_model(m, type = "pred")
 #TAKES A REALLY LONG TIME
 
 #1 | get draws
-# draws <- df_i %>%
-#   data_grid(pretty_condition, subject, q) %>% 
-#   add_fitted_draws(Bmm.cat.CrSQ,
-#                    # n = 100,
-#                    # dpar = TRUE,
-#                    # transform = TRUE, #gives prob%, otherwise OR
-#                    re_formula = NA) 
+draws <- df_i %>%
+  data_grid(pretty_condition, subject, q) %>%
+  add_fitted_draws(Bmm.cat.CrSQ,
+                   # n = 100,
+                   # dpar = TRUE,
+                   # transform = TRUE, #gives prob%, otherwise OR
+                   re_formula = NA)
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 
 #OR load from file
@@ -1317,19 +1357,20 @@ plot_model(m, type = "pred")
 ##do it with much smaller number of draws 
 #TODO adjust bandwidth/smoothing? + put on same line + 
 #TAKES A REAAALY LONG TIME
-# d <- draws %>%
-#   ggplot(aes(x = .value,  y = pretty_condition, fill = .category)) +
-#   stat_slab(width = c(.95), alpha = 1, normalize="xy") +
-#   #   #normalize = all, panels, xy, groups, none
-#   xlim(0,1) + labs(
-#     title = "Model Predicted Probability of Correct Response",
-#     x = "probability of correct response",
-#     y = "Interpretation"
-#   ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
+d <- draws %>% sample_n(10) %>% 
+  ggplot(aes(x = .value,  y = .category, fill = pretty_condition)) +
+  stat_slab(width = c(.95), alpha = 0.5, normalize="xy") +
+  # stat_halfeye(.width = c(.95), alpha = .6,interval_alpha = 0,point_alpha = 0, normalize = "groups") +
+  #   #normalize = all, panels, xy, groups, none
+  xlim(0,1) + labs(
+    title = "Model Predicted Probability of Correct Response",
+    x = "probability of correct response",
+    y = "Interpretation"
+  ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
 # # #TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
 # # 
 # # ggsave(d, filename = "figures/sgc3a_BBm.cat.CrSQ_lab_posterior.svg", width = 6, height =4)
-# d
+d
 ```
 
 
@@ -1391,7 +1432,6 @@ The graph comprehension task includes 15 questions completed in sequence. But th
 ```{r}
 #| label: SETUP-Q1ACC
 
-#:::::::: PREP DATA
 df <- df_items %>% filter(q==1)  %>% dplyr::select(accuracy, pretty_condition)
 
 ```
@@ -1479,11 +1519,14 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
 ```{r}
 #| label: MODEL-DESC-Q1ACC
 
+#best model 
+m <- m1
+
 # DESCRIBE MODEL ::::::::::::::::::::::::::::::::::::: 
 
 print("PREDICTOR MODEL [default two-tailed sig test]")
-summary(m1)
-car::Anova(m1)
+summary(m)
+car::Anova(m)
 
 # MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
 
@@ -1491,21 +1534,29 @@ car::Anova(m1)
 #https://stats.stackexchange.com/questions/330655/strategy-for-a-one-sided-test-of-glms-coefficients
 
 #SANITY CHECK 2-tailed test should match the model output
-tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
-paste("p value for two-tailed test, null B = 0 : ",round(tt,3))
-ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
-paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,3))
-paste("adjusted confint for directional hypothesis")
-(dcint <- confint(m1, level = 0.90)) # get 90% for right side))
+##TODO need to do for each coeff
+# tt <- 2*pnorm(summary(m)$coefficients[2,3], lower.tail = F)
+# paste("p value for two-tailed test, null B = 0 : ",round(tt,3))
+# ot <- pnorm(summary(m)$coefficients[2,3], lower.tail = F)
+# paste("BUT we want a one tailed directional, null: B <= 0: ",round(ot,3))
+# paste("adjusted confint for directional hypothesis")
+# (dcint <- confint(m, level = 0.90)) # get 90% for right side))
 # https://stats.stackexchange.com/questions/20734/is-a-1-sided-90-prediction-interval-equivalent-to-a-2-sided-95-prediction-inte
 
 #:::::::: INTERPRET COEFFICIENTS
 
 # print("Confidence Interval —- LOG ODDS")
 # confint(m1) #not adjusted for 1-tailed
-print("Coefficients —- ODDS RATIOS")
+# print("Coefficients —- ODDS RATIOS")
 # (e <- cbind( exp(coef(m1)), exp(confint(m1)))) #exponentiated, not adjusted
-(e <- cbind( exp(coef(m1)), exp(dcint))) #exponentiated, adjusted
+# (e <- cbind( exp(coef(m1)), exp(dcint))) #exponentiated, adjusted
+
+paste("LOG ODDS")
+# (l <- describe_posterior(m))
+(tm <- tidy(m,   conf.int = TRUE))
+
+paste("ODDS RATIOS")
+(e <- model_parameters(m, exponentiate = TRUE))
 
 print("MODEL PREDICTIONS")
 # Retrieve predictions as probabilities 
@@ -1519,9 +1570,8 @@ paste("Probability of success in impasse,", pred.impasse)
 ```
 ##### Inference
 
-**In Dissertation**
 
-**We fit a logistic regression model to explore the effect of experimental condition on probability of a correct answer on the first question. In this model, the effect of condition is statistically significant (z = 1.79, p = 0.04, one-tailed). The model predicts that the odds of a correct response on the first question in the impasse condition increase by nearly 120% ($e^{beta_{impasse}}$ = 2.19, 95% CI \[1.08, 4.63\]) over the control condition. The intercept** $\beta_{0}$ **parameter is also significant, ($e^{b_{0}}$ = 0.19, p \< 0.001, 95% CI \[0.11, 0.33\]) indicating that the odds of a correct response in the control condition are significantly less than even (less than 50/50 chance of correct response in control condition).**
+We fit a logistic regression model to explore the effect of experimental condition on probability of a correct answer on the first question. In this model, the effect of condition is statistically significant (z = 1.79, p = 0.04, one-tailed). The model predicts that the odds of a correct response on the first question in the impasse condition increase by nearly 120% ($e^{beta_{impasse}}$ = 2.19, 95% CI \[1.08, 4.63\]) over the control condition. The intercept** $\beta_{0}$ **parameter is also significant, ($e^{b_{0}}$ = 0.19, p \< 0.001, 95% CI \[0.11, 0.33\]) indicating that the odds of a correct response in the control condition are significantly less than even (less than 50/50 chance of correct response in control condition).
 
 *Equivalent statements:*
 
@@ -1678,7 +1728,6 @@ While absolute accuracy score tells us whether a participant successfully interp
 ```{r}
 #| label: SETUP-Q1STATE
 
-#:::::::: PREP DATA
 df <- df_items %>% filter(q==1) %>% dplyr::select(pretty_condition, state)
 
 ```
@@ -1739,7 +1788,7 @@ table(df$state, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
     -   Two-tailed NHST *Null hypothesis:* $\beta_{impasse} = 0$ *the odds for \[this category of response vs. reference\] are not different for IMPASSE condition*
     -   *Alternative hypothesis:* $\beta_{impasse} \ne 0$ *the odds of \[this category of response vs. reference\] increases or decreases for IMPASSE condition*
 
-##### Fit Model
+##### Fit Model \[MBLOGIT\]
 
 ```{r}
 #| label: MODEL-FIT-Q1STATE
@@ -1750,17 +1799,20 @@ levels(df$state)
 
 #FIT EMPTY MODEL
 # print("EMPTY MODEL")
-catm.0 <- multinom(state ~ 1, data = df)
+mbl.0 <- mblogit(state ~ 1, data = df)
 # summary(catm.0)
 
 #FIT PREDICTOR MODEL
 # print("PREDICTOR MODEL")
+mbl.C <- mblogit(formula = state ~ pretty_condition, data = df, model = TRUE)
+#IDENTICAL TO MULTINOM() FROM nnet.. but multinom doesn't handle mixed
+#so use mblogit for consistency, but need catm for anova test
 catm <- multinom(formula = state ~ pretty_condition, data = df, model = TRUE)
-# summary(catm)
+
 
 #COMPARE MODEL FIT
-paste("AIC wth predictor is lower than empty model?", catm.0$AIC > catm$AIC)
-test_lrt(catm.0, catm)
+paste("AIC wth predictor is lower than empty model?", AIC(mbl.0) > AIC(mbl.C))
+test_lrt(mbl.0, mbl.C)
 
 ##compare bayesian version
 #library(brms)
@@ -1781,34 +1833,60 @@ test_lrt(catm.0, catm)
 
 *AIC in predictor model is less than empty model, and likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model.*
 
+
 ##### Describe
 
 ```{r}
 #| label: MODEL-DESC-Q1STATE
 
 #set model
-m <- catm
+m <- mbl.C
 
-#::::::::INTERPRETATION
+#confirm models match 
+compare_models(mbl.C, catm)
+
+#::::::::: PRINT MODEL 
 paste("MODEL SUMMARY")
 summary(m)
-car::Anova(m)
 
-# calculate z-statistics of coefficients
-z_stats <- summary(m)$coefficients/summary(m)$standard.errors
-# convert to p-values
-p_values <- (1 - pnorm(abs(z_stats)))*2
-# display p-values in transposed data frame
-(p_values <- data.frame(p = (p_values)))
-# display odds ratios in transposed data frame
+paste("SIGNIFICANCE TEST")
+# car::Anova(mbl.C)
+car::Anova(catm)
+
+#:::::::: INTERPRET COEFFICIENTS
+
+paste("LOG ODDS")
+# (l <- describe_posterior(m))
+(tm <- tidy(m,   conf.int = TRUE))
 
 paste("ODDS RATIOS")
-odds_ratios <- data.frame(OR = exp(summary(m)$coefficients))
-options(scipen = 2)
-(results <- cbind(odds_ratios, p_values))
+(e <- model_parameters(m, exponentiate = TRUE))
+
+paste("PROBABILITIES")
+newdata <- df %>% dplyr::select(pretty_condition)
+preds <- predict(catm, newdata = newdata, type = "probs")
+preds <- cbind(newdata, preds)
+#LENGTHEN TO HANDLE MULTINOMIAL
+preds <- preds %>%
+  # dplyr::select(-subject, -q) %>% #marginalize over subject and q
+  pivot_longer(
+  cols = !pretty_condition,
+  values_to = "preds",
+  names_to = "state",
+)
+
+(p <- preds %>%
+  group_by(pretty_condition, state ) %>%
+  summarise(
+    median = median(preds),
+    se = sd(preds)/sqrt(n()),
+    lwr = median - 1.96*se,
+    upr = median + 1.96*se))
+
+
 ```
 
-##### Inference
+##### Inference TODO 
 
 -   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 45 (z = 3.81, p \< 0.001) . **Participants in the impasse condition were 45x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control**.
 
@@ -1829,65 +1907,42 @@ options(scipen = 2)
 ```{r}
 #| label: MODEL-VIS-Q1STATE
 
-#:::::::: PLOT
-
-#GGSTATS | MODEL | LOG ODDS 
-# ggcoefstats(m, output = "plot", 
-#               # conf.level = 0.90,
-#               exclude.intercept = FALSE) + 
-#   labs(x = "Log Odds Estimate", 
-#        title = "LOGODDS | Q1 State ~ condition",
-#        subtitle = "(p is for two tailed test)")
-#:::::::: PLOT
-
-#PARAMETERS | MODEL | SIMULATED PARAMETERS
-# similar to bayesian dist of estimate
-# result <- simulate_parameters(m)
-# plot(result, show_intercept = TRUE, stack=FALSE)
-
-#PARAMETERS | MODEL | ODDS RATIO 
-# result <- model_parameters(m1,exponentiate = TRUE)
-# #rename params 
-# result$Parameter[1] <- "condition [control]"
-# result$Parameter[2] <- "condition [impasse]"
-# plot(result,   show_intercept = TRUE) +  labs(
-#   title = "Model Parameter Estimates"
-# ) + theme_clean() + theme(legend.position="blank")
+## | PLOT PARAMETERS 
 
 #SJPLOT | MODEL | ODDS RATIO
-#library(sjPlot)
-plot_model(m, type = "est",
-           vline.color = "red", 
+plot_model(m, vline.color = "red", 
            show.intercept = TRUE, 
            show.values = TRUE,
            p.threshold = 0.1, #manually adjust to account for directional test
-           ci.lvl = 0.90 ) +  #manually adjusted for directional test   
-  # scale_y_continuous() + #remove to put on log scale x axis 
-  scale_x_discrete(labels=c("control","impasse"))+
-  labs(title = "MODEL ESTIMATE  | Q1 Accuracy ~ condition",
-       subtitle = "Impasse increases odds of correct response on Q1",
-       x = "Condition") + theme_clean()
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
+  labs(title = "Model Estimate | Odds Ratio",
+       subtitle = "",
+       x = "Condition")
 
-  
-#SJPLOT | MODEL | PROBABILITIES
-plot_model(m, type="eff", ci.lvl = 0.95)[[1]] +
-  ylim(0,1) +
-  labs(title = "MODEL PREDICTION  | Q1 State ~ condition",
-       subtitle = "Impasse increases probability of more accurate response states Q1",
-       x = "Condition") + theme_clean()
+#EASYSTATS | MODEL | ODDS RATIO
+# result <- model_parameters(m, exponentiate = TRUE, component = "all")
+# plot(result)
 
-#MANUALLY BUILD PREDICTION PLOT FACET BY CONDITION RATHER THAN STATE
-p <-plot_model(m, type="eff")[[1]]
-d <- ggplot_build(p)[[1]]  
-points <- d[[2]]
-points <- points %>% mutate(
-  state = recode(PANEL, "1" ="orth", "2"="other", "3" = "trilike", "4"="tri"),
-  condition = recode(x, "1"="control","2"="impasse"),
-  prob = y
-)
-gf_point( prob ~ state, group = ~x, data = points) + 
-  geom_errorbar(aes( x = state, ymin = ymin, ymax = ymax)) + facet_grid(~condition) +ylim(0,1)
 
+## | PLOT TESTS
+
+result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+plot(result)
+
+## | PLOT PREDICTIONS
+#TODO NEED FIX THIS
+# (d <- p %>%
+#   ggplot(aes(y = median,  x = state, fill = pretty_condition)) +
+#   geom_point() +
+#   geom_errorbar(aes(ymin = lwr, ymax = upr))
+#     # stat_slab(width = c(.95), alpha = 0.5, normalize="xy")
+#   #   #normalize = all, panels, xy, groups, none
+#   # xlim(0,1) + labs(
+#   #   title = "Model Predicted Probability of Correct Response",
+#   #   x = "probability of correct response",
+#   #   y = "Interpretation"
+#   # ) +  theme_clean() #+ ggeasy::easy_remove_legend() +
+# )
 ```
 
 ```{r}
@@ -1929,34 +1984,18 @@ tab_model(m)
 #| label: MODEL-DIAG-Q1STATE
 
 #EXAMINE PREDICTIONS
-#create sample data frame
-test <- data.frame(pretty_condition = c("control", "impasse"))
-pred <- predict(catm, newdata = test, "probs")
-paste("Predicted Probability of Being in Each State")
-( x <- cbind(test, pred))
+# #create sample data frame
+# test <- data.frame(pretty_condition = c("control", "impasse"))
+# pred <- predict(catm, newdata = test, "probs")
+# paste("Predicted Probability of Being in Each State")
+# ( x <- cbind(test, pred))
 
 print("MODEL PERFORMANCE")
 performance(catm)
 DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
 
-#General Goodness of Fit
-#library(generalhoslem)
-#logitgof(df$state, catm$fitted.values, g = 3)
-#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
-#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
-# chisq.test(df$state, predict(catm)) #actual states VS predicted states
-# The chi-square test tests the decrease in unexplained variance from the baseline model to the final model
-
-# print("MODEL DIAGNOSTICS")
-# check_model(m) can't do overall diagnostics, have to do them on individual model equations
 
 ```
 
-##### TODO
-
--   interpretation/reporting of model fit?
--   sanity check correct interpretation of coefficients & reporting
--   diagnostics on individual model equations
--   calculate 1-tailed p values to match directional hypothesis
 
 

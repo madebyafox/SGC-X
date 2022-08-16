@@ -246,9 +246,12 @@ df_subjects <- rbind(df_subjects, df_subjects_before) %>%
   mutate (
     subject = factor(subject),
     condition = factor(condition),
-    pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
+    pretty_condition = recode_factor(condition, 
+                                     "111" = "none-control", "121" =  "none-impasse",
+                                     "211" = "img-control", "221" =  "img-impasse",
+                                     "311" = "ixv-control", "321" =  "ixv-impasse"),
     pretty_mode = recode_factor(mode, "lab-synch" = "laboratory", "asynch" =  "online-replication"),
-    term = factor(term, levels= c("fall17","spring18","fall21","winter22")),
+    term = factor(term, levels= c("fall17","spring18","fall21","winter22","su22", "summer22")),
     mode = factor(mode, levels=c("lab-synch","asynch")),
     gender = factor(gender),
     schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
@@ -359,10 +362,9 @@ df_items <- df_items %>% filter (q != 16)
 #add back pretty condition 
 df_items <- df_items %>% mutate(
   pretty_condition = recode_factor(condition, 
-                                   "111" = "none-none", "121" =  "none-impasse", 
-                                   "211" = "img-none", "221" =  "img-impasse", 
-                                   "311" = "ixv-none", "321" =  "ixv-impasse", 
-                                   ),
+                                     "111" = "none-control", "121" =  "none-impasse",
+                                     "211" = "img-control", "221" =  "img-impasse",
+                                     "311" = "ixv-control", "321" =  "ixv-impasse"),
   pretty_mode = recode_factor(mode, "lab-synch" = "laboratory", "asynch" =  "online-replication")
 ) 
 

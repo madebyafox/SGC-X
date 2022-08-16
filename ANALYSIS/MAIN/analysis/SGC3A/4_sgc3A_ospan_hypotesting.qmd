@@ -55,6 +55,7 @@ library(parameters) #easystats model summary and vis
 # library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
+library(merTools) #predictInterval
 # library(ggeffects) #visualization log regr models
 #MULTINOMIAL 
 library(nnet) #multinomial logistic regression [not mixed] #no p values
@@ -64,6 +65,7 @@ library(cmdstanr) #executing stan
 library(brms) #bayesian mixed multinomials [+ other bayesian reg models]
 library(bayestestR) 
 library(tidybayes)
+library(posterior)
 
 library(tidyverse) #ALL THE THINGS
 
@@ -789,8 +791,8 @@ While absolute accuracy score tells us whether a participant successfully interp
 ```{r}
 #| label: SETUP-STATE
 
-#:::::::: PREP DATA
 df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition, ospan_split) %>% droplevels()
+
 ```
 
 ```{r}
@@ -1105,8 +1107,7 @@ draws <- df_i %>%
 #TAKES A REAAALY LONG TIME
 # d <- 
 
-# x <- draws %>% sample_n(10)
-d <- draws %>%
+d <- draws %>% sample_n(10) %>% 
   ggplot(aes(x = .epred,  y = pretty_condition, fill = ospan_split)) +
   stat_slab(width = c(.95), alpha = 0.5, normalize="xy") +
   facet_wrap(~.category) +
@@ -1182,9 +1183,7 @@ plot(m)
 ```{r}
 #| label: SETUP-Q1ACC
 
-#:::::::: PREP DATA
-df <- df_items %>% filter(q==1) 
-# %>% dplyr::select(accuracy, pretty_condition, ospan_split)
+df <- df_items %>% filter(q==1) %>% dplyr::select(accuracy, pretty_condition, ospan_split)
 
 ```
 
@@ -1313,10 +1312,8 @@ m.O = glm(accuracy ~ ospan_split, data = df, family = "binomial")
 
 #: 3 TEST SUPERIOR FIT
 paste("AIC OSPAN predictor is lower than CONDITION model?", m.C$aic > m.O$aic)
-```
 
-**ADD OSPAN**
-```{r}
+
 #: 4 OSPAN + CONDITION model
 m.CO <- glm( accuracy ~ pretty_condition + ospan_split, data = df, family = "binomial")
 # print("PREDICTOR MODEL")
@@ -1328,17 +1325,15 @@ paste("AIC wth OSPAN is lower than CONDITION only model?", m.C$aic > m.CO$aic)
 test_lrt(m.C,m.CO) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(m.C,m.CO))$p[2])
 
-```
-Adding OSPAN as a predictor (no interaction) decreases AIC, but does not improve fit (LRT)
 
-**INTERACTION MODEL**
-```{r}
+##Adding OSPAN as a predictor (no interaction) decreases AIC, but does not improve fit (LRT)
+
+
 #: 5 OSPAN + CONDITION INTERACTION model
 m.C.O <- glm( accuracy ~ pretty_condition * ospan_split, data = df, family = "binomial")
-x <- glm( accuracy ~ pretty_condition + ospan_split + pretty_condition*ospan_split, data = df, family = "binomial")
 # print("PREDICTOR MODEL")
-summary(m.C.O)
-car::Anova(m.C.O, type =3)
+# summary(m.C.O)
+# car::Anova(m.C.O, type =3)
 
 #: 5 TEST SUPERIOR FIT
 paste("AIC wth OSPAN IXN lower than CONDITION + OSPAN only model?", m.CO$aic > m.C.O$aic)
@@ -1349,7 +1344,7 @@ paste("AIC wth OSPAN IXN is lower than CONDITION only model?", m.C$aic > m.C.O$a
 test_lrt(m.C,m.C.O) 
 ```
 
-Adding OSPAN interaction does not improve model fit over condition-only model, or main effects only model. 
+**Adding OSPAN interaction does not improve model fit over condition-only model, or main effects only model.**
 
 ##### Describe
 
@@ -1363,6 +1358,8 @@ m <- m.C.O
 
 print("PREDICTOR MODEL [default two-tailed sig test]")
 summary(m)
+
+print("SIGNIFIGANCE TEST")
 car::Anova(m, type=3)
 
 # MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
@@ -1544,7 +1541,6 @@ While absolute accuracy score tells us whether a participant successfully interp
 ```{r}
 #| label: SETUP-Q1-STATE
 
-#:::::::: PREP DATA
 df <- df_items %>% filter(q==1) %>% 
   dplyr::select(pretty_condition, ospan_split, state)
 
