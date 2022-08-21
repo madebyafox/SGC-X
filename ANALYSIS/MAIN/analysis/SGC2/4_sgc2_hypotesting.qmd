@@ -333,16 +333,31 @@ favstats (linear_score ~ pretty_condition, data = df_subjects)
 
 
 ```{r}
-
 #PLOT PAIRED DATA
-ggbetweenstats(
+g <- ggbetweenstats(
   data = df_subjects,
   x    = pretty_condition,
   y    = linear_score, 
-  type  = "parametric", #parametric, robust, bayes
-  annotation.args = list(title = "Linear score is consistent across conditions")
-) 
+  type  = "nonparametric", 
+  plot.type = "boxviolin",
+  title = "Study 2 | Linear Graph Accuracy is consistent across conditions",
+  xlab = "Scaffold Condition", ylab = "Linear Graph Score (# questions correct)",
+  centrality.point.args = list(fill="black", size = 3)
+) + scale_color_manual(values = paletteer::paletteer_d("awtools::a_palette", 5)) + 
+  theme_clean() + theme(legend.position = "none")
 
+ggsave(g, filename = "figures/SGC2_linearscores.png", width = 6, height = 4)
+#ggsave(g, filename = "figures/SGC2_linearscores.svg", width = 6, height = 4)
+```
+
+```{r}
+
+kruskal.test(df_s$linear_score, df_s$pretty_condition)
+
+```
+
+
+```{r}
 #PLOT PAIRED DATA
 grouped_ggbetweenstats(
   data = df_subjects,
@@ -365,7 +380,6 @@ grouped_ggbetweenstats(
 
 ```
 
-Analysis of Variance implies that it is likely that LINEAR GRAPH score is not affected by condition, across graph orders or scenarios. 
 
 ### Logistic Regression
 
@@ -701,6 +715,24 @@ Visual inspection of the distribution of scores for each block reveal that score
 
 #### Test
 
+```{r}
+#PLOT PAIRED DATA
+g <- ggwithinstats(
+  data = df_long,
+  x    = graph,
+  y    = score, 
+  type  = "nonparametric", 
+  plot.type = "box",
+  title = "Study 2 | Without scaffolding, higher accuracy with Linear Model",
+  xlab = "Graph", ylab = "Graph Reading Score (# questions correct)",
+  centrality.point.args = list(fill="black", size = 3)
+) + scale_color_manual(values = paletteer::paletteer_d("awtools::a_palette", 2)) + 
+  theme_clean() + theme(legend.position = "none")
+
+ggsave(g, filename = "figures/SGC2_graphdifference.png", width = 6, height = 4)
+# ggsave(g, filename = "figures/SGC2_graphdifference.svg", width = 6, height = 4)
+```
+
 -   WILCOXON RANK SUM (Mann-Whitney Test) **Non parametric alternative** to t-test; compares median rather than mean by ranking data
 -   Does not assume normality
 -   Does not assume equal variance of samples (homogeneity of variance)
@@ -709,10 +741,13 @@ Visual inspection of the distribution of scores for each block reveal that score
 
 #WILCOXON RANK SUM PAIRED T-TEST
 w <- wilcox.test(df_s$linear_score, df_s$triangular_score, 
-            paired = TRUE, alternative = "greater", conf.int = TRUE)
+            paired = TRUE)
+            # alternative = "greater", conf.int = TRUE)
 w
 report(w)
 ```
+
+
 
 ```{r}
 
@@ -2002,7 +2037,7 @@ grouped_ggwithinstats(
 
 ## 0 | SETUP
 #confirm 13 items [all discriminating items]
-nrow(df_i) / nrow(df_s)  #removed nondiscrim Q3
+nrow(df_i) / nrow(df_s)  #28; removed nondiscrim Q3
 
 #confirm all factors 
 is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$graph) && is.factor(df_i$score) && is.factor(df_i$order) && is.factor(df_i$scenario)
@@ -2050,7 +2085,7 @@ mm.GC.COrSQ <- glmer(accuracy ~ graph*pretty_condition + graph*order + (1|subjec
                    control=glmerControl(optimizer="bobyqa",
                                  optCtrl=list(maxfun=2e5)))
 # summary(mm.GC.COrSQ)
-car::Anova(mm.GC.COrSQ, type = 3) #IXN graphX condition, GRAPH*order
+#car::Anova(mm.GC.COrSQ, type = 3) #IXN graphX condition, GRAPH*order
 
 #x <-  mm.GCOrSQ <- glmer(accuracy ~ graph*pretty_condition*order + (1|subject) + (1|q),
 #                    data = df_i, family = "binomial", 
@@ -2070,8 +2105,8 @@ mm.GC.CO.GSrSQ <- glmer(accuracy ~ graph*pretty_condition + graph*order + graph*
                 data = df_i, family = "binomial",
                 control=glmerControl(optimizer="bobyqa",
                                  optCtrl=list(maxfun=2e5)))
-summary(mm.GC.CO.GSrSQ)
-car::Anova(mm.GC.CO.GSrSQ, type = 3) #IXN graphXscenario, graphXorder, graphXcondition, 
+#summary(mm.GC.CO.GSrSQ)
+#car::Anova(mm.GC.CO.GSrSQ, type = 3) #IXN graphXscenario, graphXorder, graphXcondition, 
 
 paste("AIC decreases w/ new model", AIC(logLik(mm.GC.COrSQ)) > AIC(logLik(mm.GC.CO.GSrSQ)) )
 test_lrt(mm.GC.COrSQ,mm.GC.CO.GSrSQ) #same as anova(m0, m1, test = "Chi")
