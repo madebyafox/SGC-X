@@ -877,7 +877,7 @@ mm.cat.CrSQ <- mblogit(state ~ pretty_condition ,
 paste("AIC wth predictor is lower than empty model?", AIC(mm.cat.rSQ) > AIC(mm.cat.CrSQ))
 test_lrt(mm.cat.rSQ, mm.cat.CrSQ)
 ```
-
+**NOTE: The empty model DOES NOT CONVERGE**
 ##### Describe
 
 ```{r}
@@ -903,13 +903,10 @@ performance(m)
 ```
 
 
-##### TODO Inference
+##### Inference
 
--   Being in the IMPASSE condition *increases* the odds of giving an unknown (potentially nonsense) or blank/uncertain response rather than an orthogonal (or satisficing) response by a factor of 12 (z = 6.48, p \< 0.001) . **Participants in the impasse condition were 12x as likely to give an unknown/uncertain response rather than an orthogonal response compared to participants in control**.
+**NOTE: For reference only; this model raised NaN errors**
 
--   Being in the IMPASSE condition *increases* the odds of giving 'triangle-like' response rather than an orthogonal (or satisficing) response by a factor of 29 (z = 4.63, p \< 0.001 ). **Participants in the impasse condition were more than 29x as likely to give an a triangular response rather than an orthogonal response compared to participants in control**.
-
--   As with the (binary) logistic regression on accuracy \~ condition, significant model intercepts indicate that the odds of being in any particular response state (vs) orthogonal are significantly different than 1 *in the control condition.* (i.e. not 1:1 odds or 50% chance of being in that response state. Orthogonal is a much more probable response state in control)
 
 ```{r}
 #| label: MODEL-TBL-MBLOGIT-STATE
@@ -1188,11 +1185,7 @@ preds <- preds %>%
 We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 9.31e+15). 
 **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
 
-Across the entire task participants in the impasse condition were 12 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.58, 95 \% CI [6.03, 23.19], pd = 100\%$). Participants in the impasse condition were 15 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 15.30, 95 \% CI [4.89, 54.22], pd = 100\%$), and 35 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 34.71, 95 \% CI [6.72, 223.29], pd = 100\%$). 
-
-The model estimates that probability of an orthogonal response in the control condition is  92% vs only 38% in IMPASSE The probability of an unknown/uncertain response in the control condition is 4%, vs 20% in impasse
-The probability of an angular response in the control condition is less than 1%, vs 2% in impasse.
-The probability of an triangular response in the control condition is 3%, vs 40% in impasse. 
+Across the entire task participants in the impasse condition were 11 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 10.93, 95 \% CI [5.59], pd = 100\%$). Participants in the impasse condition were 11 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 10.93, 95 \% CI [3.55, 40.54], pd = 100\%$), and 33 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.38, 95 \% CI [6.36, 194.83], pd = 100\%$). 
 
 The impasse condition decreases the probability of an orthogonal response by 54%
 The impasse condition increases the probability of an uknown/uncertain response by 16%
@@ -1788,7 +1781,7 @@ table(df$state, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
     -   Two-tailed NHST *Null hypothesis:* $\beta_{impasse} = 0$ *the odds for \[this category of response vs. reference\] are not different for IMPASSE condition*
     -   *Alternative hypothesis:* $\beta_{impasse} \ne 0$ *the odds of \[this category of response vs. reference\] increases or decreases for IMPASSE condition*
 
-##### Fit Model \[MBLOGIT\]
+##### TODO REDO BRMS Fit Model \[MBLOGIT\]
 
 ```{r}
 #| label: MODEL-FIT-Q1STATE

@@ -8,15 +8,10 @@ subtitle: 'Study SGC3A | 2 Response Scoring'
 
 **TODO**
 
--   finish item level response exploration
 -   TODO: generate heat maps of Q9. Same answer but very different optimal operation paths!
 -   see individual item level todos on response exploration
 
 *The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3A study. This is required because the question type on the graph comprehension task used a 'Multiple Response' (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g. boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)* To review the strategy behind Multiple Response scoring for the SGC project, refer to section @sec-scoring.
-
-| Pre-Requisite         |
-|-----------------------|
-| 1_sgc3A_harmonize.qmd |
 
 ```{r}
 #| label: SETUP
@@ -208,8 +203,9 @@ source("analysis/utils/scoring.R")
 
 #RUN THIS <OR> THE CALCULATE-SCORES-FORLOOP [not both]
 
-backup <- df_items
-df_items <- backup %>% sample_n(20)
+#TROUBLESHOOTING
+# backup <- df_items
+# df_items <- backup %>% sample_n(20)
 
 #ALPHEBETIZE RESPONSE
 df_items$response = pbmapply(reorder_inplace, df_items$response)
@@ -740,7 +736,7 @@ gf_props(~interpretation, fill = ~condition, data = df_items ) %>%
 
 ```
 
-### Scaffold Phase
+### SCAFFOLD PHASE
 
 The first five questions constitute the 'scaffold' (or learning) phase, where participants see a different version of the stimulus (specifically a different dataset is visualized) invoking a different experimental condition.
 
@@ -775,14 +771,14 @@ We start by exploring the range of response options checked by participants on Q
 #| label: Q1-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==1)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -817,7 +813,7 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
@@ -877,7 +873,6 @@ Three responses were given that were not consistent with any of the identified i
 
 ##### Q1. Impasse Condition
 
-Next we explore the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
 
 ![Question 1 --- Impasse Condition](static/questions/Q1_121.png){#fig-Q1-121}
 
@@ -885,14 +880,14 @@ Next we explore the range of response options checked by participants on Questio
 #| label: Q1-IMPASSE-KEY
 
 q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==1)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -925,7 +920,7 @@ df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
@@ -1650,82 +1645,9 @@ df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>%
 
 
 
-### Testing Phase
+### TESTING PHASE
 
 The following 10 questions were the same for both conditions.
-
-#### Question #6 NONDISCRIM
-
-```{r}
-#| label: Q6-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q6 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q6 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
-
-
-![Q6-Question](static/questions/Q6.png){#fig-Q6}
-
-```{r}
-#| label: Q6-KEY
-
-q <- keys_raw %>% filter(Q==6)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T)
-```
-
-TODO discuss non discriminant
-
-```{r}
-#| label: Q6-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #6"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q == 6) %>% group_by(response) %>%
-  dplyr::summarise( count = n(),
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI),
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>%
-  arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
-         triangular, tversky, satisficing, orthogonal, scaled) %>%
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
-```
-
-
 
 #### Question #7
 
@@ -1870,76 +1792,6 @@ gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q =
 gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 8)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
   labs( x = "Interpretation", title = "Distribution of Interpretations | Q8 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
-
-#### Question #9 NONDISCRIM
-
-![Q9-Question](static/questions/Q9.png){#fig-Q9}
-
-```{r}
-#| label: Q9-KEY
-
-q <- keys_raw %>% filter(Q==9)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
-ves <- q %>% mutate(
-  SATISFICE_left_allow = "",
-  SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
-scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
-            "Tversky [end diagonal]", "Tversky [duration line]")
-d = tibble(interpretation = scores, answer = answers, allowed=ves)
-d$answer <- replace_na(d$answer, "")
-d$allowed <- replace_na(d$allowed, "")
-
-title = paste("Answer Key | Q : ", question)
-cols = c("interpretation", "answer","not penalized")
-
-d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
-  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T)
-```
-
-```{r}
-#| label: Q9-RESPONSES
-#| warning: false
-
-title <- "Frequency of Selected Response Options for Question #9"
-names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
-
-df_items %>% filter(q ==9) %>% group_by(response) %>%
-  dplyr::summarise( count = n(),
-                    nice = unique(score_niceABS),
-                    triangular = unique(score_TRI),
-                    orthogonal =  unique(score_ORTH),
-                    satisficing =  unique(score_SATISFICE),
-                    tversky = unique(score_TVERSKY),
-                    interpretation = unique(int2),
-                    scaled = unique(score_SCALED)) %>%
-  arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
-         triangular, tversky, satisficing, orthogonal, scaled) %>%
-  kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Other", 1, 2) %>%
-  pack_rows("Unknown", 3, 19)
-```
-
-```{r}
-#| label: Q9-distribution
-
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q == 9)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q9 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 9)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q9 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 ```
@@ -2306,6 +2158,8 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 14)
 
 ```
 
+
+
 #### Question #15
 
 ![Q15-Question](static/questions/Q15.png){#fig-Q15}
@@ -2378,6 +2232,159 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 15)
   theme_minimal() + theme(legend.position = "blank")
 
 ```
+
+
+
+### NON-DISCRIMINANT QUESTIONS
+
+#### Question #6 NONDISCRIM
+
+```{r}
+#| label: Q6-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q6 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q6 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
+
+
+![Q6-Question](static/questions/Q6.png){#fig-Q6}
+
+```{r}
+#| label: Q6-KEY
+
+q <- keys_raw %>% filter(Q==6)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T)
+```
+
+TODO discuss non discriminant
+
+```{r}
+#| label: Q6-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #6"
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
+
+df_items %>% filter(q == 6) %>% group_by(response) %>%
+  dplyr::summarise( count = n(),
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI),
+                    orthogonal =  unique(score_ORTH),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
+                    interpretation = unique(int2),
+                    scaled = unique(score_SCALED)) %>%
+  arrange(interpretation, desc(count)) %>%
+  select(response, count, interpretation, nice,
+         triangular, tversky, satisficing, orthogonal, scaled) %>%
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>%
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+```
+
+
+
+
+
+
+
+#### Question #9 NONDISCRIM
+
+![Q9-Question](static/questions/Q9.png){#fig-Q9}
+
+```{r}
+#| label: Q9-KEY
+
+q <- keys_raw %>% filter(Q==9)
+ignore <- q %>% select("REF_POINT")
+answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ves <- q %>% mutate(
+  SATISFICE_left_allow = "",
+  SATISFICE_right_allow = ""
+) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% select("OPTIONS")
+question = q %>%  select("TEXT")
+scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
+            "Tversky [end diagonal]", "Tversky [duration line]")
+d = tibble(interpretation = scores, answer = answers, allowed=ves)
+d$answer <- replace_na(d$answer, "")
+d$allowed <- replace_na(d$allowed, "")
+
+title = paste("Answer Key | Q : ", question)
+cols = c("interpretation", "answer","not penalized")
+
+d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
+  footnote(general = paste("15 response options: ", options), general_title = "Note: ",footnote_as_chunk = T)
+```
+
+```{r}
+#| label: Q9-RESPONSES
+#| warning: false
+
+title <- "Frequency of Selected Response Options for Question #9"
+names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
+
+df_items %>% filter(q ==9) %>% group_by(response) %>%
+  dplyr::summarise( count = n(),
+                    nice = unique(score_niceABS),
+                    triangular = unique(score_TRI),
+                    orthogonal =  unique(score_ORTH),
+                    satisficing =  unique(score_SATISFICE),
+                    tversky = unique(score_TVERSKY),
+                    interpretation = unique(int2),
+                    scaled = unique(score_SCALED)) %>%
+  arrange(interpretation, desc(count)) %>%
+  select(response, count, interpretation, nice,
+         triangular, tversky, satisficing, orthogonal, scaled) %>%
+  kbl(caption = title, col.names = names) %>%  kable_classic() %>%
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
+  pack_rows("Other", 1, 2) %>%
+  pack_rows("Unknown", 3, 19)
+```
+
+```{r}
+#| label: Q9-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q == 9)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q9 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 9)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q9 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
+
+
 
 ## EXPORT
 
