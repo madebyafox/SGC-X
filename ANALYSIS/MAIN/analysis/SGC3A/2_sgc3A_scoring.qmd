@@ -31,6 +31,7 @@ library(pbapply) #progress bar and time estimate for *apply fns
 library(Hmisc) # %nin% operator
 library(ggstatsplot) #plots-n-stats
 library(statsExpressions) # expressions for stats results on plots 
+library(tidyfst) #mutate_when
 library(tidyverse) #ALL THE THINGS
 
 ```
@@ -70,6 +71,7 @@ We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) 
 keys_raw <-  read_csv("analysis/utils/keys/parsed_keys/keys_raw")
 keys_orth <-  read_csv("analysis/utils/keys/parsed_keys/keys_orth")
 keys_tri <-  read_csv("analysis/utils/keys/parsed_keys/keys_tri")
+keys_both <-  read_csv("analysis/utils/keys/parsed_keys/keys_both")
 keys_satisfice_left <-  read_csv("analysis/utils/keys/parsed_keys/keys_satisfice_left")
 keys_satisfice_right <-  read_csv("analysis/utils/keys/parsed_keys/keys_satisfice_right")
 keys_tversky_duration <-  read_csv("analysis/utils/keys/parsed_keys/keys_tversky_duration")
@@ -89,6 +91,7 @@ Specifically, the following scores are calculated for each item:
 
 -   `score_TRI` How consistent is the response with the **triangular**interpretation?
 -   `score_ORTH` How consistent is the response with the **orthogonal**interpretation?
+-   `score_BOTH` How consistent is the response with **both** the orthogonal and triangular interpretations?
 -   `score_SATISFICE` is calculated by taking the maximum value of :
     -   `score_SAT_left` How consistent is the response with the **(left side) Satisficing** interpretation?
     -   `score_SAT_right` How consistent is the response with the **(right side) Satisficing** interpretation
@@ -98,7 +101,7 @@ Specifically, the following scores are calculated for each item:
     -   `score_TV_end` How consistent is the response with the **(end-time) Tversky** interpretation?
     -   `score_TV_duration` How consistent is the response with the **(duration) Tversky** interpretation?
 -   `score_REF` Did the response select only the **reference point**?
--   `score_BOTH` How consistent is the response with **both** the orthogonal and triangular interpretations?
+
 
 **Absolute Scores**
 
@@ -115,6 +118,12 @@ Specifically, the following scores are calculated for each item:
 #backup <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds') #for troubleshooting only
 df_items <- read_rds('analysis/SGC3A/data/1-study-level/sgc3a_items.rds')
 
+#ADD TEMP IMPASSE COLUMN
+df_items <- df_items %>% mutate(
+  IMPASSE = substr(condition,2,2),
+  IMPASSE = recode_factor(IMPASSE, "1"="none", "2"="IMPASSE")
+)
+
 ```
 
 ```{r}
@@ -130,28 +139,101 @@ source("analysis/utils/scoring.R")
 
 *note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records*
 
+
+### TEMP TROUBLESHOOT
+```{r}
+
+# # df_i <- old %>% filter(q==1 & condition =="111" & response =="AF")
+# 
+# df_i <- df_items %>% tail(20)
+# 
+# 
+# #alphebetize
+# df_i$response = pbmapply(reorder_inplace, df_i$response)
+# 
+# #STRATEGY PARTIAL-SUBSCORES
+# df_i$score_TRI = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tri))
+# 
+# df_i$score_ORTH = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_orth))
+# 
+# ##PROBLEM nothing scored as BOTH bc
+# # df_i$score_BOTH = as.integer((df_i$score_TRI == 1) & (df_i$score_ORTH ==1))
+# df_i$score_BOTH = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_both))
+# 
+# 
+# df_i$score_SAT_left = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_satisfice_left))
+# df_i$score_SAT_right = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_satisfice_right))
+# df_i$score_TV_max = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_max))
+# df_i$score_TV_start = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_start))
+# df_i$score_TV_end = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_end))
+# df_i$score_TV_duration = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_duration))
+# 
+# 
+# #SPECIAL ABSOLUTE SUBSCORES
+# df_i$score_REF = pbmapply(calc_refscore, df_i$q, df_i$response)
+# 
+# 
+# #ABSOLUTE SCORES
+# df_i$score_ABS = as.integer(df_i$correct)
+# df_i$score_niceABS  <- as.integer((df_i$score_TRI == 1)) #tri doesn't penalize ref or ve-area
+# 
+# 
+# ##DERIVE INTERPRETATION
+# temp <- df_i
+# temp <- derive_interpretation(temp)
+# df_i <- temp
+# 
+# ##DERIVE SCALED
+# df_i$score_SCALED <- calc_scaled(df_i$interpretation)
+# 
+# ##DERIVE STATE
+# df_i <- df_i %>% mutate (
+#   score_STATE = recode_factor(df_i$score_SCALED,
+#                          "-1" = "orth-like",
+#                          "-0.5" = "unknown",
+#                          "0" = "unknown",
+#                          "0.5" = "tri-like",
+#                          "1" = "tri-like"),
+#   score_STATE = as.ordered(score_STATE))
+# 
+
+```
+
+
+
+
 ```{r}
 #| label: CALCULATE-SCORES-MAPPLY
 #| cache: true
 
 #RUN THIS <OR> THE CALCULATE-SCORES-FORLOOP [not both]
 
+backup <- df_items
+df_items <- backup %>% sample_n(20)
+
 #ALPHEBETIZE RESPONSE
 df_items$response = pbmapply(reorder_inplace, df_items$response)
 
 #STRATEGY PARTIAL-SUBSCORES
-df_items$score_TRI = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tri))
-df_items$score_ORTH = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_orth))
-df_items$score_SAT_left = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
-df_items$score_SAT_right = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
-df_items$score_TV_max = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
-df_items$score_TV_start = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
-df_items$score_TV_end = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
-df_items$score_TV_duration = pbmapply(calc_subscore, df_items$q, df_items$condition, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
+df_items$score_TRI = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_tri))
+
+df_items$score_ORTH = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_orth))
+
+df_items$score_BOTH = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_both))
+
+df_items$score_SAT_left = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_satisfice_left))
+df_items$score_SAT_right = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_satisfice_right))
+
+df_items$score_TV_max = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_tversky_max))
+df_items$score_TV_start = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_tversky_start))
+df_items$score_TV_end = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_tversky_end))
+df_items$score_TV_duration = pbmapply(calc_subscore, df_items$q, df_items$IMPASSE, df_items$response, MoreArgs = list(keyframe = keys_tversky_duration))
 
 #SPECIAL ABSOLUTE SUBSCORES
 df_items$score_REF = pbmapply(calc_refscore, df_items$q, df_items$response)
-df_items$score_BOTH = as.integer((df_items$score_TRI == 1) & (df_items$score_ORTH ==1))
+
+#OLD score_BOTH... new one is above (explicitly in key)
+# df_items$score_BOTH = as.integer((df_items$score_TRI == 1) & (df_items$score_ORTH ==1))
 
 #ABSOLUTE SCORES
 df_items$score_ABS = as.integer(df_items$correct) 
@@ -170,11 +252,159 @@ The final output is called `interpretation`.
 #| cache: true
 
 #stoopid extra copying for troubleshooting safety
-temp <- df_items 
+temp <- df_items #%>% head(16) %>% tail(1)
 temp <- derive_interpretation(temp)
-df_items <- temp 
+df_items <- temp
 
 ```
+
+
+### ? SPECIAL EXCEPTIONS
+
+Look for special exceptions (essentially pass through cases) that are missed by the threshold partial p calculations, but fit particular interpretations. (ie. a clearly tversky interpretation that only includes 1 or 2 of the 3 possible options)
+
+
+```{r}
+
+# #temp setup for protection
+# temp <- df_items %>% mutate(
+#   override = ""
+# )
+# 
+# 
+# ## CONTROL. Q==3. "A" derives as 'unknown', should be tversky duration
+# #codes as unknown bc there are 2 other along that line, but A is the closest (shortcut)
+# temp <- temp %>% mutate_when(
+#   (q==3) & (IMPASSE =="none") & (response == "A"),
+#   tv_type = "score_TV_duration",
+#   int2 = "Tversky", #override from ?
+#   interpretation = "Tversky", #override from ?
+#   high_interpretation = "pos.trans",
+#   override = "?"
+# )
+# 
+# ## CONTROL  Q==3 "EFK" derives as TRI. hardcode as "unknown"
+# temp <- temp %>% mutate_when(
+#   (q==3) & (IMPASSE =="none") & (response == "EFK"),
+#   int2 = "?", #override from TRI
+#   interpretation = "?", #override from TRI
+#   high_interpretation = "neg.trans", #override from triangular
+#   override = "Triangular"
+# )
+# 
+# ## IMPASSE  Q==3 "AFG" derives as TRI. hardcode as "unknown"
+# temp <- temp %>% mutate_when(
+#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AFG"),
+#   int2 = "?", #override from TRI
+#   interpretation = "?", #override from TRI
+#   high_interpretation = "neg.trans", #override from triangular
+#   override = "Triangular"
+# )
+# 
+# 
+# ## IMPASSE  Q==3 "AH" derives as SATISFICE hardcode as "angular"
+# temp <- temp %>% mutate_when(
+#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AH"),
+#   int2 = "Tversky", #override from Satisfice
+#   interpretation = "Tversky", #override from Satisfice
+#   high_interpretation = "pos.trans", #override from orthogonal
+#   override = "Satisfice"
+# )
+# 
+# ## IMPASSE  Q==3 "AO" derives as SATISFICE hardcode as "angular"
+# temp <- temp %>% mutate_when(
+#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AO"),
+#   int2 = "Tversky", #override from Satisfice
+#   interpretation = "Tversky", #override from Satisfice
+#   high_interpretation = "pos.trans", #override from orthogonal
+#   override = "Satisfice"
+# )
+# 
+# 
+# ## IMPASSE  Q==3 "AOU" derives as SATISFICE hardcode as "angular"
+# temp <- temp %>% mutate_when(
+#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AOU"),
+#   int2 = "Tversky", #override from Satisfice
+#   interpretation = "Tversky", #override from Satisfice
+#   high_interpretation = "pos.trans", #override from orthogonal
+#   override = "Satisfice"
+# )
+# 
+# ## CONTROL Q==4 DEU DERIVES as ORTH Recode as OTHER
+# temp <- temp %>% mutate_when(
+#   (q==4) & (IMPASSE =="none") & (response == "DEU"),
+#   int2 = "?", #override from Orthogonal
+#   interpretation = "?", #override from Orthogonal
+#   high_interpretation = "neg.trans", #override from orthogonal
+#   override = "Orthogonal"
+# )
+# 
+# ## CONTROL Q==4 DEOU DERIVES as ORTH Recode as OTHER
+# temp <- temp %>% mutate_when(
+#   (q==4) & (IMPASSE =="none") & (response == "DEOU"),
+#   int2 = "?", #override from Orthogonal
+#   interpretation = "?", #override from Orthogonal
+#   high_interpretation = "neg.trans", #override from orthogonal
+#   override = "Orthogonal"
+# )
+# 
+# ## CONTROL Q==4 KU DERIVES as ORTH Recode as OTHER
+# temp <- temp %>% mutate_when(
+#   (q==4) & (IMPASSE =="none") & (response == "KU"),
+#   int2 = "?", #override from Orthogonal
+#   interpretation = "?", #override from Orthogonal
+#   high_interpretation = "neg.trans", #override from orthogonal
+#   override = "Orthogonal"
+# )
+# 
+# ## IMPASSE Q==4 BD Derives as TVERSKY RECODE as OTHER
+# temp <- temp %>% mutate_when(
+#   (q==4) & (IMPASSE =="IMPASSE") & (response == "BD"),
+#   int2 = "?", #override from Tversky
+#   interpretation = "?", #override from Tversky
+#   high_interpretation = "neg.trans", #override from pos.trans
+#   override = "Tversky"
+# )
+# 
+# ## IMPASSE Q==4 BDEG Derives as TVERSKY RECODE as OTHER
+# temp <- temp %>% mutate_when(
+#   (q==4) & (IMPASSE =="IMPASSE") & (response == "BDEG"),
+#   int2 = "?", #override from Tversky
+#   interpretation = "?", #override from Tversky
+#   high_interpretation = "neg.trans", #override from pos.trans
+#   override = "Tversky"
+# )
+# 
+# ## IMPASSE Q==4 AFG Derives as SATISFICE RECODE as OTHER
+# temp <- temp %>% mutate_when(
+#   (q==4) & (IMPASSE =="IMPASSE") & (response == "AFG"),
+#   int2 = "?", #override from Satisfice
+#   interpretation = "?", #override from Satisfice
+#   high_interpretation = "neg.trans", #override from orthogonal
+#   override = "Satisfice"
+# )
+# 
+# ## IMPASSE Q==5 AFG Derives as TRI RECODE as angular
+# temp <- temp %>% mutate_when(
+#   (q==5) & (IMPASSE =="IMPASSE") & (response == "AFG"),
+#   int2 = "Tversky", #override from Triangular
+#   interpretation = "Tversky", #override from Triangular
+#   high_interpretation = "pos.trans", #override from triangular
+#   override = "Triangular"
+# )
+# 
+# 
+# #SET BACK
+# df_items <- temp
+
+```
+
+
+
+
+
+
+
 
 ### Derive Scaled Score {#sec-SGC3A-scaledScore}
 
@@ -396,8 +626,6 @@ ggbetweenstats( data = df_subjects,
 
 ```
 
--   TODO: INVESTIGATE if some of the scores assigned to 0 should be assigned to -0.5 to balance
--   TODO: INVESTIGATE DISTRIBUTIONS of each subscore type
 
 ### Interpretations
 
@@ -427,6 +655,9 @@ gf_propsh(~ high_interpretation, fill = ~pretty_condition, data = df) %>%
         subtitle = "Impasse condition (blue) yields more positive trending responses on each question",
         y = "Interpretation", x = "Proportion of Subjects") + theme_minimal() + theme(legend.position = "blank")
 
+
+ggbarstats( data = df, x = score_STATE, y = pretty_condition)
+ggbarstats( data = df, x = high_interpretation, y = pretty_condition)
 ```
 
 ### Progress over Task
@@ -492,17 +723,53 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
 
 In this section we explore responses given by participants to each particular item in the graph comprehension task, indicate how each response was scored, and what interpretation of the graph is indicated by different responses.
 
+
+```{r}
+#| label: all-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items ) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q1 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items ) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q1 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
+
 ### Scaffold Phase
 
 The first five questions constitute the 'scaffold' (or learning) phase, where participants see a different version of the stimulus (specifically a different dataset is visualized) invoking a different experimental condition.
 
 #### Question #1
 
+```{r}
+#| label: Q1-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q1 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q1 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
+
 ##### Q1. Control Condition
 
 We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
 
 ![Question 1 --- Control Condition](static/questions/Q1_111.png){#fig-Q1-111}
+
+
+
 
 ```{r}
 #| label: Q1-CONTROL-KEY
@@ -554,11 +821,11 @@ df_items %>% filter(q == 1 & condition == 111) %>% group_by(response) %>%
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Lines-Connect", 2, 2) %>% 
-  pack_rows("Orthogonal", 3, 3) %>% 
-  pack_rows("Other", 4, 4)  %>% 
-  pack_rows("Unknown", 5, 7)  %>% 
+  # pack_rows("Triangular", 1, 1) %>% 
+  # pack_rows("Lines-Connect", 2, 2) %>% 
+  # pack_rows("Orthogonal", 3, 3) %>% 
+  # pack_rows("Other", 4, 4)  %>% 
+  # pack_rows("Unknown", 5, 7)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
@@ -617,7 +884,7 @@ Next we explore the range of response options checked by participants on Questio
 ```{r}
 #| label: Q1-IMPASSE-KEY
 
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==1)
+q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==1)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -662,11 +929,11 @@ df_items %>% filter(q == 1 & condition == 121) %>% group_by(response) %>%
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 1) %>% 
-  pack_rows("Lines-Connect", 2, 4) %>% 
-  pack_rows("Satisfice", 5, 9) %>% 
-  pack_rows("Other", 10, 10) %>% 
-  pack_rows("Unknown", 11, 12) %>% 
+  # pack_rows("Triangular", 1, 1) %>% 
+  # pack_rows("Lines-Connect", 2, 4) %>% 
+  # pack_rows("Satisfice", 5, 9) %>% 
+  # pack_rows("Other", 10, 10) %>% 
+  # pack_rows("Unknown", 11, 12) %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
@@ -708,27 +975,31 @@ Two responses were given that were not consistent with any of the identified int
 
 : {tbl-colwidths="\[30\]"}
 
-```{r}
-#| label: Q1-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
+
+#### Question #2
+
+```{r}
+#| label: Q2-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q1 ") + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q2 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q1 ") + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q2 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 ```
 
-#### Question #2
-
 ##### Q2. Control Condition
 
 ![Q2---Control Condition](static/questions/Q2_111.png){#fig-Q2-111}
+
+
 
 ```{r}
 #| label: Q2-CONTROL-KEY
@@ -776,11 +1047,11 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>%
-  pack_rows("Lines-Connect", 3, 4) %>% 
-  pack_rows("Orthogonal", 5, 7) %>%
-  pack_rows("Other", 8, 8)  %>% 
-  pack_rows("Unknown", 9, 10)  %>% 
+  # pack_rows("Triangular", 1, 2) %>%
+  # pack_rows("Lines-Connect", 3, 4) %>% 
+  # pack_rows("Orthogonal", 5, 7) %>%
+  # pack_rows("Other", 8, 8)  %>% 
+  # pack_rows("Unknown", 9, 10)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
@@ -837,7 +1108,7 @@ Again, we see that most subjects selected a response consistent with one of the 
 ```{r}
 #| label: Q2-IMPASSE-KEY
 
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==2)
+q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==2)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -880,37 +1151,40 @@ df_items %>% filter(q == 2 & condition == 121) %>% group_by(response) %>%
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>%
-  pack_rows("Lines-Connect", 3, 10) %>% 
-  pack_rows("Satisfice", 11, 12) %>%
-  pack_rows("Other", 13, 16)  %>% 
-  pack_rows("Unknown", 17, 18)  %>% 
+  # pack_rows("Triangular", 1, 2) %>%
+  # pack_rows("Lines-Connect", 3, 10) %>% 
+  # pack_rows("Satisfice", 11, 12) %>%
+  # pack_rows("Other", 13, 16)  %>% 
+  # pack_rows("Unknown", 17, 18)  %>% 
   footnote(general = "n = number of responses in sample", 
            general_title = "Note: ",footnote_as_chunk = T) 
 
 ```
 
-```{r}
-#| label: Q2-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
+
+#### Question #3
+
+```{r}
+#| label: Q3-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q2 ") + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q3 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q2 ") + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q3 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 ```
 
-#### Question #3
-
 ##### Q3. Control Condition
 
 ![Q3---Control Condition](static/questions/Q3_111.png){#fig-Q3-111}
+
 
 ```{r}
 #| label: Q3-CONTROL-KEY
@@ -957,12 +1231,13 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Lines-Connect", 3, 7) %>% 
-  pack_rows("Orthogonal", 8, 8) %>% 
-  pack_rows("Other", 9, 10) %>% 
-  pack_rows("Unknown", 11, 17)  
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 2) %>% 
+#   pack_rows("Lines-Connect", 3, 7) %>% 
+#   pack_rows("Orthogonal", 8, 8) %>% 
+#   pack_rows("Other", 9, 10) %>% 
+#   pack_rows("Unknown", 11, 17)  
 
 ```
 
@@ -1030,7 +1305,7 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 ```{r}
 #| label: Q3-IMPASSE-KEY
 
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==3)
+q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==3)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1074,35 +1349,38 @@ df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 5) %>% 
-  pack_rows("Lines-Connect", 3, 5) %>% 
-  pack_rows("Satisfice", 6, 15) %>% 
-  pack_rows("Other", 16, 21) %>% 
-  pack_rows("Unknown", 22, 29) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 5) %>% 
+#   pack_rows("Lines-Connect", 3, 5) %>% 
+#   pack_rows("Satisfice", 6, 15) %>% 
+#   pack_rows("Other", 16, 21) %>% 
+#   pack_rows("Unknown", 22, 29) 
 
 
 ```
 
-```{r}
-#| label: Q3-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q3 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q3 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
 
 #### Question #4
 
 \[PLACEHOLDER --- NOT YET CONSIDERED THIS QUESTION\]
+
+```{r}
+#| label: Q4-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q4 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q4 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
 
 ###### Q4. Control Condition
 
@@ -1153,12 +1431,13 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Lines-Connect", 3, 3) %>% 
-  pack_rows("Orthogonal", 4, 8) %>% 
-  pack_rows("Other", 9, 10) %>% 
-  pack_rows("Unknown", 11, 16) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 2) %>% 
+#   pack_rows("Lines-Connect", 3, 3) %>% 
+#   pack_rows("Orthogonal", 4, 8) %>% 
+#   pack_rows("Other", 9, 10) %>% 
+#   pack_rows("Unknown", 11, 16) 
 ```
 
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -1178,7 +1457,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 ```{r}
 #| label: Q4-IMPASSE-KEY
 
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==4)
+q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==4)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1222,31 +1501,34 @@ df_items %>% filter(q == 4 & condition == 121) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>% 
-  pack_rows("Lines-Connect", 3, 6) %>% 
-  pack_rows("Satisfice", 7, 10) %>% 
-  pack_rows("Other", 11, 12) %>% 
-  pack_rows("Unknown", 13, 19) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 2) %>% 
+#   pack_rows("Lines-Connect", 3, 6) %>% 
+#   pack_rows("Satisfice", 7, 10) %>% 
+#   pack_rows("Other", 11, 12) %>% 
+#   pack_rows("Unknown", 13, 19) 
 ```
 
-```{r}
-#| label: Q4-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q4 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q4 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
 
 #### Question #5
+
+```{r}
+#| label: Q5-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q5 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q5 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
 
 ###### Q5. Control Condition
 
@@ -1297,12 +1579,13 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 4) %>% 
-  pack_rows("Lines-Connect", 5, 7) %>% 
-  pack_rows("Orthogonal", 8, 9) %>% 
-  pack_rows("Other", 10, 11) %>% 
-  pack_rows("Unknown", 12, 22) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 4) %>% 
+#   pack_rows("Lines-Connect", 5, 7) %>% 
+#   pack_rows("Orthogonal", 8, 9) %>% 
+#   pack_rows("Other", 10, 11) %>% 
+#   pack_rows("Unknown", 12, 22) 
 ```
 
 TODO note the compelling cases of internal inconsistency (HJDE)
@@ -1314,7 +1597,7 @@ TODO note the compelling cases of internal inconsistency (HJDE)
 ```{r}
 #| label: Q5-IMPASSE-KEY
 
-q <- keys_raw %>% filter(condition == 121) %>% filter(Q==5)
+q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==5)
 ignore <- q %>% select("REF_POINT")
 answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
@@ -1356,35 +1639,39 @@ df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>%
   select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 7) %>% 
-  pack_rows("Lines-Connect", 8, 13) %>% 
-  pack_rows("Orthogonal", 14, 16) %>% 
-  pack_rows("Other", 17, 21) %>% 
-  pack_rows("Unknown", 22, 31) 
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 7) %>% 
+#   pack_rows("Lines-Connect", 8, 13) %>% 
+#   pack_rows("Orthogonal", 14, 16) %>% 
+#   pack_rows("Other", 17, 21) %>% 
+#   pack_rows("Unknown", 22, 31) 
 ```
 
-```{r}
-#| label: Q5-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q5 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==5)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q5 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
 
 ### Testing Phase
 
 The following 10 questions were the same for both conditions.
 
 #### Question #6 NONDISCRIM
+
+```{r}
+#| label: Q6-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q6 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+  gf_facet_grid( condition ~ ., labeller = label_both) + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q6 ") + 
+  theme_minimal() + theme(legend.position = "blank")
+
+```
+
 
 ![Q6-Question](static/questions/Q6.png){#fig-Q6}
 
@@ -1438,23 +1725,25 @@ df_items %>% filter(q == 6) %>% group_by(response) %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
 ```
 
-```{r}
-#| label: Q6-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+
+#### Question #7
+
+```{r}
+#| label: Q7-distribution
+
+gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q == 7)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q6 ") + 
+  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q7 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) %>% 
+gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 7)) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q6 ") + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | Q7 ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 ```
-
-#### Question #7
 
 ![Q7-Question](static/questions/Q7.png){#fig-Q7}
 
@@ -1511,21 +1800,7 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
   pack_rows("Unknown", 15, 17)
 ```
 
-```{r}
-#| label: Q7-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items %>% filter(q == 7)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q7 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-
-gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 7)) %>% 
-  gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q7 ") + 
-  theme_minimal() + theme(legend.position = "blank")
-
-```
 
 #### Question #8
 
