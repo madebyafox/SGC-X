@@ -31,22 +31,18 @@ reorder_inplace <- function(x)
 calc_subscore <- function(question, cond, response, keyframe){
   
   #print(paste(question, cond, response))
-  # question = 13
-  # cond = "IMPASSE"
-  # response = "FX"
-  # keyframe = keys_tri
   
   #STEP 1 GET KEY
   #—————————————————————————————————
   
-  ## | only impasse  Q1->5 have different answers (based on different dataset graphed)
-  if (cond == "IMPASSE" & question < 6 )
+  ## | only SGC3A impasse condition (121) Q1->5 have different answers (based on different dataset graphed)
+  if (cond == 121 & question < 6 )
   {
-    #GET KEY FOR Q1-Q6 IMPASSE
-    p =  keyframe %>% filter(Q == question) %>% filter(condition == "impasse") %>% dplyr::select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    q =  keyframe %>% filter(Q == question) %>% filter(condition == "impasse") %>% dplyr::select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    pn = keyframe %>% filter(Q == question) %>% filter(condition == "impasse") %>% dplyr::select(n_p)
-    qn = keyframe %>% filter(Q == question) %>% filter(condition == "impasse") %>% dplyr::select(n_q)
+    #GET KEY FOR Q1-Q6 COND 121
+    p =  keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == "121") %>% select(n_q)
     
     # print(p)
     # print(q)
@@ -54,10 +50,10 @@ calc_subscore <- function(question, cond, response, keyframe){
     # print(paste("qn ",qn))
   } else {
     #GET KEY FOR THIS SCORE TYPE, QUESTION
-    p =  keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% dplyr::select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-    q =  keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% dplyr::select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-    pn = keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% dplyr::select(n_p)
-    qn = keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% dplyr::select(n_q)
+    p =  keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
+    q =  keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
+    pn = keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(n_p)
+    qn = keyframe %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(n_q)
   }
   
   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
@@ -93,7 +89,7 @@ calc_subscore <- function(question, cond, response, keyframe){
 calc_refscore <- function(question, response){
   
   #1. GET reference point from REF_POINT column in raw keys [condition doesn't matter, ref point is in Q which is always the same]
-  ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% dplyr::select(REF_POINT) %>% 
+  ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == "DEFAULT") %>% select(REF_POINT) %>% 
     pull(REF_POINT) %>% str_split("") %>% unlist()
   
   #2. Is the response PRECISELY the REFERENCE POINT?
@@ -113,142 +109,8 @@ calc_refscore <- function(question, response){
 #DERIVE INTERPRETATION
 # takes dataframe as input and returns dataframe with additional columns
 # assigns an interpretation score based on logic contained therein
-OLDderive_interpretation <- function(df){
-  
-  # glimpse(df)
-  threshold_range = 0.5 #set required variance in subscores to be discriminant
-  threshold_frenzy = 4
-  
-  for (x in 1:nrow(df)) {
-    
-    #CALCULATE MAX TVERSKY SUBSCORE
-    t = df[x,] %>% dplyr::select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration) #reshape
-    t.long = gather(t,score, value, 1:4)
-    t.long[t.long == ""] = NA #replace empty scores with NA so we can ignore them
-    if(length(unique(t.long$value)) == 1 ){
-      if(is.na(unique(t.long$value))){
-        df[x,'score_TVERSKY'] = NA
-        df[x,'tv_type'] = NA   
-      }
-    } else {
-      df[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
-      df[x,'tv_type'] = t.long[which.max(t.long$value),'score']
-    }
-    
-    #CALCULATE MAX SATISFICING SUBSCORE
-    t = df[x,] %>% dplyr::select(score_SAT_left, score_SAT_right)
-    t.long = gather(t,score, value, 1:2)
-    t.long[t.long == ""] = NA #replace empty scores
-    if(length(unique(t.long$value)) == 1 ){
-      if(is.na(unique(t.long$value))){
-        df[x,'score_SATISFICE'] = NA
-        df[x,'sat_type'] = NA   
-      }
-    } else {
-      df[x,'score_SATISFICE'] = as.numeric(max(t.long$value,na.rm = TRUE))
-      df[x,'sat_type'] = t.long[which.max(t.long$value),'score']  
-    }
-    
-    #NOW CALCULATE RANGE AMONG SUBSCORES
-    #order of this selection matters in breaking ties! 
-    t = df[x,] %>% dplyr::select(score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
-    t.long = gather(t,score, value, 1:4)
-    t.long[t.long == ""] = NA
-    
-    df[x,'top_score'] = as.numeric(max(t.long$value,na.rm = TRUE))
-    df[x,'top_type'] = t.long[which.max(t.long$value),'score']
-    
-    #calculate the range between highest and lowest scores 
-    r = as.numeric(range(t.long$value,na.rm = TRUE))
-    r = diff(r)
-    df[x,'range'] = r
-    
-    #DISCRIMINANT BETWEEN SUBSCORES TO PREDICT BEST FIT INTERPRETATION
-    
-    if (r < threshold_range) {
-      #then we can't predict the interpretation, leave it as "?"
-      df[x,'best'] = "?"
-    } else {
-      p =  df[x,'top_type']
-      if (p == "score_TRI") {df[x,'best'] = "Triangular"
-      } else if(p == "score_ORTH") {df[x,'best'] = "Orthogonal"
-      } else if(p == "score_TVERSKY") {df[x,'best'] = "Tversky"
-      } else if(p == "score_SATISFICE") {df[x,'best'] = "Satisfice"}
-    }
-    
-    #CHECK SPECIAL SITUATIONS
-    
-    #BOTH TRI AND ORTH?  
-    if (!is.na(df[x,'score_BOTH'])) { #only check if both is not null
-      if( df[x,'score_BOTH'] == 1) {
-        df[x,'best'] = "both tri + orth"}
-    }
-    
-    #IS BLANK?
-    if( df[x,'num_o'] == 0) {  
-      df[x,'best'] = "blank"
-    }
-    
-    #IS FRENZY?
-    if( df[x,'num_o'] > threshold_frenzy) { 
-      df[x,'best'] = "frenzy"
-    }
-    
-    #IS REF POINT?
-    if (!is.na(df[x,'score_REF'])) { #only check if the score is NOT null
-      if( df[x,'score_REF'] == 1) {
-        df[x,'best'] = "reference"
-      }
-    }
-    
-  }#end loop
-  
-  #cleanup 
-  rm(t, t.long, x, r,p)
-  rm(threshold_frenzy, threshold_range)
-  
-  #set order of levels for response exploration table
-  df$int2 <- factor(df$best,
-                    levels = c("Triangular", "Tversky",
-                               "Satisfice", "Orthogonal", "reference", "both tri + orth", "blank","frenzy","?"))
-  
-  #set order of levels
-  df$interpretation <- factor(df$best,
-                              levels = c("Orthogonal","Satisfice", "frenzy","?","reference","blank",
-                                         "both tri + orth", "Tversky","Triangular"))
-  
-  #collapsed representation of scale of interpretations
-  df$high_interpretation <- fct_collapse(df$interpretation,
-                                         orthogonal = c("Satisfice", "Orthogonal"),
-                                         neg.trans = c("frenzy","?"),
-                                         neutral = c("reference","blank"),
-                                         pos.trans = c("Tversky","both tri + orth"),
-                                         triangular = "Triangular"
-  ) 
-  
-  #set as factors
-  df$tv_type = as.factor(df$tv_type)
-  df$top_type = as.factor(df$top_type)
-  
-  #reorder levels
-  df$high_interpretation = factor(df$high_interpretation, levels= c("orthogonal", "neg.trans","neutral","pos.trans","triangular"))
-  
-  #cleanup 
-  df <- df %>% dplyr::select(-best)
-  
-  #recode as numeric inase they are char 
-  # df$score_TV_duration <- df$score_TV_duration %>% as.numeric()
-  # df$score_SATISFICE <- df$score_SATISFICE %>% as.numeric()
-  
-  return(df) 
-  
-}
-
-
 derive_interpretation <- function(df){
   
-  print("DERIVING INTERPRETATION")
-  
   # glimpse(df)
   threshold_range = 0.5 #set required variance in subscores to be discriminant
   threshold_frenzy = 4
@@ -258,16 +120,12 @@ derive_interpretation <- function(df){
     #CALCULATE MAX TVERSKY SUBSCORE
     t = df[x,] %>% dplyr::select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration) #reshape
     t.long = gather(t,score, value, 1:4)
-    t.long$value <- t.long$value %>% unlist #added bc otherwsise caused error 
     t.long[t.long == ""] = NA #replace empty scores with NA so we can ignore them
-    
     if(length(unique(t.long$value)) == 1 ){
-      if(is.na(unique(t.long$value)))
-      {
+      if(is.na(unique(t.long$value))){
         df[x,'score_TVERSKY'] = NA
         df[x,'tv_type'] = NA   
       }
-      
     } else {
       df[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
       df[x,'tv_type'] = t.long[which.max(t.long$value),'score']
@@ -276,7 +134,6 @@ derive_interpretation <- function(df){
     #CALCULATE MAX SATISFICING SUBSCORE
     t = df[x,] %>% dplyr::select(score_SAT_left, score_SAT_right)
     t.long = gather(t,score, value, 1:2)
-    t.long$value <- t.long$value %>% unlist #added bc otherwsise caused error 
     t.long[t.long == ""] = NA #replace empty scores
     if(length(unique(t.long$value)) == 1 ){
       if(is.na(unique(t.long$value))){
@@ -292,7 +149,6 @@ derive_interpretation <- function(df){
     #order of this selection matters in breaking ties! 
     t = df[x,] %>% dplyr::select(score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
     t.long = gather(t,score, value, 1:4)
-    t.long$value <- t.long$value %>% unlist #added bc otherwsise caused error 
     t.long[t.long == ""] = NA
     
     df[x,'top_score'] = as.numeric(max(t.long$value,na.rm = TRUE))
@@ -383,6 +239,7 @@ derive_interpretation <- function(df){
   return(df) 
   
 }
+
 
 #———————————————---
 #CALCULATE SCALED-SCORE
@@ -405,6 +262,7 @@ calc_scaled <- function(v){
   
   return(v) 
 }
+
 
 #———————————————---
 #SUMMARIZE BY SUBJECT
@@ -566,7 +424,7 @@ progress_Absolute <- function(items){
 progress_Scaled <- function(items){
   
 #filter for valid items
-x <- items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, pretty_condition, q,score_SCALED)
+x <- items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, pretty_condition, q,score_SCALED)
 
 #pivot wider
 wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_SCALED)
@@ -585,7 +443,7 @@ wide$c10 = wide$c9 + wide$q_12
 wide$c11 = wide$c10 + wide$q_13
 wide$c12 = wide$c11 + wide$q_14
 wide$c13 = wide$c12 + wide$q_15
-wide <- wide %>% dplyr::select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
+wide <- wide %>% select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
 
 #lengthen 
 df_scaled_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")

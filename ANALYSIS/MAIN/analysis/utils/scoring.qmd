@@ -447,16 +447,16 @@ We start by importing three answer keys: (1) Q1 - Q5 \[control condition\], (2) 
 # setwd(imac)
 
 #LOAD INDIVIDUAL KEY FILES 
-key_111_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_111_key.csv') %>% mutate(condition = "DEFAULT", phase = "scaffold")
-key_121_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_121_key.csv')%>% mutate(condition = 121, phase = "scaffold")
+key_control_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_control_key.csv') %>% mutate(condition = "DEFAULT", phase = "scaffold")
+key_impasse_raw <- read_csv('analysis/utils/keys/SGCX_scaffold_impasse_key.csv')%>% mutate(condition = "impasse", phase = "scaffold")
 cs = rep('c', 23) %>% str_c(collapse="") #create column spec 
 key_test_raw <- read_csv('analysis/utils/keys/SGCX_test_key.csv', col_types = cs)%>% mutate(condition = "DEFAULT", phase = "test") 
 
 #JOIN THEM
-keys_raw <- rbind(key_111_raw, key_121_raw, key_test_raw )
+keys_raw <- rbind(key_control_raw, key_impasse_raw, key_test_raw )
 
 #CLEANUP
-rm(key_111_raw, key_121_raw, key_test_raw)
+rm(key_control_raw, key_impasse_raw, key_test_raw)
 
 ```
 
@@ -541,9 +541,9 @@ for (x in 1:nrow(keys_tri)) {
 #3. reorder cols for ease of use
 keys_tri <- keys_tri %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_tri <- keys_tri %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 #cleanup 
@@ -628,9 +628,9 @@ for (x in 1:nrow(keys_orth)) {
 #3. reorder cols for ease of use
 keys_orth <- keys_orth %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_orth <- keys_orth %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 #cleanup
@@ -713,9 +713,9 @@ for (x in 1:nrow(keys_tversky_max)) {
 #3. reorder cols for ease of use
 keys_tversky_max <- keys_tversky_max %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_tversky_max <- keys_tversky_max %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 verify_tversky_start = c() #sanity check
@@ -781,9 +781,9 @@ for (x in 1:nrow(keys_tversky_start)) {
 #3. reorder cols for ease of use
 keys_tversky_start <- keys_tversky_start %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_tversky_start <- keys_tversky_start %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 verify_tversky_end = c() #sanity check
@@ -849,9 +849,9 @@ for (x in 1:nrow(keys_tversky_end)) {
 #3. reorder cols for ease of use
 keys_tversky_end <- keys_tversky_end %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_tversky_end <- keys_tversky_end %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 verify_tversky_duration = c()
@@ -917,9 +917,9 @@ for (x in 1:nrow(keys_tversky_duration)) {
 #3. reorder cols for ease of use
 keys_tversky_duration <- keys_tversky_duration %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_tversky_duration <- keys_tversky_duration %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 #cleanup
@@ -938,6 +938,88 @@ To verify we have generated the correct sets, we verify that for each question, 
 `r verify_tversky_end`
 
 `r verify_tversky_duration`
+
+
+#### BOTH Key
+
+Next we construct a key set based on the intersection of the 'TRIANGULAR' and 'ORTHOGONAL' interpretation 
+
+```{r}
+#| label: KEY-SET-BOTH
+
+verify_both = c() #sanity check
+##——————————————————————————————————————————————————————————————————————
+##CONSTRUCT BOTH KEY SET
+##——————————————————————————————————————————————————————————————————————
+#1. DEFINE SETS N, P, A
+keys_both <- keys_raw %>% 
+  select(Q, condition, OPTIONS, BOTH) %>% 
+  mutate(
+    
+    #P options that SHOULD be selected (rewarded)
+    set_p = BOTH,
+    set_p = str_replace_na(set_p,""),#replace na if empty
+    n_p = nchar(set_p), #number of true-select options
+    
+    #A options that are ignored if selected 
+    set_a = "",
+    set_a = "",
+    n_a = 0,
+    
+    #N store all answr options (superset)
+    set_n = OPTIONS,  
+    n_n = nchar(set_n),
+  
+) %>% select(Q, condition, set_n, set_p, set_a, n_n, n_p, n_a)
+
+#2. DEFINE SETS N, P, A
+for (x in 1:nrow(keys_both)) {
+  
+  #UNWIND STRINGS FOR SETDIFF
+  #n all answer options
+  N = keys_both[x,'set_n'] %>% pull(set_n) %>% strsplit("") %>% unlist()
+  #p correct-select answer options
+  P = keys_both[x,'set_p'] %>% pull(set_p) %>% strsplit("") %>% unlist()
+  #a ignore-select answer options (should not be selected, but if they are, don't penalize)
+  A = keys_both[x,'set_a'] %>% pull(set_a) %>% strsplit("") %>% unlist()
+  
+  #Q = N - (P+A)
+  #answers that are penalized (at -1/q) if selected 
+  s = union(P,A) #rewarded plus ignored 
+  s = str_replace_na(s,"")
+  # s = union(s,X) # + trapdoor 
+  Q = setdiff(N,s) # = penalized at -1/q when selected 
+  
+  #save set to dataframe
+  Q = str_c(Q, collapse="")
+  n_q = nchar(Q)
+  keys_both[x,'set_q'] = Q
+  keys_both[x,'n_q'] = n_q
+  
+  #verify each element in N is included in one and only one of P,A,Q
+  tempunion = union(s,Q) %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  N = N %>% str_c(collapse="") %>% strsplit("") %>% unlist()
+  verify_both[x] = setequal(tempunion,N)
+}
+
+#3. reorder cols for ease of use
+keys_both <- keys_both %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q) %>% mutate(verify = n_p + n_a + n_q)
+
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
+keys_both <- keys_both %>% mutate(
+  condition = replace(condition, condition != "impasse", "DEFAULT")
+)
+
+#cleanup 
+rm(N,A,P,Q,n_q,s,x,tempunion)
+  
+```
+
+This leaves us a dataframe `keys_both` that define the sets of response options consistent with the triangular graph interpretation.
+
+To verify we have generated the correct sets, we verify that for each question, each option in N is included in either set P, A or Q (once and only once).
+
+`r verify_both`
 
 #### Satisficing Key
 
@@ -1006,9 +1088,9 @@ for (x in 1:nrow(keys_satisfice_right)) {
 #3. reorder cols for ease of use
 keys_satisfice_right <- keys_satisfice_right %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_satisfice_right <- keys_satisfice_right %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 #cleanup
@@ -1077,9 +1159,9 @@ for (x in 1:nrow(keys_satisfice_left)) {
 #3. reorder cols for ease of use
 keys_satisfice_left <- keys_satisfice_left %>% select(Q, condition, set_n, set_p, set_a, set_q, n_n, n_p, n_a, n_q)%>% mutate(verify = n_p + n_a + n_q)
 
-#4. replace condition 111 with "general" to accomodate other conditions [only 121 is special]
+#4. replace condition 111 with "general" to accomodate other conditions [only impasse is special]
 keys_satisfice_left <- keys_satisfice_left %>% mutate(
-  condition = replace(condition, condition != "121", "DEFAULT")
+  condition = replace(condition, condition != "impasse", "DEFAULT")
 )
 
 #cleanup
@@ -1101,6 +1183,7 @@ rm(verify_tri, verify_orth, verify_max, verify_tversky_duration, verify_tversky_
 
 Finally, we need to clean up and generalize our answer keys to accommodate the experimental conditions for Study SGC4-SGC5. In both of these studies the answer set (and underlying graphed data set) are identical, the conditions differ only based on the structure of the gridlines or marks used to represent the data, or interactive mode of the answer format.
 
+#### Export Keys
 ```{r}
 #| label: EXPORT-KEYS
 
@@ -1111,6 +1194,7 @@ Finally, we need to clean up and generalize our answer keys to accommodate the e
 write.csv(keys_raw,"analysis/utils/keys/parsed_keys/keys_raw", row.names = FALSE)
 write.csv(keys_orth,"analysis/utils/keys/parsed_keys/keys_orth", row.names = FALSE)
 write.csv(keys_tri,"analysis/utils/keys/parsed_keys/keys_tri", row.names = FALSE)
+write.csv(keys_both,"analysis/utils/keys/parsed_keys/keys_both", row.names = FALSE)
 write.csv(keys_satisfice_left,"analysis/utils/keys/parsed_keys/keys_satisfice_left", row.names = FALSE)
 write.csv(keys_satisfice_right,"analysis/utils/keys/parsed_keys/keys_satisfice_right", row.names = FALSE)
 write.csv(keys_tversky_duration,"analysis/utils/keys/parsed_keys/keys_tversky_duration", row.names = FALSE)
@@ -1118,6 +1202,7 @@ write.csv(keys_tversky_end,"analysis/utils/keys/parsed_keys/keys_tversky_end", r
 write.csv(keys_tversky_max,"analysis/utils/keys/parsed_keys/keys_tversky_max", row.names = FALSE)
 write.csv(keys_tversky_start,"analysis/utils/keys/parsed_keys/keys_tversky_start", row.names = FALSE)
 ```
+
 
 ### 2. Calculate Subscores {#sec-scoring-subscores}
 
