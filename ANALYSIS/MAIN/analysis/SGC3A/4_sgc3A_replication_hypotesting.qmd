@@ -111,19 +111,19 @@ In SGC3A we set out to answer the following question: Does posing a mental impas
 #| message : false
 
 #IMPORT DATA 
-df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds') %>% 
+df_subjects <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_REP.rds') %>% 
   filter(mode == "asynch") %>% #only get lab-run participants
   mutate(
     task_percent = DV_percent_NABS
   ) %>% droplevels()
 
-#IMPORT OSPAN SUBJECTS
-df_ospan <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_ospan.rds') 
+# #IMPORT OSPAN SUBJECTS
+# df_ospan <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_ospan.rds') 
+# 
+# #KEEP ONLY SUBJECTS WHO DIDNT COMPLETE OPSAN [ie the replication study]
+# df_subjects <- df_subjects %>% filter( subject %nin% df_ospan$subject)
 
-#KEEP ONLY SUBJECTS WHO DIDNT COMPLETE OPSAN [ie the replication study]
-df_subjects <- df_subjects %>% filter( subject %nin% df_ospan$subject)
-
-df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds') %>% 
+df_items <- read_rds('analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_REP.rds') %>% 
   filter(subject %in% df_subjects$subject) %>% #only get lab-run participants
   mutate (
     q = as.factor(q), 

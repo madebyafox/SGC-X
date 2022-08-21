@@ -2388,6 +2388,91 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 9))
 
 ## EXPORT
 
+```{r}
+table(df_subjects$mode, df_subjects$condition) %>% addmargins()
+```
+
+
+
+### SGC3A Lab Study
+
+```{r}
+
+# SGC3A IS JUST IN LAB
+df_lab <- df_subjects %>% filter(mode == "lab-synch")
+
+#conditions
+table(df_lab$mode, df_lab$condition) %>% addmargins()
+
+#filter items and progress
+df_lab_items <- df_items %>% filter(subject %in% df_lab$subject)
+df_lab_absolute <- df_absolute_progress %>% filter(subject %in% df_lab$subject)
+df_lab_scaled <- df_scaled_progress %>% filter(subject %in% df_lab$subject)
+
+#confirm items and subjects
+nrow(df_lab_items) / nrow(df_lab) == 15
+
+#SAVE FILES
+write.csv(df_lab,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_LAB.csv", row.names = FALSE)
+write.csv(df_lab_items,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_LAB.csv", row.names = FALSE)
+write.csv(df_lab_absolute,"analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress_LAB.csv", row.names = FALSE)
+write.csv(df_lab_scaled,"analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress_LAB.csv", row.names = FALSE)
+
+#SAVE R Data Structures
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_lab, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_LAB.rds") # to R data structure file
+rio::export(df_lab_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_LAB.rds") # to R data structure file
+```
+
+
+### SGC3A OSPAN
+
+```{r}
+
+## get (all) SGC3 online 
+df_online <- df_subjects %>% filter(mode == "asynch")
+table(df_online$mode, df_online$condition) %>% addmargins()
+
+## get (just ospan) SGC3 OSPAN
+
+#load ospan scores
+df_ospan <- read_csv('analysis/SGC3A/data/1-study-level/sgc3a_ospan.csv') %>% 
+  dplyr::select(subject,order_num, order_acc, math_acc, weighted) %>% 
+  mutate(
+    OSPAN.weighted = weighted,
+    OSPAN.order_acc = order_acc,
+    OSPAN.math_acc = math_acc
+  ) %>% dplyr::select(subject, OSPAN.weighted, OSPAN.order_acc, OSPAN.math_acc)
+temp_dfs <- df_online %>% filter(subject %in% df_ospan$subject)
+#scored ospan subjects
+df_ospan <- merge(df_ospan, temp_dfs)
+table(df_ospan$condition)
+
+#filter items and progress
+df_ospan_items <- df_items %>% filter(subject %in% df_ospan$subject)
+df_ospan_absolute <- df_absolute_progress %>% filter(subject %in% df_ospan$subject)
+df_ospan_scaled <- df_scaled_progress %>% filter(subject %in% df_ospan$subject)
+
+#confirm items and subjects
+nrow(df_ospan_items) / nrow(df_ospan) == 15
+
+#SAVE FILES
+write.csv(df_ospan,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_OSPAN.csv", row.names = FALSE)
+write.csv(df_ospan_items,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_OSPAN.csv", row.names = FALSE)
+write.csv(df_ospan_absolute,"analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress_OSPAN.csv", row.names = FALSE)
+write.csv(df_ospan_scaled,"analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress_OSPAN.csv", row.names = FALSE)
+
+#SAVE R Data Structures
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_ospan, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_OSPAN.rds") # to R data structure file
+rio::export(df_ospan_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_OSPAN.rds") # to R data structure file
+
+```
+
+
+
+
+
 Finally, we export the scores for each item (`df_items`) and summarized over subjects (`df_subjects`), as well as cumulative progress dataframes (`df_absolute_progress`, `df_scaled_progress`)
 
 ```{r}
@@ -2408,6 +2493,40 @@ rio::export(df_subjects, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_partici
 rio::export(df_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
 
 ```
+
+
+### SGC3A ONLINE REPLICATION
+
+```{r}
+
+## get (not ospan) SGC3 online 
+df_rep <- df_subjects %>% filter(mode == "asynch") %>% 
+  filter(subject %nin% df_ospan$subject)
+table(df_rep$mode, df_rep$condition) %>% addmargins()
+
+#filter items and progress
+df_rep_items <- df_items %>% filter(subject %in% df_rep$subject)
+df_rep_absolute <- df_absolute_progress %>% filter(subject %in% df_rep$subject)
+df_rep_scaled <- df_scaled_progress %>% filter(subject %in% df_rep$subject)
+
+#confirm items and subjects
+nrow(df_rep_items) / nrow(df_rep) == 15
+
+#SAVE FILES
+write.csv(df_rep,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_REP.csv", row.names = FALSE)
+write.csv(df_rep_items,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_REP.csv", row.names = FALSE)
+write.csv(df_rep_absolute,"analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress_REP.csv", row.names = FALSE)
+write.csv(df_rep_scaled,"analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress_REP.csv", row.names = FALSE)
+
+#SAVE R Data Structures
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_rep, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_REP.rds") # to R data structure file
+rio::export(df_rep_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_REP.rds") # to R data structure file
+
+```
+
+
+
 
 ## RESOURCES
 
