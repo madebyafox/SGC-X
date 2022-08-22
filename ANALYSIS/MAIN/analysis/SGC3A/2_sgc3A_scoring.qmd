@@ -134,69 +134,6 @@ source("analysis/utils/scoring.R")
 
 *note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records*
 
-
-### TEMP TROUBLESHOOT
-```{r}
-
-# # df_i <- old %>% filter(q==1 & condition =="111" & response =="AF")
-# 
-# df_i <- df_items %>% tail(20)
-# 
-# 
-# #alphebetize
-# df_i$response = pbmapply(reorder_inplace, df_i$response)
-# 
-# #STRATEGY PARTIAL-SUBSCORES
-# df_i$score_TRI = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tri))
-# 
-# df_i$score_ORTH = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_orth))
-# 
-# ##PROBLEM nothing scored as BOTH bc
-# # df_i$score_BOTH = as.integer((df_i$score_TRI == 1) & (df_i$score_ORTH ==1))
-# df_i$score_BOTH = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_both))
-# 
-# 
-# df_i$score_SAT_left = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_satisfice_left))
-# df_i$score_SAT_right = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_satisfice_right))
-# df_i$score_TV_max = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_max))
-# df_i$score_TV_start = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_start))
-# df_i$score_TV_end = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_end))
-# df_i$score_TV_duration = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_duration))
-# 
-# 
-# #SPECIAL ABSOLUTE SUBSCORES
-# df_i$score_REF = pbmapply(calc_refscore, df_i$q, df_i$response)
-# 
-# 
-# #ABSOLUTE SCORES
-# df_i$score_ABS = as.integer(df_i$correct)
-# df_i$score_niceABS  <- as.integer((df_i$score_TRI == 1)) #tri doesn't penalize ref or ve-area
-# 
-# 
-# ##DERIVE INTERPRETATION
-# temp <- df_i
-# temp <- derive_interpretation(temp)
-# df_i <- temp
-# 
-# ##DERIVE SCALED
-# df_i$score_SCALED <- calc_scaled(df_i$interpretation)
-# 
-# ##DERIVE STATE
-# df_i <- df_i %>% mutate (
-#   score_STATE = recode_factor(df_i$score_SCALED,
-#                          "-1" = "orth-like",
-#                          "-0.5" = "unknown",
-#                          "0" = "unknown",
-#                          "0.5" = "tri-like",
-#                          "1" = "tri-like"),
-#   score_STATE = as.ordered(score_STATE))
-# 
-
-```
-
-
-
-
 ```{r}
 #| label: CALCULATE-SCORES-MAPPLY
 #| cache: true
@@ -479,9 +416,9 @@ temp <- temp %>% mutate_when(
   override = "Triangular"
 )
 
-## CONTROL Q==5 HO Derives as TRI RECODE as other
+## CONTROL Q==5 FO, HO Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==5) & (IMPASSE =="none") & (response == "FO"),
+  (q==5) & (IMPASSE =="none") & (response %in% c("HO","FO")),
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -499,9 +436,17 @@ temp <- temp %>% mutate_when(
 )
 
 
+##  Q==7 HOX Derives as TRI but incorrect
+#includes H which is at rather than under 5 hours.
+#give credit 
+temp <- temp %>% mutate_when(
+  (q==7)  & (response %in% c("HOX")),
+  score_niceABS = 1
+)
+
 ##  Q==7 AX, MO Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==7)  & (response %in% c("MO, AX")),
+  (q==7 & response %in% c("MO","AX")) ,
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -510,14 +455,12 @@ temp <- temp %>% mutate_when(
 
 ##  Q==7 MOX, MX  Derives as TRI RECODE as tversky
 temp <- temp %>% mutate_when(
-  (q==7)  & (response %in% c("MOX, XX")),
+  (q==7 & response %in% c("MOX", "MX", "DX")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
   override = "Triangular"
 )
-
-
 
 ##  Q==8 CFGO Derives as TRI RECODE as angular
 temp <- temp %>% mutate_when(
@@ -548,7 +491,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==8 FG Derives as TRI RECODE as angular
 temp <- temp %>% mutate_when(
-  (q==8)  & (response %in% c("FG","CG","CFG","CGM","CM")),
+  (q==8)  & (response %in% c("FG","CG","CFG","CGM","CM","ACGP","GM")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
@@ -577,7 +520,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==11 EKM Derives as TRI set at other
 temp <- temp %>% mutate_when(
-  (q==11)  & (response == "EKM"),
+  (q==11)  & (response %in% c("EKM","JM")),
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -607,7 +550,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==13 CE Derives as TRI set at Tversky
 temp <- temp %>% mutate_when(
-  (q==13)  & (response == "CE"),
+  (q==13)  & (response %in% c("CE","EH")),
   int2 = "?", #override from Triangular
   interpretation = "?", #override from Triangular
   high_interpretation = "neg.trans", #override from triangular
@@ -652,10 +595,10 @@ temp <- temp %>% mutate_when(
   # override = "Triangular"
 )
 
-#  Q==15 CX Derives as TRI but incorrect 
-#missing 1 right answer
+#  Q==15  Derives as TRI but incorrect 
+#missing 1 right answer or within 0.5hr visual error 
 temp <- temp %>% mutate_when(
-  (q==15)  & (response %in% c("X","CK","K")),
+  (q==15)  & (response %in% c("X","CK","K","GKX")),
   score_niceABS = 1
   # int2 = "Tversky", #override from Triangular
   # interpretation = "Tversky", #override from Triangular
@@ -665,8 +608,8 @@ temp <- temp %>% mutate_when(
 
 ##  Q==15 DJNX Derives as TRI set at Tversky
 temp <- temp %>% mutate_when(
-  (q==15)  & (response == "DJNX"),
-  tv_type = "score_TV_duration",
+  (q==15)  & (response %in% c("DJNX", "OX")),
+  # tv_type = "score_TV_duration",
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
@@ -686,11 +629,6 @@ temp <- temp %>% mutate_when(
 df_items <- temp
 
 ```
-
-
-
-
-
 
 
 
@@ -1004,6 +942,34 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
         subtitle = "Satisficing only occurs in impasse, when no orthogonal response is available",
         x = "Item Orthogonal Score", y = "Proportion of Subjects") + 
         theme_minimal() + theme(legend.position = "blank")
+
+```
+## PEEK
+
+```{r}
+
+ggbetweenstats( data = df_subjects,
+                x = pretty_condition, y = s_NABS,
+                type = "non-parametric",
+                title = "Total Absolute Score [directional test]")
+
+
+ggbarstats( data = df_items,
+                x = score_niceABS, y = pretty_condition,
+                type = "non-parametric",
+                title = "Total Absolute Score [directional test]")
+
+
+ggbarstats( data = df_items,
+                x = interpretation, y = pretty_condition,
+                type = "non-parametric",
+                title = "Interpretation [directional test]")
+
+ggbarstats( data = df_items,
+                x = score_STATE, y = pretty_condition,
+                type = "non-parametric",
+                title = "State [directional test]")
+
 
 ```
 
@@ -1327,7 +1293,7 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
@@ -1431,7 +1397,7 @@ df_items %>% filter(q == 2 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
@@ -1512,7 +1478,7 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1630,7 +1596,7 @@ df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1712,7 +1678,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1782,7 +1748,7 @@ df_items %>% filter(q == 4 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1860,7 +1826,7 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1907,7 +1873,7 @@ d %>% kbl(caption = title, col.names = cols) %>% kable_classic() %>%
 #| label: Q5-IMPASSE-RESPONSES
 #| warning: false
 
-title <- "Frequency of Selected Response Options for Question #5 (Control Condition)"
+title <- "Frequency of Selected Response Options for Question #5 (Impasse Condition)"
 names = c("response","n","interpretation","absolute","tri","tversky","satisfice","orthogonal", "scaled score")
 
 df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>% 
@@ -1920,7 +1886,7 @@ df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  dplyr::dplyr::select(response, count, interpretation, nice, 
+  dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2000,7 +1966,7 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2060,7 +2026,7 @@ df_items %>% filter(q == 8) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2133,7 +2099,7 @@ df_items %>% filter(q == 10) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2207,7 +2173,7 @@ df_items %>% filter(q == 11) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2280,7 +2246,7 @@ df_items %>% filter(q == 12) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2354,7 +2320,7 @@ df_items %>% filter(q == 13) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
@@ -2427,7 +2393,7 @@ df_items %>% filter(q == 14) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2502,7 +2468,7 @@ df_items %>% filter(q == 15) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  dplyr::dplyr::select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
