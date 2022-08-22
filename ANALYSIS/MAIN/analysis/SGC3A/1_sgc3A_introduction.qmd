@@ -309,8 +309,20 @@ ospan <- read_csv("analysis/SGC3A/data/0-session-level/fall21_scored_ospan.csv")
 #will be manually joined to df_ospan during exploratory analysis
 df_ospan <- df_subjects %>% filter(
   subject %in% ospan$subject
-) %>% merge(ospan)  
+) %>% merge(ospan) %>% rename(
+  OSPAN.order_num = order_num,
+  OSPAN.order_acc = order_acc,
+  OSPAN.math_acc = math_acc,
+  OSPAN.weighted = weighted
+) 
 
+##CALCULATE OSPAN SPLIT
+#calculate ospan median split
+median_split <- median(df_ospan$OSPAN.weighted)
+df_ospan <- df_ospan %>% mutate(
+  ospan_split = as.factor(OSPAN.weighted > median_split),
+  ospan_split = recode_factor(ospan_split, "TRUE" = "high-memory", "FALSE" = "low-memory")
+)
 
 #CLEANUP
 rm(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_winter22,df_subjects_before)

@@ -263,6 +263,7 @@ Look for special exceptions (essentially pass through cases) that are missed by 
 ```{r}
 
 # #temp setup for protection
+# backup <- df_items
 # temp <- df_items %>% mutate(
 #   override = ""
 # )
@@ -723,15 +724,14 @@ In this section we explore responses given by participants to each particular it
 ```{r}
 #| label: all-distribution
 
-gf_dhistogram(~ score_niceABS, fill = ~condition, data = df_items ) %>% 
+gf_props(~ score_niceABS, fill = ~condition, data = df_items ) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Scaled Item Score", title = "Distribution of Scaled Scores | Q1 ") + 
+  labs( x = "Item Absolute Score", title = "Distribution of Accuracy  | ALL ITEMS ") + 
   theme_minimal() + theme(legend.position = "blank")
-
 
 gf_props(~interpretation, fill = ~condition, data = df_items ) %>% 
   gf_facet_grid( condition ~ ., labeller = label_both) + 
-  labs( x = "Interpretation", title = "Distribution of Interpretations | Q1 ") + 
+  labs( x = "Interpretation", title = "Distribution of Interpretations | ALL ITEMS ") + 
   theme_minimal() + theme(legend.position = "blank")
 
 ```
@@ -741,7 +741,6 @@ gf_props(~interpretation, fill = ~condition, data = df_items ) %>%
 The first five questions constitute the 'scaffold' (or learning) phase, where participants see a different version of the stimulus (specifically a different dataset is visualized) invoking a different experimental condition.
 
 #### Question #1
-
 ```{r}
 #| label: Q1-distribution
 
@@ -757,7 +756,6 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==1)) 
   theme_minimal() + theme(legend.position = "blank")
 
 ```
-
 ##### Q1. Control Condition
 
 We start by exploring the range of response options checked by participants on Question 1, for those assigned to the control (non-impasse) condition (`condition` = 111).
@@ -2437,12 +2435,7 @@ table(df_online$mode, df_online$condition) %>% addmargins()
 
 #load ospan scores
 df_ospan <- read_csv('analysis/SGC3A/data/1-study-level/sgc3a_ospan.csv') %>% 
-  dplyr::select(subject,order_num, order_acc, math_acc, weighted) %>% 
-  mutate(
-    OSPAN.weighted = weighted,
-    OSPAN.order_acc = order_acc,
-    OSPAN.math_acc = math_acc
-  ) %>% dplyr::select(subject, OSPAN.weighted, OSPAN.order_acc, OSPAN.math_acc)
+  dplyr::select(subject, OSPAN.order_num, OSPAN.order_acc, OSPAN.math_acc, OSPAN.weighted, ospan_split) 
 temp_dfs <- df_online %>% filter(subject %in% df_ospan$subject)
 #scored ospan subjects
 df_ospan <- merge(df_ospan, temp_dfs)
@@ -2468,32 +2461,6 @@ rio::export(df_ospan, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participan
 rio::export(df_ospan_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_OSPAN.rds") # to R data structure file
 
 ```
-
-
-
-
-
-Finally, we export the scores for each item (`df_items`) and summarized over subjects (`df_subjects`), as well as cumulative progress dataframes (`df_absolute_progress`, `df_scaled_progress`)
-
-```{r}
-#| label: EXPORT-SCORES
-
-# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# setwd(imac)
-
-#SAVE FILES
-write.csv(df_subjects,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.csv", row.names = FALSE)
-write.csv(df_items,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.csv", row.names = FALSE)
-write.csv(df_absolute_progress,"analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress.csv", row.names = FALSE)
-write.csv(df_scaled_progress,"analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress.csv", row.names = FALSE)
-
-#SAVE R Data Structures
-#export R DATA STRUCTURES (include codebook metadata)
-rio::export(df_subjects, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants.rds") # to R data structure file
-rio::export(df_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items.rds") # to R data structure file
-
-```
-
 
 ### SGC3A ONLINE REPLICATION
 
@@ -2525,7 +2492,23 @@ rio::export(df_rep_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_
 
 ```
 
+### SGC3A ALL DATA 
 
+```{r}
+
+
+#SAVE FILES
+write.csv(df_subjects,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_ALL.csv", row.names = FALSE)
+write.csv(df_items,"analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_ALL.csv", row.names = FALSE)
+write.csv(df_absolute_progress,"analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress_ALL.csv", row.names = FALSE)
+write.csv(df_scaled_progress,"analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress_ALL.csv", row.names = FALSE)
+
+#SAVE R Data Structures
+#export R DATA STRUCTURES (include codebook metadata)
+rio::export(df_subjects, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_ALL.rds") # to R data structure file
+rio::export(df_items, "analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_ALL.rds") # to R data structure file
+
+```
 
 
 ## RESOURCES

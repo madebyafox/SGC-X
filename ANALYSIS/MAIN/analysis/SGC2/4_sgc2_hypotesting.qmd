@@ -415,7 +415,6 @@ m.C <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q), family = "binomi
 ##### Describe
 
 ```{r}
-#| label: MODEL-DESC-CACC
 
 # best model
 m <- m.C
@@ -463,7 +462,6 @@ A Mixed Logistic Regression model including CONDITION as a fixed effect and SUBJ
 ##### Visualize
 
 ```{r}
-#| label: MODEL-VIS-CACC
 
 ## | PLOT PARAMETERS 
 
@@ -545,7 +543,6 @@ tab_model(m)
 ##### Diagnostics
 
 ```{r}
-#| label: MODEL-DIAG-ACC
 #| warning: false
 #| message: false
 
@@ -570,7 +567,7 @@ Does ACCURACY differ between *linear* and *triangular* graphs in the control con
 #### Setup
 
 ```{r}
-#| label: SETUP-H1
+
 
 #FILTER THE DATASET
 #only control condition 
@@ -588,7 +585,7 @@ df_i <- df_items %>% filter(pretty_condition == "control") %>% filter(q %nin% c(
 #### Visualize
 
 ```{r}
-#| label: VIS-H1
+
 
 #:::::::: STACKED PROPORTIONAL BAR CHART
 df_i %>% 
@@ -1312,7 +1309,6 @@ check_model(m)
 #### Setup
 
 ```{r}
-#| label: SETUP-ACC
 
 #FILTER THE DATASET
 df_s <- df_subjects %>% dplyr::select(triangular_score, score_diff, subject, order, tm_scenarios, pretty_condition)
@@ -1757,10 +1753,22 @@ check_model(m)
 
 ### H2 \| Realizing Computational Efficiency ------ TIME EFFICIENCY
 
+#### Setup
+
+```{r}
+
+df_s <- df_subjects 
+df_i <- df_items 
+
+```
+
+
+
 #### Visualize
 
 ```{r}
 
+library(ggpubr)
 ggboxplot(df_s, x = "pretty_condition", y = "time_diff", 
           color = "pretty_condition", 
           # palette = c("#00AFBB", "#E7B800", "#FC4E07"),

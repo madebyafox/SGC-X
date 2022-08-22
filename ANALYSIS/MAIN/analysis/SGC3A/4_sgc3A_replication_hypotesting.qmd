@@ -47,9 +47,10 @@ library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
 library(parameters) #easystats model summary and vis
+library(insight)
 # library(qqplotr) #confint on qq plot
 # library(gmodels) #contingency table and CHISQR
-# library(equatiomatic) #extract model equation
+library(equatiomatic) #extract model equation
 # library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
@@ -90,6 +91,7 @@ theme_clean <- function() {
 
 set_theme(base = theme_clean())
 
+set.seed(1234)
 ```
 
 **Research Questions**
@@ -180,6 +182,7 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
   footnote(general = "Age in Years", 
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
+**REPORTED**
 
 **Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
 
@@ -274,7 +277,10 @@ gf_props(~task_percent,
        y = "proportion of subjects",
        title = "DISTRIBUTION | Total Absolute Score (% Correct)",
        subtitle = "") + theme(legend.position = "blank")
+```
 
+
+```{r}
 #:::::::: RAINCLOUD WITH STATS
   
 df <- df_s %>% mutate(task_percent = task_percent*100)
@@ -317,10 +323,13 @@ e <- statsExpressions::two_sample_test(y = task_percent, x = pretty_condition, d
                                 type = "nonparametric", alternative = "less",
                                 var.equal = FALSE)
 #labels are layer 4
-p + labs(title = "STUDY 3A (online replication) | DISTRIBUTION of Total Score",
+p <- p + labs(title = "STUDY 3A (Online Replication) | Distribution of Total Score",
          y = "Percentage of correct responses across task", x = "",
          # caption=e$expression[[1]],
          subtitle = "Impasse condition yields greater variance and more high scores")
+
+p
+ggsave(p, filename = "figures/SGC3A_REP_totalscore.png", width = 6, height =4)
 
 ```
 
@@ -516,6 +525,7 @@ preds <- cbind(newdata, preds)
 
 p = 0.06; but we should be performing a directional test, so actually OK.
 
+##### Print
 ```{r}
 #| label: MODEL-TBL-ACC
 
@@ -523,10 +533,13 @@ p = 0.06; but we should be performing a directional test, so actually OK.
 tab_model(m)
 
 # #MODEL SUMMARY | save latex table
+
 # models <- list("odds ratios" = m, "(log odds)" = m)
+# title = "Study 3A (Online Replication) | Question Accuracy | Mixed Logistic Regression"
 # notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
-#              '$sigma^{2}$ = 3.29" N(subject) = 126 $\tau_{00}$(subject) = 22.22 N(question) = 13 $\tau_{00}$(question) = 0.31'
-#                )
+#              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
+#                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
+#              "Accuracy  ~ Condition + (1 | subject) + (1 | q)")
 # 
 # modelsummary(models,
 #              exponentiate = c(TRUE, FALSE),
@@ -537,15 +550,17 @@ tab_model(m)
 #              gof_map = c("AIC", "sigma"),
 #              gof_omit = 'RMSE|ICC|BIC',
 #              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
-#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
-#              notes = notes)
-#              # output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
-# #              # coef_omit = "Intercept",
-
-
+#              title = title,
+#              notes = notes,
+#              output = "tables/SGC3A_REP_GLMER_OverallAccuracy.tex")
+# # #              # coef_omit = "Intercept",
+# 
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
 
 
 ```
+
+
 
 ##### Visualize
 
@@ -560,7 +575,7 @@ plot_model(m, transform = NULL,
            vline.color = "red", 
            show.intercept = TRUE, 
            show.values = TRUE,
-           p.threshold = 0.05, #manually adjust to account for directional test
+           p.threshold = 0.06, #manually adjust to account for directional test
            ci.lvl = 0.95 ) + #manually adjusted for directional test   
   labs(title = "Model ESTIMATE | LOG ODDS",
        subtitle = "",
@@ -572,7 +587,7 @@ plot_model(m, transform = "exp",
            vline.color = "red", 
            show.intercept = TRUE, 
            show.values = TRUE,
-           p.threshold = 0.05, #manually adjust to account for directional test
+           p.threshold = 0.06, #manually adjust to account for directional test
            ci.lvl = 0.95 ) + #manually adjusted for directional test   
   labs(title = "Model ESTIMATE | Odds Ratio",
        subtitle = "",
@@ -826,153 +841,6 @@ table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for 
 
 *Fit a MIXED logistic regression predicting interpretation state (k=3) by condition(k = 2).*
 
-##### Fit Model \[mblogit\]
-
-```{r}
-#| label: FIT-MBLOGIT-STATE
-
-#https://www.elff.eu/software/mclogit/manual/mblogit/
-#"baseline category logit" model matches multinom()
-
-#check reference level 
-print("Categories (first is reference)")
-levels(df_i$state)
-
-#FIT EMPTY MODEL
-# print("EMPTY MODEL")
-mm.cat.rSQ <- mblogit(state ~ 1 , 
-                      random = list( ~ 1|subject, ~1|q), 
-                      data = df_i)
-#summary(mm.cat.rSQ)
-
-#FIT PREDICTOR MODEL
-# print("PREDICTOR MODEL")
-mm.cat.CrSQ <- mblogit(state ~ pretty_condition , 
-                  random = list( ~ 1|subject, ~1|q), 
-                  data = df_i)
-# summary(mm.cat.CrSQ)
-
-#COMPARE MODEL FIT
-paste("AIC wth predictor is lower than empty model?", AIC(mm.cat.rSQ) > AIC(mm.cat.CrSQ))
-test_lrt(mm.cat.rSQ, mm.cat.CrSQ)
-```
-
-##### Describe
-
-```{r}
-#| label: DESC-MBLOGIT-STATE
-
-m <- mm.cat.CrSQ
-
-#DESCRIBE MODEL
-summary(m)
-
-#INTERPRET COEFFICIENTS
-paste("LOG ODDS")
-tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
-paste("ODDS RATIOS")
-tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
-
-# paste("MODEL INFO")
-# glance(m)
-
-#PERFORMANCE
-performance(m)
-
-```
-
-##### TODO Inference
-
-```{r}
-#| label: MODEL-TBL-MBLOGIT-STATE
-
-#SJPLOT | MODEL | TABLE
-tab_model(m)
-
-# #MODEL SUMMARY | save latex table
-# models <- list("odds ratios" = m, "(log odds)" = m)
-# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
-#              '$sigma^{2}$ = 3.29" N(subject) = 126 $\tau_{00}$(subject) = 22.22 N(question) = 13 $\tau_{00}$(question) = 0.31'
-#                )
-# 
-# modelsummary(models,
-#              exponentiate = c(TRUE, FALSE),
-#              shape = term ~ model + statistic,
-#              fmt = 2, #two digits w/ trailing zero
-#              estimate  = "{estimate} {stars}",
-#              statistic = "conf.int",
-#              gof_map = c("AIC", "sigma"),
-#              gof_omit = 'RMSE|ICC|BIC',
-#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
-#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
-#              notes = notes)
-#              # output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
-# #              # coef_omit = "Intercept",
-
-
-
-
-```
-
-##### Visualize
-
-```{r}
-#| label: VIS-MBLOGIT-STATE
-
-
-## | PLOT PARAMETERS 
-
-#SJPLOT | MODEL | ODDS RATIO
-plot_model(m, 
-           transform = "exp",
-           vline.color = "red", 
-           show.intercept = TRUE, 
-           show.values = TRUE)
-
-
-#TODO SEPARATE THIS BY EQUATION 
-# ms <- model_parameters(Bmm.cat.CrSQ, component = "conditional")
-# m1 <- ms %>% filter(str_detect(Parameter, "muother"))
-# plot(m1)
-
-#EASYSTATS | MODEL | ODDS RATIO
-result <- model_parameters(m, exponentiate = TRUE, component = "all")
-plot(result, show_labels = TRUE, n_columns = 3)
-
-# result <- simulate_parameters(m)
-# plot(result, stack = FALSE)
-
-## | PLOT TESTS
-result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
-plot(result)
-
-## | PLOT PREDICTIONS
-
-#SJPLOT | MODEL | PROBABILITIES
-# plot_model(m, type="eff",
-#            show.intercept = TRUE,
-#            show.values = TRUE,
-#            title = "Model Prediction | Probability of Accurate Response",
-#            axis.title = c("Condition","Probability of Accurate Response"))
-# 
-# #PLOT MODEL PREDICTION
-# plot_model(m, type = "pred")[[1]] + 
-#   ylim(0,1) + labs(
-#     title = "Model Prediction | Probability of Accurate Response",
-#     subtitle = "Impasse increases Probability of Correct Response"
-#   )
-
-#TODO EMMEANS for the estimated marginal means
-
-```
-
-##### Diagnostics
-
-```{r}
-
-# check_model(m)
-
-```
 
 ##### Fit Model \[brms\]
 
@@ -1148,9 +1016,114 @@ preds <- preds %>%
 
 \[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 % credible interval, % probability of direction\]
 
-We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 3.65e+04). **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.**
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 8.90e+03). **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.**
 
-Across the entire task participants in the impasse condition were 4 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 4.16, 95 \% CI [2.16, 8.51], pd = 99\%$). Participants in the impasse condition were 4 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 3.84, 95 \% CI [1.23, 13.45], pd = 99\%$), and 9 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 9.07, 95 \% CI [1.39, 60.87], pd = 99\%$).
+Across the entire task participants in the impasse condition were 4 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 4.13, 95 \% CI [2.07, 8.58], pd = 99.8\%$). Participants in the impasse condition were 4 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 3.70, 95 \% CI [1.23, 13.45], pd = 98.4\%$), and 9 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 8.67, 95 \% CI [1.24, 64.58], pd = 98.6\%$).
+
+##### Print
+```{r}
+#| label: MODEL-TBL-STATE
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+#model summary doesn't work for brms multinomial
+
+# DOESN'T WORK FOR BRMS
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
+# 
+# 
+# # #GET MODEL ESTIMATES
+# t <- as.data.frame(model_parameters(m, exponentiate = TRUE))
+# 
+# #REFORMAT
+# x <- t %>%
+#   mutate(
+#     Interpretation = word(Parameter, 2, sep = "_"),
+#     Interpretation = str_remove_all(Interpretation,"mu"),
+#     Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),
+# 
+#     Parameter = as.factor(word(Parameter, 3, sep = "_")),
+#     Parameter = recode_factor(Parameter,
+#                          "Intercept" = "(Intercept)",
+#                          "pretty" = "Condition[impasse]"),
+#     Median = round(Median,2),
+#     CI_low = round(CI_low,2),
+#     CI_high = round(CI_high,2),
+#     pd = round(pd,2),
+#     ROPE_Percentage = round(ROPE_Percentage,2)
+#   ) %>%
+#   arrange(Interpretation) %>%
+#   dplyr::select(-CI, -Rhat, -ESS) %>%
+#   rename( "%_in_ROPE"="ROPE_Percentage",
+#           "(Odds Ratio)" = "Median") %>%
+#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)
+# 
+# 
+# 
+# #KNIT
+# title = "Study 3A (Online Replication) | Question Interpretation | Mixed Multinomial Regression"
+# tab <- kbl(x, format = "latex", caption = title,
+#            booktabs = FALSE) %>% kable_classic() %>%
+# footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")
+# writeLines(tab, "tables/SGC3A_REP_BRMS_state.tex")
+# 
+
+```
+
+
+
+
+```{r}
+
+
+# ## POINT ESTIMATES IN PROBABILITY
+# #1 | get draws
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>%
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
+# draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# #2 | SUMMARIZE draws 
+# k <- kable(draws %>%
+#   select(pretty_condition, .category, .value) %>%
+#   group_by(pretty_condition, .category) %>%
+#   median_hdci(.value), digits = 2, col.names = 
+#     c("Condition","Category", "Probability","Lower Cred.I","Upper Cred.I", "CI Width", "Point Type", "Interval Type")) %>% 
+#   kable_styling()
+# k
+
+#COMPARISONS
+# c <- draws %>% 
+#   # dplyr::select(pretty_condition, .category, .value) %>%
+#   compare_levels(variable = .value, by = pretty_condition, 
+#                  comparison = list(c("control","impasse"))) 
+#                                    # c("adots","interval"),
+#                                    # c("adots","mean"),
+#                                    # c("adots","text"),
+#                                    # c("density","interval"),
+#                                    # c("density","mean"),
+#                                    # c("density","text"),
+#                                    # c("interval","mean"),
+#                                    # c("interval","text"),
+#                                    # c("mean","text")
+#                                    
+# c %>%
+#   ggplot(aes(x = .value, y = reorder(x =pretty_condition, X = .value)))+
+#   stat_interval(.width = .95, color = "black") +
+#   geom_vline(xintercept = 0)+
+#   theme_bw()+
+#   # coord_cartesian(xlim = c(-.5,1)) +
+#   theme_tidybayes() 
+# comps
+
+```
+
 
 ```{r}
 #| label: TBL-BRMS-STATE
@@ -1344,11 +1317,158 @@ plot(Bmm.cat.CrSQ)
 
 ```
 
+##### Fit Model \[mblogit\]
+
+```{r}
+#| label: FIT-MBLOGIT-STATE
+# 
+# #https://www.elff.eu/software/mclogit/manual/mblogit/
+# #"baseline category logit" model matches multinom()
+# 
+# #check reference level 
+# print("Categories (first is reference)")
+# levels(df_i$state)
+# 
+# #FIT EMPTY MODEL
+# # print("EMPTY MODEL")
+# mm.cat.rSQ <- mblogit(state ~ 1 , 
+#                       random = list( ~ 1|subject, ~1|q), 
+#                       data = df_i)
+# #summary(mm.cat.rSQ)
+# 
+# #FIT PREDICTOR MODEL
+# # print("PREDICTOR MODEL")
+# mm.cat.CrSQ <- mblogit(state ~ pretty_condition , 
+#                   random = list( ~ 1|subject, ~1|q), 
+#                   data = df_i)
+# # summary(mm.cat.CrSQ)
+# 
+# #COMPARE MODEL FIT
+# paste("AIC wth predictor is lower than empty model?", AIC(mm.cat.rSQ) > AIC(mm.cat.CrSQ))
+# test_lrt(mm.cat.rSQ, mm.cat.CrSQ)
+```
+
+##### Describe
+
+```{r}
+#| label: DESC-MBLOGIT-STATE
+# 
+# m <- mm.cat.CrSQ
+# 
+# #DESCRIBE MODEL
+# summary(m)
+# 
+# #INTERPRET COEFFICIENTS
+# paste("LOG ODDS")
+# tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
+# paste("ODDS RATIOS")
+# tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
+# 
+# # paste("MODEL INFO")
+# # glance(m)
+# 
+# #PERFORMANCE
+# performance(m)
+
+```
+
+
+```{r}
+#| label: MODEL-TBL-MBLOGIT-STATE
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+# models <- list("odds ratios" = m, "(log odds)" = m)
+# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
+#              '$sigma^{2}$ = 3.29" N(subject) = 126 $\tau_{00}$(subject) = 22.22 N(question) = 13 $\tau_{00}$(question) = 0.31'
+#                )
+# 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              gof_map = c("AIC", "sigma"),
+#              gof_omit = 'RMSE|ICC|BIC',
+#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
+#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
+#              notes = notes)
+#              # output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
+# #              # coef_omit = "Intercept",
+
+
+
+
+```
+
+##### Visualize
+
+```{r}
+#| label: VIS-MBLOGIT-STATE
+
+# 
+# ## | PLOT PARAMETERS 
+# 
+# #SJPLOT | MODEL | ODDS RATIO
+# plot_model(m, 
+#            transform = "exp",
+#            vline.color = "red", 
+#            show.intercept = TRUE, 
+#            show.values = TRUE)
+# 
+# 
+# #TODO SEPARATE THIS BY EQUATION 
+# # ms <- model_parameters(Bmm.cat.CrSQ, component = "conditional")
+# # m1 <- ms %>% filter(str_detect(Parameter, "muother"))
+# # plot(m1)
+# 
+# #EASYSTATS | MODEL | ODDS RATIO
+# result <- model_parameters(m, exponentiate = TRUE, component = "all")
+# plot(result, show_labels = TRUE, n_columns = 3)
+# 
+# # result <- simulate_parameters(m)
+# # plot(result, stack = FALSE)
+# 
+# ## | PLOT TESTS
+# result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+# plot(result)
+# 
+# ## | PLOT PREDICTIONS
+# 
+# #SJPLOT | MODEL | PROBABILITIES
+# # plot_model(m, type="eff",
+# #            show.intercept = TRUE,
+# #            show.values = TRUE,
+# #            title = "Model Prediction | Probability of Accurate Response",
+# #            axis.title = c("Condition","Probability of Accurate Response"))
+# # 
+# # #PLOT MODEL PREDICTION
+# # plot_model(m, type = "pred")[[1]] + 
+# #   ylim(0,1) + labs(
+# #     title = "Model Prediction | Probability of Accurate Response",
+# #     subtitle = "Impasse increases Probability of Correct Response"
+# #   )
+# 
+# #TODO EMMEANS for the estimated marginal means
+
+```
+
+##### Diagnostics
+
+```{r}
+
+# check_model(m)
+
+```
+
 ##### COMPARE MBLOGIT to BRMS
 
 ```{r}
 #| label: COMPARE-STATE-MODELS
-compare_models(mm.cat.CrSQ, Bmm.cat.CrSQ)
+# compare_models(mm.cat.CrSQ, Bmm.cat.CrSQ)
 ```
 
 The predictions of the manual, frequentist mixed multinomial and bayesian mixed multinomial models are comparable.
