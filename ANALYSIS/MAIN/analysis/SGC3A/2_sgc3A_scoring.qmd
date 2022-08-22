@@ -255,144 +255,435 @@ df_items <- temp
 ```
 
 
-### ? SPECIAL EXCEPTIONS
+### SPECIAL EXCEPTION PROCESSING
 
 Look for special exceptions (essentially pass through cases) that are missed by the threshold partial p calculations, but fit particular interpretations. (ie. a clearly tversky interpretation that only includes 1 or 2 of the 3 possible options)
 
-
+ALSO reconciles issues when interpetation == triangular but scoreniceabs = 0
 ```{r}
 
 # #temp setup for protection
 # backup <- df_items
-# temp <- df_items %>% mutate(
-#   override = ""
-# )
-# 
-# 
-# ## CONTROL. Q==3. "A" derives as 'unknown', should be tversky duration
-# #codes as unknown bc there are 2 other along that line, but A is the closest (shortcut)
-# temp <- temp %>% mutate_when(
-#   (q==3) & (IMPASSE =="none") & (response == "A"),
-#   tv_type = "score_TV_duration",
-#   int2 = "Tversky", #override from ?
-#   interpretation = "Tversky", #override from ?
-#   high_interpretation = "pos.trans",
-#   override = "?"
-# )
-# 
-# ## CONTROL  Q==3 "EFK" derives as TRI. hardcode as "unknown"
-# temp <- temp %>% mutate_when(
-#   (q==3) & (IMPASSE =="none") & (response == "EFK"),
-#   int2 = "?", #override from TRI
-#   interpretation = "?", #override from TRI
-#   high_interpretation = "neg.trans", #override from triangular
-#   override = "Triangular"
-# )
-# 
-# ## IMPASSE  Q==3 "AFG" derives as TRI. hardcode as "unknown"
-# temp <- temp %>% mutate_when(
-#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AFG"),
-#   int2 = "?", #override from TRI
-#   interpretation = "?", #override from TRI
-#   high_interpretation = "neg.trans", #override from triangular
-#   override = "Triangular"
-# )
-# 
-# 
-# ## IMPASSE  Q==3 "AH" derives as SATISFICE hardcode as "angular"
-# temp <- temp %>% mutate_when(
-#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AH"),
-#   int2 = "Tversky", #override from Satisfice
-#   interpretation = "Tversky", #override from Satisfice
-#   high_interpretation = "pos.trans", #override from orthogonal
-#   override = "Satisfice"
-# )
-# 
-# ## IMPASSE  Q==3 "AO" derives as SATISFICE hardcode as "angular"
-# temp <- temp %>% mutate_when(
-#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AO"),
-#   int2 = "Tversky", #override from Satisfice
-#   interpretation = "Tversky", #override from Satisfice
-#   high_interpretation = "pos.trans", #override from orthogonal
-#   override = "Satisfice"
-# )
-# 
-# 
-# ## IMPASSE  Q==3 "AOU" derives as SATISFICE hardcode as "angular"
-# temp <- temp %>% mutate_when(
-#   (q==3) & (IMPASSE =="IMPASSE") & (response == "AOU"),
-#   int2 = "Tversky", #override from Satisfice
-#   interpretation = "Tversky", #override from Satisfice
-#   high_interpretation = "pos.trans", #override from orthogonal
-#   override = "Satisfice"
-# )
-# 
-# ## CONTROL Q==4 DEU DERIVES as ORTH Recode as OTHER
-# temp <- temp %>% mutate_when(
-#   (q==4) & (IMPASSE =="none") & (response == "DEU"),
-#   int2 = "?", #override from Orthogonal
-#   interpretation = "?", #override from Orthogonal
-#   high_interpretation = "neg.trans", #override from orthogonal
-#   override = "Orthogonal"
-# )
-# 
-# ## CONTROL Q==4 DEOU DERIVES as ORTH Recode as OTHER
-# temp <- temp %>% mutate_when(
-#   (q==4) & (IMPASSE =="none") & (response == "DEOU"),
-#   int2 = "?", #override from Orthogonal
-#   interpretation = "?", #override from Orthogonal
-#   high_interpretation = "neg.trans", #override from orthogonal
-#   override = "Orthogonal"
-# )
-# 
-# ## CONTROL Q==4 KU DERIVES as ORTH Recode as OTHER
-# temp <- temp %>% mutate_when(
-#   (q==4) & (IMPASSE =="none") & (response == "KU"),
-#   int2 = "?", #override from Orthogonal
-#   interpretation = "?", #override from Orthogonal
-#   high_interpretation = "neg.trans", #override from orthogonal
-#   override = "Orthogonal"
-# )
-# 
-# ## IMPASSE Q==4 BD Derives as TVERSKY RECODE as OTHER
-# temp <- temp %>% mutate_when(
-#   (q==4) & (IMPASSE =="IMPASSE") & (response == "BD"),
-#   int2 = "?", #override from Tversky
-#   interpretation = "?", #override from Tversky
-#   high_interpretation = "neg.trans", #override from pos.trans
-#   override = "Tversky"
-# )
-# 
-# ## IMPASSE Q==4 BDEG Derives as TVERSKY RECODE as OTHER
-# temp <- temp %>% mutate_when(
-#   (q==4) & (IMPASSE =="IMPASSE") & (response == "BDEG"),
-#   int2 = "?", #override from Tversky
-#   interpretation = "?", #override from Tversky
-#   high_interpretation = "neg.trans", #override from pos.trans
-#   override = "Tversky"
-# )
-# 
-# ## IMPASSE Q==4 AFG Derives as SATISFICE RECODE as OTHER
-# temp <- temp %>% mutate_when(
-#   (q==4) & (IMPASSE =="IMPASSE") & (response == "AFG"),
-#   int2 = "?", #override from Satisfice
-#   interpretation = "?", #override from Satisfice
-#   high_interpretation = "neg.trans", #override from orthogonal
-#   override = "Satisfice"
-# )
-# 
-# ## IMPASSE Q==5 AFG Derives as TRI RECODE as angular
-# temp <- temp %>% mutate_when(
-#   (q==5) & (IMPASSE =="IMPASSE") & (response == "AFG"),
-#   int2 = "Tversky", #override from Triangular
-#   interpretation = "Tversky", #override from Triangular
-#   high_interpretation = "pos.trans", #override from triangular
-#   override = "Triangular"
-# )
-# 
-# 
-# #SET BACK
-# df_items <- temp
+temp <- df_items %>% mutate(
+  override = ""
+)
+
+## IMPASS Q==2. "EK" derives as 'TRI', should be tversky MAX
+temp <- temp %>% mutate_when(
+  (q==2) & (IMPASSE =="IMPASSE") & (response == "EK"),
+  tv_type = "score_TV_max",
+  int2 = "Tversky", #override from TRI
+  interpretation = "Tversky", #override from ?
+  high_interpretation = "pos.trans",
+  override = "?"
+)
+
+## CONTROL. Q==3. "A" derives as 'unknown', should be tversky duration
+#codes as unknown bc there are 2 other along that line, but A is the closest (shortcut)
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="none") & (response == "A"),
+  tv_type = "score_TV_duration",
+  int2 = "Tversky", #override from ?
+  interpretation = "Tversky", #override from ?
+  high_interpretation = "pos.trans",
+  override = "?"
+)
+
+## CONTROL  Q==3 "EFK" derives as TRI. hardcode as "unknown"
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="none") & (response == "EFK"),
+  int2 = "?", #override from TRI
+  interpretation = "?", #override from TRI
+  high_interpretation = "neg.trans", #override from triangular
+  override = "Triangular"
+)
+
+## IMPASS  Q==3 "AF" derives as TRI. hardcode as "TVERSKY-DURATION"
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="IMPASSE") & (response == "AF"),
+  tv_type = "score_TV_duration",
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+## IMPASSE  Q==3 "AFG" derives as TRI. hardcode as "unknown"
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="IMPASSE") & (response == "AFG"),
+  int2 = "?", #override from TRI
+  interpretation = "?", #override from TRI
+  high_interpretation = "neg.trans", #override from triangular
+  override = "Triangular"
+)
+
+
+## IMPASSE  Q==3 "AH" derives as SATISFICE hardcode as "angular"
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="IMPASSE") & (response == "AH"),
+  int2 = "Tversky", #override from Satisfice
+  interpretation = "Tversky", #override from Satisfice
+  high_interpretation = "pos.trans", #override from orthogonal
+  override = "Satisfice"
+)
+
+## IMPASSE  Q==3 "AO" derives as SATISFICE hardcode as "angular"
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="IMPASSE") & (response == "AO"),
+  int2 = "Tversky", #override from Satisfice
+  interpretation = "Tversky", #override from Satisfice
+  high_interpretation = "pos.trans", #override from orthogonal
+  override = "Satisfice"
+)
+
+
+## IMPASSE  Q==3 "AOU" derives as SATISFICE hardcode as "angular"
+temp <- temp %>% mutate_when(
+  (q==3) & (IMPASSE =="IMPASSE") & (response == "AOU"),
+  int2 = "Tversky", #override from Satisfice
+  interpretation = "Tversky", #override from Satisfice
+  high_interpretation = "pos.trans", #override from orthogonal
+  override = "Satisfice"
+)
+
+
+## CONTROL Q==4 AH Derives as TRI RECODE as TVERSKY
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="none") & (response == "AH"),
+  int2 = "Tversky", #override from Satisfice
+  interpretation = "Tversky", #override from Satisfice
+  high_interpretation = "pos.trans", #override from orthogonal
+  override = "Triangular"
+)
+
+
+## CONTROL Q==4 DEU DERIVES as ORTH Recode as OTHER
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="none") & (response == "DEU"),
+  int2 = "?", #override from Orthogonal
+  interpretation = "?", #override from Orthogonal
+  high_interpretation = "neg.trans", #override from orthogonal
+  override = "Orthogonal"
+)
+
+## CONTROL Q==4 DEOU DERIVES as ORTH Recode as OTHER
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="none") & (response == "DEOU"),
+  int2 = "?", #override from Orthogonal
+  interpretation = "?", #override from Orthogonal
+  high_interpretation = "neg.trans", #override from orthogonal
+  override = "Orthogonal"
+)
+
+## CONTROL Q==4 KU DERIVES as ORTH Recode as OTHER
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="none") & (response == "KU"),
+  int2 = "?", #override from Orthogonal
+  interpretation = "?", #override from Orthogonal
+  high_interpretation = "neg.trans", #override from orthogonal
+  override = "Orthogonal"
+)
+
+## IMPASSE Q==4 BD Derives as TVERSKY RECODE as OTHER
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="IMPASSE") & (response == "BD"),
+  int2 = "?", #override from Tversky
+  interpretation = "?", #override from Tversky
+  high_interpretation = "neg.trans", #override from pos.trans
+  override = "Tversky"
+)
+
+## IMPASSE Q==4 BDEG Derives as TVERSKY RECODE as OTHER
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="IMPASSE") & (response == "BDEG"),
+  int2 = "?", #override from Tversky
+  interpretation = "?", #override from Tversky
+  high_interpretation = "neg.trans", #override from pos.trans
+  override = "Tversky"
+)
+
+## IMPASSE Q==4 AFG Derives as SATISFICE RECODE as OTHER
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="IMPASSE") & (response == "AFG"),
+  int2 = "?", #override from Satisfice
+  interpretation = "?", #override from Satisfice
+  high_interpretation = "neg.trans", #override from orthogonal
+  override = "Satisfice"
+)
+
+
+## IMPASSE Q==4 DH Derives as TRI RECODE as BOTH
+temp <- temp %>% mutate_when(
+  (q==4) & (IMPASSE =="IMPASSE") & (response == "DH"),
+  int2 = "both tri + orth", #override from Satisfice
+  interpretation = "both tri + orth", #override from Satisfice
+  high_interpretation = "pos.trans", #override from orthogonal
+  override = "Triangular"
+)
+
+
+## IMPASSE Q==5 AU Derives as TRI RECODE as satisfice
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="IMPASSE") & (response == "AU"),
+  int2 = "Satisfice", #override from Triangular
+  interpretation = "Satisfice", #override from Triangular
+  high_interpretation = "neg.trans", #override from triangular
+  override = "Triangular"
+)
+
+## IMPASSE Q==5 AZ Derives as TRI RECODE as other
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="IMPASSE") & (response == "AZ"),
+  int2 = "?", #override from Triangular
+  interpretation = "?", #override from Triangular
+  high_interpretation = "neg.trans", #override from triangular
+  override = "Triangular"
+)
+
+
+## IMPASSE Q==5 AFG Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="IMPASSE") & (response == "AFG"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+
+
+## IMPASSE Q==5 AF Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="IMPASSE") & (response == "AF"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+## IMPASSE Q==5 AO Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="IMPASSE") & (response == "AO"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+## CONTROL Q==5 FO Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="none") & (response == "FO"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+## CONTROL Q==5 HO Derives as TRI RECODE as other
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="none") & (response == "FO"),
+  int2 = "?", #override from Tversky
+  interpretation = "?", #override from Tversky
+  high_interpretation = "neg.trans", #override from pos.trans
+  override = "Triangular"
+)
+
+## CONTROL Q==5 KO Derives as TRI RECODE as tversky_duration
+temp <- temp %>% mutate_when(
+  (q==5) & (IMPASSE =="none") & (response == "KO"),
+  tv_type = "score_TV_duration",
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+
+##  Q==7 AX, MO Derives as TRI RECODE as other
+temp <- temp %>% mutate_when(
+  (q==7)  & (response %in% c("MO, AX")),
+  int2 = "?", #override from Tversky
+  interpretation = "?", #override from Tversky
+  high_interpretation = "neg.trans", #override from pos.trans
+  override = "Triangular"
+)
+
+##  Q==7 MOX, MX  Derives as TRI RECODE as tversky
+temp <- temp %>% mutate_when(
+  (q==7)  & (response %in% c("MOX, XX")),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+
+
+##  Q==8 CFGO Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==8) & (response == "CFGO"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==8 AG Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==8)  & (response == "AG"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==8 AGK Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==8)  & (response == "AGK"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==8 FG Derives as TRI RECODE as angular
+temp <- temp %>% mutate_when(
+  (q==8)  & (response %in% c("FG","CG","CFG","CGM","CM")),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==11 M Derives as TRI MISSING RESPONSE
+##LEAVE AS TRI + OVERRIDE SCORENABS
+temp <- temp %>% mutate_when(
+  (q==11)  & (response == "M"),
+  score_niceABS = 1
+  # int2 = "Tversky", #override from Triangular
+  # interpretation = "Tversky", #override from Triangular
+  # high_interpretation = "pos.trans", #override from triangular
+  # override = "Triangular"
+)
+
+##  Q==11 BLM Derives as TRI set at both
+temp <- temp %>% mutate_when(
+  (q==11)  & (response == "BLM"),
+  int2 = "both tri + orth", #override from Satisfice
+  interpretation = "both tri + orth", #override from Satisfice
+  high_interpretation = "pos.trans", #override from orthogonal
+  override = "Triangular"
+)
+
+##  Q==11 EKM Derives as TRI set at other
+temp <- temp %>% mutate_when(
+  (q==11)  & (response == "EKM"),
+  int2 = "?", #override from Tversky
+  interpretation = "?", #override from Tversky
+  high_interpretation = "neg.trans", #override from pos.trans
+  override = "Triangular"
+)
+
+##  Q==12 GP Derives as TRI set at Tversky
+temp <- temp %>% mutate_when(
+  (q==12)  & (response == "GP"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==13 E Derives as TRI but incorrect
+##LEAVE AS TRI + OVERRIDE SCORENABS
+##one of two correct answers
+temp <- temp %>% mutate_when(
+  (q==13)  & (response == "E"),
+  score_niceABS = 1
+  # int2 = "Tversky", #override from Triangular
+  # interpretation = "Tversky", #override from Triangular
+  # high_interpretation = "pos.trans", #override from triangular
+  # override = "Triangular"
+)
+
+##  Q==13 CE Derives as TRI set at Tversky
+temp <- temp %>% mutate_when(
+  (q==13)  & (response == "CE"),
+  int2 = "?", #override from Triangular
+  interpretation = "?", #override from Triangular
+  high_interpretation = "neg.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==14 FX Derives as TRI set at Tversky
+temp <- temp %>% mutate_when(
+  (q==14)  & (response == "FX"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==14 OX Derives as TRI set at Tversky
+temp <- temp %>% mutate_when(
+  (q==14)  & (response == "OX"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==14 EX Derives as TRI set at Tversky
+temp <- temp %>% mutate_when(
+  (q==14)  & (response == "EX"),
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==15 CX Derives as TRI but incorrect 
+#within visual margin... give credit
+temp <- temp %>% mutate_when(
+  (q==15)  & (response == "CX"),
+  score_niceABS = 1
+  # int2 = "Tversky", #override from Triangular
+  # interpretation = "Tversky", #override from Triangular
+  # high_interpretation = "pos.trans", #override from triangular
+  # override = "Triangular"
+)
+
+#  Q==15 CX Derives as TRI but incorrect 
+#missing 1 right answer
+temp <- temp %>% mutate_when(
+  (q==15)  & (response %in% c("X","CK","K")),
+  score_niceABS = 1
+  # int2 = "Tversky", #override from Triangular
+  # interpretation = "Tversky", #override from Triangular
+  # high_interpretation = "pos.trans", #override from triangular
+  # override = "Triangular"
+)
+
+##  Q==15 DJNX Derives as TRI set at Tversky
+temp <- temp %>% mutate_when(
+  (q==15)  & (response == "DJNX"),
+  tv_type = "score_TV_duration",
+  int2 = "Tversky", #override from Triangular
+  interpretation = "Tversky", #override from Triangular
+  high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==15 AKPX Derives as TRI set at OTHER
+temp <- temp %>% mutate_when(
+  (q==15)  & (response %in% c("AKPX","GK","JX","LX")),
+  int2 = "?", #override from Tversky
+  interpretation = "?", #override from Tversky
+  high_interpretation = "neg.trans", #override from pos.trans
+  override = "Tversky"
+)
+
+#SET BACK
+df_items <- temp
 
 ```
 
@@ -998,14 +1289,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==2)) 
 #| label: Q2-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==2)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1036,7 +1327,7 @@ df_items %>% filter(q == 2 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
@@ -1102,14 +1393,14 @@ Again, we see that most subjects selected a response consistent with one of the 
 #| label: Q2-IMPASSE-KEY
 
 q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==2)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1140,7 +1431,7 @@ df_items %>% filter(q == 2 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
@@ -1183,14 +1474,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==3)) 
 #| label: Q3-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==3)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1221,7 +1512,7 @@ df_items %>% filter(q == 3 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1299,14 +1590,14 @@ Six responses (from 9 participants) appear inconsistent with any interpretation.
 #| label: Q3-IMPASSE-KEY
 
 q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==3)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1339,7 +1630,7 @@ df_items %>% filter(q == 3 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1383,14 +1674,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==4)) 
 #| label: Q4-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==4)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1421,7 +1712,7 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1451,14 +1742,14 @@ df_items %>% filter(q == 4 & condition == 111) %>% group_by(response) %>%
 #| label: Q4-IMPASSE-KEY
 
 q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==4)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1491,7 +1782,7 @@ df_items %>% filter(q == 4 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1531,14 +1822,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==5)) 
 #| label: Q5-CONTROL-KEY
 
 q <- keys_raw %>% filter(condition == "DEFAULT") %>% filter(Q==5)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1569,7 +1860,7 @@ df_items %>% filter(q == 5 & condition == 111) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1591,14 +1882,14 @@ TODO note the compelling cases of internal inconsistency (HJDE)
 #| label: Q5-IMPASSE-KEY
 
 q <- keys_raw %>% filter(condition == "impasse") %>% filter(Q==5)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist() 
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]", 
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1629,7 +1920,7 @@ df_items %>% filter(q == 5 & condition == 121) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>% 
   arrange(interpretation, desc(count)) %>% 
-  select(response, count, interpretation, nice, 
+  dplyr::dplyr::select(response, count, interpretation, nice, 
          triangular, tversky, satisficing, orthogonal, scaled) %>% 
   kbl(caption = title, col.names = names) %>%  kable_classic() %>% 
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -1671,14 +1962,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 7))
 #| label: Q7-KEY
 
 q <- keys_raw %>% filter(Q==7)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1709,15 +2000,16 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 5) %>%
-  pack_rows("Lines-Connect", 6, 9) %>%
-  pack_rows("Orthogonal", 10, 13) %>%
-  pack_rows("Other", 14, 14) %>%
-  pack_rows("Unknown", 15, 17)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 5) %>%
+#   pack_rows("Lines-Connect", 6, 9) %>%
+#   pack_rows("Orthogonal", 10, 13) %>%
+#   pack_rows("Other", 14, 14) %>%
+#   pack_rows("Unknown", 15, 17)
 ```
 
 
@@ -1730,14 +2022,14 @@ df_items %>% filter(q == 7) %>% group_by(response) %>%
 #| label: Q8-KEY
 
 q <- keys_raw %>% filter(Q==8)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1768,14 +2060,15 @@ df_items %>% filter(q == 8) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 10) %>%
-  pack_rows("Orthogonal", 11, 16) %>%
-  pack_rows("Other", 17, 21) %>%
-  pack_rows("Unknown", 22, 45)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 10) %>%
+#   pack_rows("Orthogonal", 11, 16) %>%
+#   pack_rows("Other", 17, 21) %>%
+#   pack_rows("Unknown", 22, 45)
 ```
 
 ```{r}
@@ -1802,14 +2095,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 8))
 #| label: Q10-KEY
 
 q <- keys_raw %>% filter(Q==10)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1840,15 +2133,16 @@ df_items %>% filter(q == 10) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 2) %>%
-  pack_rows("Lines-Connect", 3, 7) %>%
-  pack_rows("Orthogonal", 8, 11) %>%
-  pack_rows("Other", 12, 14) %>%
-  pack_rows("Unknown", 15, 27)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 2) %>%
+#   pack_rows("Lines-Connect", 3, 7) %>%
+#   pack_rows("Orthogonal", 8, 11) %>%
+#   pack_rows("Other", 12, 14) %>%
+#   pack_rows("Unknown", 15, 27)
 ```
 
 ```{r}
@@ -1875,14 +2169,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 10)
 #| label: Q11-KEY
 
 q <- keys_raw %>% filter(Q==11)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1913,14 +2207,15 @@ df_items %>% filter(q == 11) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 4) %>%
-  pack_rows("Orthogonal", 5, 9) %>%
-  pack_rows("Other", 10, 12) %>%
-  pack_rows("Unknown", 13, 17)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 4) %>%
+#   pack_rows("Orthogonal", 5, 9) %>%
+#   pack_rows("Other", 10, 12) %>%
+#   pack_rows("Unknown", 13, 17)
 ```
 
 ```{r}
@@ -1947,14 +2242,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 11)
 #| label: Q12-KEY
 
 q <- keys_raw %>% filter(Q==12)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -1985,15 +2280,16 @@ df_items %>% filter(q == 12) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 3) %>%
-  pack_rows("Lines-Connect", 4, 6) %>%
-  pack_rows("Orthogonal", 7, 8) %>%
-  pack_rows("Other", 9, 10) %>%
-  pack_rows("Unknown", 11, 14)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 3) %>%
+#   pack_rows("Lines-Connect", 4, 6) %>%
+#   pack_rows("Orthogonal", 7, 8) %>%
+#   pack_rows("Other", 9, 10) %>%
+#   pack_rows("Unknown", 11, 14)
 ```
 
 ```{r}
@@ -2020,14 +2316,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 12)
 #| label: Q13-KEY
 
 q <- keys_raw %>% filter(Q==13)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -2058,14 +2354,15 @@ df_items %>% filter(q == 13) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 3) %>%
-  pack_rows("Orthogonal", 4, 13) %>%
-  pack_rows("Other", 14, 14) %>%
-  pack_rows("Unknown", 15, 36)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
+# %>%
+#   pack_rows("Triangular", 1, 3) %>%
+#   pack_rows("Orthogonal", 4, 13) %>%
+#   pack_rows("Other", 14, 14) %>%
+#   pack_rows("Unknown", 15, 36)
 ```
 
 ```{r}
@@ -2092,14 +2389,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 13)
 #| label: Q14-KEY
 
 q <- keys_raw %>% filter(Q==14)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -2130,14 +2427,15 @@ df_items %>% filter(q == 14) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 4) %>%
-  pack_rows("Orthogonal", 5, 7) %>%
-  pack_rows("Other", 8, 9) %>%
-  pack_rows("Unknown", 10, 22)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Triangular", 1, 4) %>%
+#   pack_rows("Orthogonal", 5, 7) %>%
+#   pack_rows("Other", 8, 9) %>%
+#   pack_rows("Unknown", 10, 22)
 ```
 
 ```{r}
@@ -2166,14 +2464,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q == 14)
 #| label: Q15-KEY
 
 q <- keys_raw %>% filter(Q==15)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -2204,15 +2502,16 @@ df_items %>% filter(q == 15) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Triangular", 1, 10) %>%
-  pack_rows("Lines-Connect", 11, 13) %>%
-  pack_rows("Orthogonal", 14, 22) %>%
-  pack_rows("Other", 23, 23) %>%
-  pack_rows("Unknown", 24, 44)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1))
+# %>%
+#   pack_rows("Triangular", 1, 10) %>%
+#   pack_rows("Lines-Connect", 11, 13) %>%
+#   pack_rows("Orthogonal", 14, 22) %>%
+#   pack_rows("Other", 23, 23) %>%
+#   pack_rows("Unknown", 24, 44)
 ```
 
 ```{r}
@@ -2260,14 +2559,14 @@ gf_props(~interpretation, fill = ~condition, data = df_items %>% filter(q ==6)) 
 #| label: Q6-KEY
 
 q <- keys_raw %>% filter(Q==6)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -2300,7 +2599,7 @@ df_items %>% filter(q == 6) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
@@ -2320,14 +2619,14 @@ df_items %>% filter(q == 6) %>% group_by(response) %>%
 #| label: Q9-KEY
 
 q <- keys_raw %>% filter(Q==9)
-ignore <- q %>% select("REF_POINT")
-answers <- q %>% select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
+ignore <- q %>% dplyr::select("REF_POINT")
+answers <- q %>% dplyr::select("TRIANGULAR", "ORTHOGONAL", "SATISFICE_left", "SATISFICE_right","TV_max","TV_start", "TV_end", "TV_dur") %>% unlist()
 ves <- q %>% mutate(
   SATISFICE_left_allow = "",
   SATISFICE_right_allow = ""
-) %>% select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
-options <- q %>% select("OPTIONS")
-question = q %>%  select("TEXT")
+) %>% dplyr::select("TRI_allow", "ORTH_allow", "SATISFICE_left_allow","SATISFICE_right_allow", "TV_max_allow","TV_start_allow","TV_end_allow", "TV_dur_allow")%>% unlist()
+options <- q %>% dplyr::select("OPTIONS")
+question = q %>%  dplyr::select("TEXT")
 scores <- c("Triangular", "Orthgonal", "Satisficing [left]", "Satisficing [right]", "Tversky [maximal]", "Tversky [start diagonal]",
             "Tversky [end diagonal]", "Tversky [duration line]")
 d = tibble(interpretation = scores, answer = answers, allowed=ves)
@@ -2358,7 +2657,7 @@ df_items %>% filter(q ==9) %>% group_by(response) %>%
                     interpretation = unique(int2),
                     scaled = unique(score_SCALED)) %>%
   arrange(interpretation, desc(count)) %>%
-  select(response, count, interpretation, nice,
+  dplyr::select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
   add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
