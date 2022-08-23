@@ -89,6 +89,8 @@ theme_clean <- function() {
 
 set_theme(base = theme_clean())
 
+set.seed(1234)
+
 ```
 
 **Research Questions**
@@ -268,7 +270,7 @@ p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
          subtitle = "Impasse condition yields more correct responses")
 
 p
-ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
 
 ```
 
@@ -348,7 +350,7 @@ p <- p + labs(title = "STUDY 3A | Distribution of Total Score",
          subtitle = "Impasse condition yields greater variance and more high scores")
 
 p
-ggsave(p, filename = "figures/SGC3A_LAB_totalscore.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_totalscore.png", width = 6, height =4)
 
 ```
 
@@ -397,11 +399,6 @@ report(w)
 
 ```
 
-
-##### Inference
-
-
-Because the distribution of the outcome variable is not normally distributed, we evaluate the effect of CONDITION on ACCURACY via a non-parametric test. Consistent with our hypothesis, a Wilcoxon rank sum test (with continuity correction) on ACCURACY by CONDITION indicates that data in each condition likely come from different population distributions (W = 1243, p < 0.001; one-tailed), and that the distribution of the control condition is less (i.e. shifted to the left/ lower scores) than the impasse condition (\^{r} = -0.37, 95% CI \[-1.00, -0.22\]), a large-sized effect.
 
 ##### Visualize
 ```{r}
@@ -482,15 +479,14 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[
 
 #::::::::: SETUP
 m <- mm.CrSQ
+m %>% write_rds(file = "analysis/SGC3A/models/sgc3a_glmer_acc_mm.CrSQ_LAB.rds")
 
 #::::::::: PRINT MODEL 
 
 print("PREDICTOR MODEL")
 summary(m)
 print("SIGNIFICANCE TEST [non directional]")
-car::Anova(m)
-paste("MODEL INFO")
-glance(m)
+car::Anova(m, type = 2)
 
 #:::::::: MANUAL ONE-SIDED SIGTEST 
 #note: anova and chi square are always one-tailed, but that is independent of being one-sided
@@ -561,14 +557,14 @@ preds <- cbind(newdata, preds)
 
 ***(In Dissertation)***
 
-We fit a mixed effects binomial logistic regression model with random intercepts for subjects and questions.  Note that we choose to model these data at the item (i.e. question) rather than than subject (i.e. total score) level because the structure of a mixed effects model allows us to differentiate between random variance introduced by individual subjects and questions, versus the expected systematic variance of CONDITION. A likelihood ratio test indicates that a model including a fixed effect of CONDITION explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3) = 18.66, p < 0.001$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.89$) and the part related to the fixed effect CONDITION ($marginal \ R^2$) explains 15\% of variance. **Consistent with our hypothesis, the impasse condition substantially increases the odds of a correct response.** Across the entire task participants in the impasse condition were 75 times more likely to offer a correct response, compared with those in the control condition ( $e^{\beta_1} = 75.51, p < 0.001$, $95 \% \  CI [8.46, 674]$). Based on the fixed effect of CONDITION, The model predicts that the probability of a correct response in the control condition is effectively 0% (95% CI [6.8e-4, 0.02]), and the probability of a correct response in the impasse condition increases to 24% (95% CI [0.06, 0.60]). 
+We fit a mixed effects binomial logistic regression model with random intercepts for subjects and questions.  Note that we choose to model these data at the item (i.e. question) rather than than subject (i.e. total score) level because the structure of a mixed effects model allows us to differentiate between random variance introduced by individual subjects and questions, versus the expected systematic variance of CONDITION. A likelihood ratio test indicates that a model including a fixed effect of CONDITION explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3) = 17.85, p < 0.001$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.89$) and the part related to the fixed effect CONDITION ($marginal \ R^2$) explains 15\% of variance. **Consistent with our hypothesis, the impasse condition substantially increases the odds of a correct response.** Across the entire task participants in the impasse condition were 62 times more likely to offer a correct response, compared with those in the control condition ( $e^{\beta_1} = 61.9, p < 0.001$, $95 \% \  CI [7.21, 531.75]$). Based on the fixed effect of CONDITION, The model predicts that the probability of a correct response in the control condition is effectively 0% (95% CI [8.7e-4, 0.03]), and the probability of a correct response in the impasse condition increases to 25% (95% CI [0.07, 0.60]). 
 
 ##### Print
 ```{r}
 #| label: MODEL-TBL-ACC
 
 #SJPLOT | MODEL | TABLE
-tab_model(m)
+# tab_model(m)
 
 # #MODEL SUMMARY | save latex table
 
@@ -591,7 +587,7 @@ tab_model(m)
 #              title = title,
 #              notes = notes,
 #              output = "tables/SGC3A_LAB_GLMER_OverallAccuracy.tex")
-# #              # coef_omit = "Intercept",
+#              # coef_omit = "Intercept",
 
 # extract_eq(m, use_coefs = TRUE, wrap = TRUE)
 
@@ -881,7 +877,7 @@ p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
          subtitle = "Impasse condition yields more correct responses")
 
 p
-ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
 
 
 
@@ -1116,10 +1112,11 @@ preds <- preds %>%
 
 [REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 \% credible interval, \% probability of direction]
 
-We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 9.31e+15). 
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 1.38e+14). 
+
 **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
 
-Across the entire task participants in the impasse condition were 11 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 10.93, 95 \% CI [5.59,22.49], pd = 100\%$). Participants in the impasse condition were 11 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 10.93, 95 \% CI [3.55, 40.54], pd = 100\%$), and 33 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.38, 95 \% CI [6.36, 194.83], pd = 100\%$). 
+Across the entire task participants in the impasse condition were 12 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.13, 95 \% CI [6.29, 25.24], pd = 100\%$). Participants in the impasse condition were 12 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.48, 95 \% CI [3.95, 37.67], pd = 100\%$), and 34 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.90, 95 \% CI [6.22, 211.18], pd = 100\%$). 
 
 
 ##### Print
@@ -1140,14 +1137,14 @@ Across the entire task participants in the impasse condition were 11 times more 
 # t <- as.data.frame(model_parameters(m, exponentiate = TRUE))
 # 
 # #REFORMAT
-# x <- t %>% 
+# x <- t %>%
 #   mutate(
 #     Interpretation = word(Parameter, 2, sep = "_"),
 #     Interpretation = str_remove_all(Interpretation,"mu"),
 #     Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),
-#   
+# 
 #     Parameter = as.factor(word(Parameter, 3, sep = "_")),
-#     Parameter = recode_factor(Parameter, 
+#     Parameter = recode_factor(Parameter,
 #                          "Intercept" = "(Intercept)",
 #                          "pretty" = "Condition[impasse]"),
 #     Median = round(Median,2),
@@ -1155,19 +1152,19 @@ Across the entire task participants in the impasse condition were 11 times more 
 #     CI_high = round(CI_high,2),
 #     pd = round(pd,2),
 #     ROPE_Percentage = round(ROPE_Percentage,2)
-#   ) %>%  
-#   arrange(Interpretation) %>% 
-#   dplyr::select(-CI, -Rhat, -ESS) %>% 
+#   ) %>%
+#   arrange(Interpretation) %>%
+#   dplyr::select(-CI, -Rhat, -ESS) %>%
 #   rename( "%_in_ROPE"="ROPE_Percentage",
-#           "(Odds Ratio)" = "Median") %>% 
-#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`) 
-# 
-#  
+#           "(Odds Ratio)" = "Median") %>%
+#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)
+
+
 # 
 # #KNIT
 # title = "Study 3A (Lab) | Question Interpretation | Mixed Multinomial Regression"
 # tab <- kbl(x, format = "latex", caption = title,
-#            booktabs = FALSE) %>% kable_classic() %>% 
+#            booktabs = FALSE) %>% kable_classic() %>%
 # footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")
 # writeLines(tab, "tables/SGC3A_LAB_BRMS_state.tex")
 
@@ -1276,8 +1273,6 @@ plot(result, show_intercept = TRUE, show_labels = TRUE)
 plot_model(m, type = "pred",
            title = "Model PREDICTION | Probability of Response Interpretation",
            axis.title = c("Condition", "Probability of Response Interpretation"))
-
-# TODO EMMEANS for the estimated marginal means
 
 #TODO OUTPUT TABLE 
 # modelsummary(m)

@@ -446,6 +446,7 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[
 
 #::::::::: SETUP
 m <- mm.CrSQ
+m %>% write_rds(file = "analysis/SGC3A/models/sgc3a_glmer_acc_mm.CrSQ_REP.rds")
 
 #::::::::: PRINT MODEL 
 
@@ -521,40 +522,40 @@ preds <- cbind(newdata, preds)
 
 ```
 
-##### INFERENCE --- DIRECTIONAL EFFECT
+##### INFERENCE --- SIGNIFICANT EFFECT
 
-p = 0.06; but we should be performing a directional test, so actually OK.
+
 
 ##### Print
 ```{r}
 #| label: MODEL-TBL-ACC
 
 #SJPLOT | MODEL | TABLE
-tab_model(m)
+# tab_model(m)
 
 # #MODEL SUMMARY | save latex table
 
-# models <- list("odds ratios" = m, "(log odds)" = m)
-# title = "Study 3A (Online Replication) | Question Accuracy | Mixed Logistic Regression"
-# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
-#              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
-#                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
-#              "Accuracy  ~ Condition + (1 | subject) + (1 | q)")
-# 
-# modelsummary(models,
-#              exponentiate = c(TRUE, FALSE),
-#              shape = term ~ model + statistic,
-#              fmt = 2, #two digits w/ trailing zero
-#              estimate  = "{estimate} {stars}",
-#              statistic = "conf.int",
-#              gof_map = c("AIC", "sigma"),
-#              gof_omit = 'RMSE|ICC|BIC',
-#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
-#              title = title,
-#              notes = notes,
-#              output = "tables/SGC3A_REP_GLMER_OverallAccuracy.tex")
-# # #              # coef_omit = "Intercept",
-# 
+models <- list("odds ratios" = m, "(log odds)" = m)
+title = "Study 3A (Online Replication) | Question Accuracy | Mixed Logistic Regression"
+notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
+             paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
+                   "R^2(Marginal) =", round(r2(m)[[2]],2)),
+             "Accuracy  ~ Condition + (1 | subject) + (1 | q)")
+
+modelsummary(models,
+             exponentiate = c(TRUE, FALSE),
+             shape = term ~ model + statistic,
+             fmt = 2, #two digits w/ trailing zero
+             estimate  = "{estimate} {stars}",
+             statistic = "conf.int",
+             gof_map = c("AIC", "sigma"),
+             gof_omit = 'RMSE|ICC|BIC',
+             coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
+             title = title,
+             notes = notes,
+             output = "tables/SGC3A_REP_GLMER_OverallAccuracy.tex")
+# #              # coef_omit = "Intercept",
+
 # extract_eq(m, use_coefs = TRUE, wrap = TRUE)
 
 
@@ -1014,11 +1015,12 @@ preds <- preds %>%
 
 ##### INFERENCE --- EFFECT
 
+
 \[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 % credible interval, % probability of direction\]
 
-We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 8.90e+03). **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.**
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 4.09e+03). **Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.**
 
-Across the entire task participants in the impasse condition were 4 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 4.13, 95 \% CI [2.07, 8.58], pd = 99.8\%$). Participants in the impasse condition were 4 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 3.70, 95 \% CI [1.23, 13.45], pd = 98.4\%$), and 9 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 8.67, 95 \% CI [1.24, 64.58], pd = 98.6\%$).
+Across the entire task participants in the impasse condition were 5 times as likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 4.57, 95 \% CI [2.27, 9.52], pd = 99.9\%$). Participants in the impasse condition were 4 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 3.69, 95 \% CI [1.29, 10.91], pd = 99.3\%$), and 9 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 8.82, 95 \% CI [1.04, 74.73], pd = 97.6\%$).
 
 ##### Print
 ```{r}
@@ -1068,7 +1070,7 @@ Across the entire task participants in the impasse condition were 4 times more l
 #            booktabs = FALSE) %>% kable_classic() %>%
 # footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")
 # writeLines(tab, "tables/SGC3A_REP_BRMS_state.tex")
-# 
+
 
 ```
 
