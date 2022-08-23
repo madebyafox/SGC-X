@@ -479,9 +479,9 @@ temp <- temp %>% mutate_when(
   override = "Triangular"
 )
 
-## CONTROL Q==5 HO Derives as TRI RECODE as other
+## CONTROL Q==5 FO, HO Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==5) & (IMPASSE =="none") & (response == "FO"),
+  (q==5) & (IMPASSE =="none") & (response %in% c("HO","FO")),
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -499,9 +499,17 @@ temp <- temp %>% mutate_when(
 )
 
 
+##  Q==7 HOX Derives as TRI but incorrect
+#includes H which is at rather than under 5 hours.
+#give credit 
+temp <- temp %>% mutate_when(
+  (q==7)  & (response %in% c("HOX")),
+  score_niceABS = 1
+)
+
 ##  Q==7 AX, MO Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==7)  & (response %in% c("MO, AX")),
+  (q==7 & response %in% c("MO","AX")) ,
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -510,14 +518,12 @@ temp <- temp %>% mutate_when(
 
 ##  Q==7 MOX, MX  Derives as TRI RECODE as tversky
 temp <- temp %>% mutate_when(
-  (q==7)  & (response %in% c("MOX, XX")),
+  (q==7)  & (response %in% c("MOX", "MX", "DX")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
   override = "Triangular"
 )
-
-
 
 ##  Q==8 CFGO Derives as TRI RECODE as angular
 temp <- temp %>% mutate_when(
@@ -548,12 +554,13 @@ temp <- temp %>% mutate_when(
 
 ##  Q==8 FG Derives as TRI RECODE as angular
 temp <- temp %>% mutate_when(
-  (q==8)  & (response %in% c("FG","CG","CFG","CGM","CM")),
+  (q==8)  & (response %in% c("FG","CG","CFG","CGM","CM","ACGP","GM")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
   override = "Triangular"
 )
+
 
 ##  Q==11 M Derives as TRI MISSING RESPONSE
 ##LEAVE AS TRI + OVERRIDE SCORENABS
@@ -652,7 +659,7 @@ temp <- temp %>% mutate_when(
   # override = "Triangular"
 )
 
-#  Q==15 CX Derives as TRI but incorrect 
+#  Q==15  Derives as TRI but incorrect 
 #missing 1 right answer or within 0.5hr visual error 
 temp <- temp %>% mutate_when(
   (q==15)  & (response %in% c("X","CK","K","GKX")),
@@ -838,19 +845,6 @@ gf_props(~item_test_NABS, fill = ~pretty_condition,
   theme_minimal()
 
 
-#QUICK PEEK
-result <- two_sample_test(data = df_subjects, x = pretty_condition, y = s_NABS,
-                          type = "nonparametric", var.equal = FALSE,alternative = "less",
-                          k = 2L, conf.level = 0.89, effsize.type = "g",
-                          bf.prior = 0.707, tr = 0.2, nboot = 100L)
-
-ggbetweenstats( data = df_subjects,
-                x = pretty_condition, y = s_NABS,
-                type = "non-parametric",
-                title = "Total Absolute Score [directional test]",
-                results.subtitle = FALSE,
-                subtitle = result$expression[[1]])
-
 ```
 
 ### Scaled Score
@@ -898,19 +892,6 @@ gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>
         y = "Proportion of Items") +
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
-
-#QUICK PEEK
-result <- two_sample_test(data = df_subjects, x = pretty_condition, y = s_SCALED,
-                          type = "nonparametric", var.equal = FALSE,alternative = "less",
-                          k = 2L, conf.level = 0.89, effsize.type = "g",
-                          bf.prior = 0.707, tr = 0.2, nboot = 100L)
-
-ggbetweenstats( data = df_subjects,
-                x = pretty_condition, y = s_SCALED,
-                type = "non-parametric",
-                title = "Total Scaled Score [directional test]",
-                results.subtitle = FALSE,
-                subtitle = result$expression[[1]])
 
 ```
 
@@ -1006,6 +987,35 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
         theme_minimal() + theme(legend.position = "blank")
 
 ```
+
+## PEEK
+
+```{r}
+
+ggbetweenstats( data = df_subjects,
+                x = pretty_condition, y = s_NABS,
+                type = "non-parametric",
+                title = "Total Absolute Score [directional test]")
+
+
+ggbarstats( data = df_items,
+                x = score_niceABS, y = pretty_condition,
+                type = "non-parametric",
+                title = "Total Absolute Score [directional test]")
+
+
+ggbarstats( data = df_items,
+                x = interpretation, y = pretty_condition,
+                type = "non-parametric",
+                title = "Interpretation [directional test]")
+
+
+ggbarstats( data = df_items,
+                x = score_STATE, y = pretty_condition,
+                type = "non-parametric",
+                title = "State [directional test]")
+```
+
 
 ## EXPLORE RESPONSES
 
@@ -2720,555 +2730,3 @@ rio::export(df_items, "analysis/SGC3B/data/2-scored-data/sgc3b_scored_items.rds"
 sessionInfo()
 ```
 
-## ARCHIVE
-
-*Prior versions of functions for for-loop version of scoring, not optimized to use mapply*
-
-```{r}
-#| label: SCORING-FUNCTIONS-TRADITIONAL(BACKCUP)
-#| eval : false
-
-# #CALCULATE THE TRIANGULAR, ORTHOGONAL OR TVERSKIAN SUBSCORES FROM KEYFRAME
-# calc_sub_score <- function(question, cond, response,keyframe){
-# 
-#   #STEP 1 GET KEY
-#   if (question < 6) #for q1 - q5 find key for question by condition
-#   {
-#     # print(keyframe)
-#     #GET KEY FOR THIS SCORE TYPE, QUESTION AND CONDITION
-#     p =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-#     q =  keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-#     pn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_p)
-#     qn = keyframe %>% filter(Q == question) %>% filter(condition == cond) %>% select(n_q)
-# 
-#   } else {
-#     #GET KEY FOR THIS SCORE TYPE, QUESTION
-#     p =  keyframe %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-#     q =  keyframe %>% filter(Q == question) %>% select(set_q) %>% pull(set_q) %>% str_split("") %>% unlist()
-#     pn = keyframe %>% filter(Q == question) %>% select(n_p)
-#     qn = keyframe %>% filter(Q == question) %>% select(n_q)
-#   }
-# 
-#   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
-#   
-#   #if response is not empty, split apart response for set comparison
-#     if(response != "")
-#     { response = response %>% str_split("") %>% unlist()}
-#     
-#   ps = length(intersect(response,p))
-#   qs = length(intersect(response,q))
-#   # df_items[x,'tri_ps'] = tri_ps
-#   # df_items[x,'tri_qs'] = tri_qs
-# 
-#   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION
-#   x = f_partialP(ps,pn,qs,qn) %>% unlist() %>% as.numeric()
-#   
-#   #cleanup
-#   rm(p,q,pn,qn,ps,qs)
-#   return(x)
-# 
-# }
-# 
-# #CALCULATE THE REFERENCE SCORES
-# calc_ref_score <- function(question, cond, response){
-#   
-#     #1. GET reference point from REF_POINT column in raw keys
-#     ref_p = keys_raw %>% filter(Q == question) %>% filter(condition == cond) %>% select(REF_POINT) %>% pull(REF_POINT) %>% str_split("") %>% unlist()
-#      
-#     #2. if response has more than one character, it can't be correct
-#     #there is only ever 1 reference character
-#     n = nchar(response)
-#     if (n == 0) {x = 0}
-#     else if(n>1) {x = 0}
-#     else {
-#       #3 is the response PRECISELY the REFERENCE POINT?
-#       x = ref_p == response
-#       x = as.numeric(x)  
-#     }
-#     
-#     #cleanup
-#     rm(ref_p, response, question, cond)   
-#     return(x) #1 = match, 0 = not match
-# }
-# 
-# 
-# #CALCULATE SCORE BASED ON UNION OF ORTH & TRI (SUBJECT SELECTS BOTH ANSWERS )
-# calc_both_score <- function(question, cond, response){
-#   
-#TRAPDOOR 
-#   #since no orth responses exist for impasse condition q1 - q5, set to 0
-#   if (question < 6 & cond == 121) {x = NA}
-#   
-#   #ELSE 
-#   #calculate union of ORTH and TRI
-#   else {
-#     if (question < 6 & cond == 111) #for q1 - q5 find key for question by condition
-#   {
-#      #grab the tri and orth keys for this question as well as N option set
-#      tri_p =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-#      orth_p = keys_orth %>% filter(Q == question) %>% filter(condition == cond) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-#      set_n =  keys_tri %>%  filter(Q == question) %>% filter(condition == cond) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
-#      #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
-#      both_p = union(tri_p, orth_p) #the selection of tri and p
-#      #2. calc answers that should't be selected as diffrence between N [same for all keys] and both_p
-#      both_q = setdiff(set_n,both_p)
-#      both_pn = length(both_p)
-#      both_qn = length(both_q)
-#   } else{
-#     
-#      #grab the tri and orth keys for this question as well as N option set
-#      tri_p =  keys_tri %>%  filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-#      orth_p = keys_orth %>% filter(Q == question) %>% select(set_p) %>% pull(set_p) %>% str_split("") %>% unlist()
-#      set_n =  keys_tri %>%  filter(Q == question) %>% select(set_n) %>% pull(set_n) %>% str_split("") %>% unlist() 
-#      #1. calc answer that is both tri and orth and only these --> union of tri_p and orth_p
-#      both_p = union(tri_p, orth_p) #the selection of tri and p
-#      #2. calc answers that shouldn't be selected as difference between N [same for all keys] and both_p
-#      both_q = setdiff(set_n,both_p)
-#      both_pn = length(both_p)
-#      both_qn = length(both_q)
-#   }
-#     
-#   #STEP 2 CALC INTERSECTIONS BETWEEN RESPONSE AND KEY
-#   
-#   #if response is not empty, split apart response for set comparison
-#     if(response != "")
-#     { response = response %>% str_split("") %>% unlist()}
-#   
-#     both_ps = length(intersect(response,both_p))
-#     both_qs = length(intersect(response,both_q))
-#   
-#  
-#   #STEP 3 CALC f_partialP schema SCORE FOR THIS INTERSECTION 
-#   x = f_partialP(both_ps,both_pn,both_qs,both_qn)%>% unlist() %>% as.numeric()
-#   
-#   #cleanup
-#   rm(both_p,both_q,both_pn,both_qn,both_ps,both_qs, question, cond, response )   
-#   }
-#   
-#   return(x) #true correct, trues, false correct, falses
-# }
-
-```
-
-*Looping to do the scoring (not using MAPPLY)*
-
-```{r}
-#| label: CALCULATE-SCORES-FORLOOP
-#RUN THIS OR THE CALCULATE-SCORES-MAPPLY
-# df_items = trad 
-# 
-# pb <- timerProgressBar() 
-# on.exit(close(pb)) 
-#  
-# #CALCULATE SUBSCORES (in loop)
-# 
-# for (x in 1:nrow(df_items)) {
-#   
-#   #show progress bar 
-#   setTimerProgressBar(pb, x) 
-#   
-#   #PREPARE ITEMS FOR SCORING
-#   #sort response vectors alphabetically
-#   #doesn't impact scoring, but does impact response display tables
-#    df_items[x,'response'] <-  df_items[x,'response'] %>% str_split("") %>% unlist() %>% sort() %>% str_c(collapse="")
-# 
-#   #get properties of the RESPONSE ITEM
-#   qu = df_items[x,'q'] %>% as.numeric()
-#   cond = as.character(df_items[x,'condition']) %>% as.numeric()
-#   r = df_items[x,'response'] 
-# 
-#   #calculate the main subscores
-#   df_items[x,'score_TRI'] = calc_sub_score(qu, cond, r,keys_tri)
-#   df_items[x,'score_ORTH'] = calc_sub_score(qu, cond, r,keys_orth)
-#   df_items[x,'score_SATISFICE'] = calc_sub_score(qu, cond, r,keys_satisfice)
-#   df_items[x,'score_TV_max'] = calc_sub_score(qu, cond, r,keys_tversky_max)
-#   df_items[x,'score_TV_start'] = calc_sub_score(qu, cond, r,keys_tversky_start)
-#   df_items[x,'score_TV_end'] = calc_sub_score(qu, cond, r,keys_tversky_end)
-#   df_items[x,'score_TV_duration'] = calc_sub_score(qu, cond, r, keys_tversky_duration)
-#   
-#   #calculate special subscores
-#   df_items[x,'score_REF'] = calc_ref_score(qu, cond, r)
-#   df_items[x,'score_BOTH'] = calc_both_score(qu, cond, r)
-# }
-# 
-# #CALCULATE ABSOLUTE SCORES
-# #calculate absolute scores dichotomous
-# df_items$score_ABS = as.integer(df_items$correct)
-# #niceABS indicates if the response is correct without penalizing the allowable triangular options(ie. the ref point)
-# df_items$score_niceABS  <- as.integer((df_items$score_TRI == 1))
-#  
-# #cleanup
-# rm(qu,cond,r, x)
-
-# trad_scored = df_items
-```
-
-*sanity check equivalence of for-loop and mapply scoring*
-
-```{r}
-#CHECK EQUIVALENCE OF LOOP AND MAPPLY SCORING 
-# tests = data.frame (
-#   alt_tri = alt_scored$score_TRI,
-#   trad_tri = trad_scored$score_TRI,
-#   alt_orth = alt_scored$score_ORTH,
-#   trad_orth = trad_scored$score_ORTH,
-#   alt_ref = alt_scored$score_REF,
-#   trad_ref = trad_scored$score_REF,
-#   alt_tv_max = alt_scored$score_TV_max,
-#   trad_tv_max = trad_scored$score_TV_max,
-#   alt_tv_dur = alt_scored$score_TV_duration,
-#   trad_tv_dur = trad_scored$score_TV_duration,
-#   alt_tv_start = alt_scored$score_TV_start,
-#   trad_tv_start = trad_scored$score_TV_start,
-#   alt_tv_end = alt_scored$score_TV_end,
-#   trad_tv_end = trad_scored$score_TV_end,
-#   alt_both = alt_scored$score_BOTH,
-#   trad_both = trad_scored$score_BOTH,
-#   trad_response = trad_scored$response,
-#   alt_response = alt_scored$response,
-#   q_match = trad_scored$q == alt_scored$q,
-#   q = trad_scored$q,
-#   c_match = trad_scored$condition == alt_scored$condition,
-#   condition = trad_scored$condition
-# )
-# 
-# tests$tri = tests$alt_tri == tests$trad_tri
-# tests$orth = tests$alt_orth == tests$trad_orth
-# tests$ref = tests$alt_ref == tests$trad_ref
-# tests$tvdur = tests$alt_tv_dur == tests$trad_tv_dur
-# tests$tvstart = tests$alt_tv_start == tests$trad_tv_start
-# tests$tvend = tests$alt_tv_end == tests$trad_tv_end
-# tests$both = tests$alt_both == tests$trad_both
-# 
-# #CHECKS 
-# unique(tests$tri)
-# unique(tests$orth)
-# unique(tests$ref)
-# unique(tests$tvdur)
-# unique(tests$tvstart)
-# unique(tests$tvend)
-# unique(tests$both)
-# 
-# unique(alt_scored$score_ABS == trad_scored$score_ABS)
-# unique(alt_scored$score_niceABS == trad_scored$score_niceABS)
-```
-
-**Prior inline version of derive interpretation, before externalizing to a function in the scoring script**.
-
-```{r}
-
-# threshold_range = 0.5 #set required variance in subscores to be discriminant
-# threshold_frenzy = 4
-# 
-# for (x in 1:nrow(df_items)) {
-#   
-#   #CALCULATE MAX TVERSKY SUBSCORE
-#   t = df_items[x,] %>% select(score_TV_max, score_TV_start, score_TV_end, score_TV_duration) #reshape
-#   t.long = gather(t,score, value, 1:4)
-#   t.long[t.long == ""] = NA #replace empty scores with NA so we can ignore them
-#   if(length(unique(t.long$value)) == 1 ){
-#     if(is.na(unique(t.long$value))){
-#       df_items[x,'score_TVERSKY'] = NA
-#       df_items[x,'tv_type'] = NA   
-#     }
-#   } else {
-#     df_items[x,'score_TVERSKY'] = as.numeric(max(t.long$value,na.rm = TRUE))
-#     df_items[x,'tv_type'] = t.long[which.max(t.long$value),'score']
-#   }
-#   
-#   #CALCULATE MAX SATISFICING SUBSCORE
-#   t = df_items[x,] %>% select(score_SAT_left, score_SAT_right)
-#   t.long = gather(t,score, value, 1:2)
-#   t.long[t.long == ""] = NA #replace empty scores
-#   if(length(unique(t.long$value)) == 1 ){
-#     if(is.na(unique(t.long$value))){
-#       df_items[x,'score_SATISFICE'] = NA
-#       df_items[x,'sat_type'] = NA   
-#     }
-#   } else {
-#     df_items[x,'score_SATISFICE'] = as.numeric(max(t.long$value,na.rm = TRUE))
-#     df_items[x,'sat_type'] = t.long[which.max(t.long$value),'score']  
-#   }
-#   
-#   #NOW CALCULATE RANGE AMONG SUBSCORES
-#   #order of this selection matters in breaking ties! 
-#   t = df_items[x,] %>% select(score_TRI, score_TVERSKY, score_SATISFICE, score_ORTH)
-#   t.long = gather(t,score, value, 1:4)
-#   t.long[t.long == ""] = NA
-#   
-#   df_items[x,'top_score'] = as.numeric(max(t.long$value,na.rm = TRUE))
-#   df_items[x,'top_type'] = t.long[which.max(t.long$value),'score']
-#   
-#   #calculate the range between highest and lowest scores 
-#   r = as.numeric(range(t.long$value,na.rm = TRUE))
-#   r = diff(r)
-#   df_items[x,'range'] = r
-#   
-#   #DISCRIMINANT BETWEEN SUBSCORES TO PREDICT BEST FIT INTERPRETATION
-#   
-#   if (r < threshold_range) {
-#       #then we can't predict the interpretation, leave it as "?"
-#     df_items[x,'best'] = "?"
-#   } else {
-#       p =  df_items[x,'top_type']
-#       if (p == "score_TRI") {df_items[x,'best'] = "Triangular"
-#       } else if(p == "score_ORTH") {df_items[x,'best'] = "Orthogonal"
-#       } else if(p == "score_TVERSKY") {df_items[x,'best'] = "Tversky"
-#       } else if(p == "score_SATISFICE") {df_items[x,'best'] = "Satisfice"}
-#   }
-#   
-#   #CHECK SPECIAL SITUATIONS
-# 
-#   #BOTH TRI AND ORTH?  
-#   if (!is.na(df_items[x,'score_BOTH'])) { #only check if both is not null
-#       if( df_items[x,'score_BOTH'] == 1) {
-#         df_items[x,'best'] = "both tri + orth"}
-#   }
-#   
-#   #IS BLANK?
-#   if( df_items[x,'num_o'] == 0) {  
-#     df_items[x,'best'] = "blank"
-#   }
-#   
-#   #IS FRENZY?
-#   if( df_items[x,'num_o'] > threshold_frenzy) { 
-#       df_items[x,'best'] = "frenzy"
-#   }
-# 
-#   #IS REF POINT?
-#   if (!is.na(df_items[x,'score_REF'])) { #only check if the score is NOT null
-#       if( df_items[x,'score_REF'] == 1) {
-#           df_items[x,'best'] = "reference"
-#       }
-#   }
-# 
-# }#end loop
-# 
-# #cleanup 
-# rm(t, t.long, x, r,p)
-# rm(threshold_frenzy, threshold_range)
-# 
-# #set order of levels for response exploration table
-# df_items$int2 <- factor(df_items$best,
-#                                   levels = c("Triangular", "Tversky",
-#                                              "Satisfice", "Orthogonal", "reference", "both tri + orth", "blank","frenzy","?"))
-# 
-# #set order of levels
-# df_items$interpretation <- factor(df_items$best,
-#                                   levels = c("Orthogonal","Satisfice", "frenzy","?","reference","blank",
-#                                                "both tri + orth", "Tversky","Triangular"))
-# 
-# #collapsed representation of scale of interpretations
-# df_items$high_interpretation <- fct_collapse(df_items$interpretation,
-#   orthogonal = c("Satisfice", "Orthogonal"),
-#   neg.trans = c("frenzy","?"),
-#   neutral = c("reference","blank"),
-#   pos.trans = c("Tversky","both tri + orth"),
-#   triangular = "Triangular"
-# ) 
-# 
-# #reorder levels
-# df_items$high_interpretation = factor(df_items$high_interpretation, levels= c("orthogonal", "neg.trans","neutral","pos.trans","triangular"))
-# 
-# #cleanup 
-# df_items <- df_items %>% dplyr::select(-best)
-# 
-# #recode as numeric inase they are char 
-# # df_items$score_TV_duration <- df_items$score_TV_duration %>% as.numeric()
-# # df_items$score_SATISFICE <- df_items$score_SATISFICE %>% as.numeric()
-
-
-```
-
-**Old inline calculation of score_SCALED before externalizing as function**
-
-```{r}
-# df_items$score_SCALED <- recode(df_items$interpretation,
-#                           "Orthogonal" = -1,
-#                           "Satisfice" = -1,
-#                           "frenzy" = -0.5,
-#                           "?" = -0.5,
-#                           "reference" = 0,
-#                           "blank" = 0, 
-#                           "both tri + orth" = 0.5,
-#                           "Tversky" = 0.5,
-#                           "Triangular" = 1)
-
-```
-
-**Original summary by subject before externalizing as function**
-
-```{r}
-
-# #prep items
-# df_items <- df_items %>% mutate(
-#   tv_type = as.factor(tv_type),
-#   top_type = as.factor(top_type)
-# )
-# 
-# #summarize SCORES and TIME by subject
-# subjects_summary <- df_items %>% filter(q %nin% c(6,9)) %>% group_by(subject) %>% dplyr::summarise (
-#   subject = as.character(subject),
-#   pretty_condition = recode_factor(condition, "111" = "control", "121" =  "impasse"),
-#   s_TRI = sum(score_TRI,na.rm=TRUE),
-#   s_ORTH = sum(score_ORTH,na.rm=TRUE),
-#   s_TVERSKY = sum(score_TVERSKY,na.rm=TRUE),
-#   s_SATISFICE = sum(score_SATISFICE, na.rm=TRUE),
-#   s_REF = sum(score_REF,na.rm=TRUE),
-#   s_ABS = sum(score_ABS,na.rm=TRUE),
-#   s_NABS = sum(score_niceABS,na.rm=TRUE),
-#   s_SCALED = sum(score_SCALED,na.rm=TRUE),
-#   DV_percent_NABS = s_NABS/13,
-#   rt_m = sum(rt_s)/60,
-#   item_avg_rt = mean(rt_s),
-#   item_min_rt = min(rt_s),
-#   item_max_rt = max(rt_s),
-#   item_n_TRI = sum(interpretation == "Triangular"),
-#   item_n_ORTH = sum(interpretation == "Orthogonal"),
-#   item_n_TV = sum(interpretation == "Tversky"),
-#   item_n_SAT = sum(interpretation == "Satisfice"),
-#   item_n_OTHER = sum(interpretation %nin% c("Triangular","Orthogonal","Tversky","Satisfice")),
-#   item_n_POS = sum(high_interpretation == "pos.trans"),
-#   item_n_NEG = sum(high_interpretation == "neg.trans"),
-#   item_n_NEUTRAL = sum(high_interpretation == "neutral")
-# ) %>% arrange(subject) %>% slice(1L)
-# 
-# #summarize first scaffold item of interest by subject
-# subjects_q1 <- df_items %>% filter(q == 1) %>% mutate(
-#   item_q1_NABS = score_niceABS,
-#   item_q1_SCALED = score_SCALED,
-#   item_q1_interpretation = interpretation,
-#   item_q1_rt = rt_s,
-# ) %>% dplyr::select(subject, item_q1_NABS, item_q1_SCALED, item_q1_interpretation,item_q1_rt) %>% arrange(subject)
-# 
-# #summarize last test item of interest by subject
-# subjects_q5 <- df_items %>% filter(q == 5) %>% mutate(
-#   item_q5_NABS = score_niceABS,
-#   item_q5_SCALED = score_SCALED,
-#   item_q5_interpretation = interpretation,
-#   item_q5_rt = rt_s,
-# ) %>% dplyr::select(subject, item_q5_NABS, item_q5_SCALED, item_q5_interpretation,item_q5_rt) %>% arrange(subject)
-# 
-# #summarize first test item of interest by subject
-# subjects_q7 <- df_items %>% filter(q == 7) %>% mutate(
-#   item_q7_NABS = score_niceABS,
-#   item_q7_interpretation = interpretation,
-#   item_q7_rt = rt_s,
-# ) %>% dplyr::select(subject, item_q7_NABS, item_q7_interpretation,item_q7_rt) %>% arrange(subject)
-# 
-# #summarize last test item of interest by subject
-# subjects_q15 <- df_items %>% filter(q == 15) %>% mutate(
-#   item_q15_NABS = score_niceABS,
-#   item_q15_interpretation = interpretation,
-#   item_q15_rt = rt_s,
-# ) %>% dplyr::select(subject, item_q15_NABS, item_q15_interpretation,item_q15_rt) %>% arrange(subject)
-# 
-# #summarize scaffold phase performance
-# subjects_scaffold <- df_items %>% filter(q<6)  %>% group_by(subject) %>% dplyr::summarise (
-#   item_scaffold_NABS = sum(score_niceABS),
-#   item_scaffold_SCALED = sum(score_SCALED),
-#   item_scaffold_rt = sum(rt_s)
-# )%>% dplyr::select(subject, item_scaffold_NABS, item_scaffold_SCALED, item_scaffold_rt) %>% arrange(subject)
-# 
-# #summarize test phase performance
-# subjects_test <- df_items %>% filter(q %nin% c(1,2,3,4,5,6,9)) %>% group_by(subject) %>% dplyr::summarise (
-#   item_test_NABS = sum(score_niceABS),
-#   item_test_SCALED = sum(score_SCALED),
-#   item_test_rt = sum(rt_s)
-# )%>% dplyr::select(subject, item_test_NABS, item_test_SCALED, item_test_rt) %>% arrange(subject)
-# 
-# #import subjects
-# df_subjects <- read_rds('analysis/SGC3B/data/1-study-level/sgc3b_participants.rds') %>% mutate(subject = as.character(subject)) %>% arrange(subject)
-# 
-# #SANITY CHECK SUBJECT ORDER BEFORE MERGE; BOTH SHOULD BE TRUE
-# unique(subjects_summary$subject == df_subjects$subject)
-# unique(subjects_summary$subject == subjects_q1$subject)
-# unique(subjects_summary$subject == subjects_q5$subject)
-# unique(subjects_summary$subject == subjects_q7$subject)
-# unique(subjects_summary$subject == subjects_q15$subject)
-# unique(subjects_summary$subject == subjects_scaffold$subject)
-# unique(subjects_summary$subject == subjects_test$subject)
-# 
-# #CAREFULLY CHECK THIS — RELIES ON 
-# x = merge(df_subjects, subjects_summary)
-# x = merge(x, subjects_q1)
-# x = merge(x, subjects_q5)
-# x = merge(x, subjects_q7)
-# x = merge(x, subjects_q15)
-# x = merge(x, subjects_scaffold)
-# x = merge(x, subjects_test)
-# df_subjects <- x %>% dplyr::select(-absolute_score) #drop absolute score from webapp that includes Q6 and Q9
-# 
-# #cleanup
-# rm(subjects_q1, subjects_q5, subjects_q7, subjects_q15, subjects_scaffold, subjects_test, subjects_summary, x)
-```
-
-**Summarize Cummulative Progress versions before functionize**
-
-```{r}
-
-# #SUMMARIZE-CUMULATIVE ABSOLUTE PROGRESS
-# 
-# 
-# #filter for valid items
-# x <- df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(subject,mode, pretty_condition, q,score_niceABS) 
-# 
-# #pivot wider
-# wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_niceABS)
-# 
-# #calc stepwise cumulative score
-# wide$c1 = wide$q_1
-# wide$c2 = wide$c1 + wide$q_2
-# wide$c3 = wide$c2 + wide$q_3
-# wide$c4 = wide$c3 + wide$q_4
-# wide$c5 = wide$c4 + wide$q_5
-# wide$c6 = wide$c5 + wide$q_7
-# wide$c7 = wide$c6 + wide$q_8
-# wide$c8 = wide$c7 + wide$q_10
-# wide$c9 = wide$c8 + wide$q_11
-# wide$c10 = wide$c9 + wide$q_12
-# wide$c11 = wide$c10 + wide$q_13
-# wide$c12 = wide$c11 + wide$q_14
-# wide$c13 = wide$c12 + wide$q_15
-# wide <- wide %>% dplyr::select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
-# 
-# #lengthen 
-# df_absolute_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
-# df_absolute_progress$question <- as.integer(df_absolute_progress$question)
-# 
-# 
-# #cleanup 
-# rm(x,wide)
-#   
-# # SUMMARIZE-CUMULATIVE SCALED PROGRESS
-# 
-# #filter for valid items
-# x <- df_items %>% filter(q %nin% c(6,9)) %>% select(subject,mode, pretty_condition, q,score_SCALED)
-# 
-# #pivot wider
-# wide <- x %>% pivot_wider(names_from=q, names_glue = "q_{q}", values_from = score_SCALED)
-# 
-# #calc stepwise cumulative score
-# wide$c1 = wide$q_1
-# wide$c2 = wide$c1 + wide$q_2
-# wide$c3 = wide$c2 + wide$q_3
-# wide$c4 = wide$c3 + wide$q_4
-# wide$c5 = wide$c4 + wide$q_5
-# wide$c6 = wide$c5 + wide$q_7
-# wide$c7 = wide$c6 + wide$q_8
-# wide$c8 = wide$c7 + wide$q_10
-# wide$c9 = wide$c8 + wide$q_11
-# wide$c10 = wide$c9 + wide$q_12
-# wide$c11 = wide$c10 + wide$q_13
-# wide$c12 = wide$c11 + wide$q_14
-# wide$c13 = wide$c12 + wide$q_15
-# wide <- wide %>% select(subject,mode, pretty_condition,c1,c2,c3,c4,c5,c6, c7,c8,c9, c10,c11,c12,c13)
-# 
-# #lengthen 
-# df_scaled_progress <- wide %>% pivot_longer(cols= c1:c13, names_to = "question", names_pattern = "c(.*)", values_to = "score")
-# df_scaled_progress$question <- as.integer(df_scaled_progress$question)
-# 
-# #cleanup 
-# rm(x,wide)
-
-```
