@@ -853,54 +853,115 @@ function drawTriangleModel(datafile, axis, explicit, mark, rotation) {
 
     //-------------------  AXIS ROTTATION  ------------------------//  
     
-    //ROTATE AXIS 45 DEGREES 
+    //ROTATE AXES 45 DEGREES 
     if(arotation == 2){ //POINTY ARROW    
       console.log("ROTATE THE GRAPH! to pointy arrow");
-      //ROTATE TRIANGULAR 45 DEGREES 
+      
+      //////// ROTATE TRIANGULAR 45 DEGREES 
       if (grid==3){ 
-       //ROTATE the stimulus DIV 45 degrees and shift upwards 
-        d3.select(".stimulus") 
-       .style("transform", "rotate(45deg) translate(-50px,-20px) scale(0.85,0.85)")   //scale(0.85, 0.85)")   
-      }
-      //ROTATE ORTHOGONAL 45 DEGREES  
-      else{ //otherwise orthog; need more vertical space
-       //ROTATE the stimulus DIV 45 DEGREES AND shift dowwnwards
-        d3.select(".stimulus") 
-       .style("transform", "rotate(45deg) translate(0px,20px) scale(0.85,0.85)")
-      }
+      //ROTATE the stimulus DIV ~ 45 degrees and shift upwards  
 
-      //FOR ANY GRID ROTATE THE DATA LABELS
+        //FOR EQUILATERAL  
+        if (shape == 2){
+          console.log("ROTATING triangular equilateral by 30 degrees")
+          //ROTATE AXIS
+          d3.select(".stimulus") 
+            .style("transform", "rotate(30deg) translate(-50px,-20px) scale(0.85,0.85)")   //scale(0.85, 0.85)")    
+          //ROTATE DATA LABELS
+          d3.selectAll(".tmlabel")
+            .style("transform", "rotate(-30deg) translate(-10px,-2px)")      
+        }
+        //FOR ISOCELES
+        else {
+        console.log("ROTATING triangular isoceles by 45 degrees")
+        //ROTATE AXES  
+        d3.select(".stimulus") 
+          .style("transform", "rotate(45deg) translate(-50px,-20px) scale(0.85,0.85)")   //scale(0.85, 0.85)")   
+        //ROTATE DATA LABELS
+        d3.selectAll(".tmlabel")
+          .style("transform", "rotate(-45deg) translate(-8px,-3px)")      
+        }
+      }//END ROTATE TRIANGULAR
+      
+      ////////// ROTATE ORTHOGONAL 45 DEGREES  
+      else { //otherwise orthog; need more vertical space
+       
+       //FOR EQUILATERAL
+       if (shape == 2){
+        console.log("ROTATING orthogonal equilateral by 30 degrees")
+        //ROTATE AXIS
+        d3.select(".stimulus") 
+          // .style("transform", "rotate(30deg) translate(-50px,20px) scale(0.85,0.85)")   //scale(0.85, 0.85)")    
+          .style("transform", "rotate(30deg) translate(-50px,50px) scale(0.85,0.85)")   //scale(0.85, 0.85)")    //further down
+       //ROTATE DATA LABELS
        d3.selectAll(".tmlabel")
-          .style("transform", "rotate(-45deg) translate(-8px,0px)")   
+          .style("transform", "rotate(-30deg) translate(-10px,-2px)")      
+       
+        }
+       //FOR ISOCELES
+       else {
+        console.log("ROTATING orthogonal isoceles by 45 degrees")
+        //ROTATE the stimulus DIV 45 DEGREES AND shift dowwnwards
+        d3.select(".stimulus") 
+          .style("transform", "rotate(45deg) translate(0px,20px) scale(0.85,0.85)")
+        //ROTATE DATA LABELS
+        d3.selectAll(".tmlabel")
+          .style("transform", "rotate(-45deg) translate(-8px,-3px)")        
+        }
+      }//END ROTATE ORTHOGONAL
+
+      // // //NOW REGARDLESS OF SHAPE, ROTATE THE DATA LABELS 
+      // // //FOR ANY GRID ROTATE THE DATA LABELS
+      //  d3.selectAll(".tmlabel")
+      //  //ORIGINAL
+      //     // .style("transform", "rotate(-45deg) translate(-8px,0px)")   
+      //  //EQUILIATERAL
+      //  .style("transform", "rotate(-30deg) translate(-10px,-3px)")      
 
     }
 
-    //ROTATE AXIS 90 DEGREES 
+    //ROTATE AXES 90 DEGREES 
     if(arotation == 3){ //ROTATE 90 DEGREES 
       console.log("ROTATE THE GRAPH! 90 degrees ");
-      
+
+
       //ROTATE TRIANGULAR 90 DEGREES 
       if (grid==3){ 
+        console.log("ROTATING TRIANGULAR by 90 degrees")
+        //ROTATE AXES
         d3.select(".stimulus") 
           .style("transform", " rotate(90deg) translate(0px,50px) scale(0.85, 0.85)")
+         
+          //NOT WORKING
+          //ROTATE Y AXIS LABELS
+        //  d3.select(".yaxis").selectAll(".tick").select("text")
+        //  .style("transform", "rotate(-90deg) translate(20px, -25px)")  
+
+        // z = d3.select(".yaxis").selectAll(".tick").select("text")
+        // bb = z.node().getBBox()
+        // console.log(bb)
+        d3.select(".yaxis").selectAll(".tick").select("text")
+          .attr("rotate",  -90)
+        //   .attr("transform-origin",  bb.x+bb.width/2+" "+bb.y+bb.height/2)
+          .style("transform", "translate(5px,0px)")   
+
+
       } 
       //ROTATE ORTHOGONAL 90 DEGREES
       else{ //otherwise orthog; need more vertical space
+        console.log("ROTATING ORTHOGONAL by 90 degrees")
+        //ROTATE AXES
         d3.select(".stimulus") 
           .style("transform", " rotate(90deg) translate(0px,50px) scale(0.85, 0.85)")
+        //ROTATE Y AXIS LABELS
+        d3.select(".yaxis").selectAll(".tick").select("text")
+          .style("transform", "rotate(-90deg) translate(20px, -25px)")
+
       }
 
-      //FOR ANY GRID ROTATE THE DATA LABELS
+      // //FOR ANY GRID ROTATE THE DATA LABELS
       d3.selectAll(".tmlabel")
       .style("transform", "rotate(-90deg) translate(0px,10px)")   
-
-      //WIP ROTATE Y AXIS LABELS
-      // z = d3.select(".yaxis").selectAll(".tick").select("text")
-      // bb = z.node().getBBox()
-      // console.log(bb)
-      //attr("transform-origin",  bb.x+bb.width/2+" "+bb.y+bb.height/2)
-        // .style("transform", "rotate(-90deg) translate(0px,10px)")   
-
 
       
       //ROTATE X AXIS TITLE 90 DEGREES
@@ -936,7 +997,7 @@ function drawTriangleModel(datafile, axis, explicit, mark, rotation) {
     }
 
 
-    //-------------------  LABEL ROTTATION  ------------------------//  
+    //-------------------  X LABEL ROTTATION  ------------------------//  
     
     //ROTATE LABEL 45 DEGREES 
     if(lrotation == 2){ //POINTY ARROW    
@@ -988,29 +1049,29 @@ function drawTriangleModel(datafile, axis, explicit, mark, rotation) {
       // }
     
 
+    //IS THIS CHUNK REDUNDANT TO THE STUFF ABOVE? NOT SURE??  
     //-------------------  EQUILATERAL SHAPE  ------------------------//  
     //AJUST Y AXIS ROTATION FOR EQUILATERAL 
-    if (shape == 2) { //EQUILATERAL
-      console.log("ADJUSTING Y axis labels for GRID " + grid, " SHAPE "+shape +" SHAPE "+shape)
+    // if (shape == 2) { //EQUILATERAL
+    //   console.log("ADJUSTING Y axis labels for GRID " + grid, " SHAPE "+shape +" SHAPE "+shape)
 
       // //ORTHOGONAL GRID
-      if(grid !=3) {  
-      //   //move stim down and left 
-        d3.select(".theGraph") 
-       .style("transform", "translate(-20px,50px)")   //shift down and left
-      }
+      // if(grid !=3) {  
+      // //   //move stim down and left 
+      //   d3.select(".theGraph") 
+      //  .style("transform", "translate(-20px,50px)")   //shift down and left
+      // }
       
       // //TRIANGULAR GRID
-      if (grid == 3) { 
-      //move stim down and left 
-         d3.select(".theGraph") 
-           .style("transform", "translate(-20px,50px)")   //shift down and left
-      // tweak y axis label rotation on triangular 
-        d3.select(".yaxis").select(".axisTitle")
-          .attr("transform","rotate(-5) translate(30,-55)")
-      }
-        
-    }
+      // if (grid == 3) { 
+      // //move stim down and left 
+      //    d3.select(".theGraph") 
+      //      .style("transform", "translate(-20px,50px)")   //shift down and left
+      // // tweak y axis label rotation on triangular 
+      //   d3.select(".yaxis").select(".axisTitle")
+      //     .attr("transform","rotate(-5) translate(30,-55)")
+      // }
+    // }
 
   }); //END D3.CSV
 

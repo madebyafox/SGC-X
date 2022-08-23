@@ -1,4 +1,9 @@
 
+
+# TO RUN APPLICATION
+//uses nodemon fo automatic code refresh
+nodemon app.js
+
 # To Build Application from scratch [not use existing code]
 
 1. Establish blank repository

@@ -1,5 +1,8 @@
 **CHANGELOG**
 
+- AUGUST 2022
+  - added retroactive support for SGC 3B 
+
 - July 2022
   - added more support for sGC4C
     - split 6th condition position into 6,7,8

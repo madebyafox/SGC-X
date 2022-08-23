@@ -136,14 +136,26 @@ var jsPsych = initJsPsych({
 
 //DEFINE CONDITIONS PER STUDY
 const studies = {
+  //the impasse hypothesis
   SGC3A: ["111","121"],
-  // SGC3B: ["111", "121", "211", "221", "311","321"],
+  //the impasse VS explicit hypothesis
+  SGC3B: ["111", "121", "211", "221", "311","321"],
+  //the grid hypothesis hypothesis
   SGC4A: ["115","114","113"], //+ 111 (prioritize unique collection first) should be 111,113,114,115
   //SGC4A: ["111"], //fill the n last 
+  //the mark hypothesis hypothesis
   SGC4B: ["1112","1113"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
   //SGC4B: ["1111"] fill the n last
-  SGC4C: ["111111","111112","113112"], //should be 111,113,115, | 1112, 1132, 1152 | 1113, 1133, 1153 
-  SGC4D: ["1111111", "1111112", "1131111" , "1131112"], 
+  //the rotation hypothesis
+  // [isoceles] orthog-45, orthog-90, tri-45, tri-90
+  //ISOCELESES SHAPE  ["11111221","11111331","11311221","11311331"]
+  //EQUILATERAL SHAPE ["11111222","11111332","11311222","11311332"]
+  SGC4C: ["111111","111112","113112"], 
+  //the SHAPE hypothesis
+  //      orth-isoc   orth-equil  tri-isoc    tri-equil
+  // SGC4D: ["1111111", "11111112", "11311111" , "11311112"], //[FULL STUDY]
+  SGC4D: ["11111112", "11311112"], //[JUST NEW conditions]
+  //the INTERACTION hypothesis
   SGC5A: ["11115","11111"]
 };
 
@@ -860,7 +872,34 @@ function buildProcedure(){
     //explicit == 3 :: [5 ixn] + [10 none] + free response 
     //GRID = 1, MARK = 1, IXN = 1, 
     //---------------------------------------------------  
-    case "SGC3B"  :
+    case "SGC3B":
+
+      //last question q="F" is freeresponse, q="F" to bypass scoring
+      free = "Please describe how to determine what event(s) start at 12pm?";
+
+      //FIRST FIVE QUESTIONS ARE BASED ON IMPASSE CONDITION [determines dataset]
+      scaffold_timeline = [
+         { q:1, impasse: impasse, question: questions[1], datafile: datas[1], graph: graph,  explicit : explicit, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[1], block: "item_scaffold" },
+         { q:2, impasse: impasse, question: questions[2], datafile: datas[2], graph: graph,  explicit : explicit, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[2], block: "item_scaffold" },
+         { q:3, impasse: impasse, question: questions[3], datafile: datas[3], graph: graph,  explicit : explicit, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[3], block: "item_scaffold" },
+         { q:4, impasse: impasse, question: questions[4], datafile: datas[4], graph: graph,  explicit : explicit, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[4], block: "item_scaffold" },
+         { q:5, impasse: impasse, question: questions[5], datafile: datas[5], graph: graph,  explicit : explicit, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[5], block: "item_scaffold" }
+      ];
+      //NEXT TEN QUESTIONS ARE NOT IMPASSSE STRUCTURE [main dataset]
+      test_timeline = [
+        { q:6,  impasse: 1, question: questions[6],  datafile: datas[6],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[6] , block: "item_nondiscriminant"},
+        { q:7,  impasse: 1, question: questions[7],  datafile: datas[7],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[7] , block: "item_test" },
+        { q:8,  impasse: 1, question: questions[8],  datafile: datas[8],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[8] , block: "item_test" },
+        { q:9,  impasse: 1, question: questions[9],  datafile: datas[9],  graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[9] , block: "item_nondiscriminant"},
+        { q:10, impasse: 1, question: questions[10], datafile: datas[10], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[10], block: "item_test" },
+        { q:11, impasse: 1, question: questions[11], datafile: datas[11], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[11], block: "item_test" },
+        { q:12, impasse: 1, question: questions[12], datafile: datas[12], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[12], block: "item_test" },
+        { q:13, impasse: 1, question: questions[13], datafile: datas[13], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[13], block: "item_nondiscriminant" },
+        { q:14, impasse: 1, question: questions[14], datafile: datas[14], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[14], block: "item_test" },
+        { q:15, impasse: 1, question: questions[15], datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: relations[15], block: "item_test" },   
+        //FREE RESPONSE QUESTION
+        { q:"f", impasse: 1, question: free,          datafile: datas[15], graph: graph,  explicit : 1, grid : 1, mark: 1, ixn : 1, colorClick: false, gwidth: gwidth, gheight : gheight, relation: "free", block: "item_free" }   
+      ];
       break;
 
     //---------------------------------------------------
@@ -990,6 +1029,7 @@ function buildProcedure(){
 
   const procedures = {
     SGC3A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
+    SGC3B: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4A: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4B: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
     SGC4C: {timeline: [scenario_1, block_scaffold, scenario_2, block_test]},
@@ -1180,40 +1220,3 @@ async function main() {
 
 //ALLONS-Y!
 main();
-
-
-//STRATEGY DISCRIMINANT SCORE ---------------------------------------- 
-
-  // // triangular = 1 
-  // // +1/t for each correct r 
-  // let rcorrect  = _.intersection(response,tri);
-  // let partialp  = (1/tri.length) * rcorrect.length; 
-  // console.log( "partial positive: "+ partialp)
-  
-  // // - 1/n for each incorrect [not orthogonal]
-  // let rneither = _.intersection(response,not);
-  // let partialn = (-1/n) * rneither.length; //neither answers are penalized at 1/n
-  // console.log( "partial negative: "+ partialn)
-  
-  // // orthogonal = -1 
-  // let rorth = _.intersection(response,orth);
-  // // let partialo = (-1/(orth.length) * rorth.length); 
-  // let partialo = (-1/(n) * rorth.length); 
-  // console.log( "partial ortho: "+ partialo)
-
-  // let fscore;
-  // //IF EXACTLY TRIANGULAR, SCORE = 1 
-  // //if correct responses are complete and all responses are correct responses
-  // if ( (rcorrect.length  == tri.length) && (response.length == rcorrect.length)){ console.log("perfect"); fscore = 1}
-  // //IF NO RESPONSE, SCORE = 0
-  // else if (response.length == 0) {fscore = 0}
-  // //IF EXACTLY ORTH & TRIANGULAR, SCORE = 0
-  // //if some answers are tri, some are orth, and only tri or orth
-  // else if ( (rcorrect.length != 0) && (rorth.length !=0) && (response.length == (tri.length + orth.length)))
-  // {fscore = 0;}
-  // //IF EXACTLY ORTHOGONAL, SCORE = -1 
-  // //if orth responses are complete and all responses are orth responses
-  // else if ((rorth.length == orth.length) && (response.length == rorth.length)){fscore = -1}
-  // //ELSE PARTIAL CREDIT +1/t(tri) - 1/n - 1/orth
-  // else {fscore = partialp + partialn + partialo;}
-  // console.log("CHRONBACH SCORE: " + fscore);
