@@ -2,6 +2,7 @@
 
 - AUGUST 2022
   - added retroactive support for SGC 3B 
+  - cleaned up positioning and added y axis label rotation for SGC 4C (rotation) and 4D (shape)
 
 - July 2022
   - added more support for sGC4C
