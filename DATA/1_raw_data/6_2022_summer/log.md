@@ -1,5 +1,27 @@
 
+## 8/23/22 WRANGLING
 
+- DOWNLOAD from server to local server (74 records)
+- >> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out su22_session2.json
+
+- IMPORT to local server (iMac) for wrangling (179 before... 253 after)
+- >> mongoimport -d analyze_SGCXSU22 -c entries --file su22_session2.json
+
+-- WRANGLE SGC 4A 
+- RUN filter.js to create study specific db collections (eg SGC_3A)
+- RUN flatten_sgc4a to flatten and create SGC 4A specific files  (from 76 subjects to 130 (1950 items))
+(all subjects from prior run in first summer session are included in this run, so overwrite existing file)
+
+mongoexport -d analyze_SGCXSU22 -c SGC4A_final_participants --jsonArray --out su22_sgc4a_final_participants.json
+mongoexport -d analyze_SGCXSU22 -c SGC4A_final_items --jsonArray --out su22_sgc4a_final_items.json
+mongoexport -d analyze_SGCXSU22 -c SGC4A_final_items_mouse --jsonArray --out su22_sgc4a_final_items_mouse.json
+- successfully exported 130 participants, 1950 items 
+
+- RUN summer2022_clean_sgc4a.Rmd
+- generate new su22_sgc4a files, and copy to analysis folder 
+
+
+--DELETE SERVER FIELS
 
 ## DATA COLLECTION
 
@@ -15,6 +37,12 @@
 
 
 ## WRANGLE
+
+### recreate lab data workflow 
+
+mongoimport -d analyze_SGCX_lab -c entries --file alfa-bravo-charlie.json
+
+
 
 ### 08/02/22 WRANGLE DOWN FROM SERVER
 - DOWNLOAD from server to local file (179 entries in server side collection)

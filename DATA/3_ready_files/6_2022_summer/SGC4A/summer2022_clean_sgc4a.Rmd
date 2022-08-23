@@ -96,7 +96,7 @@ df_participants <- df_participants %>%
     os = factor(os),
     native_language = factor(language),
     totaltime_m = totaltime/1000/60,
-   ) %>% select( #order cols 
+   ) %>% dplyr::select( #order cols 
     subject,
     study,
     condition,
@@ -162,7 +162,7 @@ df_items <- df_items %>%
     q=factor(q),
     rt_s = rt/1000,
     time_elapsed_m = time_elapsed/1000/60
-  ) %>% select(
+  ) %>% dplyr::select(
      subject,
      study,
      term,
@@ -344,7 +344,7 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Two participants are excluded for low (self-rated) effort._
+_12 participants are excluded for low (self-rated) effort._
 
 
 ### Attention Check
@@ -373,7 +373,7 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Nine participants are excluded for failing the attention check question._
+_11 participants are excluded for failing the attention check question._
 
 
 ### Items
@@ -410,7 +410,7 @@ count(df_items)[[1]] == count(df_participants)[[1]]* n_items
 
 #ADD VARIABLE METADATA
 dict <- rio::import("input/dictionary_sgc4a_participants.csv", "csv") #import data dictionary
-var_label(df_participants) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
+var_label(df_participants) <- dict %>% dplyr::select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
 
 #ADD DATASET METATDATA
 metadata(df_participants)$name <- "Experimental PARTICIPANTS for study SGC4A"
@@ -446,7 +446,7 @@ codebook(df_participants, #ONLY FOR HTML KNIT
 #ADD VARIABLE METADATA
 dict <- rio::import("input/dictionary_sgc4a_items.csv", "csv") #import data dictionary
 
-var_label(df_items) <- dict %>% select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
+var_label(df_items) <- dict %>% dplyr::select(VARIABLE, DESCRIPTION) %>% dict_to_list() #add variable labels
 
 #ADD DATASET METATDATA
 metadata(df_items)$name <- "Experimental ITEMS for study SGC4A"
@@ -474,6 +474,8 @@ codebook(df_items,#ONLY FOR HTML EXPORT
 
 # Explore
 Exploration of the distribution of key response variables for validation purposes: 
+
+**NOTE:: INTERPRET WITH CAUTION. THIS FILE DOES NOT INCLUDE DATA FOR THE ENTIRE STUDY, ONLY SUBJECTS RUN IN THIS DATA COLLECTION SESSION**
 
 ```{r}
 
@@ -538,7 +540,7 @@ rio::export(df_items, "output/su22_sgc4a_items.rds") # to R data structure file
 ```
 
 
-
+**NOTE:: INTERPRET WITH CAUTION. THIS FILE DOES NOT INCLUDE DATA FOR THE ENTIRE STUDY, ONLY SUBJECTS RUN IN THIS DATA COLLECTION SESSION**
 ```{r}
 
 library(ggstatsplot)
