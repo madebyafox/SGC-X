@@ -40,7 +40,13 @@ db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC4B'}},
     {$out: "SGC_4B"}
-]);            
+]);    
+
+db.entries.aggregate([
+    //select relevant entries for this study
+    {$match: {'data.trials.study' : 'SGC4D'}},
+    {$out: "SGC_4D"}
+]);        
     
 db.entries.aggregate([
     //select relevant entries for this study
@@ -51,5 +57,11 @@ db.entries.aggregate([
 db.entries.aggregate([
     //select relevant entries for this study
     {$match: {'data.trials.study' : 'SGC5X'}},
+    {$out: "SGC_X"}
+]); 
+    
+    db.entries.aggregate([
+    //select relevant entries for this study
+    {$match: {'data.trials.study' : 'SGCX'}},
     {$out: "SGC_X"}
 ]); 

@@ -1,4 +1,22 @@
 
+
+## 8/23/22 WRANGLING
+- following PROLIFIC run to fill cells for SGC 3B, I ran filter on the live server db to separate SGC3B entries.
+  
+- DOWNLOAD from server to local server (74 records)
+- >> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_3B --type JSON --out su22_session3.json
+
+- IMPORT to local server (iMac) for wrangling (253 before... 327 after)
+- >> mongoimport -d analyze_SGCXSU22 -c entries --file su22_session3.json
+
+-- WRANGLE SGC 3B 
+- RUN filter.js to create study specific db collections (eg SGC_3B)
+- RUN flatten_sgc3b to flatten and create SGC 3B specific files  (from 54 subjects to 810 items)
+
+mongoexport -d analyze_SGCXSU22 -c SGC3B_final_participants --jsonArray --out su22_sgc3b_final_participants.json
+mongoexport -d analyze_SGCXSU22 -c SGC3B_final_items --jsonArray --out su22_sgc3b_final_items.json
+mongoexport -d analyze_SGCXSU22 -c SGC3B_final_items_mouse --jsonArray --out su22_sgc3b_final_items_mouse.json
+
 ## 8/23/22 WRANGLING
 
 - DOWNLOAD from server to local server (74 records)
@@ -24,8 +42,6 @@ NOTE:: after integrating with prior data (in analysis folder... found that we're
 
 -- DELETED (dropped) records from server database
 
-
---DELETE SERVER FIELS
 
 ## DATA COLLECTION
 
