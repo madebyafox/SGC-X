@@ -334,10 +334,10 @@ df_items_winter22 <- read_rds(winter22) #use RDS file as it contains metadata
 df_items_summer22 <- read_rds(summer22) #use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
-map_relations <- df_items_winter22 %>% group_by(q) %>% select(q,relation) %>% unique()
+map_relations <- df_items_winter22 %>% group_by(q) %>% dplyr::select(q,relation) %>% unique()
 
 #SAVE METADATA FROM WINTER, but no rows 
-df_items <- df_items_winter22 %>% filter(condition=='X') %>% select(
+df_items <- df_items_winter22 %>% filter(condition=='X') %>% dplyr::select(
   subject,condition,term,mode,
   question, q, answer, correct, rt_s
 ) 
@@ -345,11 +345,11 @@ df_items <- df_items_winter22 %>% filter(condition=='X') %>% select(
 #reduce data collected using old webapp
 df_items_before <- rbind(df_items_fall17, df_items_spring18) %>% 
   mutate(rt_s = rt / 1000, correct = as.logical(correct)) %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) 
+  dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) 
   
 #reduce data collected using new webapp
 df_items_winter22 <- df_items_winter22 %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
@@ -360,7 +360,7 @@ df_items_winter22 <- df_items_winter22 %>%
   )
 
 df_items_summer22 <- df_items_summer22 %>% 
-  select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
@@ -407,7 +407,7 @@ var_label(df_items$num_o) <- "number of options selected by the subject"
 
 #HANDLE FREE RESPONSE QUESTION #16 
 #save `free response` Q#16 in its own dataframe
-df_freeresponse <- df_items %>% filter(q == 16) %>% select(-question,-correct,-rt_s,-num_o)
+df_freeresponse <- df_items %>% filter(q == 16) %>% dplyr::select(-question,-correct,-rt_s,-num_o)
 #add data from wi22 [stored on subject data]
 df_winter22_q16 <- df_winter22_q16 %>% dplyr::select(-pretty_condition)
 df_freeresponse <- rbind(df_freeresponse, df_winter22_q16)

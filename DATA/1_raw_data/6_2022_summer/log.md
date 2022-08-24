@@ -20,6 +20,10 @@ mongoexport -d analyze_SGCXSU22 -c SGC4A_final_items_mouse --jsonArray --out su2
 - RUN summer2022_clean_sgc4a.Rmd
 - generate new su22_sgc4a files, and copy to analysis folder 
 
+NOTE:: after integrating with prior data (in analysis folder... found that we're still 15 subjects under for 114 and 7 subjects under for 115)
+
+-- DELETED (dropped) records from server database
+
 
 --DELETE SERVER FIELS
 
