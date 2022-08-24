@@ -153,6 +153,7 @@ Data for study SGC_3B were collected across four time periods, interrupted by th
 | Fall 2017   | in person, SONA groups in computer lab |
 | Spring 2018 | in person, SONA groups in computer lab |
 | Fall 2021   | asynchronous, online, SONA             |
+| Summer 2022   | asynchronous, online, SONA             |
 
 Data collected in Fall 2017, Spring 2018 constitute the original SGC_3B study, conducted in person. Data collected in Fall 2021 constitute the web-based replication, conducted online (asynchronously). In all cases, the experiment was administered via a web application.
 
@@ -179,16 +180,18 @@ First we import participant-level data from each data collection period, selecti
 fall17 <- "analysis/SGC3B/data/0-session-level/fall17_sgc3b_participants.csv"
 spring18 <- "analysis/SGC3B/data/0-session-level/spring18_sgc3b_participants.csv"
 fall21 <- "analysis/SGC3B/data/0-session-level/fall21_sgc3b_participants.csv"
-meta <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_participants.csv" #FOR SCHEMA ONLY
+summer22 <- "analysis/SGC3B/data/0-session-level/su22_sgc3b_participants.rds"
+
 
 #read datafiles, set mode and term
 df_subjects_fall17 <- read_csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_subjects_spring18 <- read_csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
 df_subjects_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
-meta <- read_csv(meta)
+df_subjects_summer22 <- read_rds(summer22) %>% mutate(mode = "asynch", term = "summer22")
+
 
 #SAVE METADATA FROM SGC3A, but no rows 
-df_subjects <- meta %>% filter(condition=='X') %>% 
+df_subjects <- df_subjects_summer22 %>% filter(condition=='X') %>% 
   dplyr::select(
   subject,condition,term,mode,
   gender,age,language, schoolyear, country,
@@ -238,10 +241,29 @@ df_subjects_before <- rbind(df_subjects_fall17, df_subjects_spring18, df_subject
                 #exploratory factors
                 violations, browser, width, height)
 
+
+#reduce data collected using NEW webapp to useful columns
+df_subjects_summer22 <- df_subjects_summer22 %>% 
+  mutate(score = absolute_score) %>% 
+  #select only columns we'll be analyzing, discard others
+  dplyr::select( subject, condition, term, mode, 
+                 #demographics
+                 gender, age, language, schoolyear, country,
+                 #effort survey
+                 effort, difficulty, confidence, enjoyment, 
+                 #explanations
+                 other,disability,
+                 #response characteristics
+                 totaltime_m, 
+                 # absolute_score, #drop absolute score as this is re-scored [though should be the same]
+                 #exploratory factors 
+                 violations, browser, width, height)
+
+
 effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
 
 #combine dataframes from old and new webapps
-df_subjects <- rbind(df_subjects, df_subjects_before) %>% 
+df_subjects <- rbind(df_subjects, df_subjects_before, df_subjects_summer22) %>% 
   #refactor factors
   mutate (
     subject = factor(subject),
@@ -257,6 +279,7 @@ df_subjects <- rbind(df_subjects, df_subjects_before) %>%
     schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
   )
 
+
 #FIX METADATA
 #Add metadata for columns that lost it [factors, for some reason!]
 var_label(df_subjects$subject) <- "ID of subject (randomly assigned in stimulus app)."
@@ -267,8 +290,18 @@ var_label(df_subjects$gender) <- "What is your gender identity?"
 var_label(df_subjects$schoolyear) <- "What is your year in school?"
 
 #CLEANUP
-rm(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_before)
-rm(fall17,fall21,spring18,meta)
+rm(df_subjects_fall17,df_subjects_fall21, df_subjects_spring18, df_subjects_before, df_subjects_summer22)
+rm(fall17,fall21,spring18,summer22)
+
+
+
+
+## TO EVEN COLUMNS, DROP FA21 DATA FOR 111 AND 112 [the sgc3a online replication study]
+df_subjects <- df_subjects %>% filter(
+  !(condition %in% c(111,121) & term == "fall21")
+)
+
+
 
 ```
 
@@ -289,19 +322,19 @@ Next we import item-level data from each data collection period, selecting only 
 fall17 <- "analysis/SGC3B/data/0-session-level/fall17_sgc3b_blocks.csv"
 spring18 <- "analysis/SGC3B/data/0-session-level/spring18_sgc3b_blocks.csv"
 fall21 <- "analysis/SGC3B/data/0-session-level/fall21_sgc3b_blocks.csv"
-meta <- "analysis/SGC3A/data/0-session-level/winter22_sgc3a_items.rds" #FOR SCHEMA ONLY
+summer22 <- "analysis/SGC3B/data/0-session-level/su22_sgc3b_items.rds"
 
 #read datafiles, set mode and term
 df_items_fall17 <- read_csv(fall17) %>% mutate(mode = "lab-synch", term = "fall17")
 df_items_spring18 <- read_csv(spring18) %>% mutate(mode = "lab-synch", term = "spring18")
 df_items_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
-meta <- read_rds(meta) #use RDS file as it contains metadata
+df_items_summer22 <- read_rds(summer22) %>%  mutate(mode = "asynch", term = "summer21")#use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
-map_relations <- meta %>% group_by(q) %>% dplyr::select(q,relation) %>% unique()
+map_relations <- df_items_summer21 %>% group_by(q) %>% dplyr::select(q,relation) %>% unique()
 
-#SAVE METADATA FROM WINTER, but no rows 
-df_items <- meta %>% filter(condition=='X') %>% dplyr::select(
+#SAVE METADATA FROM SUMMER, but no rows 
+df_items <- df_items_summer21 %>% filter(condition=='X') %>% dplyr::select(
   subject,condition,term,mode,
   question, q, answer, correct, rt_s
 ) 
@@ -314,8 +347,20 @@ df_items_before <- rbind(df_items_fall17, df_items_spring18, df_items_fall21) %>
 #COMPARE COLS
 janitor::compare_df_cols(df_items_before, df_items)
 
+#reduce data collected using new webapp
+df_items_summer22 <- df_items_summer22 %>% 
+  dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+  mutate(
+    subject = as.character(subject),
+    condition = as.character(condition),
+    term = as.character(term),
+    mode = as.character(mode),
+    q = as.integer(q),
+    correct = as.logical(correct)
+  )
+
 #combine dataframes from old and new webapps
-df_items <- rbind(df_items, df_items_before) %>% 
+df_items <- rbind(df_items, df_items_before, df_items_summer22) %>% 
   #refactorize columns
   mutate(
     subject = factor(subject),
@@ -369,8 +414,12 @@ df_items <- df_items %>% mutate(
 ) 
 
 #CLEANUP
-rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_before)
-rm(fall17,fall21,spring18,meta, map_relations)
+rm(df_items_fall17,df_items_fall21, df_items_spring18, df_items_before, df_items_summer22)
+rm(fall17,fall21,spring18,summer22, map_relations)
+
+##ONLY INCLUDE ITEMS FOR INCLUDED SUBJECTS
+##SEE CONDITION LEVELLING IN PARTICIPANTS BLOCK
+df_items <- df_items %>% filter(subject %in% df_subjects$subject)
 ```
 
 #### Validation
