@@ -1,4 +1,21 @@
 
+## 8/24/22 WRANGLING
+- DOWNLOAD SGC4D equilateral 
+  - run filter on server to get SGC4D in its own file
+
+- DOWNLOAD from server to local server (190 records)
+- >> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_4D --type JSON --out su22_session_4D.json
+
+- IMPORT to local server (iMac) for wrangling (327 before... 517 )
+- >> mongoimport -d analyze_SGCXSU22 -c entries --file su22_session_4D.json
+
+-- WRANGLE SGC 4D 
+- RUN filter.js to create study specific db collections (eg SGC_4D) on local
+- RUN flatten_sgc4d to flatten and create SGC 4D specific files  (from 122 subjects to 1830 items)
+
+mongoexport -d analyze_SGCXSU22 -c SGC4D_final_participants --jsonArray --out su22_sgc4d_final_participants.json
+mongoexport -d analyze_SGCXSU22 -c SGC4D_final_items --jsonArray --out su22_sgc4d_final_items.json
+mongoexport -d analyze_SGCXSU22 -c SGC4D_final_items_mouse --jsonArray --out su22_sgc4d_final_items_mouse.json
 
 ## 8/23/22 WRANGLING
 - following PROLIFIC run to fill cells for SGC 3B, I ran filter on the live server db to separate SGC3B entries.
@@ -16,6 +33,9 @@
 mongoexport -d analyze_SGCXSU22 -c SGC3B_final_participants --jsonArray --out su22_sgc3b_final_participants.json
 mongoexport -d analyze_SGCXSU22 -c SGC3B_final_items --jsonArray --out su22_sgc3b_final_items.json
 mongoexport -d analyze_SGCXSU22 -c SGC3B_final_items_mouse --jsonArray --out su22_sgc3b_final_items_mouse.json
+
+DO NOT DELETE FROM DATABASE
+(but not running more SGC3B... so no need to re-wrangle)
 
 ## 8/23/22 WRANGLING
 
