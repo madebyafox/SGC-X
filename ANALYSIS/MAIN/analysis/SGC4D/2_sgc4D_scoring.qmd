@@ -2294,9 +2294,13 @@ power
 ## 13% VERY underpowered for this size of effect and this model structure.  The EFFECT IS VERY SMALL
 
 ##HOW MANY SUBJECTS ARE NEEDED TO DETECT ACTUAL EFFECT OF TRI AT 80% POWER?
-power <- powerCurve(m4, test = fixed("pretty_condition"), along = "subject", breaks = c( 60, 80, 100, 150,200), nsim = 500)
-power
+# power <- powerCurve(m4, test = fixed("pretty_condition"), along = "subject", breaks = c( 60, 80, 100, 150,200), nsim = 500)
+# power %>% write_rds("analysis/SGC4D/models/power_analysis.rds")
+power <- read_rds("analysis/SGC4D/models/power_analysis.rds")
+power 
 plot(power)
+## effect is probably too small to reliably detect in reasonable sample sizes, and not worth detecting if it is THAT small. 
+
 
 table(df_subjects$term, df_subjects$condition)
 
