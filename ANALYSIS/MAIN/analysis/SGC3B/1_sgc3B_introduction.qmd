@@ -331,10 +331,10 @@ df_items_fall21 <- read_csv(fall21) %>% mutate(mode = "asynch", term = "fall21")
 df_items_summer22 <- read_rds(summer22) %>%  mutate(mode = "asynch", term = "summer21")#use RDS file as it contains metadata
 
 #get mapping being question # and interval relation the question tests, that is encoded only in the winter22 data files
-map_relations <- df_items_summer21 %>% group_by(q) %>% dplyr::select(q,relation) %>% unique()
+map_relations <- df_items_summer22 %>% group_by(q) %>% dplyr::select(q,relation) %>% unique()
 
 #SAVE METADATA FROM SUMMER, but no rows 
-df_items <- df_items_summer21 %>% filter(condition=='X') %>% dplyr::select(
+df_items <- df_items_summer22 %>% filter(condition=='X') %>% dplyr::select(
   subject,condition,term,mode,
   question, q, answer, correct, rt_s
 ) 
@@ -345,7 +345,7 @@ df_items_before <- rbind(df_items_fall17, df_items_spring18, df_items_fall21) %>
   dplyr::select(subject, condition, term, mode, question, q, answer, correct, rt_s) 
 
 #COMPARE COLS
-janitor::compare_df_cols(df_items_before, df_items)
+# janitor::compare_df_cols(df_items_before, df_items)
 
 #reduce data collected using new webapp
 df_items_summer22 <- df_items_summer22 %>% 

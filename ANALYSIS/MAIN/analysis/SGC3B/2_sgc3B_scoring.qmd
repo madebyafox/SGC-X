@@ -135,68 +135,6 @@ source("analysis/utils/scoring.R")
 *note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records*
 
 
-### TEMP TROUBLESHOOT
-```{r}
-
-# # df_i <- old %>% filter(q==1 & condition =="111" & response =="AF")
-# 
-# df_i <- df_items %>% tail(20)
-# 
-# 
-# #alphebetize
-# df_i$response = pbmapply(reorder_inplace, df_i$response)
-# 
-# #STRATEGY PARTIAL-SUBSCORES
-# df_i$score_TRI = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tri))
-# 
-# df_i$score_ORTH = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_orth))
-# 
-# ##PROBLEM nothing scored as BOTH bc
-# # df_i$score_BOTH = as.integer((df_i$score_TRI == 1) & (df_i$score_ORTH ==1))
-# df_i$score_BOTH = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_both))
-# 
-# 
-# df_i$score_SAT_left = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_satisfice_left))
-# df_i$score_SAT_right = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_satisfice_right))
-# df_i$score_TV_max = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_max))
-# df_i$score_TV_start = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_start))
-# df_i$score_TV_end = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_end))
-# df_i$score_TV_duration = pbmapply(calc_subscore, df_i$q, df_i$IMPASSE, df_i$response, MoreArgs = list(keyframe = keys_tversky_duration))
-# 
-# 
-# #SPECIAL ABSOLUTE SUBSCORES
-# df_i$score_REF = pbmapply(calc_refscore, df_i$q, df_i$response)
-# 
-# 
-# #ABSOLUTE SCORES
-# df_i$score_ABS = as.integer(df_i$correct)
-# df_i$score_niceABS  <- as.integer((df_i$score_TRI == 1)) #tri doesn't penalize ref or ve-area
-# 
-# 
-# ##DERIVE INTERPRETATION
-# temp <- df_i
-# temp <- derive_interpretation(temp)
-# df_i <- temp
-# 
-# ##DERIVE SCALED
-# df_i$score_SCALED <- calc_scaled(df_i$interpretation)
-# 
-# ##DERIVE STATE
-# df_i <- df_i %>% mutate (
-#   score_STATE = recode_factor(df_i$score_SCALED,
-#                          "-1" = "orth-like",
-#                          "-0.5" = "unknown",
-#                          "0" = "unknown",
-#                          "0.5" = "tri-like",
-#                          "1" = "tri-like"),
-#   score_STATE = as.ordered(score_STATE))
-# 
-
-```
-
-
-
-
 ```{r}
 #| label: CALCULATE-SCORES-MAPPLY
 #| cache: true
@@ -560,7 +498,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==7 MOX, MX  Derives as TRI RECODE as tversky
 temp <- temp %>% mutate_when(
-  (q==7 & response %in% c("MOX", "MX", "DX","O","X")),
+  (q==7 & response %in% c("MOX", "MX", "DX","O","X","JX")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
@@ -749,7 +687,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==15 AKPX Derives as TRI set at OTHER
 temp <- temp %>% mutate_when(
-  (q==15)  & (response %in% c("AKPX","GK","JX","LX","BK","HK")),
+  (q==15)  & (response %in% c("AKPX","GK","JX","LX","BK","HK","HNX")),
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -1006,10 +944,29 @@ ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
 
+df_scaled_progress <- df_scaled_progress %>% 
+  mutate(
+    implicit = recode_factor(pretty_condition,
+                            "none-control"="none",
+                            "none-impasse"="impasse",
+                            "img-control"="none",
+                            "img-impasse"="impasse",
+                            "ixv-control"="none",
+                            "ixv-impasse"="impasse"),
+    explicit = recode_factor(pretty_condition,
+                            "none-control"="none",
+                            "none-impasse"="none",
+                            "img-control"="img",
+                            "img-impasse"="img",
+                            "ixv-control"="ixv",
+                            "ixv-impasse"="ixv")
+  )
+
+
 #VISUALIZE progress over time SCALED score 
 ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_wrap(~pretty_condition) + 
+ facet_grid(explicit~implicit) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
@@ -2734,9 +2691,10 @@ df_items %>% filter(q ==9) %>% group_by(response) %>%
   select(response, count, interpretation, nice,
          triangular, tversky, satisficing, orthogonal, scaled) %>%
   kbl(caption = title, col.names = names) %>%  kable_classic() %>%
-  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) %>%
-  pack_rows("Other", 1, 2) %>%
-  pack_rows("Unknown", 3, 19)
+  add_header_above(c(" " = 3, "Strict Score" = 1, "Interpretation Scores"=4, "Discriminant"=1)) 
+# %>%
+#   pack_rows("Other", 1, 2) %>%
+#   pack_rows("Unknown", 3, 19)
 ```
 
 ```{r}
