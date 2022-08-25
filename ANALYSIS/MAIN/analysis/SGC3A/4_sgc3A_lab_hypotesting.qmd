@@ -709,15 +709,18 @@ check_model(m)
 library(simr)
 power <- powerSim(model_final, test = fixed("Age"), nsim=2)
 
-#OBSERVED POWER of actual test
+#WHAT IS THE POWER FOR THE ACTUAL OBSERVED EFFECT?
 power <- powerSim(m, test = fixed("pretty_condition"), nsim=100)
 power 
 
 
-#HOW MANY SUBJECTS ARE NEEDED TO TEST FOR THIS ACTUAL EFFECT?
+##HOW MANY SUBJECTS ARE NEEDED TO DETECT ACTUAL EFFECT OF TRI AT 80% POWER?
 #warning :: post hoc power analysis :: ca c'est tres bad 
 power <- powerCurve(m, test = fixed("pretty_condition"), along = "subject", breaks = c(40, 50, 60, 70, 80, 90, 100), nsim = 1000)
-plot(power )
+# power %>% write_rds("analysis/SGC3A/models/power_analysis_LAB.rds")
+power <- read_rds("analysis/SGC3A/models/lab_power_analysis_LAB.rds")
+power
+plot(power)
 
 ```
 
