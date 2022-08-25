@@ -2260,8 +2260,9 @@ Uncertainty intervals (equal-tailed) and p-values (two-tailed) computed
 <h5 class="anchored" data-anchor-id="inference-1">INFERENCE</h5>
 <p><strong>REPORTED</strong></p>
 <p>[REPORT POSTERIOR MEDIAN <span class="math inline">\(\exp_{beta}\)</span>, 95 % credible interval, % probability of direction]</p>
-<p>We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 9.31e+15). <strong>Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.</strong></p>
-<p>Across the entire task participants in the impasse condition were 11 times more likely to offer an ‘unknown’ rather than orthogonal response compared with those in the control condition ( <span class="math inline">\(e^{\beta_1} = 10.93, 95 \% CI [5.59,22.49], pd = 100\%\)</span>). Participants in the impasse condition were 11 times more likely to offer an ‘angular’ rather than orthogonal response compared with those in the control condition ( <span class="math inline">\(e^{\beta_1} = 10.93, 95 \% CI [3.55, 40.54], pd = 100\%\)</span>), and 33 times more likely to offer an ‘triangular’ rather than orthogonal response compared with those in the control condition ( <span class="math inline">\(e^{\beta_1} = 33.38, 95 \% CI [6.36, 194.83], pd = 100\%\)</span>).</p>
+<p>We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 1.38e+14).</p>
+<p><strong>Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.</strong></p>
+<p>Across the entire task participants in the impasse condition were 12 times more likely to offer an ‘unknown’ rather than orthogonal response compared with those in the control condition ( <span class="math inline">\(e^{\beta_1} = 12.13, 95 \% CI [6.29, 25.24], pd = 100\%\)</span>). Participants in the impasse condition were 12 times more likely to offer an ‘angular’ rather than orthogonal response compared with those in the control condition ( <span class="math inline">\(e^{\beta_1} = 11.48, 95 \% CI [3.95, 37.67], pd = 100\%\)</span>), and 34 times more likely to offer an ‘triangular’ rather than orthogonal response compared with those in the control condition ( <span class="math inline">\(e^{\beta_1} = 33.90, 95 \% CI [6.22, 211.18], pd = 100\%\)</span>).</p>
 </section>
 <section id="print-1" class="level5">
 <h5 class="anchored" data-anchor-id="print-1">Print</h5>
@@ -2282,14 +2283,14 @@ Uncertainty intervals (equal-tailed) and p-values (two-tailed) computed
 <span id="cb137-12"><a href="#cb137-12" aria-hidden="true" tabindex="-1"></a><span class="co"># t &lt;- as.data.frame(model_parameters(m, exponentiate = TRUE))</span></span>
 <span id="cb137-13"><a href="#cb137-13" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb137-14"><a href="#cb137-14" aria-hidden="true" tabindex="-1"></a><span class="co"># #REFORMAT</span></span>
-<span id="cb137-15"><a href="#cb137-15" aria-hidden="true" tabindex="-1"></a><span class="co"># x &lt;- t %&gt;% </span></span>
+<span id="cb137-15"><a href="#cb137-15" aria-hidden="true" tabindex="-1"></a><span class="co"># x &lt;- t %&gt;%</span></span>
 <span id="cb137-16"><a href="#cb137-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   mutate(</span></span>
 <span id="cb137-17"><a href="#cb137-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     Interpretation = word(Parameter, 2, sep = "_"),</span></span>
 <span id="cb137-18"><a href="#cb137-18" aria-hidden="true" tabindex="-1"></a><span class="co">#     Interpretation = str_remove_all(Interpretation,"mu"),</span></span>
 <span id="cb137-19"><a href="#cb137-19" aria-hidden="true" tabindex="-1"></a><span class="co">#     Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),</span></span>
-<span id="cb137-20"><a href="#cb137-20" aria-hidden="true" tabindex="-1"></a><span class="co">#   </span></span>
+<span id="cb137-20"><a href="#cb137-20" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb137-21"><a href="#cb137-21" aria-hidden="true" tabindex="-1"></a><span class="co">#     Parameter = as.factor(word(Parameter, 3, sep = "_")),</span></span>
-<span id="cb137-22"><a href="#cb137-22" aria-hidden="true" tabindex="-1"></a><span class="co">#     Parameter = recode_factor(Parameter, </span></span>
+<span id="cb137-22"><a href="#cb137-22" aria-hidden="true" tabindex="-1"></a><span class="co">#     Parameter = recode_factor(Parameter,</span></span>
 <span id="cb137-23"><a href="#cb137-23" aria-hidden="true" tabindex="-1"></a><span class="co">#                          "Intercept" = "(Intercept)",</span></span>
 <span id="cb137-24"><a href="#cb137-24" aria-hidden="true" tabindex="-1"></a><span class="co">#                          "pretty" = "Condition[impasse]"),</span></span>
 <span id="cb137-25"><a href="#cb137-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     Median = round(Median,2),</span></span>
@@ -2297,19 +2298,19 @@ Uncertainty intervals (equal-tailed) and p-values (two-tailed) computed
 <span id="cb137-27"><a href="#cb137-27" aria-hidden="true" tabindex="-1"></a><span class="co">#     CI_high = round(CI_high,2),</span></span>
 <span id="cb137-28"><a href="#cb137-28" aria-hidden="true" tabindex="-1"></a><span class="co">#     pd = round(pd,2),</span></span>
 <span id="cb137-29"><a href="#cb137-29" aria-hidden="true" tabindex="-1"></a><span class="co">#     ROPE_Percentage = round(ROPE_Percentage,2)</span></span>
-<span id="cb137-30"><a href="#cb137-30" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) %&gt;%  </span></span>
-<span id="cb137-31"><a href="#cb137-31" aria-hidden="true" tabindex="-1"></a><span class="co">#   arrange(Interpretation) %&gt;% </span></span>
-<span id="cb137-32"><a href="#cb137-32" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(-CI, -Rhat, -ESS) %&gt;% </span></span>
+<span id="cb137-30"><a href="#cb137-30" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) %&gt;%</span></span>
+<span id="cb137-31"><a href="#cb137-31" aria-hidden="true" tabindex="-1"></a><span class="co">#   arrange(Interpretation) %&gt;%</span></span>
+<span id="cb137-32"><a href="#cb137-32" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(-CI, -Rhat, -ESS) %&gt;%</span></span>
 <span id="cb137-33"><a href="#cb137-33" aria-hidden="true" tabindex="-1"></a><span class="co">#   rename( "%_in_ROPE"="ROPE_Percentage",</span></span>
-<span id="cb137-34"><a href="#cb137-34" aria-hidden="true" tabindex="-1"></a><span class="co">#           "(Odds Ratio)" = "Median") %&gt;% </span></span>
-<span id="cb137-35"><a href="#cb137-35" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`) </span></span>
-<span id="cb137-36"><a href="#cb137-36" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb137-37"><a href="#cb137-37" aria-hidden="true" tabindex="-1"></a><span class="co">#  </span></span>
+<span id="cb137-34"><a href="#cb137-34" aria-hidden="true" tabindex="-1"></a><span class="co">#           "(Odds Ratio)" = "Median") %&gt;%</span></span>
+<span id="cb137-35"><a href="#cb137-35" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)</span></span>
+<span id="cb137-36"><a href="#cb137-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb137-37"><a href="#cb137-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb137-38"><a href="#cb137-38" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb137-39"><a href="#cb137-39" aria-hidden="true" tabindex="-1"></a><span class="co"># #KNIT</span></span>
 <span id="cb137-40"><a href="#cb137-40" aria-hidden="true" tabindex="-1"></a><span class="co"># title = "Study 3A (Lab) | Question Interpretation | Mixed Multinomial Regression"</span></span>
 <span id="cb137-41"><a href="#cb137-41" aria-hidden="true" tabindex="-1"></a><span class="co"># tab &lt;- kbl(x, format = "latex", caption = title,</span></span>
-<span id="cb137-42"><a href="#cb137-42" aria-hidden="true" tabindex="-1"></a><span class="co">#            booktabs = FALSE) %&gt;% kable_classic() %&gt;% </span></span>
+<span id="cb137-42"><a href="#cb137-42" aria-hidden="true" tabindex="-1"></a><span class="co">#            booktabs = FALSE) %&gt;% kable_classic() %&gt;%</span></span>
 <span id="cb137-43"><a href="#cb137-43" aria-hidden="true" tabindex="-1"></a><span class="co"># footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")</span></span>
 <span id="cb137-44"><a href="#cb137-44" aria-hidden="true" tabindex="-1"></a><span class="co"># writeLines(tab, "tables/SGC3A_LAB_BRMS_state.tex")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -2485,10 +2486,8 @@ mutriangular_pretty_conditionimpasse | 100%</code></pre>
 </div>
 <details>
 <summary>CODE</summary>
-<div class="sourceCode cell-code" id="cb156"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb156-1"><a href="#cb156-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co"> EMMEANS for the estimated marginal means</span></span>
-<span id="cb156-2"><a href="#cb156-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb156-3"><a href="#cb156-3" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO OUTPUT TABLE </span></span>
-<span id="cb156-4"><a href="#cb156-4" aria-hidden="true" tabindex="-1"></a><span class="co"># modelsummary(m)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb156"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb156-1"><a href="#cb156-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO OUTPUT TABLE </span></span>
+<span id="cb156-2"><a href="#cb156-2" aria-hidden="true" tabindex="-1"></a><span class="co"># modelsummary(m)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
@@ -5181,7 +5180,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb276-1164"><a href="#cb276-1164" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb276-1165"><a href="#cb276-1165" aria-hidden="true" tabindex="-1"></a>**Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** </span>
 <span id="cb276-1166"><a href="#cb276-1166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb276-1167"><a href="#cb276-1167" aria-hidden="true" tabindex="-1"></a>Across the entire task participants in the impasse condition were 11 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.13, 95 \% CI <span class="co">[</span><span class="ot">6.29, 25.24</span><span class="co">]</span>, pd = 100\%$). Participants in the impasse condition were 11 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.48, 95 \% CI <span class="co">[</span><span class="ot">3.95, 37.67</span><span class="co">]</span>, pd = 100\%$), and 34 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.90, 95 \% CI <span class="co">[</span><span class="ot">6.22, 211.18</span><span class="co">]</span>, pd = 100\%$). </span>
+<span id="cb276-1167"><a href="#cb276-1167" aria-hidden="true" tabindex="-1"></a>Across the entire task participants in the impasse condition were 12 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.13, 95 \% CI <span class="co">[</span><span class="ot">6.29, 25.24</span><span class="co">]</span>, pd = 100\%$). Participants in the impasse condition were 12 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.48, 95 \% CI <span class="co">[</span><span class="ot">3.95, 37.67</span><span class="co">]</span>, pd = 100\%$), and 34 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.90, 95 \% CI <span class="co">[</span><span class="ot">6.22, 211.18</span><span class="co">]</span>, pd = 100\%$). </span>
 <span id="cb276-1168"><a href="#cb276-1168" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb276-1169"><a href="#cb276-1169" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb276-1170"><a href="#cb276-1170" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Print</span></span>
@@ -5202,14 +5201,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb276-1187"><a href="#cb276-1187" aria-hidden="true" tabindex="-1"></a><span class="co"># t &lt;- as.data.frame(model_parameters(m, exponentiate = TRUE))</span></span>
 <span id="cb276-1188"><a href="#cb276-1188" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb276-1189"><a href="#cb276-1189" aria-hidden="true" tabindex="-1"></a><span class="co"># #REFORMAT</span></span>
-<span id="cb276-1190"><a href="#cb276-1190" aria-hidden="true" tabindex="-1"></a><span class="co"># x &lt;- t %&gt;% </span></span>
+<span id="cb276-1190"><a href="#cb276-1190" aria-hidden="true" tabindex="-1"></a><span class="co"># x &lt;- t %&gt;%</span></span>
 <span id="cb276-1191"><a href="#cb276-1191" aria-hidden="true" tabindex="-1"></a><span class="co">#   mutate(</span></span>
 <span id="cb276-1192"><a href="#cb276-1192" aria-hidden="true" tabindex="-1"></a><span class="co">#     Interpretation = word(Parameter, 2, sep = "_"),</span></span>
 <span id="cb276-1193"><a href="#cb276-1193" aria-hidden="true" tabindex="-1"></a><span class="co">#     Interpretation = str_remove_all(Interpretation,"mu"),</span></span>
 <span id="cb276-1194"><a href="#cb276-1194" aria-hidden="true" tabindex="-1"></a><span class="co">#     Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),</span></span>
-<span id="cb276-1195"><a href="#cb276-1195" aria-hidden="true" tabindex="-1"></a><span class="co">#   </span></span>
+<span id="cb276-1195"><a href="#cb276-1195" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb276-1196"><a href="#cb276-1196" aria-hidden="true" tabindex="-1"></a><span class="co">#     Parameter = as.factor(word(Parameter, 3, sep = "_")),</span></span>
-<span id="cb276-1197"><a href="#cb276-1197" aria-hidden="true" tabindex="-1"></a><span class="co">#     Parameter = recode_factor(Parameter, </span></span>
+<span id="cb276-1197"><a href="#cb276-1197" aria-hidden="true" tabindex="-1"></a><span class="co">#     Parameter = recode_factor(Parameter,</span></span>
 <span id="cb276-1198"><a href="#cb276-1198" aria-hidden="true" tabindex="-1"></a><span class="co">#                          "Intercept" = "(Intercept)",</span></span>
 <span id="cb276-1199"><a href="#cb276-1199" aria-hidden="true" tabindex="-1"></a><span class="co">#                          "pretty" = "Condition[impasse]"),</span></span>
 <span id="cb276-1200"><a href="#cb276-1200" aria-hidden="true" tabindex="-1"></a><span class="co">#     Median = round(Median,2),</span></span>
@@ -5217,19 +5216,19 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb276-1202"><a href="#cb276-1202" aria-hidden="true" tabindex="-1"></a><span class="co">#     CI_high = round(CI_high,2),</span></span>
 <span id="cb276-1203"><a href="#cb276-1203" aria-hidden="true" tabindex="-1"></a><span class="co">#     pd = round(pd,2),</span></span>
 <span id="cb276-1204"><a href="#cb276-1204" aria-hidden="true" tabindex="-1"></a><span class="co">#     ROPE_Percentage = round(ROPE_Percentage,2)</span></span>
-<span id="cb276-1205"><a href="#cb276-1205" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) %&gt;%  </span></span>
-<span id="cb276-1206"><a href="#cb276-1206" aria-hidden="true" tabindex="-1"></a><span class="co">#   arrange(Interpretation) %&gt;% </span></span>
-<span id="cb276-1207"><a href="#cb276-1207" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(-CI, -Rhat, -ESS) %&gt;% </span></span>
+<span id="cb276-1205"><a href="#cb276-1205" aria-hidden="true" tabindex="-1"></a><span class="co">#   ) %&gt;%</span></span>
+<span id="cb276-1206"><a href="#cb276-1206" aria-hidden="true" tabindex="-1"></a><span class="co">#   arrange(Interpretation) %&gt;%</span></span>
+<span id="cb276-1207"><a href="#cb276-1207" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(-CI, -Rhat, -ESS) %&gt;%</span></span>
 <span id="cb276-1208"><a href="#cb276-1208" aria-hidden="true" tabindex="-1"></a><span class="co">#   rename( "%_in_ROPE"="ROPE_Percentage",</span></span>
-<span id="cb276-1209"><a href="#cb276-1209" aria-hidden="true" tabindex="-1"></a><span class="co">#           "(Odds Ratio)" = "Median") %&gt;% </span></span>
-<span id="cb276-1210"><a href="#cb276-1210" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`) </span></span>
-<span id="cb276-1211"><a href="#cb276-1211" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb276-1212"><a href="#cb276-1212" aria-hidden="true" tabindex="-1"></a><span class="co">#  </span></span>
+<span id="cb276-1209"><a href="#cb276-1209" aria-hidden="true" tabindex="-1"></a><span class="co">#           "(Odds Ratio)" = "Median") %&gt;%</span></span>
+<span id="cb276-1210"><a href="#cb276-1210" aria-hidden="true" tabindex="-1"></a><span class="co">#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)</span></span>
+<span id="cb276-1211"><a href="#cb276-1211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb276-1212"><a href="#cb276-1212" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb276-1213"><a href="#cb276-1213" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
 <span id="cb276-1214"><a href="#cb276-1214" aria-hidden="true" tabindex="-1"></a><span class="co"># #KNIT</span></span>
 <span id="cb276-1215"><a href="#cb276-1215" aria-hidden="true" tabindex="-1"></a><span class="co"># title = "Study 3A (Lab) | Question Interpretation | Mixed Multinomial Regression"</span></span>
 <span id="cb276-1216"><a href="#cb276-1216" aria-hidden="true" tabindex="-1"></a><span class="co"># tab &lt;- kbl(x, format = "latex", caption = title,</span></span>
-<span id="cb276-1217"><a href="#cb276-1217" aria-hidden="true" tabindex="-1"></a><span class="co">#            booktabs = FALSE) %&gt;% kable_classic() %&gt;% </span></span>
+<span id="cb276-1217"><a href="#cb276-1217" aria-hidden="true" tabindex="-1"></a><span class="co">#            booktabs = FALSE) %&gt;% kable_classic() %&gt;%</span></span>
 <span id="cb276-1218"><a href="#cb276-1218" aria-hidden="true" tabindex="-1"></a><span class="co"># footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")</span></span>
 <span id="cb276-1219"><a href="#cb276-1219" aria-hidden="true" tabindex="-1"></a><span class="co"># writeLines(tab, "tables/SGC3A_LAB_BRMS_state.tex")</span></span>
 <span id="cb276-1220"><a href="#cb276-1220" aria-hidden="true" tabindex="-1"></a></span>
