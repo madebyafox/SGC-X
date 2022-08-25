@@ -4,7 +4,7 @@ subtitle: 'Study SGC4C | 1 Introduction'
 
 \newpage
 
-# Introduction {#sec-SGC4C-introduction}
+# WIP TODO Introduction {#sec-SGC4C-introduction}
 
 
 **TODO UPDATE**
@@ -155,20 +155,20 @@ First we import participant-level data, selecting only the columns relevant for 
 #setwd(imac)
 
 #import file
-df_subjects <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_participants.rds") #use RDS file as it contains metadata
-
-#NO EXPLANATION COLUMN IN SGC4c DATASET; TRIAL NOT COLLECTED 
-#save 'explanation' columns from winter22, which is actually a response to a free response item (Q16); was recorded with item_level data in old webapp
-# df_q16 <- df_subjects %>% 
-#   select(subject, condition, term , mode, explanation) %>% 
-#   mutate(
-#     q = 16,
-#     response = explanation
-#   ) %>% select(-explanation)
+#import rotation participants
+df_rotated <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_participants.rds") #use RDS file as it contains metadata
+#import control participants
+df_control <- read_rds("analysis/SGC3A/data/1-study-level/sgc3a_participants.rds") %>% filter(condition==111) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC3A"
+)
+#import triangular particiapants
+df_tri <- read_rds("analysis/SGC4A/data/1-study-level/sgc4a_participants.rds") %>% filter(condition==113) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC4D"
+)
 
 #reduce data collected using NEW webapp to useful columns
 #drop absolute score because we rescore in 2_scoring
-df_subjects <- df_subjects %>% 
+df_rotated <- df_rotated %>% 
   #select only columns we'll be analyzing, discard others
   dplyr::select( subject, condition, pretty_condition, study, term, mode, 
                  #demographics
@@ -186,6 +186,13 @@ df_subjects <- df_subjects %>%
 
 effort_labels <- c("I tried my best on each question", "I tried my best on most questions")
 
+
+
+# janitor::compare_df_cols(df_rotated, df_control)
+
+
+df_subjects <- rbind(df_rotated, df_control, df_tri)
+
 #set factors
 df_subjects <- df_subjects %>% 
   #refactor factors
@@ -198,7 +205,61 @@ df_subjects <- df_subjects %>%
     schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
   )
 
+
+# table(df_subjects$condition)
 ```
+
+##TEMP
+
+```{r}
+
+
+#import rotation participants
+df_rotated <- read_rds("analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.rds") 
+rotated_items <- read_rds("analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds") %>% mutate(override="") %>% dplyr::select(-answer)
+
+#import control participants
+df_control <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_REP.rds") %>% filter(condition==111) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC3A"
+)
+control_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_REP.rds") %>% filter(condition==111) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC3A"
+) %>% dplyr::select(-IMPASSE)
+
+#import triangular particiapants
+df_tri <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") %>% filter(condition==113) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC4D"
+)
+tri_items <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds") %>% filter(condition==113) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC4D"
+) %>% dplyr::select(-IMPASSE)
+
+# janitor::compare_df_cols(rotated_items,control_items, tri_items)
+
+df_all <- rbind(df_rotated, df_control, df_tri) %>% mutate(
+  ROTATION = recode_factor(condition, 
+                                   "111"="none", "113"="none",
+                           "111112" = "45deg", "113112" = "45deg"),
+  SHAPE = recode_factor(condition, 
+                                   "111"="orth", "113"="tri",
+                           "111112" = "orth", "113112" = "tri"),
+)
+df_items <- rbind(rotated_items, control_items, tri_items)  %>% mutate(
+  ROTATION = recode_factor(condition, 
+                                   "111"="none", "113"="none",
+                           "111112" = "45deg", "113112" = "45deg"),
+  SHAPE = recode_factor(condition, 
+                                   "111"="orth", "113"="tri",
+                           "111112" = "orth", "113112" = "tri"),
+)
+
+table(df_all$condition)
+
+
+library(ggstatsplot)
+grouped_ggbetweenstats( data = df_all, y = s_NABS, grouping.var = ROTATION, x = SHAPE)
+```
+
 
 #### Items
 
