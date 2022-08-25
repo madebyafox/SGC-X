@@ -702,6 +702,25 @@ check_model(m)
 
 ```
 
+##### POWER LITE
+```{r}
+# https://lkumle.github.io/power_notebooks/nestedGLMM_notebook.html
+
+library(simr)
+power <- powerSim(model_final, test = fixed("Age"), nsim=2)
+
+#OBSERVED POWER of actual test
+power <- powerSim(m, test = fixed("pretty_condition"), nsim=100)
+power 
+
+
+#HOW MANY SUBJECTS ARE NEEDED TO TEST FOR THIS ACTUAL EFFECT?
+#warning :: post hoc power analysis :: ca c'est tres bad 
+power <- powerCurve(m, test = fixed("pretty_condition"), along = "subject", breaks = c(40, 50, 60, 70, 80, 90, 100), nsim = 1000)
+plot(power )
+
+```
+
 
 ##### Sanity Check :: Bayesian
 
