@@ -702,7 +702,7 @@ check_model(m)
 
 ```
 
-##### POWER LITE
+##### POWER 
 ```{r}
 # https://lkumle.github.io/power_notebooks/nestedGLMM_notebook.html
 
@@ -716,14 +716,16 @@ power
 
 ##HOW MANY SUBJECTS ARE NEEDED TO DETECT ACTUAL EFFECT OF TRI AT 80% POWER?
 #warning :: post hoc power analysis :: ca c'est tres bad 
-power <- powerCurve(m, test = fixed("pretty_condition"), along = "subject", breaks = c(40, 50, 60, 70, 80, 90, 100), nsim = 1000)
+# power <- powerCurve(m, test = fixed("pretty_condition"), along = "subject", breaks = c(40, 50, 60, 70, 80, 90, 100), nsim = 1000)
 # power %>% write_rds("analysis/SGC3A/models/power_analysis_LAB.rds")
-power <- read_rds("analysis/SGC3A/models/lab_power_analysis_LAB.rds")
+power <- read_rds("analysis/SGC3A/models/power_analysis_LAB.rds")
 power
 plot(power)
 
 ```
+_Based on observed power analysis for the actual effect observed (main effect of condition, on SGC3 study design, with the full model specification), it is indicated to reach 80% power we have ~60 subjects per experimental cell in future studies in which we want to detect an effect similar to that of the impasse condition._
 
+**Note that different model structures (and different fixed vs random effects structures) will yield different requirements. 
 
 ##### Sanity Check :: Bayesian
 
