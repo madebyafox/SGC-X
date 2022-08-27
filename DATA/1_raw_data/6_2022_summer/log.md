@@ -1,3 +1,92 @@
+REFERENCE
+to find a particular sona/prolific id in the entries db
+db.getCollection('entries').find({"data.trials.sona_id":"610c3b67440d29f830c4afc7"})
+
+
+WARNING: don't run the main 'filter.js' file. It's not actually needed (flattening happens on flatten, and might be causing weird loss of records from entries on local)
+
+
+## 8/26/22 APP CRASHING
+
+- emergency download of all data from dB because over atlas quota and now app is crashing. ARGH. 
+
+- run FILTER on production DB
+- download datafile for each study
+
+(1) BACKUP ALL RECORDS ## should be 629
+- mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out emergency_backup_over_quota_entries.json
+
+(2) IMPORT ALL RECORDS TO LOCAL (174 imported; 415 failed [already in DB], makes sense)
+- >> mongoimport -d analyze_SGCXSU22 -c entries --file emergency_backup_over_quota.json
+
+ALSO 
+backup SGC3B (74)
+- mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_3B --type JSON --out backup_8.28_sgc3B.json
+
+backup SGC4A (36)
+- mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_4A --type JSON --out backup_8.28_sgc4A.json
+
+backup SGC4D (190)
+- mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_4D --type JSON --out backup_8.28_sgc4D.json
+
+backup SGC4C (329)
+- mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_4C --type JSON --out backup_8.28_sgc4C.json
+
+
+emergency backup file has ALL records from db, but this will be too large to save on github. will need to split into multiples. saved study level as backups as well, but they are all redundant to the big emergency file 
+
+NOW export remaining items after prolific run. 
+
+EXPORT from database
+- mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection entries --type JSON --out su22_runs_afterbackup.json
+
+IMPORT to local
+mongoimport -d analyze_SGCXSU22 -c entries --file su22_runs_afterbackup.json
+
+
+NOW that all data is on local... run flatten to get study specific files 
+and a giant backup 
+the backup needs to be jsonArray format so that the python splitter can handle it
+
+- 903 db entries total on summer local analyze_SGCXSU22
+  
+  (1) export local entries file as jsonarray
+  mongoexport -d analyze_SGCXSU22 -c entries --jsonArray --out backup_su22_entries.json
+(2) run python splitter script on it... it worked! 
+
+(3) RUN FILTER script to get study level data (these collections aren't actually used, but nice to reference) << JK DON'T DO THIS SOMETHING WRONG WITH FILTER>>
+
+(4) RUN flatten_4C to get 4C complete run files 
+
+
+NOW run 4C flatten to get complete run
+mongoexport -d analyze_SGCXSU22 -c SGC4C_final_participants --jsonArray --out su22_sgc4c_final_participants.json
+mongoexport -d analyze_SGCXSU22 -c SGC4C_final_items --jsonArray --out su22_sgc4c_final_items_orths.json
+mongoexport -d analyze_SGCXSU22 -c SGC4C_final_items_mouse --jsonArray --out su22_sgc4d_final_items_mouse.json
+
+
+
+## 8/26/22 WRANGLING
+- DOWNLOAD SGC4C ORTH rotation 45 and 90.
+  - downloading these so that files saved to github hopefully arent too big
+  - will download 4C tri rotations in separate file
+  
+- DOWNLOAD from server to local server (191 records)
+- >> mongoexport --uri mongodb+srv://expadmin:thirdyear@2ypdb-s3-beh.2ugwr.mongodb.net/2ypdb-s3-beh --collection SGC_4C --type JSON --out su22_session_4C_orths.json
+
+- IMPORT to local server (iMac) for wrangling (517 before ... after 708  )
+- >> mongoimport -d analyze_SGCXSU22 -c entries --file su22_session_4C_orths.json
+
+-- WRANGLE SGC 4C ORTH 
+- RUN filter.js to create study specific db collections (eg SGC_4C) on local
+- RUN flatten_sgc4c to flatten and create SGC 4C specific files  (then manually wrangle to get just the ORTH records) 144 ORTHS
+
+mongoexport -d analyze_SGCXSU22 -c SGC4C_final_participants_ORTH --jsonArray --out su22_sgc4c_final_participants_orths.json
+mongoexport -d analyze_SGCXSU22 -c SGC4C_final_items_ORTH --jsonArray --out su22_sgc4c_final_items_orths.json
+mongoexport -d analyze_SGCXSU22 -c SGC4C_final_items_mouse_ORTH --jsonArray --out su22_sgc4d_final_items_mouse_orths.json
+
+NOW READY to run tri rotations on Prolific, and eventually downloadthose as well. 
+DID NOT DELETE from server 
 
 ## 8/24/22 WRANGLING
 - DOWNLOAD SGC4D equilateral 
