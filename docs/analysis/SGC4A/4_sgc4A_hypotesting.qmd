@@ -8,7 +8,7 @@ subtitle: 'Study SGC4A | Hypothesis Testing'
 
 **TODO**
 
-*The purpose of this notebook is test the hypotheses that determined the designs of the SGC4A studies.*
+*The purpose of this notebook is test the hypotheses that determined the designs of the SGC4A study.*
 
 ```{r}
 #| label: SETUP
@@ -18,6 +18,7 @@ subtitle: 'Study SGC4A | Hypothesis Testing'
 #UTILITIES
 library(Hmisc) # %nin% operator
 library(broom) #tidy model output
+library(broom.mixed) #tidy model output
 library(mosaic) #favstats
 # library(modelr)
 library(distributional)
@@ -52,6 +53,7 @@ library(parameters) #easystats model summary and vis
 # library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
+library(merTools)
 # library(ggeffects) #visualization log regr models
 #MULTINOMIAL 
 library(nnet) #multinomial logistic regression [not mixed] #no p values
@@ -126,32 +128,81 @@ df_items <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds')
                          "-1" = "orthogonal",
                          "-0.5" = "other",
                          "0" = "other",
-                         "0.5" = "tri-like",
+                         "0.5" = "angular",
                          "1" = "triangular"),
     state = as.ordered(state)) 
 
 #SEPARATE INTO PARTS 1 AND 2
-# sgc4a <- df_subjects %>% filter(condition %in% c(111,113)) %>% droplevels()
-# sgc4b <- df_subjects %>% filter(condition %in% c(111,114,115)) %>% filter(mode=="asynch") %>% droplevels()
-# 
-# sgc4a_items <- df_items %>% filter( subject %in% sgc4a$subject) %>% droplevels()
-# sgc4b_items <- df_items %>% filter( subject %in% sgc4b$subject) %>% droplevels()
+#SGC 4D is study with control (VS) triangular gridline
+#SGC 4A is study with control vs sparse vs grid 
+sgc4d <- df_subjects %>% filter(condition %in% c(111,113)) %>% droplevels()
+sgc4a <- df_subjects %>% filter(condition %in% c(111,114,115)) %>% droplevels()
+
+sgc4d_items <- df_items %>% filter( subject %in% sgc4d$subject) %>% droplevels()
+sgc4a_items <- df_items %>% filter( subject %in% sgc4a$subject) %>% droplevels()
 ```
 
 
-## 
+## SAMPLE
 
-## H1A \| OVERALL TASK  ACCURACY
+### Data Collection
+
+
+```{r}
+#| label : DESC-DATA-COLLECTION
+
+title = "Participants by Condition and Data Collection Period"
+cols = c("Orth-Full","Orth-Sparse","Orth-Grid","Tri-Sparse","Total for Period")
+cont <- table(df_subjects$term, df_subjects$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
+
+
+title = "Participants by Condition and Data Collection Period"
+cols = c("Orth-Full","Tri-Sparse","Total for Period")
+cont <- table(sgc4d$term, sgc4d$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
+
+
+title = "Participants by Condition and Data Collection Period"
+cols = c("Orth-Full","Orth-Sparse","Orth-Grid","Total for Period")
+cont <- table(sgc4a$term, sgc4a$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
+
+```
+
+### Participants
+
+```{r}
+#| label: DESC-PARTICIPANTS
+
+#Describe participants
+subject.stats <-df_subjects %>% dplyr::select(age) %>% unlist() %>% favstats()
+subject.stats$percent.male <- ((df_subjects %>% filter(gender=="Male") %>% count())/count(df_subjects))$n
+subject.stats$percent.female <- ((df_subjects %>% filter(gender=="Female") %>% count())/count(df_subjects))$n
+subject.stats$percent.other <- ((df_subjects %>% filter(gender %nin% c("Female","Male")) %>% count())/count(df_subjects))$n
+
+
+title = "Descriptive Statistics of Participant Age and Gender"
+subject.stats %>% kbl (caption = title) %>% kable_classic()%>% 
+  footnote(general = "Age in Years", 
+           general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+
+**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+
+## A — ORTH GRID \| OVERALL TASK  ACCURACY
 
 #### Setup
 ```{r}
 #| label: SETUP-ACC
 
-df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
-  dplyr::select(pretty_condition, accuracy, subject,q)
-
-df_s <- df_subjects %>% 
+df_s <- sgc4a %>% 
    dplyr::select(pretty_condition, task_percent)
+
+
+df_i = sgc4a_items %>% filter(q %nin% c(6,9)) %>% 
+  dplyr::select(pretty_condition, accuracy, subject,q)
 
 ```
 
@@ -171,7 +222,7 @@ df_i %>%
    labs(title = "Overall Accuracy",
        x = "Condition",
        fill = "",
-       subtitle="Impasse Condition yields a greater proportion of correct responses")
+       subtitle="The full grid decreases performance")
 
 #:::::::: STACKED BAR CHART BY QUESTION
 df_items %>% 
@@ -338,26 +389,67 @@ car::Anova(m, type = 2)
 # paste("BUT we want a one  directional, null: B <= 0: ",round(ot,5))
 
 
-#TODO POSTHOCS
 #:::::::: INTERPRET COEFFICIENTS
 
+paste("LOG ODDS")
 # se <- sqrt(diag(stats::vcov(m)))
-# table of estimates with 95% CI
-# paste("LOG ODDS")
-# (tab <- cbind(Est = fixef(m), 
-#               LL = fixef(m) - 1.96 * se, 
+# (tab <- cbind(Est = fixef(m),
+#               LL = fixef(m) - 1.96 * se,
 #               UL = fixef(m) + 1.96 * se))
-# paste("ODDS RATIOS")
+tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
+
+paste("ODDS RATIOS")
 # (e <- exp(tab))
+tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
+
+paste("PROBABILITIES")
+#probability control = plogis(intercept)
+#probability impasse = plogis(intercept + coefficient)
+
+#FROM predict()
+# newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+# preds <- predict(m, newdata = newdata, type = "response")
+# preds <- cbind(newdata, preds)
+# p <- preds %>% 
+#   dplyr::select(pretty_condition, preds) %>% 
+#   group_by(pretty_condition) %>% 
+#   summarise(
+#     median = median(preds),
+#     se = sd(preds)/sqrt(n()),
+#     lwr = median - 1.96*se,
+#     upr = median + 1.96*se)
+    
+  
+#FROM merTools
+#setup df 
+newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+#make predictions
+preds <- predictInterval(m, newdata = newdata,
+                              which = "fixed", #full, fixed or random for those only
+                              type = "probability", #linear.prediction
+                              stat = "median",
+                              n.sims = 1000,
+                              level = 0.80) #width of prediction interval
+#join predictions to the new dataframe
+preds <- cbind(newdata, preds)
+#summarize
+(summ_preds <- preds %>% 
+  dplyr::select(pretty_condition, fit, lwr, upr) %>% 
+  group_by(pretty_condition) %>% 
+  summarise(
+    median = median(fit),
+    lower = median(lwr),
+    upper = median(upr)
+  )) 
+
 
 ```
 
 
 ##### TODO Inference
 
-**TODO REDO UPDATE THIS**
 
-We fit a mixed-effect binomial logistic regression model with random intercepts for subjects and items; to investigate the effect of condition on test phase item accuracy. The model including a fixed effect of condition performed significantly better than an intercept-only baseline model (χ2(4): 11.02, p \< 0.001); and the total explanatory power is substantial (conditional R2 = 0.82) and the part related to the fixed effects (marginal R2) is 0.02. Consistent with the pattern of results for the first question only, across all test-phase items, being in the impasse condition increases the odds of a correct response by a factor of 2.8 over the control condition $e^{\beta_1}$ = 2.80, 95% CI \[1.54, 5.09\], p \< 0.001.
+
 
 
 ##### Visualize
@@ -421,37 +513,13 @@ check_model(m)
 
 ```
 
-##### TODO
-Model with random intercept of Question doesn't want to converge unless I use the optimizer, which also throws warnings. Maybe jsut use random subject?
-(hint... yes...) Otherwise, try the bayesian version
+
+
+
+
 ##### BAYESIAN 
 For some reason there are convergence difficulties. Try again with the brms version
 
-```{r}
-
-#BAYESIAN MIXED VERSION
-
-df <- df_i %>% mutate(
-  accuracy = as.integer(accuracy)
-)
-
-#TODO bernoulli or binomial?
-B.mm.acc.CrSQ <- brm( accuracy ~ pretty_condition + (1|subject) + (1|q),
-                 data = df_i,
-                 # family = "binomial",
-                 family = bernoulli(link = "logit"),
-                 chains = 4, iter = 2000, warmup = 1000,
-                 cores = 4, seed = 1234,
-                 backend = "cmdstanr",
-                 file ="analysis/SGC4A/models/sgc4a_brms_B.mm.acc.CrSQ.rds")
-
-
-summary(B.mm.acc.CrSQ)
-plot_model(B.mm.acc.CrSQ, show.values = TRUE)
-plot(pd(B.mm.acc.CrSQ))
-# plot(equivalence_test(B.mm.acc.CrSQ))
-plot_model(B.mm.acc.CrSQ, type = "pred")
-```
 
 ## H1A \| OVERALL INTERPRETATION STATE
 
@@ -487,7 +555,7 @@ plot_model(B.mm.acc.CrSQ, type = "pred")
 #| label: SETUP-STATE
 
 #:::::::: PREP DATA
-df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
+df_i = sgc4a_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
 ```
 
 ```{r}
@@ -540,106 +608,262 @@ table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for 
 *Does condition affect the response state of of items across the task?*
 
 
-##### TODO Fit Model \[mblogit\]
-
-```{r}
-#| label: FIT-MBLOGIT-STATE
-
-# TRY AGAIN... MAYBE HUNG? 
-
-# #https://www.elff.eu/software/mclogit/manual/mblogit/
-# #"baseline category logit" model matches multinom()
-# 
-# #check reference level 
-# print("Categories (first is reference)")
-# levels(df_i$state)
-# 
-# #FIT EMPTY MODEL
-# # print("EMPTY MODEL")
-# m.mbl0 <- mblogit(state ~ pretty_condition ,  #no random intercepts; fixed only model 
-#                   data = df_i)
-# #summary(m.mbl0)
-# 
-# #FIT PREDICTOR MODEL
-# # print("PREDICTOR MODEL")
-# m.mbl1 <- mblogit(state ~ pretty_condition , 
-#                   random = list( ~ 1|subject, ~1|q), 
-#                   data = df_i)
-# # summary(m.mbl1)
-# 
-# #COMPARE MODEL FIT
-# paste("AIC wth predictor is lower than empty model?", AIC(m.mbl0) > AIC(m.mbl1))
-# test_lrt(m.mbl0, m.mbl1)
-# 
-# #DESCRIBE MODEL
-# summary(m.mbl1)
-# 
-# #INTERPRET COEFFICIENTS
-# cint <- confint(m.mbl1, level = 0.95)
-# print("ODDS RATIO")
-# (e <- cbind( exp(coef(m.mbl1)), exp(cint))) #exponentiated, adjusted
-# 
-# #PERFORMANCE
-# performance(m.mbl1)
-# 
-# #TABLE
-# tab_model(m.mbl1, transform = "exp", title = "Model Predicted Odds Ratio")
-
-```
-
-
-##### TODO Inference
-
-
 ##### Fit Model \[brms\]
 
 ```{r}
 #| label: FIT-BRMS-STATE
 
-# #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
-
-#BAYESIAN MIXED VERSION
-mm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
+#BAYESIAN RANDOM ONLY
+Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q), 
                  data = df_i, 
                  family = "categorical",
-                 chains = 4, iter = 2000, warmup = 1000,
+                 chains = 4, iter = 2500, warmup = 1000,
                  cores = 4, seed = 1234,
-                 backend = "cmdstanr",
-                 file ="analysis/SGC4A/models/sgc4a_brms_mixedcat_state.rds")
+                 save_pars = save_pars(all = TRUE),
+                 # backend = "cmdstanr",
+                 file ="analysis/SGC4A/models/sgc4a_brms_state_Bmm.cat.rSQ_LAB.rds")
+
+
+#set priors [see justification, in SGC3A]
+inf_priors <- c(
+   #prior on INTERCEPTS
+   #25% chance of each answer in control, scale = from 0.01 to 62%
+   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muangular"),
+   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muother"),
+   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "mutriangular"),
+   #prior on COEFFICIENT
+   #likely to change odds between 0 and 2.4
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionOrthMSparse", dpar = "muangular"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionOrthMSparse", dpar = "muother"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionOrthMSparse", dpar = "mutriangular"),
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionOrthMGrid", dpar = "muangular"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionOrthMGrid", dpar = "muother"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionOrthMGrid", dpar = "mutriangular")
+)
+# 
+# 
+# 
+# 
+# #UNINFORMATIVE PRIOR BAYESIAN MIXED VERSION
+# flat_Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q),
+#                  data = df_i,
+#                  family = "categorical",
+#                  chains = 4, iter = 2000, warmup = 1000,
+#                  cores = 4, seed = 1234,
+#                  save_pars = save_pars(all = TRUE),
+#                  # backend = "cmdstanr",
+#                  file ="analysis/SGC4A/models/sgc4a_brms_state_FLAT_Bmm.cat.CrSQ_LAB.rds")
+# # 
+# # # determine default priors 
+# prior_summary(flat_Bmm.cat.CrSQ)
+
+#INFORMATIVE PRIORS
+Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
+                 data = df_i, 
+                 family = "categorical",
+                 prior = inf_priors,
+                 chains = 4, iter = 2500, warmup = 1000,
+                 cores = 4, seed = 1234,
+                 save_pars = save_pars(all = TRUE),
+                 control = list(adapt_delta = 0.98),  # to deal with divergent transitions
+                 # backend = "cmdstanr",
+                 file ="analysis/SGC4A/models/sgc4a_brms_state_Bmm.cat.CrSQ_LAB.rds"
+                 )
+
 ```
 
+
+##### Describe
+
+```{r}
+#| label: DESC-BRMS-STATE
+
+# best model
+# m <- Bmm.cat.CrSQ
+m <- Bmm.cat.CrSQ
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m)
+(d <- describe_posterior(ci=.95, Bmm.cat.CrSQ))
+
+print("BAYES FACTOR [comparison to null]")
+#think of this like the anova(model) to get p values for each predictor
+#has to recompile the models with rstan. total drag
+(b <- bayesfactor(Bmm.cat.rSQ, m))
+
+print("DESCRIBE POSTERIOR")
+
+#:::::::: INTERPRET COEFFICIENTS
+# se <- sqrt(diag(stats::vcov(m)))
+# # table of estimates with 95% CI
+# (tab <- cbind(Est = fixef(m),
+#               LL = fixef(m) - 1.96 * se,
+#               UL = fixef(m) + 1.96 * se))
+
+paste("LOG ODDS")
+(l <- describe_posterior(m))
+# (tm <- tidy(m,   conf.int = TRUE))
+
+paste("ODDS RATIOS")
+(e <- model_parameters(m, exponentiate = TRUE))
+# tidy(m,   conf.int = TRUE, exponentiate = TRUE)
+# tm %>% mutate(
+#   OR.est = exp(estimate),
+#   exp.low = exp(conf.low),
+#   exp.high = exp(conf.high)
+# ) %>% dplyr::select(effect, component, group, term, OR.est, exp.low, exp.high)
+
+paste("PROBABILITIES")
+
+#PREDICT METHOD
+newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+preds <- predict(m, newdata = newdata, type = "response")
+preds <- cbind(newdata, preds)
+#lengthen data frame to handle multinomial
+preds <- preds %>% 
+  dplyr::select(-subject, -q) %>% #marginalize over subject and q
+  pivot_longer(
+  cols = !pretty_condition,
+  values_to = "preds",
+  names_to = "state",
+) 
+
+(p <- preds %>% 
+  group_by(pretty_condition, state ) %>%
+  summarise(
+    median = median(preds),
+    se = sd(preds)/sqrt(n()),
+    lwr = median - 1.96*se,
+    upr = median + 1.96*se))
+
+##DRAWS METHOD
+# GENERATE draws from model
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
+# # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# #OR load from file
+# # draws <- read_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# # SUMMARIZE draws from model
+# (k <- kable(draws %>%
+#   dplyr::select(pretty_condition, .category, .value) %>%
+#   group_by(pretty_condition, .category) %>%
+#   median_hdci(.value), digits = 4, col.names =
+#     c("Condition","Category", "Probability","Lower Cred.I","Upper Cred.I", "CI Width", "Point Type", "Interval Type")) %>%
+#   kable_styling())
+
+
+##EASY STATS INSIGHT 
+# https://easystats.github.io/insight/reference/get_predicted.html
+# p <- get_predicted(m, predict = "expectation")
+
+
+```
+
+
+
+##### TODO INFERENCE
+
+**UPDATE THIS [template from 3A**
+
+[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 \% credible interval, \% probability of direction]
+
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 1.38e+14). 
+
+**Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
+
+Across the entire task participants in the impasse condition were 12 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.13, 95 \% CI [6.29, 25.24], pd = 100\%$). Participants in the impasse condition were 12 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.48, 95 \% CI [3.95, 37.67], pd = 100\%$), and 34 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.90, 95 \% CI [6.22, 211.18], pd = 100\%$). 
+
+
+##### Print
+```{r}
+#| label: MODEL-TBL-STATE
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+#model summary doesn't work for brms multinomial
+
+# DOESN'T WORK FOR BRMS
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
+# 
+# 
+# #GET MODEL ESTIMATES
+# t <- as.data.frame(model_parameters(m, exponentiate = TRUE))
+# 
+# #REFORMAT
+# x <- t %>%
+#   mutate(
+#     Interpretation = word(Parameter, 2, sep = "_"),
+#     Interpretation = str_remove_all(Interpretation,"mu"),
+#     Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),
+# 
+#     Parameter = as.factor(word(Parameter, 3, sep = "_")),
+#     Parameter = recode_factor(Parameter,
+#                          "Intercept" = "(Intercept)",
+#                          "pretty" = "Condition[impasse]"),
+#     Median = round(Median,2),
+#     CI_low = round(CI_low,2),
+#     CI_high = round(CI_high,2),
+#     pd = round(pd,2),
+#     ROPE_Percentage = round(ROPE_Percentage,2)
+#   ) %>%
+#   arrange(Interpretation) %>%
+#   dplyr::select(-CI, -Rhat, -ESS) %>%
+#   rename( "%_in_ROPE"="ROPE_Percentage",
+#           "(Odds Ratio)" = "Median") %>%
+#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)
+
+
+# 
+# #KNIT
+# title = "Study 3A (Lab) | Question Interpretation | Mixed Multinomial Regression"
+# tab <- kbl(x, format = "latex", caption = title,
+#            booktabs = FALSE) %>% kable_classic() %>%
+# footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")
+# writeLines(tab, "tables/SGC3A_LAB_BRMS_state.tex")
+
+
+```
+
+
+
+##### Visualize
 
 ```{r}
 #| label: VIS-BRMS-STATE
 
-#set model 
-m <- mm.cat.CrSQ
-summary(m)
 
 ## | PLOT PARAMETERS 
 
 #SJPLOT | MODEL | ODDS RATIO
-# plot_model(m, vline.color = "red", 
-#            show.intercept = TRUE, 
+# plot_model(m, vline.color = "red",
+#            show.intercept = TRUE,
 #            show.values = TRUE,
 #            p.threshold = 0.1, #manually adjust to account for directional test
-#            ci.lvl = 0.90 ) + #manually adjusted for directional test   
+#            ci.lvl = 0.90 ) + #manually adjusted for directional test
 #   labs(title = "Model Estimate | Odds Ratio",
 #        subtitle = "",
 #        x = "Condition")
 
 
 #EASYSTATS | MODEL | ODDS RATIO
-result <- model_parameters(m, exponentiate = TRUE, component = "all")
-plot(result)
+result <- model_parameters(Bmm.cat.CrSQ, exponentiate = TRUE, component = "all")
+plot(result, show_intercept = TRUE, show_labels = TRUE) 
+# + theme_clean()
 
-# result <- simulate_parameters(m)
-# plot(result, stack = FALSE)
-
-#check posterior
-pp_check(m, ndraws=1000)
+# 
+# result <- estimate_density(m,exponentiate = TRUE)
+# plot(result,  stack = FALSE, priors = TRUE)
 
 ## | PLOT TESTS
 result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
@@ -648,8 +872,8 @@ plot(result)
 result <- rope(m)
 plot(result)
 
-result <- pd(m)
-plot(result)
+(result <- pd(m,exponentiate = TRUE))
+plot(result, show_intercept = TRUE, show_labels = TRUE)
 
 ## | PLOT PREDICTIONS
 
@@ -659,19 +883,16 @@ plot(result)
 #            show.values = TRUE,
 #            title = "Model Prediction | Probability of Accurate Response",
 #            axis.title = c("Condition","Probability of Accurate Response"))
-# 
-# #PLOT MODEL PREDICTION
-plot_model(m, type = "pred")
 
+# #PLOT MODEL PREDICTION
+plot_model(m, type = "pred",
+           title = "Model PREDICTION | Probability of Response Interpretation",
+           axis.title = c("Condition", "Probability of Response Interpretation"))
 
 #TODO OUTPUT TABLE 
-#https://arelbundock.com/posts/modelsummary_multinomial_logit/
 # modelsummary(m)
 
 ```
-
-##### TODO Inference
-
 
 ##### COMPARE
 
@@ -680,7 +901,21 @@ plot_model(m, type = "pred")
 # compare_models(m.mbl1, mm.cat.CrSQ)
 ```
 
+##### Diagnostics
 
+```{r}
+
+#CHECK Fit of posterior predictive to data
+pp_check(Bmm.cat.CrSQ, ndraws=1000)
+
+#CHECK posterior vs. priors
+result <- estimate_density(Bmm.cat.CrSQ)
+plot(result, stack = FALSE, priors= TRUE)
+
+#CHECK model
+plot(Bmm.cat.CrSQ)
+
+```
 
 ## H1B \| Q1 ACCURACY
 

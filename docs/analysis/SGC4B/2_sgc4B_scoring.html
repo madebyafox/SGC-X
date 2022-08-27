@@ -87,7 +87,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
-<link href="../../analysis/SGC4C/1_sgc4C_introduction.html" rel="next">
+<link href="../../analysis/SGC4C/2_sgc4C_scoring.html" rel="next">
 <link href="../../analysis/SGC4B/1_sgc4B_introduction.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -164,11 +164,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../analysis/utils/scoring.html" class="sidebar-item-text sidebar-link">Scoring Strategy</a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../analysis/utils/modelling_ref.html" class="sidebar-item-text sidebar-link">Modelling Reference</a>
   </div>
 </li>
     </ul>
@@ -318,19 +313,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../analysis/SGC4C/1_sgc4C_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Introduction</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../analysis/SGC4C/2_sgc4C_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  <a href="../../analysis/SGC4C/2_sgc4C_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
   </div>
 </li>
     </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
     <div class="sidebar-item-container"> 
-        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">SGC5A</a>
+        <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">SGC4D</a>
       <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
         <i class="bi bi-chevron-right ms-2"></i>
       </a>
@@ -338,12 +328,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../analysis/SGC5A/1_sgc5A_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Introduction</span></a>
+  <a href="../../analysis/SGC4D/1_sgc4D_introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Introduction</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../analysis/SGC5A/2_sgc5A_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  <a href="../../analysis/SGC4D/2_sgc4D_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
   </div>
 </li>
     </ul>
@@ -540,7 +530,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 <p><em>note: this cell takes approximately 30 minutes to run on the full df_items dataframe with 4950 records</em></p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/CALCULATE-SCORES-MAPPLY_998dc1ce5d962da6fe26c7f3525f0562">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#RUN THIS &lt;OR&gt; THE CALCULATE-SCORES-FORLOOP [not both]</span></span>
@@ -581,7 +571,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="sec-SGC4B-interpretation">Derive Interpretation</h3>
 <p>Finally, we use the interpretation subscores to classify the response as a particular interpretation. This classification algorithm : (1) First decides if the response matches one or more ‘special’ situations (blank response, reference point response, both ORTH and TRI) (2) If response doesn’t match a special situation, it compares the individual subscores, and subscores and decides if they are <em>discriminant</em> (i.e.&nbsp;are the scores different enough to make a prediction). A discriminant threshold of 0.5pts (on a scale from -1 to +1 is used) (2) If the variance in subscores surpasses the threshold, the interpretation is classified based on the highest subscore (TRIANGULAR, ORTHOGONAL, TVERSKY, SATISFICE) (3) If the variance does not surpass the threshold, the interpretation is labelled as “?”, indicating it cannot be classified, and is of an unknown interpretation.</p>
 <p>The final output is called <code>interpretation</code>.</p>
-<div class="cell" data-hash="2_sgc4B_scoring_cache/html/DERIVE-INTERPRETATION_a579693b333c2d9079d311785b11cdcd">
+<div class="cell">
 <details>
 <summary>CODE</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#stoopid extra copying for troubleshooting safety</span></span>
@@ -1289,7 +1279,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </div>
 </div>
-<p>Here we summarize the distinct response options given by participants on this item. Each letter in <code>response</code> indicates a checkbox selected by the participant (See <a href="#fig-Q1-111">Figure&nbsp;<span>17.1</span></a> ). <code>n</code> indicates the number of participants who gave this response, while <code>interpretation</code> indicates the <em>graph interpretation</em> most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response. NA indicates that there is no score calculated (occurs when there is no subset of response options that accord with that interpretation for this question).</p>
+<p>Here we summarize the distinct response options given by participants on this item. Each letter in <code>response</code> indicates a checkbox selected by the participant (See <a href="../SGC4D/2_sgc4D_scoring.html#fig-Q1-111">Figure&nbsp;<span>20.1</span></a> ). <code>n</code> indicates the number of participants who gave this response, while <code>interpretation</code> indicates the <em>graph interpretation</em> most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response. NA indicates that there is no score calculated (occurs when there is no subset of response options that accord with that interpretation for this question).</p>
 <p>Notice that for this Question, the <em>Triangular</em> answer is the same as the <em>Tversky [start diagonal]</em> answer. In fact, for most questions, one of the Tversky sub-types will match the correct response.</p>
 <div class="cell">
 <details>
@@ -7353,8 +7343,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../analysis/SGC4C/1_sgc4C_introduction.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Introduction</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../analysis/SGC4C/2_sgc4C_scoring.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Response Scoring</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
