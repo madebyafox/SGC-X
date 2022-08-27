@@ -1,5 +1,5 @@
 ---
-title: "Winter 2022 SGC 4C Data Cleaning"
+title: "Summer 2022 SGC 4C Data Cleaning"
 author: "Amy Rae Fox"
 date: "07/22/2022"
 always_allow_html: true  
@@ -50,8 +50,8 @@ Data is imported from 2 files, indicating two levels of analysis: participants a
 ```{r IMPORT}
 
 #IMPORT DATA
-df_participants <- fromJSON("input/WIP_su22_sgc4c_final_participants.json")
-df_items <- fromJSON('input/WIP_su22_sgc4c_final_items.json')
+df_participants <- fromJSON("input/su22_sgc4c_final_participants.json")
+df_items <- fromJSON('input/su22_sgc4c_final_items.json')
 
 #add term indicator
 df_participants$term <- "summer22"
@@ -59,8 +59,8 @@ df_items$term <- "summer22"
 
 #DEFINE SGC_4C validity crieria
 sessions <- c('suPROLIFIC') #SGC4C running on prolific
-conditions <-c(113112,111112) #3 conditions
-violation_threshold = 3 #number of allowable browser violations
+conditions <-c("113112","11311221", "11311331", "111112", "11111221", "11111331") 
+violation_threshold = 5.5 #number of allowable browser violations
 effort_exclusion = c("I didn't try very hard, or rushed through the questions", "I started out trying hard, but gave up at some point")
 n_items = 15 #fifteen items is complete dataset per participant
 
@@ -76,7 +76,10 @@ df_participants <- df_participants %>%
   mutate( #create factors and remove extraneous ""
     subject=as.character(subject),
     condition=as.character(condition),
-    pretty_condition = recode_factor(condition, "113112" = "TRI-rotate-45", "111112" =  "ORTH-rotate-45"),
+    pretty_condition = recode_factor(condition, 
+                                     "113112" = "TRI-rotate-45", "111112" =  "ORTH-rotate-45",
+                                     "11311221" = "TRI-rotate-45", "11111221" =  "ORTH-rotate-45",
+                                     "11311331" = "TRI-rotate-90", "11111331" =  "ORTH-rotate-90",),
     study = factor(study),
     session = factor(session),
     exp_id = factor(exp_id),
@@ -146,8 +149,10 @@ df_items <- df_items %>%
   mutate(
     # subject=factor(subject),
     # condition=factor(condition),
-    pretty_condition = recode_factor(condition, "113112" = "TRI-rotate-45", "111112" =  "ORTH-rotate-45"),
-    pool=factor(pool),
+ pretty_condition = recode_factor(condition, 
+                                     "113112" = "TRI-rotate-45", "111112" =  "ORTH-rotate-45",
+                                     "11311221" = "TRI-rotate-45", "11111221" =  "ORTH-rotate-45",
+                                     "11311331" = "TRI-rotate-90", "11111331" =  "ORTH-rotate-90",),    pool=factor(pool),
     mode = factor(mode),
     # explicit=factor(explicit),
     # impasse = factor(impasse),
@@ -233,6 +238,9 @@ Participants are randomly assigned to an experimental condition when starting th
 #MANUALLY INSPECT conditions
 df_participants %>% group_by(condition) %>% 
   dplyr::summarize(n=n())
+
+df_participants %>% group_by(pretty_condition) %>% 
+  dplyr::summarize(n=n())
 ```
 
 Data from conditions _not_ corresponding to valid conditions should be discarded. 
@@ -311,7 +319,7 @@ df_participants <- df_participants %>%
 
 ```
 
-_Four participants were excluded for exceeding the maximum allowed number of browser interaction violations._
+_12 participants were excluded for exceeding the maximum allowed number of browser interaction violations._
 
 
 ### Effort
@@ -340,7 +348,7 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_No participants are excluded for low (self-rated) effort._
+_Four participants are excluded for low (self-rated) effort._
 
 
 ### Attention Check
@@ -357,19 +365,19 @@ Participants who answered the attention check question incorrectly should be exc
 
 ```{r handle-ATTN}
 
-#DISCARD participants who indicated they did not expend adequate effort on the study
-exclude_attn <- df_participants %>% 
-          filter(attn_check == FALSE) %>% 
+# #DISCARD participants who indicated they did not expend adequate effort on the study
+exclude_attn <- df_participants %>%
+          filter(attn_check == FALSE & pretty_condition =="ORTH-rotate-45") %>%
           mutate(reason="failed-attnchk")
 
 ex_participants <- rbind(ex_participants, exclude_attn)
-rm(exclude_attn)     
-
-df_participants <- df_participants %>% 
+rm(exclude_attn)
+# 
+df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Three participants are excluded for failing the attention check question._
+_Four participants are excluded for failing the attention check question._
 
 
 ### Items
@@ -390,7 +398,7 @@ df_items <- df_items %>%
 After all exclusions, we are left with the following number of participants per condition:
 ```{r inspect-CONDITIONS-2,message=FALSE}
 #MANUALLY INSPECT conditions
-df_participants %>% group_by(condition) %>% 
+df_participants %>% group_by(pretty_condition) %>% 
   dplyr::summarize(n=n())
 ```
 Finally, we need to validate we have a complete set of items for all valid participants. 
@@ -503,6 +511,17 @@ gf_jitter(totaltime_m ~ absolute_score , data = df_participants) +
 
 ```
 
+## PEEKING
+
+```{r}
+library(ggstatsplot)
+
+ggbetweenstats( data = df_participants, x = pretty_condition, y = absolute_score, 
+                type = "nonparametric")
+
+ggbarstats( data = df_items, x = correct, y = pretty_condition)
+```
+
 # Data Export
 
 
@@ -535,45 +554,3 @@ rio::export(df_items, "output/sgc4c_items.rds") # to R data structure file
 
 
 
-```{r}
-
-library(mosaic)
-t.test(df_participants$absolute_score ~ df_participants$condition)
-w <- wilcox.test(df_participants$absolute_score ~ df_participants$condition)
-w
-report(w)
-
-
-
-library(performance)
-library(report)
-m <- lm(absolute_score ~ condition, data = df_participants)
-
-
-library(effectsize)
-library(effsize)
-cohen.d(absolute_score ~ condition, data = df_participants)
-
-anova(m)
-cosummary(m)
-check_model(m)
-report(m)
-
-q1 <- df_items %>% filter(q==1)
-m <- glm(as.factor(correct) ~ pretty_condition, data = q1, family = "binomial")
-summary(m)
-exp(coef(m))
-exp(confint(m))
-report(m)
-check_model(m)
-
-library(lme4)
-m <- glmer(correct ~ pretty_condition + (1 | subject), data = df_items, family = "binomial")
-summary(m)
-report(m)
-
-
-library(ggformula)
-gf_boxplot(absolute_score ~ pretty_condition, widht = 0.10, data = df_participants) %>% 
-  gf_jitter(alpha=0.5, width = 0.1)
-```
