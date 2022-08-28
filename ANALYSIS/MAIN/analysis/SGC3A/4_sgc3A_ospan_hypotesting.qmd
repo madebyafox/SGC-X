@@ -57,6 +57,7 @@ library(parameters) #easystats model summary and vis
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
 library(merTools) #predictInterval
+library(emmeans) #estimated marginal effects and posthocs on interactions
 # library(ggeffects) #visualization log regr models
 #MULTINOMIAL 
 library(nnet) #multinomial logistic regression [not mixed] #no p values
@@ -93,22 +94,14 @@ theme_clean <- function() {
 
 set_theme(base = theme_clean())
 
+set.seed(12345)
+
 ```
 
 **TODO UPDATE Research Questions**
 
 In SGC3A-OSPAN we set out to answer the following question: Does posing a mental impasse improve performance on the interval graph comprehension task? Does WORKING MEMORY CAPACITY (as measured by the OSPAN task) explain performance on the graph comprehension task?
 
-**Experimental Hypothesis**\
-*Learners posed with scenario designed to evoke a mental impasse will be more likely to correct interpret the graph.*
-
--   H1A \| Learners in the IMPASSE condition will score higher overall than learners in CONTROL.
--   H1B \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL.
-
-We had no specific hypotheses with respect to how the OSPAN task affects performance. It is plausible that higher working memory allows one to persist in interpreting the coordinate system. It is also plausibe that higher working memory capacity facilitates incorrect interpretations that are more taxing on working memory (for example: end-time questions that require multiple visual projections.)
-
-**Null Hypothesis**\
-*No significant differences in performance will exist between learners in the IMPASSE and CONTROL conditions.*
 
 ```{r}
 #| label: IMPORT-DATA
@@ -191,7 +184,7 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
   footnote(general = "Age in Years", 
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
-
+**REPORTED**
 
 
 **Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
@@ -256,37 +249,9 @@ df_subjects %>%
 
 
 
-## H1A \| OVERALL ACCURACY
+## OVERALL ACCURACY
 
-+-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Do Ss in the IMPASSE condition score higher across the entire task than those in the CONTROL group?                                                                                                                                                                                |
-+=======================+====================================================================================================================================================================================================================================================================================+
-| **Hypothesis**        | (H1) Participants in the IMPASSE condition will be more likely to correctly interpret the graph than those in the CONTROL condition.                                                                                                                                               |
-+-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Data**              | **data**: `df_items` where `q nin 6,9` (the 13 discriminating Qs ), `df_subjects`                                                                                                                                                                                                  |
-|                       |                                                                                                                                                                                                                                                                                    |
-|                       | **outcome**:                                                                                                                                                                                                                                                                       |
-|                       |                                                                                                                                                                                                                                                                                    |
-|                       | -   \[at item level\] : *accuracy* ( factor(incorrect/correct) from `score_niceABS` \[absolute score\]                                                                                                                                                                             |
-|                       | -   \[subject level\]: accuracy (number of test phase qs correct from total `s_NABS`)                                                                                                                                                                                              |
-|                       |                                                                                                                                                                                                                                                                                    |
-|                       | **predictor**: `condition` \[between-subjects factor\]                                                                                                                                                                                                                             |
-+-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | 1.  Wilcoxon-Rank Sum (Mann-Whitney) test on subject-level total accuracy of test phase (`s_NABS`)                                                                                                                                                                                 |
-|                       | 2.  Mixed Logistic Regression\                                                                                                                                                                                                                                                     |
-|                       |     `accuracy` \~ `condition` + (1 \| `subject` ) + (1 \| `question`)\                                                                                                                                                                                                             |
-|                       |     model effect of condition on probability of correct response \[during test phase\] while accounting for subject (and item-level?) effects                                                                                                                                      |
-+-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Alternatives**      | -   Ordinal Mixed Logistic Regression on `scaled_score`                                                                                                                                                                                                                            |
-|                       | -   OLS Linear Regression: bimodal distribution at tails makes the mean a poor predictor; LMs violate assumptions of normally distributed residuals; both absolute and scaled scores yield non-normal residuals; no transformation of the outcome variables yield normal residuals |
-+-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Notes**             | **Also exploring:**                                                                                                                                                                                                                                                                |
-|                       |                                                                                                                                                                                                                                                                                    |
-|                       | -   Hurdle model (mixture model w/ binomial + \[poisson or negbinom count; 0s from 1 DGP)                                                                                                                                                                                          |
-|                       | -   Zero Inflated model (mixture model w/ binomial + poisson or negbinom count; 0s from 2 DGPs)                                                                                                                                                                                    |
-|                       | -   Beta regression hurdle model? (mixture with location and scale parameters \[mean, variance\] and hurdles for floor and ceiling effects)                                                                                                                                        |
-|                       | -   Other way to account for the severe bimodality?                                                                                                                                                                                                                                |
-+-----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
 
 #### Setup
 ```{r}
@@ -327,79 +292,66 @@ df_i %>%
 
 
 #:::::::: LABELLED 
-
-temp <- df_i %>% mutate(
-  accuracy = fct_rev(accuracy)
-)  
-
-#CREATE PLOT WITH LABELS
-p <- grouped_ggbarstats(data = temp, x = accuracy, y = pretty_condition,
-               grouping.var = ospan_split,
-               results.subtitle = FALSE,
-               ggplot.component = ## modify further with `{ggplot2}` functions
-                list(
-                  scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
-                  # theme(axis.text.x = element_text(angle = 90)))
-               ))  + theme_clean() 
-
-#FIX LABELS
-p1 <- p[[1]] +  labs(
-  subtitle = "Impasse is particularly effective for subjects with high-working memory",
-    x = "Condition", y = "Probability of Response"
-  ) + theme_clean() + theme(legend.position = "blank") 
- 
-p2 <-   p[[2]] + labs(
-    x = "Condition", y = "Probability of Response",
-    subtitle = "   "
-  ) + theme_clean() + theme(legend.position = "blank") +
-  ggeasy::easy_remove_axes(which="y", what=c("text","title"))
-  # ggeasy::easy_remove_axes(which="y", what= ""))
-
-#CREATE ROW
-
-plot_row <- plot_grid(p1,p2, rel_widths = c(1,0.85))
-
-title <- ggdraw() + 
-  draw_label(
-    "DISTRIBUTION | Question Accuracy",
-    fontface = 'bold',
-    x = 0,
-    hjust = 0
-  ) +
-  theme(
-    # add margin on the left of the drawing canvas,
-    # so title is aligned with left edge of first plot
-    plot.margin = margin(0, 0, 0, 7)
-  )
-
-
-pg <- plot_grid(
-  title,
-  plot_row,
-  ncol = 1,
-  # rel_heights values control vertical title margins
-  rel_heights = c(0.1, 1)
-) + theme_clean()
-  
-pg
+# 
+# temp <- df_i %>% mutate(
+#   accuracy = fct_rev(accuracy)
+# )  
+# 
+# #CREATE PLOT WITH LABELS
+# p <- grouped_ggbarstats(data = temp, x = accuracy, y = pretty_condition,
+#                grouping.var = ospan_split,
+#                results.subtitle = FALSE,
+#                ggplot.component = ## modify further with `{ggplot2}` functions
+#                 list(
+#                   scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # theme(axis.text.x = element_text(angle = 90)))
+#                ))  + theme_clean() 
+# 
+# #FIX LABELS
+# p1 <- p[[1]] +  labs(
+#   subtitle = "Impasse is particularly effective for subjects with high-working memory",
+#     x = "Condition", y = "Probability of Response"
+#   ) + theme_clean() + theme(legend.position = "blank") 
+#  
+# p2 <-   p[[2]] + labs(
+#     x = "Condition", y = "Probability of Response",
+#     subtitle = "   "
+#   ) + theme_clean() + theme(legend.position = "blank") +
+#   ggeasy::easy_remove_axes(which="y", what=c("text","title"))
+#   # ggeasy::easy_remove_axes(which="y", what= ""))
+# 
+# #CREATE ROW
+# 
+# plot_row <- plot_grid(p1,p2, rel_widths = c(1,0.85))
+# 
+# title <- ggdraw() + 
+#   draw_label(
+#     "DISTRIBUTION | Question Accuracy",
+#     fontface = 'bold',
+#     x = 0,
+#     hjust = 0
+#   ) +
+#   theme(
+#     # add margin on the left of the drawing canvas,
+#     # so title is aligned with left edge of first plot
+#     plot.margin = margin(0, 0, 0, 7)
+#   )
+# 
+# 
+# pg <- plot_grid(
+#   title,
+#   plot_row,
+#   ncol = 1,
+#   # rel_heights values control vertical title margins
+#   rel_heights = c(0.1, 1)
+# ) + theme_clean()
+#   
+# pg
 # ggsave(pg, filename = "figures/SGC3A_OSPAN_Accuracy.png", width = 6, height =4)
 
 ```
 
 ```{r}
-
-#:::::::: STACKED PROPORTIONAL BAR CHART
-df_i %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-  facet_wrap(~ospan_split) + 
-   labs(title = "Overall Accuracy",
-       x = "Condition",
-       fill = "",
-       subtitle="Impasse Condition yields a greater proportion of correct responses for HIGH WM")
 
 #:::::::: STACKED BAR CHART BY QUESTION
 df_i %>% 
@@ -445,11 +397,17 @@ title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY OSPAN 
 tbl2 <- mosaic::favstats(task_percent ~ ospan_split, data = df_s) 
 tbl2 %>% kbl (caption = title) %>% kable_classic()
 
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY OSPAN SPLIT & CONDITION"
+tbl2 <- mosaic::favstats(task_percent ~ ospan_split+pretty_condition, data = df_s) 
+tbl2 %>% kbl (caption = title) %>% kable_classic()
+
+
 ```
 
 Across both conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. We see that the distribution of this outcome variable is clearly bimodal: with modes near the floor (0% correct) and ceiling (100% correct) of the scale. This bimodality is sensical considering the nature of the task, where each item in the task indexes a different information extraction operation over the same coordinate system.
 
-Task level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 3A: the distribution is bimodal. Total scores were higher in the impasse condition (M = 35\%, SD = 41\%)  than control condition (M = 15\%, SD = 30\%), implying a likely main effect of scaffold condition.  Comparing total scores across the median split on the OSPAN task (high working memory (vs) low working memory), we see readers with high working memory (M = 31 \%, SD = 41\%) performed better than readers with low working memory (M = 19 \%, SD = 31\%). In Figure \ref{fig_3C_ospan_raw_accuracy} we see that while readers in the impasse condition performed consistently better than those in the control condition, the effect is particularly pronounced for readers with high-working memory, implying a potential interaction between condition and working memory. 
+Task level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 3A: the distribution is bimodal. Total scores were higher in the impasse condition (M = 35\%, SD = 41\%, n = 65)  than control condition (M = 15\%, SD = 30\%, n = 68), implying a likely main effect of scaffold condition.  Comparing total scores across the median split on the OSPAN task (high working memory (vs) low working memory), we see readers with high working memory (M = 31 \%, SD = 41\%, n = 66) performed better than readers with low working memory (M = 19 \%, SD = 31\%, n = 67). In Figure \ref{fig_3C_ospan_raw_accuracy} we see that while readers in the impasse condition performed consistently better than those in the control condition, the effect is particularly pronounced for readers with high-working memory, implying a potential interaction between condition and working memory. 
 
 #### WILCOXON RANK SUM (Mann-Whitney Test) 
 
@@ -548,26 +506,15 @@ print("Empty fixed model")
 m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
 # summary(m0)
 
-#:: RANDOM INTERCEPT SUBJECT
-print("Subject intercept random model")
-mm.rS <- glmer(accuracy ~ (1|subject), data = df_i, family = "binomial")
-# summary(mm.rS)
-
-# :: TEST random effect
-paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
-test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
-
 #:: RANDOM INTERCEPT SUBJECT + ITEM
 print("Subject Intercept + Item intercept random model")
 mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
 #summary(mm.rSQ)
 
 # :: TEST random effect
-paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)))
-test_lrt(mm.rS, mm.rSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS, mm.rSQ))$p[2])
-
+paste("AIC decreases w/ new model?", AIC(logLik(m0)) > AIC(logLik(mm.rSQ)))
+test_lrt(m0, mm.rSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0, mm.rSQ))$p[2])
 
 ## 2 | ADD FIXED EFFECT CONDITION
 
@@ -586,8 +533,8 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[
 print("FIXED Condition * FIXED OSPAN + Subject & Item random intercepts")
 mm.COrSQ <- glmer(accuracy ~ pretty_condition *ospan_split + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
-summary(mm.COrSQ)
-car::Anova(mm.COrSQ)
+# summary(mm.COrSQ)
+# car::Anova(mm.COrSQ)
 
 paste("AIC decreases w/ new model", AIC(logLik(mm.CrSQ)) > AIC(logLik(mm.COrSQ)) )
 test_lrt(mm.CrSQ,mm.COrSQ) #same as anova(m0, m1, test = "Chi")
@@ -598,6 +545,10 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.CrSQ,mm.COrSQ))$
 
 *A likelihood ratio test indicates adding OSPAN as a fixed effect to a logistic regression model including a fixed effect for CONDITION and random intercepts for SUBJECT and QUESTION explains more variance in the data than the CONDITION + random-effects only model.*
 
+**Condition is better than random effects alone**
+$chi^2(4,6) = 17.23, p < 0.001$
+
+**Adding OSPAN and interaction term better than condition**
 $chi^2(4,6) = 6.93, p < 0.05$
 
 ##### Describe
@@ -617,28 +568,6 @@ summary(m)
 print("SIGNIFICANCE TEST [non directional]")
 car::Anova(m, type=3) #TYPE 3 SS FOR IXNS
 
-#:::::::: MANUAL ONE-SIDED SIGTEST 
-#note: anova and chi square are always one-tailed, but that is independent of being one-sided
-#https://www.ibm.com/support/pages/can-one-get-one-tailed-tests-logistic-regression-dividing-significance-levels-half
-
-# one-sided (right tail) z test for B COEFFICIENT
-#SANITY CHECK 2-tailed test should match the model output
-#NOTE ... NEED TO DO THIS FOR _EACH_ COEFFICIENT
-# tt <- 2*pnorm(summary(m)$coefficients[2,3], lower.tail = F)
-# paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
-# ot <- pnorm(summary(m)$coefficients[2,3], lower.tail = F)
-# paste("BUT we want a one  directional, null: B <= 0: ",round(ot,5))
-
-#:::::::: INTERPRET COEFFICIENTS
-# 
-# se <- sqrt(diag(stats::vcov(m)))
-# # table of estimates with 95% CI
-# paste("LOG ODDS")
-# (tab <- cbind(Est = fixef(m), LL = fixef(m) - 1.96 * se, UL = fixef(m) + 1.96 *
-#     se))
-# paste("ODDS RATIOS")
-# (e <- exp(tab))
-
 #:::::::: INTERPRET COEFFICIENTS
 
 paste("LOG ODDS")
@@ -653,6 +582,8 @@ paste("ODDS RATIOS")
 tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
 
 paste("PROBABILITIES")
+
+#sanity check
 #probability control = plogis(intercept)
 #probability impasse = plogis(intercept + coefficient)
 
@@ -671,7 +602,6 @@ paste("PROBABILITIES")
     
   
 #FROM merTools
-#setup df 
 newdata <- df_i %>% dplyr::select(pretty_condition, ospan_split, subject, q)
 #make predictions
 preds <- predictInterval(m, newdata = newdata,
@@ -693,18 +623,66 @@ preds <- cbind(newdata, preds)
   )) 
 
 
+
+
 ```
 
-##### Inference TODO UPDATE
+##### INFERENCE
 
-***(TODO Dissertation)***
+**REPORTED**
 
 To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with CONDITION, WORKING MEMORY and their interaction term as fixed effects.  A likelihood ratio test indicates that a model including the fixed effect of CONDITION  explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,4) = 17.23, p < 0.001$). The final model including fixed effects and interaction term of OSPAN is a significantly better fit than the CONDITION-only model  ($\chi^2(4,6) = 6.93, p < 0.05$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.92$) and the part related to the fixed effects CONDITION and WORKING MEMORY ($marginal \ R^2$) explains 18\% of variance. 
 
-The model includes no significant main effects, but a significant interaction between CONDITION and OSPAN, ( $e^{\beta_1} = 127, p < 0.05$, $95 \% \  CI \ [1.53, 1.05e4]$).
-
+Although Wald Chi-Square tests revealed no significant main effects, there was a significant interaction between CONDITION and OSPAN, ($\chi^2 (1) = 4.62, p < 0.05$).  [SEE POSTHOCS BELOW]
 
 The model predicts that, in the control condition, the probability of a correct response for a participant with high vs. low working memory increases from (0.1 to 0.5%) a negligible difference. In the impasse condition, however, the probability of a correct response increases from only 1% for participants with low working memory, to 42% for participants with high working memory.  These results are consistent with the intuition we develop from Figure TODO. Participants with high working memory capacity are most able to take advantage of the impasse scaffold.
+
+##### Interactions
+
+```{r}
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/interactions.html#simple
+# https://stats.oarc.ucla.edu/stata/faq/how-can-i-understand-a-categorical-by-categorical-interaction-in-logistic-regression-stata-12/
+# https://stats.oarc.ucla.edu/stata/seminars/deciphering-interactions-in-logistic-regression/
+  
+library(emmeans)
+
+#sanity check reference grid
+ref_grid(m)
+
+#PRINT ESTIMATED MARGINAL MEANS
+#should be same as summ_preds
+emmeans(m,  ~ pretty_condition + ospan_split, type = "response")
+
+##POST-HOC COMPARISONS
+print("POSTHOC COMPARISONS")
+emmeans(m,  pairwise ~ pretty_condition + ospan_split, 
+        type = "response" , adjust = "none") #sidak, tukey
+
+
+
+
+##PLOT INTERACTION
+#equivalent to plot_model, type = "int"
+emmip(m, ospan_split ~ pretty_condition ,
+      type = "response",
+      CIs = TRUE,
+      linearg = list(linetype = "dashed"),
+      engine = "ggplot")
+
+
+##PLOT PROBABILITY
+plot(ref_grid(m), by = "ospan_split", type = "response")
+
+```
+**REPORTED**
+
+Posthoc paired comparisons reveal that there is not a significant difference in accuracy between the control and impasse condition for participants in the low-memory group (OR = 0.1, SE  = 0.15, z = -1.47, p = 0.46). 
+For those with low working memory capacity, performance with comparably low, regardless of condition.  
+
+For those who were assigned to the control condition, working memory capacity did not change performance. There was not significant difference in accuracy between participants with low vs. high working memory (OR = 1.95, SE= 2.80, z = 0.47  p = 0.97).  
+
+For those assigned to the impasse condition, however, if you had high working memory capacity, you had significantly higher probability of accurate responses (OR = 0.02, SE = 0.03, z = -2.370  p = 0.0180).  
 
 ##### Print
 ```{r}
@@ -770,9 +748,6 @@ plot_model(m, vline.color = "red",
 result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
 plot(result)
 
-## | PLOT TESTS
-result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
-plot(result)
 
 #ONLY FOR BAYESIAN VERSION
 # result <- rope(m)
@@ -800,11 +775,21 @@ plot_model(m, type = "eff")
   #   subtitle = "Impasse increases Probability of Correct Response"
   # )
 
+
+#GGDIST | MODEL | PREDICTED PROBABILITIES
+preds %>% 
+  ggplot(aes( x = fit, y = pretty_condition, fill = ospan_split)) + 
+  stat_halfeye(alpha = 0.5, normalize = "panels") + 
+  xlim(0,0.3) + theme_clean() + labs(
+    title = "Model PREDICTION | Probability of Accurate Response",
+    subtitle = "TODO check preds to see if fixed or includes random"
+  )
+
 ```
 
 ```{r}
 #SJPLOT | MODEL | TABLE
-tab_model(m)
+# tab_model(m)
 
 # #MODEL SUMMARY | save latex table
 # models <- list("odds ratios" = m, "(log odds)" = m)
@@ -845,11 +830,8 @@ check_model(m)
 
 ```
 
-## H1A \| OVERALL INTERPRETATION STATE
+## OVERALL INTERPRETATION STATE
 
-**Do Ss in the IMPASSE condition offer less-orthogonal interpretations across the test phase questions?**
-
-While absolute accuracy score tells us whether a participant successfully interpreted the coordinate system, it doesn't allow us to differentiate between different kinds of incorrect interpretations. Here we examine the (categorical) interpretation state type based on the nature of subject's response, and determine if these interpretations differ by experimental condition. State is a 3-category variable that groups the following interpretations:
 
 -   **"orthogonal"** \[reference category\] includes orthogonal and satisficing responses ==\> indicates a primarily *orthogonal* state of coordinate system understanding
 
@@ -858,23 +840,6 @@ While absolute accuracy score tells us whether a participant successfully interp
 -   **"angular"** includes 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
 
 -   **"triangular"** includes correct triangular and 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
-
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| Research Question     | Does Ss in the impasse condition produce less orthogonal responses across questions?                                          |
-+=======================+=================================================================================================================================================+
-| **Hypothesis**        | H1A \| Ss in the IMPASSE condition will have a higher likelihood of producing unknown and triangle-like response states across all items |
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Data**              | -   data: `df_items` where `q nin 6,9` (13 discriminant test phase items)                                                              |
-|                       | -   outcome: `state` ( 3 level factor from high_interpretation )                                                                                |
-|                       | -   predictor: `condition` \[between-subjects factor\]                                                                                          |
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Analysis Strategy** | 1.  MIXED Multinomial (Logistic) Regression on state predicted by condition                                                                     |
-|                       |                                                                                                                                                 |
-|                       | Alternative:                                                                                                                                    |
-|                       |                                                                                                                                                 |
-|                       | -   MIXED Ordinal regression on state (doesn't meet proportional odds assumption-I think)                                                       |
-|                       | -   MIXED Multinomial or Ordinal regression on high_interpretation (some cells are 0, produces problems)                                        |
-+-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 #### Setup
@@ -889,6 +854,9 @@ df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pre
 #### Visualize
 
 ```{r}
+#| warning: false
+#| message: false
+
 #:::::::: STACKED BAR CHART
 df_i %>% 
   ggplot(data = .,
@@ -903,7 +871,7 @@ df_i %>%
        subtitle="")
 
 
-#:::::::: STACKED BAR CHART
+#:::::::: STACKED BAR CHART BY QUESTION
 df_i %>% 
   ggplot(data = .,
          mapping = aes(x = pretty_condition,
@@ -919,6 +887,9 @@ df_i %>%
 
 ```
 ```{r}
+#| warning: false
+#| message: false
+
 #:::::::: LABELLED 
 
 # temp <- df_i %>% mutate(
@@ -943,62 +914,68 @@ df_i %>%
 
 
 #:::::::: LABELLED 
+# 
+# temp <- df_i 
+# # %>% mutate(
+# #   accuracy = fct_rev(accuracy)
+# # )
+# 
+# #CREATE PLOT WITH LABELS
+# p <- grouped_ggbarstats(data = temp, x = state, y = pretty_condition,
+#                grouping.var = ospan_split,
+#                results.subtitle = FALSE,
+#                ggplot.component = ## modify further with `{ggplot2}` functions
+#                 list(
+#                   scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+#                   # theme(axis.text.x = element_text(angle = 90)))
+#                )) 
+# 
+# #FIX LABELS
+# p1 <- p[[1]] +  labs(
+#   subtitle = "Impasse is particularly effective for subjects with high-working memory",
+#     x = "Condition", y = "Probability of Response"
+#   ) + theme_clean() + theme(legend.position = "blank") 
+#  
+# p2 <-   p[[2]] + labs(
+#     x = "Condition", y = "Probability of Response",
+#     subtitle = "   "
+#   ) + theme_clean() + theme(legend.position = "blank") +
+#   ggeasy::easy_remove_axes(which="y", what=c("text","title"))
+#   # ggeasy::easy_remove_axes(which="y", what= ""))
+# 
+# #CREATE ROW
+# 
+# plot_row <- plot_grid(p1,p2, rel_widths = c(1,0.85))
+# 
+# title <- ggdraw() + 
+#   draw_label(
+#     "DISTRIBUTION | Question Accuracy",
+#     fontface = 'bold',
+#     x = 0,
+#     hjust = 0
+#   ) +
+#   theme(
+#     # add margin on the left of the drawing canvas,
+#     # so title is aligned with left edge of first plot
+#     plot.margin = margin(0, 0, 0, 7)
+#   )
+# 
+# 
+# pg <- plot_grid(
+#   title,
+#   plot_row,
+#   ncol = 1,
+#   # rel_heights values control vertical title margins
+#   rel_heights = c(0.1, 1)
+# ) + theme_clean()
+#   
+# 
+# update_geom_defaults("text", list(colour = "grey20", family = theme_get()$text$family))
+# 
+# 
+# pg
 
-temp <- df_i 
-# %>% mutate(
-#   accuracy = fct_rev(accuracy)
-# )
 
-#CREATE PLOT WITH LABELS
-p <- grouped_ggbarstats(data = temp, x = state, y = pretty_condition,
-               grouping.var = ospan_split,
-               results.subtitle = FALSE,
-               ggplot.component = ## modify further with `{ggplot2}` functions
-                list(
-                  scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
-                  # theme(axis.text.x = element_text(angle = 90)))
-               )) 
-
-#FIX LABELS
-p1 <- p[[1]] +  labs(
-  subtitle = "Impasse is particularly effective for subjects with high-working memory",
-    x = "Condition", y = "Probability of Response"
-  ) + theme_clean() + theme(legend.position = "blank") 
- 
-p2 <-   p[[2]] + labs(
-    x = "Condition", y = "Probability of Response",
-    subtitle = "   "
-  ) + theme_clean() + theme(legend.position = "blank") +
-  ggeasy::easy_remove_axes(which="y", what=c("text","title"))
-  # ggeasy::easy_remove_axes(which="y", what= ""))
-
-#CREATE ROW
-
-plot_row <- plot_grid(p1,p2, rel_widths = c(1,0.85))
-
-title <- ggdraw() + 
-  draw_label(
-    "DISTRIBUTION | Question Accuracy",
-    fontface = 'bold',
-    x = 0,
-    hjust = 0
-  ) +
-  theme(
-    # add margin on the left of the drawing canvas,
-    # so title is aligned with left edge of first plot
-    plot.margin = margin(0, 0, 0, 7)
-  )
-
-
-pg <- plot_grid(
-  title,
-  plot_row,
-  ncol = 1,
-  # rel_heights values control vertical title margins
-  rel_heights = c(0.1, 1)
-) + theme_clean()
-  
-pg
 # ggsave(pg, filename = "figures/SGC3A_OSPAN_Accuracy.png", width = 6, height =4)
 
 
@@ -1112,8 +1089,9 @@ Bmm.cat.COrSQ <- brm( state ~ pretty_condition*ospan_split + (1|subject) + (1|q)
 # summary(mm.cat.COrSQ)
 
 ##MODEL COMPARISON
-print("MODEL COMPARISON: COND*OSPAN (vs) CONDITION")
-bayesfactor(Bmm.cat.COrSQ, Bmm.cat.CrSQ)
+# print("MODEL COMPARISON: COND*OSPAN (vs) CONDITION")
+# bayesfactor(Bmm.cat.COrSQ, Bmm.cat.CrSQ)
+#commment out bc we'll do this in next block
 
 #which model is better?
 compare_models(Bmm.cat.CrSQ, Bmm.cat.COrSQ)
@@ -1121,6 +1099,8 @@ compare_models(Bmm.cat.CrSQ, Bmm.cat.COrSQ)
 # car::Anova(mm.cat.CrSQ, mm.cat.COrSQ)
 # car::Anova(mm.cat.COrSQ)
 ```
+
+
 
 ##### Describe
 
@@ -1134,12 +1114,13 @@ m <- Bmm.cat.COrSQ
 
 print("PREDICTOR MODEL")
 summary(m)
-(d <- describe_posterior(ci=.95, Bmm.cat.CrSQ))
+(d <- describe_posterior(ci=.95, m))
 
 print("BAYES FACTOR [comparison to CONDITION only]")
 #think of this like the anova(model) to get p values for each predictor
 #has to recompile the models with rstan. total drag
 (b <- bayesfactor(Bmm.cat.CrSQ, m))
+# already calculated this in step above
 
 print("DESCRIBE POSTERIOR")
 
@@ -1158,22 +1139,22 @@ paste("PROBABILITIES")
 newdata <- df_i %>% dplyr::select(pretty_condition, ospan_split, subject, q)
 preds <- predict(m, newdata = newdata, type = "response")
 preds <- cbind(newdata, preds)
-#lengthen data frame to handle multinomial
-# preds <- preds %>% 
-#   dplyr::select(-subject, -q) %>% #marginalize over subject and q
-#   pivot_longer(
-#   cols = !pretty_condition,
-#   values_to = "preds",
-#   names_to = "state",
-# ) 
-# 
-# (p <- preds %>% 
-#   group_by(pretty_condition, state ) %>%
-#   summarise(
-#     median = median(preds),
-#     se = sd(preds)/sqrt(n()),
-#     lwr = median - 1.96*se,
-#     upr = median + 1.96*se))
+# lengthen data frame to handle multinomial
+preds <- preds %>%
+  dplyr::select(-subject, -q) %>% #marginalize over subject and q
+  pivot_longer(
+  cols = !pretty_condition & !ospan_split,
+  values_to = "preds",
+  names_to = "state",
+)
+
+(p <- preds %>%
+  group_by(pretty_condition, ospan_split, state ) %>%
+  summarise(
+    median = median(preds),
+    se = sd(preds)/sqrt(n()),
+    lwr = median - 1.96*se,
+    upr = median + 1.96*se))
 
 ##DRAWS METHOD
 # GENERATE draws from model
@@ -1197,9 +1178,42 @@ preds <- cbind(newdata, preds)
 #     c("Condition","Category", "Probability","Lower Cred.I","Upper Cred.I", "CI Width", "Point Type", "Interval Type")) %>%
 #   kable_styling())
 
+
 ```
 
 ##### INFERENCE
+
+**Reported** 
+
+To quantify the effect of working memory capacity on INTERPRETATION, we fit a (bayesian) mixed multinomial regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts + CONDITION model) indicates strong evidence for a a final model including fixed effects of CONDITION, OSPAN and their interaction term  (BF = 8.52).
+
+(note, the BF may change as it is estimated via simulation each time)
+
+##### Interactions
+
+```{r}
+
+#EMMEANS doesn't support multinomial brms models. BUMMER
+#BUT brms has some built in stuffs. 
+
+# FOR MAIN EFFECTS PLOTS 
+print("MAIN EFFECTS")
+conditional_effects(m, categorical = TRUE)
+
+
+print("INTERACTION PLOT")
+# conditions <- make_conditions(m, vars = c("pretty_condition","ospan_split"))
+conditions <- make_conditions(m, vars = c("pretty_condition"))
+conditional_effects(m, "ospan_split", conditions = conditions,
+                    categorical = TRUE)
+
+print("INTERACTION PLOT")
+plot_model(m, type="int")
+
+```
+**REPORTED**
+
+The model predicts similar probabilities for orthogonal, other, and angular interpretations by high vs. low working memory participants. It is only the (correct) triangular interpretation in which we have evidence for a reliable interaction between OSPAN and CONDITION. Much like the pattern of results for accuracy, it is high working memory participants with higher probability of triangular responses, but only in impasse condition. 
 
 
 ##### Print 
@@ -1259,7 +1273,6 @@ preds <- cbind(newdata, preds)
 #| label: VIS-BRMS-STATE
 
 
-
 ## | PLOT PARAMETERS 
 
 #SJPLOT | MODEL | ODDS RATIO
@@ -1286,8 +1299,11 @@ plot(result)
 result <- rope(m)
 plot(result)
 
-result <- pd(m) 
-plot(result)
+##TODO see documentation for removing, reorganizing parameters
+result <- pd(m, effects = "fixed", component = "all")
+plot(result, show_intercept = FALSE,
+     n_columns = 3)
+
 
 ## | PLOT PREDICTIONS
 
@@ -1353,41 +1369,6 @@ d
 ```
 
 
-
-```{r}
-#| label: TBL-BRMS-STATE
-
-#DISPLAY MODEL AS TABLE
-tab_model(m)
-
-# #MODEL SUMMARY | save latex table
-# models <- list("odds ratios" = m, "(log odds)" = m)
-# notes = list('"* p < 0.05, ** p < 0.01, *** p < 0.001"',
-#                'N(subject) = 133 $\tau_{00}$(subject) = 34.85',
-#              'N(question) = 13 $\tau_{00}$(question) = 1.14')
-# 
-# modelsummary(models,
-#              exponentiate = c(TRUE, FALSE),
-#              shape = term ~ model + statistic,
-#              fmt = 2, #two digits w/ trailing zero
-#              estimate  = "{estimate} {stars}",
-#              statistic = "conf.int",
-#              gof_map = c("AIC", "sigma"),
-#              gof_omit = 'RMSE|ICC|BIC',
-#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
-#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
-#              notes = notes,
-#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_online.tex")
-# # #              # coef_omit = "Intercept",
-#TODO OUTPUT TABLE 
-
-#https://arelbundock.com/posts/modelsummary_multinomial_logit/
-# modelsummary(m)
-
-
-
-```
-
 ##### Diagnostics
 
 ```{r}
@@ -1404,7 +1385,7 @@ plot(m)
 
 ```
 
-## H1B \| Q1 ACCURACY
+## Q1 ACCURACY
 
 
 
@@ -1735,7 +1716,7 @@ check_model(m)
 ```
 
 
-## H1B \| Q1 INTERPRETATION STATE
+## Q1 INTERPRETATION STATE
 
 **Do Ss in the IMPASSE condition offer less-orthogonal interpretations on first question?**
 
@@ -2088,6 +2069,300 @@ chisq.test(df$state,predict(m)) #actual states VS predicted states
 # check_model(m) can't do overall diagnostics, have to do them on individual model equations
 
 ```
+
+
+
+
+## Q8 INTERPRETATION STATE
+
+
+#### Setup 
+```{r}
+
+df <- df_items %>% filter(q==8) %>% 
+  dplyr::select(pretty_condition, ospan_split, state)
+
+```
+
+
+#### Describe 
+```{r}
+
+
+#:::::::: STACKED BAR CHART
+df %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~ospan_split) +
+   labs(#y = "Correct Response on Q 1",
+       title = "Q8 Interpretation",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+```
+
+
+```{r}
+
+
+#::::::::::::DESCRIPTIVES
+
+table(df$state, df$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+
+(t <- table(df$state, df$pretty_condition, df$ospan_split) %>% addmargins(2) %>% #display sum for row
+      addmargins(1)) #sanity check sum of columns
+
+```
+
+#### MULTINOMIAL REGRESSION
+
+TODO:: USE MBLOGIT VERSION WITH P VALUES IN MODEL
+
+*Does condition affect the response state of Q?*
+
+
+##### Fit CONDITION Model
+
+```{r}
+
+#check reference level 
+print("Categories (first is reference)")
+levels(df$state)
+
+#FIT EMPTY MODEL
+# print("EMPTY MODEL")
+catm.0 <- multinom(state ~ 1, data = df)
+# summary(catm.0)
+
+#FIT PREDICTOR MODEL
+# print("PREDICTOR MODEL")
+catm.C <- multinom(formula = state ~ pretty_condition, data = df, model = TRUE)
+# summary(catm.C)
+
+#COMPARE MODEL FIT
+paste("AIC wth predictor is lower than empty model?", catm.0$AIC > catm.C$AIC)
+test_lrt(catm.0, catm.C)
+
+##compare bayesian version
+#library(brms)
+# b.cat <- brm( state2 ~ pretty_condition, data = df, family = "categorical", backend = "cmdstanr")
+# summary(b.cat)
+# plot_model(b.cat)
+# report(b.cat)
+# coefficient estimates are very simliar to catm. super cool!
+
+##compare mclogit version
+#"baseline-category logit model
+# https://www.elff.eu/software/mclogit/manual/mblogit/
+# blm1 <- mblogit(state2 ~ pretty_condition , data = df)
+# summary(blm1)
+#identical to catm. super cool!
+
+```
+
+*AIC in predictor model is less than empty model, and likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model.*
+
+##### Fit OSPAN Model
+
+```{r}
+
+#FIT OSPAN only MODEL
+# print("OSPAN ONLY MODEL")
+catm.O <- multinom(state ~ ospan_split, data = df)
+# summary(catm.O) 
+# car::Anova(catm.O) 
+print("OSPAN ONLY better than empty?")
+test_lrt(catm.0, catm.O)
+
+
+#FIT OSPAN + CONDITION
+# print("OSPAN + CONDITION MODEL")
+catm.CO <- multinom(formula = state ~ pretty_condition + ospan_split, data = df, model = TRUE)
+# summary(catm.CO)
+car::Anova(catm.CO) #MainEff condition, marginal ospan
+
+#COMPARE MODEL FIT
+paste("Adding OSPAN to CONDITION lowers AIC?", catm.C$AIC > catm.CO$AIC)
+test_lrt(catm.C, catm.CO)
+
+```
+_Adding (main effect) predictor of OSPAN decreases AIC and is a marginally better fit. In this model, there are main effects of condition and OSPAN._
+
+```{r}
+
+#FIT OSPAN * CONDITION
+# print("OSPAN * CONDITION MODEL")
+catm.C.O <- multinom(formula = state ~ pretty_condition * ospan_split, data = df, model = TRUE)
+car::Anova(catm.C.O, type = 3)
+# summary(catm.C.O)
+# car::Anova(catm.C.O) #MainEff condition, marginal ospan
+#COMPARE MODEL FIT
+paste("Adding INTERACTION lowers AIC?", catm.CO$AIC > catm.C.O$AIC)
+test_lrt(catm.CO, catm.C.O)
+
+```
+_Adding interaction of OSPAN does not improve fit and does not lower AIC. In the IXN model, no effects are significant._ So we conclude that the main effects only model is the final model. 
+
+```{r}
+##compare bayesian version
+# library(brms)
+# b.cat <- brm( state ~ pretty_condition*ospan_split, data = df, family = "categorical", backend = "cmdstanr")
+# summary(b.cat)
+# plot_model(b.cat) 
+# plot(equivalence_test(b.cat))
+# plot(rope(b.cat))
+# report(b.cat)
+# coefficient estimates are very simliar to catm. super cool!
+
+##compare mclogit version
+#"baseline-category logit model
+# https://www.elff.eu/software/mclogit/manual/mblogit/
+# blm1 <- mblogit(state ~ pretty_condition *ospan_split , data = df)
+# summary(blm1)
+# car::Anova(blm1) #todo need to separate by individual equation
+#identical to catm. super cool!
+
+```
+
+
+
+
+##### Describe
+
+```{r}
+
+
+#set model
+m <- catm.CO
+
+#::::::::INTERPRETATION
+paste("MODEL SUMMARY")
+summary(m)
+car::Anova(m, type =2) #always type 3 for ixns 
+
+# calculate z-statistics of coefficients
+z_stats <- summary(m)$coefficients/summary(m)$standard.errors
+# convert to p-values
+p_values <- (1 - pnorm(abs(z_stats)))*2
+# display p-values in transposed data frame
+(p_values <- data.frame(p = (p_values)))
+# display odds ratios in transposed data frame
+
+paste("ODDS RATIOS")
+odds_ratios <- data.frame(OR = exp(summary(m)$coefficients))
+options(scipen = 2)
+(results <- cbind(odds_ratios, p_values))
+```
+
+##### Inference 
+
+
+
+##### Visualize
+
+```{r}
+
+#:::::::: PLOT
+
+#SJPLOT | MODEL | ODDS RATIO
+#library(sjPlot)
+plot_model(m, type = "est",
+           vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) +  #manually adjusted for directional test   
+  # scale_y_continuous() + #remove to put on log scale x axis 
+  # scale_x_discrete(labels=c("control","impasse"))+
+  labs(title = "MODEL ESTIMATE  | Q1 Accuracy ~ condition",
+       subtitle = "Impasse increases odds of correct response on Q1",
+       x = "Condition") + theme_clean()
+
+  
+#SJPLOT | MODEL | PROBABILITIES
+# plot_model(m, type = "int", ci.lvl = 0.95) 
+plot_model(m, type="eff", ci.lvl = 0.95) 
+# +  ylim(0,1) +
+#   labs(title = "MODEL PREDICTION  | Q1 State ~ condition",
+#        subtitle = "Impasse increases probability of more accurate response states Q1",
+#        x = "Condition") + theme_clean()
+
+#TODO ESTIMAED MARGINALS AND IXN PLOTS 
+# https://cran.r-project.org/web/packages/emmeans/vignettes/comparisons.html
+
+
+```
+
+```{r}
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+# models <- list("odds ratios" = m1, "(log odds)" = m1)
+# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
+#              '$sigma^{2}$ = 3.29" N(subject) = 126 $\tau_{00}$(subject) = 22.22 N(question) = 13 $\tau_{00}$(question) = 0.31'
+#                )
+# 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              gof_map = c("AIC", "sigma"),
+#              gof_omit = 'RMSE|ICC|BIC',
+#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
+#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)', 
+#              notes = notes,
+#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_lab.tex")
+# #              # coef_omit = "Intercept",
+
+# modelsummary(mixcat.1, s)
+#TODO OUTPUT TABLE 
+#https://arelbundock.com/posts/modelsummary_multinomial_logit/
+
+
+```
+
+##### Diagnostics
+
+```{r}
+
+#EXAMINE PREDICTIONS
+#create sample data frame
+# test <- data.frame(pretty_condition = c("control", "impasse"))
+# pred <- predict(m, newdata = test, "probs")
+# paste("Predicted Probability of Being in Each State")
+# ( x <- cbind(test, pred))
+
+# print("MODEL PERFORMANCE")
+# performance(m)
+# DescTools::PseudoR2(m, which = c("McFadden", "CoxSnell", "Nagelkerke"))
+
+#General Goodness of Fit
+#library(generalhoslem)
+#logitgof(df$state, catm$fitted.values, g = 3)
+#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
+#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
+chisq.test(df$state,predict(m)) #actual states VS predicted states
+# The chi-square test tests the decrease in unexplained variance from the baseline model to the final model
+
+# print("MODEL DIAGNOSTICS")
+# check_model(m) can't do overall diagnostics, have to do them on individual model equations
+
+```
+
+
+
+
 
 ## EXPLORE specific question 
 
