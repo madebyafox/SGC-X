@@ -50,6 +50,7 @@ library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
 library(parameters) #easystats model summary and vis
+library(marginaleffects) #contrasts on brms multinomials 
 # library(qqplotr) #confint on qq plot
 # library(gmodels) #contingency table and CHISQR
 # library(equatiomatic) #extract model equation
@@ -1010,7 +1011,7 @@ table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for 
 ```{r}
 #| label: FIT-BRMS-STATE
 
-inf_priors <- c(
+inf_priors_condition <- c(
   #prior on INTERCEPTS 
   #25% chance of each answer in control, scale = from 0.01 to 62%
   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muangular"),
@@ -1023,7 +1024,25 @@ inf_priors <- c(
   prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "mutriangular")
 )
 
-ixn_priors <- c(
+inf_priors_condition.ospan <- c(
+  #prior on INTERCEPTS 
+  #25% chance of each answer in control, scale = from 0.01 to 62%
+  prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muangular"),
+  prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muother"),
+  prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "mutriangular"),
+  #prior on COEFFICIENT
+  #likely to change odds between 0 and 2.4
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "muangular"),
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "muother"),
+  prior(normal(0, 2.42), class = b, coef="pretty_conditionimpasse", dpar = "mutriangular"),
+  #prior on OSPAN COEFFICIENT
+  #likely to change odds between 0 and 2.4
+  prior(normal(0, 2.42), class = b, coef="ospan_splithighMmemory", dpar = "muangular"),
+  prior(normal(0, 2.42), class = b, coef="ospan_splithighMmemory", dpar = "muother"),
+  prior(normal(0, 2.42), class = b, coef="ospan_splithighMmemory", dpar = "mutriangular")
+)
+
+inf_priors_ixn <- c(
   #prior on INTERCEPTS 
   #25% chance of each answer in control, scale = from 0.01 to 62%
   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muangular"),
@@ -1060,7 +1079,7 @@ Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q),
 # CONDITION ONLY MODEL
 Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
                  data = df_i, 
-                 prior = inf_priors,
+                 prior = inf_priors_condition,
                  family = "categorical",
                  chains = 4, iter = 2000, warmup = 1000,
                  cores = 4, seed = 1234,
@@ -1075,10 +1094,26 @@ Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q),
 # bayesfactor(Bmm.cat.rSQ, Bmm.cat.CrSQ)
 #substantial evidence in favor of conditon model over random only BF 1.64e+16
 
+
 # CONDITION + OSPAN MODEL
+Bmm.cat.C.OrSQ <- brm( state ~ pretty_condition+ospan_split + (1|subject) + (1|q), 
+                 data = df_i, 
+                 prior = inf_priors_condition.ospan,
+                 family = "categorical",
+                 chains = 4, iter = 2500, warmup = 1000,
+                 cores = 4, seed = 1234,
+                 save_pars = save_pars(all = TRUE),
+                 control = list(adapt_delta = 0.98),  # to deal with divergent transitions
+                 backend = "cmdstanr",
+                 file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.C.OrSQ_OSPAN.rds")
+# summary(Bmm.cat.C.OrSQ)
+describe_posterior(Bmm.cat.C.OrSQ)
+
+
+# CONDITION * OSPAN MODEL
 Bmm.cat.COrSQ <- brm( state ~ pretty_condition*ospan_split + (1|subject) + (1|q), 
                  data = df_i, 
-                 prior = ixn_priors,
+                 prior = inf_priors_ixn,
                  family = "categorical",
                  chains = 4, iter = 2500, warmup = 1000,
                  cores = 4, seed = 1234,
@@ -1086,7 +1121,7 @@ Bmm.cat.COrSQ <- brm( state ~ pretty_condition*ospan_split + (1|subject) + (1|q)
                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
                  # backend = "cmdstanr",
                  file ="analysis/SGC3A/models/sgc3a_brms_state_Bmm.cat.COrSQ_OSPAN.rds")
-# summary(mm.cat.COrSQ)
+describe_posterior(Bmm.cat.COrSQ)
 
 ##MODEL COMPARISON
 # print("MODEL COMPARISON: COND*OSPAN (vs) CONDITION")
@@ -1094,10 +1129,15 @@ Bmm.cat.COrSQ <- brm( state ~ pretty_condition*ospan_split + (1|subject) + (1|q)
 #commment out bc we'll do this in next block
 
 #which model is better?
-compare_models(Bmm.cat.CrSQ, Bmm.cat.COrSQ)
+compare_models(Bmm.cat.CrSQ, Bmm.cat.C.OrSQ, Bmm.cat.COrSQ)
 # compare_performance(Bmm.cat.CrSQ, Bmm.cat.COrSQ)
 # car::Anova(mm.cat.CrSQ, mm.cat.COrSQ)
 # car::Anova(mm.cat.COrSQ)
+
+
+##COMPARE SIMPLE TO INTERACTION
+# print("Is interaction term justified?")
+# (bf1 <- bayes_factor(Bmm.cat.COrSQ, Bmm.cat.C.OrSQ))
 ```
 
 
@@ -1116,10 +1156,11 @@ print("PREDICTOR MODEL")
 summary(m)
 (d <- describe_posterior(ci=.95, m))
 
-print("BAYES FACTOR [comparison to CONDITION only]")
+print("BAYES FACTOR [comparison to RANDOM ONLY model]")
 #think of this like the anova(model) to get p values for each predictor
 #has to recompile the models with rstan. total drag
-(b <- bayesfactor(Bmm.cat.CrSQ, m))
+(b <- bayesfactor(Bmm.cat.rSQ, m))
+effectsize::interpret_bf(exp(b$log_BF), include_value = TRUE)
 # already calculated this in step above
 
 print("DESCRIBE POSTERIOR")
@@ -1179,15 +1220,50 @@ preds <- preds %>%
 #   kable_styling())
 
 
+
+## USING MARGINALEFFECTS package
+library(marginaleffects)
+
+
 ```
+
+
 
 ##### INFERENCE
 
 **Reported** 
 
-To quantify the effect of working memory capacity on INTERPRETATION, we fit a (bayesian) mixed multinomial regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts + CONDITION model) indicates strong evidence for a a final model including fixed effects of CONDITION, OSPAN and their interaction term  (BF = 8.52).
+To quantify the effect of working memory capacity on INTERPRETATION, we fit a (bayesian) mixed multinomial regression model with random intercepts for subjects and questions. 
+
+A Bayes Factor model comparison (against a random intercepts only model) indicates extreme evidence for the final model including fixed effects of CONDITION, OSPAN and their interaction term  (BF = 1.69e+13)
 
 (note, the BF may change as it is estimated via simulation each time)
+
+##### Bayes Factor
+- https://easystats.github.io/bayestestR/articles/bayes_factors.html
+
+Compute bayes factor for model parameters
+
+```{r}
+
+#define null on the log odds scale as the range from -0.4 to 0.4, a 1.5X increase or decrease in odds 
+(coef_bf <- bayesfactor(m, null = c(-0.4, 0.4)))
+
+#plot bayes factors
+plot(coef_bf)
+
+#interpretation guidelines
+effectsize::interpret_bf(exp(coef_bf$log_BF), include_value = TRUE)
+
+```
+
+**REPORTED**
+
+The model predicts similar probabilities for orthogonal, other, and angular interpretations by high vs. low working memory participants. It is only the (correct) triangular interpretation in which we have evidence for a reliable interaction between OSPAN and CONDITION. 
+
+It is only the (correct) triangular interpretation in which we have moderate evidence for a reliable interaction between OSPAN and CONDITION ($e^{\beta_{interaction}} = 15.73, \  95 \% \ CI \  [0.89, 249.91], \ pd = 97.3\%, BF = 3.86 $)
+
+Much like the pattern of results for accuracy, it is high working memory participants with higher probability of triangular responses, but only in impasse condition. 
 
 ##### Interactions
 
@@ -1202,18 +1278,30 @@ conditional_effects(m, categorical = TRUE)
 
 
 print("INTERACTION PLOT")
-# conditions <- make_conditions(m, vars = c("pretty_condition","ospan_split"))
-conditions <- make_conditions(m, vars = c("pretty_condition"))
-conditional_effects(m, "ospan_split", conditions = conditions,
+conditions <- make_conditions(m, vars = c("ospan_split"))
+conditional_effects(m, "pretty_condition", conditions = conditions,
                     categorical = TRUE)
+                    
 
 print("INTERACTION PLOT")
 plot_model(m, type="int")
 
-```
-**REPORTED**
 
-The model predicts similar probabilities for orthogonal, other, and angular interpretations by high vs. low working memory participants. It is only the (correct) triangular interpretation in which we have evidence for a reliable interaction between OSPAN and CONDITION. Much like the pattern of results for accuracy, it is high working memory participants with higher probability of triangular responses, but only in impasse condition. 
+## MARGINAL EFFECTS
+
+# from easystats 
+# library(modelbased)
+# uses emmeans, doesn't support brms categorical 
+# estimate_contrasts(m, test = "bf", bf_prior = m)
+
+# library(marginaleffects)
+# https://vincentarelbundock.github.io/marginaleffects/articles/brms.html
+## takes a really long time... maybe hangs machine??
+(mfx <- marginaleffects::marginaleffects(m))
+summary(mfx)
+
+```
+
 
 
 ##### Print 
@@ -1368,7 +1456,34 @@ d <- draws %>% sample_n(10) %>%
 d
 ```
 
+```{r}
+###VISUALIZE
+#make predictions
+pred <- predictions(m)
 
+#get draws
+draws <- posteriordraws(pred)
+
+#plot draws
+
+##PLOT ANGULAR
+ggplot(draws %>% sample_n(1000), aes(x = draw, fill = group)) +
+    geom_density(alpha = 0.8, color = "white", trim = TRUE) +
+    facet_grid(ospan_split ~ pretty_condition) +
+    labs(x = "Predicted probability",
+         y = "Density",
+         fill = "INTERPRETATION")
+
+
+## AS DENSITY RIDGES
+ggplot(draws %>% sample(100000), aes(x = draw, y = pretty_condition, fill = ospan_split)) +
+    geom_density_ridges(alpha = 0.5, rel_min_height = 0.01) +
+    facet_grid(group ~ .) +
+    labs(x = "Predicted probability",
+         y = "Density")
+
+
+```
 ##### Diagnostics
 
 ```{r}
@@ -1384,6 +1499,57 @@ plot(result, stack = FALSE, priors= TRUE)
 plot(m)
 
 ```
+
+
+## CUMULATIVE PROGRESS 
+
+```{r}
+
+#SETUP
+df_scaled <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_scaled_progress_OSPAN.csv')
+df_absolute <- read_csv('analysis/SGC3A/data/2-scored-data/sgc3a_absolute_progress_OSPAN.csv')
+
+## JOIN OSPAN score to progress data 
+
+#get ospan scores
+temp_ospans <- df_subjects %>% dplyr::select(subject,
+  OSPAN.weighted, ospan_split) 
+
+#MERGE into progress 
+df_scaled <- merge(df_scaled, temp_ospans, by="subject")
+df_absolute <- merge(df_absolute, temp_ospans, by="subject")
+
+
+```
+
+### Visualize Progress over Task
+```{r}
+
+#VISUALIZE progress over time SCALED score 
+ggplot(data = df_scaled, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
+ geom_line(position=position_jitter(w=0.10, h=0.0), size=1) +
+ # geom_line( size=1) +
+ facet_wrap(ospan_split ~ pretty_condition) + 
+ labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
+ scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
+ # scale_y_continuous(lim=c(-13,13))+
+ theme_minimal() + theme(legend.position = "blank")
+
+
+
+#VISUALIZE progress over time SCALED score 
+ggplot(data = df_absolute, aes(x = question, y = score, group = subject, alpha = 0.1, color = pretty_condition)) + 
+ # geom_line(position=position_jitter(w=0.15, h=0.15), size=0.5) +
+ geom_line(position=position_jitter(w=0.15, h=0.15), size=1.5) +
+ # geom_line( size=1) +
+ facet_wrap(ospan_split ~ pretty_condition) + 
+ labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
+ scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
+ # scale_y_continuous(lim=c(0,13))+
+ theme_minimal() + theme(legend.position = "blank")
+
+```
+
 
 ## Q1 ACCURACY
 
@@ -2067,6 +2233,116 @@ chisq.test(df$state,predict(m)) #actual states VS predicted states
 
 # print("MODEL DIAGNOSTICS")
 # check_model(m) can't do overall diagnostics, have to do them on individual model equations
+
+```
+
+
+
+
+
+## WM in CONTROL CONDITION
+
+**What is the effect of WM capacity in just the control condition?**
+
+Exploration of response accuracy and response latency between working memory groups in the control condition did not reveal any interesting differences. There are a couple of questions where low WM participants were more accurate (5 [midpoint],8[duration constraint, before B/after X]) which seems strange. Low WM participants were also faster on these questions. The faster response time could be explained in Q5 by the distractor answer (A) which was popular. 
+
+### Setup
+```{r}
+
+df_s <- df_subjects %>% filter(pretty_condition == "control")
+df_i <- df_items %>% filter(subject %in% df_s$subject) %>% filter(q %nin% c(6,9))
+
+#validation 
+nrow(df_i) / 13 == nrow(df_s)
+
+```
+
+### Explore 
+```{r}
+
+##OVERALL
+ggbetweenstats( data = df_s, x = ospan_split, y = s_NABS,
+                type = "nonparametric") + 
+  labs(title = "Control Condition | Accuracy does not differ by ospan split")
+
+
+ggbetweenstats( data = df_s, x = ospan_split, y = rt_m,
+                type = "nonparametric") + 
+  labs(title = "Control Condition | Response time does not differ by ospan split")
+
+ggbarstats( data = df_i, x = state, y = ospan_split) + 
+  labs(title = "Control Condition | INTERPRETATION does not differ by ospan split")
+
+
+##Q1
+ggbarstats( data = df_i %>% filter(q==1), x = accuracy, y = ospan_split,
+            type = "nonparametric") + 
+  labs(title = "Q1 [first exposure] | Performance does not differ by ospan split")
+
+ggbetweenstats( data = df_i %>% filter(q==1), y = rt_s, x = ospan_split,
+            type = "parametric") + 
+  labs(title = "Q1 [first exposure] | RT does not differ by ospan split")
+
+ggbarstats( data = df_i %>% filter(q==1), x = state, y = ospan_split) + 
+  labs(title = "Q1 [first expsoure] | Control Condition | INTERPRETATION does not differ by ospan split")
+
+
+##Q3
+ggbarstats( data = df_i %>% filter(q==3), x = accuracy, y = ospan_split,
+            type = "nonparametric") + 
+  labs(title = "Q3 [first endtime] | Performance does not differ by ospan split")
+
+ggbetweenstats( data = df_i %>% filter(q==3), y = rt_s, x = ospan_split,
+            type = "parametric") + 
+  labs(title = "Q1 [first endtime] | RT does not differ by ospan split")
+
+ggbarstats( data = df_i %>% filter(q==3), x = state, y = ospan_split) + 
+  labs(title = "Q1 [first endtime] |INTERPRETATION does not differ by ospan split")
+
+
+
+##Q8
+ggbarstats( data = df_i %>% filter(q==8), x = accuracy, y = ospan_split,
+            type = "nonparametric") + 
+  labs(title = "Q8 [high orth load] | Accuracy does not differ by ospan split")
+
+
+ggbetweenstats( data = df_i %>% filter(q==8), y = rt_s, x = ospan_split,
+            type = "parametric") + 
+  labs(title = "Q8 [high orth load] | RT does not differ by ospan split")
+
+
+ggbarstats( data = df_i %>% filter(q==8), x = state, y = ospan_split) + 
+  labs(title = "Q8 [high orth] |INTERPRETATION does not differ by ospan split")
+
+
+
+##Q5
+ggbarstats( data = df_i %>% filter(q==5), x = accuracy, y = ospan_split,
+            type = "nonparametric") + 
+  labs(title = "Q5 [high orth load] | Performance does not differ by ospan split")
+
+ggbetweenstats( data = df_i %>% filter(q==5), y = rt_s, x = ospan_split,
+            type = "parametric") + 
+  labs(title = "Q5 [high orth load] | RT does not differ by ospan split")
+
+ggbarstats( data = df_i %>% filter(q==5), x = state, y = ospan_split) + 
+  labs(title = "Q5 [high orth] |INTERPRETATION does not differ by ospan split")
+
+
+
+##Q10
+ggbarstats( data = df_i %>% filter(q==10), x = accuracy, y = ospan_split,
+            type = "nonparametric") + 
+  labs(title = "Q10 [easy tri] | Performance does not differ by ospan split")
+
+ggbetweenstats( data = df_i %>% filter(q==10), y = rt_s, x = ospan_split,
+            type = "parametric") + 
+  labs(title = "Q10 [easy tri] | RT does not differ by ospan split")
+
+ggbarstats( data = df_i %>% filter(q==5), x = state, y = ospan_split, type = "nonparametric") + 
+  labs(title = "Q5 [high orth] |INTERPRETATION does not differ by ospan split")
+
 
 ```
 
