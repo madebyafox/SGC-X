@@ -323,7 +323,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../analysis/SGC4C/4_sgc4C_hypotesting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">SGC4C Hypothesis Testing</span></a>
+  <a href="../../analysis/SGC4C/4_sgc4C_hypotesting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Hypothesis Testing</span></a>
   </div>
 </li>
     </ul>
@@ -344,6 +344,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../analysis/SGC4D/2_sgc4D_scoring.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Response Scoring</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis/SGC4D/4_sgc4D_hypotesting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Hypothesis Testing</span></a>
   </div>
 </li>
     </ul>
@@ -455,7 +460,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li>TODO: generate heat maps of Q9. Same answer but very different optimal operation paths!</li>
 </ul>
-<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<p><em>The purpose of this notebook is to score (assign a measure of accuracy) to response data for the SGC3B study. This is required because the question type on the graph comprehension task used a ‘Multiple Response’ (MR) question design. Here, we evaluate different approaches to scoring multiple response questions, and transform raw item responses (e.g.&nbsp;boxes ABC are checked) to a measure of response accuracy. (Warning: this notebook takes several minutes to execute.)</em> To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
 <div class="cell">
 <details>
 <summary>CODE</summary>
@@ -473,7 +478,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <section id="score-sgc-data" class="level2">
 <h2 class="anchored" data-anchor-id="score-sgc-data">SCORE SGC DATA</h2>
-<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="../utils/scoring.html">Section&nbsp;<span>3</span></a>.</p>
+<p>To review the strategy behind Multiple Response scoring for the SGC project, refer to section <a href="#sec-scoring">Section&nbsp;<span class="quarto-unresolved-ref">sec-scoring</span></a>.</p>
 <p>In SGC we are fundamentally interested in understanding how a participant interprets the presented graph (stimulus). The <strong>graph comprehension task</strong> asks them to select the data points in the graph that meet the criteria posed in the question. To assess a participant’s performance, for each question (q=15) we will calculate the following scores:</p>
 <p><em>An overall, strict score:</em><br>
 1. <strong>Absolute Score</strong> : using dichotomous scoring referencing true (Triangular) answer. (see 1.2)</p>
@@ -923,9 +928,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a>  <span class="at">score_niceABS =</span> <span class="dv">1</span></span>
 <span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a><span class="do">##  Q==7 AX, MO Derives as TRI RECODE as other</span></span>
+<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a><span class="do">##  Q==7 Derives as TRI RECODE as other</span></span>
 <span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> temp <span class="sc">%&gt;%</span> <span class="fu">mutate_when</span>(</span>
-<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>  (q<span class="sc">==</span><span class="dv">7</span> <span class="sc">&amp;</span> response <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"MO"</span>,<span class="st">"AX"</span>,<span class="st">"FJOX"</span>)) ,</span>
+<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>  (q<span class="sc">==</span><span class="dv">7</span> <span class="sc">&amp;</span> response <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"MO"</span>,<span class="st">"AX"</span>,<span class="st">"FJOX"</span>,<span class="st">"IO"</span>)) ,</span>
 <span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a>  <span class="at">int2 =</span> <span class="st">"?"</span>, <span class="co">#override from Tversky</span></span>
 <span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a>  <span class="at">interpretation =</span> <span class="st">"?"</span>, <span class="co">#override from Tversky</span></span>
 <span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a>  <span class="at">high_interpretation =</span> <span class="st">"neg.trans"</span>, <span class="co">#override from pos.trans</span></span>
@@ -1699,7 +1704,7 @@ another color `palette` (and/or `package`).</code></pre>
 
 </div>
 </div>
-<p>Here we summarize the distinct response options given by participants on this item. Each letter in <code>response</code> indicates a checkbox selected by the participant (See <a href="../SGC4D/2_sgc4D_scoring.html#fig-Q1-111">Figure&nbsp;<span>20.1</span></a> ). <code>n</code> indicates the number of participants who gave this response, while <code>interpretation</code> indicates the <em>graph interpretation</em> most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response. NA indicates that there is no score calculated (occurs when there is no subset of response options that accord with that interpretation for this question).</p>
+<p>Here we summarize the distinct response options given by participants on this item. Each letter in <code>response</code> indicates a checkbox selected by the participant (See <a href="#fig-Q1-111">Figure&nbsp;<span class="quarto-unresolved-ref">fig-Q1-111</span></a> ). <code>n</code> indicates the number of participants who gave this response, while <code>interpretation</code> indicates the <em>graph interpretation</em> most consistent with that response. At the right of this table are the Absolute, followed by Partial Credit subscores for each response. NA indicates that there is no score calculated (occurs when there is no subset of response options that accord with that interpretation for this question).</p>
 <p>Notice that for this Question, the <em>Triangular</em> answer is the same as the <em>Tversky [start diagonal]</em> answer. In fact, for most questions, one of the Tversky sub-types will match the correct response.</p>
 <div class="cell">
 <details>
@@ -10090,9 +10095,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb134-509"><a href="#cb134-509" aria-hidden="true" tabindex="-1"></a>  <span class="at">score_niceABS =</span> <span class="dv">1</span></span>
 <span id="cb134-510"><a href="#cb134-510" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb134-511"><a href="#cb134-511" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb134-512"><a href="#cb134-512" aria-hidden="true" tabindex="-1"></a><span class="do">##  Q==7 AX, MO Derives as TRI RECODE as other</span></span>
+<span id="cb134-512"><a href="#cb134-512" aria-hidden="true" tabindex="-1"></a><span class="do">##  Q==7 Derives as TRI RECODE as other</span></span>
 <span id="cb134-513"><a href="#cb134-513" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> temp <span class="sc">%&gt;%</span> <span class="fu">mutate_when</span>(</span>
-<span id="cb134-514"><a href="#cb134-514" aria-hidden="true" tabindex="-1"></a>  (q<span class="sc">==</span><span class="dv">7</span> <span class="sc">&amp;</span> response <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"MO"</span>,<span class="st">"AX"</span>,<span class="st">"FJOX"</span>)) ,</span>
+<span id="cb134-514"><a href="#cb134-514" aria-hidden="true" tabindex="-1"></a>  (q<span class="sc">==</span><span class="dv">7</span> <span class="sc">&amp;</span> response <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"MO"</span>,<span class="st">"AX"</span>,<span class="st">"FJOX"</span>,<span class="st">"IO"</span>)) ,</span>
 <span id="cb134-515"><a href="#cb134-515" aria-hidden="true" tabindex="-1"></a>  <span class="at">int2 =</span> <span class="st">"?"</span>, <span class="co">#override from Tversky</span></span>
 <span id="cb134-516"><a href="#cb134-516" aria-hidden="true" tabindex="-1"></a>  <span class="at">interpretation =</span> <span class="st">"?"</span>, <span class="co">#override from Tversky</span></span>
 <span id="cb134-517"><a href="#cb134-517" aria-hidden="true" tabindex="-1"></a>  <span class="at">high_interpretation =</span> <span class="st">"neg.trans"</span>, <span class="co">#override from pos.trans</span></span>
