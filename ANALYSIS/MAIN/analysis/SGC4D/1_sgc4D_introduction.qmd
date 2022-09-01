@@ -6,7 +6,7 @@ subtitle: 'Study SGC4D | 1 Introduction'
 
 # Introduction {#sec-SGC4D-introduction}
 
-**In Study 4D we explore the extent to which the SHAPE and SCALE of the graphical framework of triangle of the graph influence how a reader interprets its underlying coordinate system.**
+**In Study 4D we explore the extent to which the SHAPE and SCALE of the graphical framework of the triangular interval graph influence how a reader interprets its underlying coordinate system.**
 
 +---------------------------------------+---------------------------------------------------------------------------------------------------------+
 | ![](/analysis/utils/img/111.png)      | **Orthogonal-Isosceles**\                                                                               |
@@ -56,6 +56,8 @@ df_subjects <- read_rds('analysis/SGC4D/data/1-study-level/sgc4d_participants.rd
 ```
 
 **NOTE** far more triangular isosceles records were collected. We will randomly sample from them in order to level the cells. 
+
+
 ```{r}
 #| label : INSPECT-DATA-COLLECTION
 
@@ -128,7 +130,7 @@ First we import participant-level data, selecting only the columns relevant for 
 
 *Note that we discard some columns representing scores calculated in the stimulus engine. These scores were calculated differently across collection periods, and so we discard them and recalculate scores in the next analysis notebook. No raw data (responses and response times) are discarded, only algorithmically-derived scores for the responses.*
 
-**NOTE: Data for the isocelese traingular conditions were originally run under the study code SGC4A, under a different naming scheme.**
+**NOTE: Data collected for equilateral conditions are joined with data collected for SGC3A (orth-isosceles, non-impasse) and triangular-isosceles collected under the study code SGC4A (study naming scheme was subsequently changed).**
 
 ```{r}
 #| label: IMPORT-SUBJECTS
@@ -291,7 +293,7 @@ var_label(df_subjects$schoolyear) <- "What is your year in school?"
 
 #REFACTOR CONDITIONS
 df_subjects <- df_subjects %>% mutate(
-     pretty_condition = recode_factor(condition,
+  pretty_condition = recode_factor(condition,
                                    "111" = "Orth-Isosceles",
                                    "113" = "Tri-Isosceles",
                                    "11111112" = "Orth-Equilateral",
@@ -543,12 +545,4 @@ write.csv(df_freeresponse,"analysis/SGC4D/data/1-study-level/sgc4d_freeresponse.
 rio::export(df_subjects, "analysis/SGC4D/data/1-study-level/sgc4d_participants.rds") # to R data structure file
 rio::export(df_items, "analysis/SGC4D/data/1-study-level/sgc4d_items.rds") # to R data structure file
 
-```
-
-## RESOURCES
-
-```{r}
-#| label: SESSION
-
-sessionInfo()
 ```
