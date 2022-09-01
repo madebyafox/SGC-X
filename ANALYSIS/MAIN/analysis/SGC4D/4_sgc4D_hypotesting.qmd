@@ -1,5 +1,5 @@
 ---
-subtitle: 'Study SGC4C | Hypothesis Testing'
+subtitle: 'Study SGC4D | Hypothesis Testing'
 # YAML FOR generating modelsummary tables
 # uncomment to run those  cells only 
 # \usepackage{booktabs}
@@ -9,9 +9,9 @@ subtitle: 'Study SGC4C | Hypothesis Testing'
 
 \newpage
 
-# Hypothesis Testing {#sec-SGC4C-hypotesting}
+# Hypothesis Testing {#sec-SGC4D-hypotesting}
 
-*The purpose of this notebook is test the hypotheses that determined the design of the SGC4C study.*
+*The purpose of this notebook is test the hypotheses that determined the design of the SGC4D study.*
 
 ```{r}
 #| label: SETUP
@@ -103,7 +103,7 @@ set.seed(12345)
 
 ```
 
-In SGC4C we set out to answer the following question: Does ROTATING the TM graph improve performance on the interval graph comprehension task? We test this hypothesis on both the orthogonal and triangular axes versions of the graph. 
+In SGC4D we set out to answer the following question: Does altering the SHAPE (from square/orthogonal to triangular) or SCALE (from isosceles to equilateral) improve performance on the interval graph comprehension task? 
 
 ```{r}
 #| label: IMPORT-DATA
@@ -112,16 +112,38 @@ In SGC4C we set out to answer the following question: Does ROTATING the TM graph
 
 #IMPORT DATA 
 
-df_subjects <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.rds') %>% mutate(
-  task_percent = DV_percent_NABS
-)
+df_all <- read_rds('analysis/SGC4D/data/2-scored-data/sgc4d_scored_participants.rds') %>% mutate(
+  task_percent = DV_percent_NABS,
+  SHAPE = recode_factor(condition, 
+            "111"="ORTH",
+            "113"="TRI",
+            "11111112" = "ORTH",
+            "11311112" = "TRI"
+            ),
+    SCALE = recode_factor(condition,
+            "111"="isosceles",
+            "113"="isosceles",
+            "11111112" = "equilateral",
+            "11311112" = "equilateral"
+            ))
 
-
-df_items <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds') %>% 
+df_all_items <- read_rds('analysis/SGC4D/data/2-scored-data/sgc4d_scored_items.rds') %>% 
    mutate (
     q = as.factor(q), 
     subject = as.factor(subject),
     accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+    SHAPE = recode_factor(condition, 
+            "111"="ORTH",
+            "113"="TRI",
+            "11111112" = "ORTH",
+            "11311112" = "TRI"
+            ),
+    SCALE = recode_factor(condition,
+            "111"="isosceles",
+            "113"="isosceles",
+            "11111112" = "equilateral",
+            "11311112" = "equilateral"
+            ),
     # CODES TVERSKY AS TRI-LIKE
     # state = recode_factor(score_SCALED, #for ordinal
     #                      "-1" = "orth-like",
@@ -138,6 +160,17 @@ df_items <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds')
                          "1" = "triangular"),
     state = as.ordered(state))
 
+
+##BECAUSE we have so many more 113 condition subjects, randomly sample 60 of them
+set.seed(1882)
+trisoc <- df_all %>% filter(condition == 113 ) %>% sample_n(60)
+other <- df_all %>% filter(condition != 113)
+df_subjects <- rbind(trisoc, other)
+favstats(s_NABS ~ pretty_condition, data = df_subjects)
+
+df_items <- df_all_items %>% filter(subject %in% df_subjects$subject)
+
+
 #validations
 nrow(df_items)/15 == nrow(df_subjects)
 unique(df_items$subject %in% df_subjects$subject)
@@ -148,7 +181,7 @@ unique(df_items$subject %in% df_subjects$subject)
 
 ### Data Collection
 
-Data was collected (online, via PROLIFIC) in Summer 2022. Data from the rotation (45, 90) conditions were joined with previously collected (online) data for for non-rotation conditions.
+Data was collected (online, via PROLIFIC) in Summer 2022. Data from equilateral conditions were joined with previously collected (online) data for for isosceles conditions.
 
 ```{r}
 #| label : DESC-DATA-COLLECTION
@@ -189,12 +222,14 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
 ```{r}
 #| label: SETUP-ACC
 
+df_s <- df_subjects %>%
+  dplyr::select(pretty_condition, task_percent, SHAPE, SCALE)
+
 df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
-  dplyr::select(pretty_condition, accuracy, subject, q, SHAPE, ROTATION )
+  dplyr::select(pretty_condition, accuracy, subject, q, SHAPE, SCALE )
 
-df_s <- df_subjects %>% 
-  dplyr::select(pretty_condition, task_percent, SHAPE, ROTATION)
-
+#validate
+nrow(df_i) /nrow(df_s) ==13
 ```
 
 #### Visualize
@@ -203,6 +238,7 @@ df_s <- df_subjects %>%
 
 ```{r}
 
+
 #:::::::: STACKED BAR CHART BY QUESTION
 df_i %>% 
   ggplot(data = .,
@@ -210,7 +246,7 @@ df_i %>%
                        fill = accuracy)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_brewer(palette = "Set1")  +
-  facet_wrap( q ~ SHAPE) +
+  facet_wrap( ~ q ) +
    labs(title = "Accuracy by Question",
        x = "Condition",
        fill = "",
@@ -219,7 +255,7 @@ df_i %>%
 #:::::::: FACETED HISTOGRAM
 gf_props(~task_percent,
          fill = ~pretty_condition, data = df_s) %>%
-  gf_facet_grid(SHAPE ~ ROTATION) +
+  gf_facet_grid(SHAPE ~ SCALE) +
   labs(x = "% Correct",
        y = "proportion of subjects",
        title = "Overall Absolute Score (% Correct)",
@@ -234,7 +270,7 @@ gf_props(~task_percent,
 #| message : false
 
 p <- grouped_ggbetweenstats(data = df_s,
-                       y = task_percent, x = SHAPE, grouping.var = ROTATION,
+                       y = task_percent, x = SHAPE, grouping.var = SCALE,
                plot.type = "box", type = "nonparametric", var.equal = FALSE,
                centrality.type = "parametric",
                results.subtitle = FALSE,
@@ -254,15 +290,13 @@ p1 <- p[[1]] + coord_flip() + theme_clean() +
    ggeasy::easy_remove_legend()
 
 p2 <- p[[2]] + coord_flip() + theme_clean() +
-   ggeasy::easy_remove_legend()
-
-p3 <- p[[3]] + coord_flip() + 
+  ggeasy::easy_remove_legend() + 
   labs(
-       subtitle = "Across both Graph Shapes, Partial Rotation improves performance") + 
+       subtitle = "TODO") + 
   theme_clean() + ggeasy::easy_remove_axes(which = "x") + ggeasy::easy_remove_legend()
 
 
-pg <- plot_grid(p3, p2, p1, ncol=1)
+pg <- plot_grid(p2, p1, ncol=1)
 pg
 
 ```
@@ -278,13 +312,13 @@ df_i %>%
   geom_bar(position = "fill", width = 0.75 ) + #,color = "black") +
   scale_fill_foxy(discrete = TRUE, "accuracy")  +
   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
-  facet_wrap(~ROTATION)+
+  facet_wrap(~SCALE)+
   theme(legend.position="bottom")+
    labs(title = "DISTRIBUTION | Question Accuracy",
        x = "Condition",
        y = "Proportion of Questions",
        fill = "",
-       subtitle="Across both Graph Shapes, Partial Rotation improves performance")
+       subtitle="")
 
 
 #:::::::: LABELLED 
@@ -343,7 +377,7 @@ df_i %>%
 # ) + theme_clean()
 #   
 # pg
-# ggsave(pg, filename = "figures/SGC4C_OSPAN_Accuracy.png", width = 6, height =4)
+# ggsave(pg, filename = "figures/SGC4D_OSPAN_Accuracy.png", width = 6, height =4)
 
 ```
 
@@ -365,11 +399,9 @@ tbl2 %>% kbl (caption = title) %>% kable_classic()
 
 **TODO**
 
-Across both conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. 
+Across both conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. We see that the distribution of this outcome variable is clearly bimodal: with modes near the floor (0% correct) and ceiling (100% correct) of the scale. This bimodality is sensical considering the nature of the task, where each item in the task indexes a different information extraction operation over the same coordinate system.
 
-
-Task level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 4C: the distribution is bimodal. Total scores were higher in the impasse condition (M = 35%, SD = 41%, n = 65) than control condition (M = 15%, SD = 30%, n = 68), implying a likely main effect of scaffold condition. Comparing total scores across the median split on the OSPAN task (high working memory (vs) low working memory), we see readers with high working memory (M = 31 %, SD = 41%, n = 66) performed better than readers with low working memory (M = 19 %, SD = 31%, n = 67). In Figure \ref{fig_3C_ospan_raw_accuracy} we see that while readers in the impasse condition performed consistently better than those in the control condition, the effect is particularly pronounced for readers with high-working memory, implying a potential interaction between condition and working memory.
-
+Task level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 4D: the distribution is bimodal. Total scores were higher in the impasse condition (M = 35%, SD = 41%, n = 65) than control condition (M = 15%, SD = 30%, n = 68), implying a likely main effect of scaffold condition. Comparing total scores across the median split on the OSPAN task (high working memory (vs) low working memory), we see readers with high working memory (M = 31 %, SD = 41%, n = 66) performed better than readers with low working memory (M = 19 %, SD = 31%, n = 67). In Figure \ref{fig_3C_ospan_raw_accuracy} we see that while readers in the impasse condition performed consistently better than those in the control condition, the effect is particularly pronounced for readers with high-working memory, implying a potential interaction between condition and working memory.
 
 #### TESTS
 
@@ -380,7 +412,7 @@ Task level accuracy on the graph comprehension task follows the same pattern of 
 ```{r}
 
 library(ARTool)
-m.art = art(task_percent ~ SHAPE*ROTATION, data = df_s)
+m.art = art(task_percent ~ SHAPE*SCALE, data = df_s)
 anova(m.art)
 
 ```
@@ -400,17 +432,15 @@ anova(m.art)
 #| label: TEST-VIZ-ACC
 
 #:::::::: STATSPLOT | VIOLIN
-grouped_ggbetweenstats(y = task_percent, x = SHAPE, grouping.var = ROTATION,  
+grouped_ggbetweenstats(y = task_percent, x = SHAPE, grouping.var = SCALE,  
                data = df_s, type = "nonparametric")
 
-grouped_ggbetweenstats(y = task_percent, x = ROTATION, grouping.var = SHAPE,  
+grouped_ggbetweenstats(y = task_percent, x = SCALE, grouping.var = SHAPE,  
                data = df_s, type = "nonparametric")
 
 ```
 
-
-
-#### MIXED LOGISTIC REGRESSION 
+#### MIXED LOGISTIC REGRESSION
 
 *Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
 
@@ -423,7 +453,7 @@ grouped_ggbetweenstats(y = task_percent, x = ROTATION, grouping.var = SHAPE,
 #confirm 13 items [all discriminating items]
 nrow(df_i) / nrow(df_s) == 13
 #confirm all factors 
-is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy) && is.factor(df_i$ROTATION) && is.factor(df_i$SHAPE)
+is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy) && is.factor(df_i$SCALE) && is.factor(df_i$SHAPE)
 
 
 ## 1 | SETUP RANDOM EFFECTS
@@ -443,40 +473,43 @@ mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
 
 ## 2 | ADD MAIN EFFECTS  SHAPE
 
-print("FIXED Rotation + FIXED Shape + Subject & Item random intercepts")
-mm.R.S.rSQ <- glmer(accuracy ~ ROTATION + SHAPE + (1|subject) + (1|q) ,
+print("FIXED Scale + FIXED Shape + Subject & Item random intercepts")
+mm.R.S.rSQ <- glmer(accuracy ~ SCALE + SHAPE + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 #summary(mm.R.S.rSQ)
-# car::Anova(mm.R.S.rSQ)
+# car::Anova(mm.R.S.rSQ, type = 2)
+# shape term shape significant with directional test (p/2)
 
 paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.R.S.rSQ)) )
 test_lrt(mm.rSQ,mm.R.S.rSQ) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.R.S.rSQ))$p[2])
 #adding shape predictor improves fit
+# predictor model is not a significantly better fit than random only. but we proceed with it
+# for the purpose of quantifying the size of the small effect
 
 ## 3 | ADD INTERACTION TERM,
 
-print("FIXED Rotation * Shape + Subject & Item random intercepts")
-mm.RSrSQ <- glmer(accuracy ~ ROTATION * SHAPE  + (1|subject) + (1|q) ,
+print("FIXED Scale * Shape + Subject & Item random intercepts")
+mm.RSrSQ <- glmer(accuracy ~ SCALE * SHAPE  + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 # summary(mm.RSrSQ)
-# car::Anova(mm.RSrSQ)
-#INTERACTION TERM IS NOT SIGNIFICANT. 
+# car::Anova(mm.RSrSQ, type = 3)
+# adding interaction term makes shape significant
 
 paste("AIC decreases w/ new model", AIC(logLik(mm.R.S.rSQ)) > AIC(logLik(mm.RSrSQ)) )
 test_lrt(mm.R.S.rSQ,mm.RSrSQ) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.R.S.rSQ,mm.RSrSQ))$p[2])
-paste("Likelihood ratio and AIC indicate that adding interaction term is not justified")
+
 
 paste("Model Performance")
 performance(mm.R.S.rSQ)
 ```
 
-**ADD TO DISSERTATION**
+**TOOD**
 
-To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with SHAPE AND ROTATION as  fixed effects A likelihood ratio test indicates that a model including these main effects explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,6) = 105.93, p < 0.001$). We also fit a model including an interaction term between SHAPE and ROTATION, however a likelihood ratio test indicated that adding the interaction term did not improve model fit ($\chi^2 (6,8) = 0.18, p = 0.91$) Therefore we chose the simple main effects model (with random intercepts) as the final model. 
+To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with SHAPE AND SCALE as fixed effects A likelihood ratio test indicates that a model including these main effects explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,6) = 105.93, p < 0.001$). We also fit a model including an interaction term between SHAPE and SCALE, however a likelihood ratio test indicated that adding the interaction term did not improve model fit ($\chi^2 (6,8) = 0.18, p = 0.91$) Therefore we chose the simple main effects model (with random intercepts) as the final model.
 
- The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.80$) and the part related to the fixed effects SHAPE and ROTATION ($marginal \ R^2$) explains 20% of variance.
+The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.80$) and the part related to the fixed effects SHAPE and SCALE ($marginal \ R^2$) explains 20% of variance.
 
 ##### Describe
 
@@ -485,7 +518,7 @@ To explore the effect of working memory capacity on ACCURACY, we fit a mixed eff
 
 # best model
 m <- mm.R.S.rSQ #MAIN EFFECTS MODEL
-m %>% write_rds(file = "analysis/SGC4C/models/sgc4c_glmer_acc_mm.R.S.rSQ.rds")
+m %>% write_rds(file = "analysis/SGC4D/models/sgc4d_glmer_acc_mm.R.S.rSQ.rds")
 
 #::::::::: PRINT MODEL 
 
@@ -529,7 +562,7 @@ paste("PROBABILITIES")
     
   
 #FROM merTools
-newdata <- df_i %>% dplyr::select(ROTATION, SHAPE, subject, q)
+newdata <- df_i %>% dplyr::select(SCALE, SHAPE, subject, q)
 #make predictions
 preds <- predictInterval(m, newdata = newdata,
                               which = "fixed", #full, fixed or random for those only
@@ -541,8 +574,8 @@ preds <- predictInterval(m, newdata = newdata,
 preds <- cbind(newdata, preds)
 #summarize
 (summ_preds <- preds %>% 
-  dplyr::select(ROTATION, SHAPE, fit, lwr, upr) %>% 
-  group_by(ROTATION, SHAPE) %>% 
+  dplyr::select(SCALE, SHAPE, fit, lwr, upr) %>% 
+  group_by(SCALE, SHAPE) %>% 
   summarise(
     median = median(fit),
     lower = median(lwr),
@@ -550,22 +583,19 @@ preds <- cbind(newdata, preds)
   )) 
 
 
-
-
 ```
 
 ##### INFERENCE
 
-**ADD TO DISSERTATION**
+**TODO**
 
-Although Wald Chi-Square tests revealed significant main effects of both SHAPE ($\chi^2 (1) = 10.8, p < 0.001$) and ROTATION ($\chi^2 (1) = 94.9, p < 0.001$). 
+Although Wald Chi-Square tests revealed significant main effects of both SHAPE ($\chi^2 (1) = 10.8, p < 0.001$) and SCALE ($\chi^2 (1) = 94.9, p < 0.001$).
 
-The model predicts that, for ORTHOGONAL shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 1% to 47%. Further rotating the graph to 90 degrees however, results in a probability of only 3%.  Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 , p = 0.24)
+The model predicts that, for ORTHOGONAL shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 1% to 47%. Further rotating the graph to 90 degrees however, results in a probability of only 3%. Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 , p = 0.24)
 
 The model predicts that, for TRIANGULAR shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 5% to 74%. Further rotating the graph to 90 degrees however, results in a probability of only 9%. Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 = 0.25).
 
-Across both graph shapes, rotating the graph from 0 to 90 degrees results in a minor improvement in accuracy, while rotating the graph halfway between results in a substantial improvement in accuracy. Posthoc comparisons also reveal that across all levels of rotation, the triangular shape was significantly better than the orthogonal shape. 
-
+Across both graph shapes, rotating the graph from 0 to 90 degrees results in a minor improvement in accuracy, while rotating the graph halfway between results in a substantial improvement in accuracy. Posthoc comparisons also reveal that across all levels of rotation, the triangular shape was significantly better than the orthogonal shape.
 
 ##### Marginal Effects
 
@@ -582,17 +612,17 @@ ref_grid(m)
 
 #PRINT ESTIMATED MARGINAL MEANS
 #should be same as summ_preds
-emmeans(m,  ~ ROTATION + SHAPE, type = "response")
+emmeans(m,  ~ SCALE * SHAPE, type = "response")
 
 ##POST-HOC COMPARISONS
 print("POSTHOC COMPARISONS")
-emmeans(m,  pairwise ~ ROTATION + SHAPE, 
+emmeans(m,  pairwise ~ SCALE * SHAPE, 
         type = "response" , adjust = "none") #sidak, tukey
 
 
 ##PLOT INTERACTION
 #equivalent to plot_model, type = "int"
-# emmip(m, SHAPE * ROTATION ,
+# emmip(m, SHAPE * SCALE ,
 #       type = "response",
 #       CIs = TRUE,
 #       linearg = list(linetype = "dashed"),
@@ -603,7 +633,6 @@ emmeans(m,  pairwise ~ ROTATION + SHAPE,
 plot(ref_grid(m), by = "SHAPE", type = "response")
 
 ```
-
 
 ##### TODO Print
 
@@ -616,7 +645,7 @@ plot(ref_grid(m), by = "SHAPE", type = "response")
 # #MODEL SUMMARY | save latex table
 
 # models <- list("odds ratios" = m, "(log odds)" = m)
-# title = "Study 4C | Question Accuracy | Mixed Logistic Regression"
+# title = "Study 4D | Question Accuracy | Mixed Logistic Regression"
 # notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
 #              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
 #                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
@@ -679,8 +708,8 @@ plot(result)
 #            axis.title = c("Condition","Probability of Accurate Response"))
 
 #PLOT MODEL PREDICTION
-plot_model(m, type = "pred", terms = c("SHAPE", "ROTATION"))  
-plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))  
+plot_model(m, type = "pred", terms = c("SHAPE", "SCALE"))  
+plot_model(m, type = "eff",  terms = c("SHAPE", "SCALE"))  
   # ylim(0,1) + 
   # labs(
   #   title = "Model Prediction | Probability of Accurate Response",
@@ -690,7 +719,7 @@ plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))
 
 #GGDIST | MODEL | PREDICTED PROBABILITIES
 # preds %>% 
-#   ggplot(aes( x = fit, y = ROTATION, fill = SHAPE)) + 
+#   ggplot(aes( x = fit, y = SCALE, fill = SHAPE)) + 
 #   stat_halfeye(alpha = 0.5, normalize = "panels") + 
 #   xlim(0,0.3) + theme_clean() + labs(
 #     title = "Model PREDICTION | Probability of Accurate Response",
@@ -702,7 +731,7 @@ plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
+ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
   plot(connect.lines = TRUE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -710,7 +739,7 @@ ggpredict(m, terms = c("ROTATION","SHAPE")) %>%
   # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 2)) + 
   theme_clean() + labs(
   title = "MODEL | Predicted probability of correct response",
-  x = "ROTATION"
+  x = "SCALE"
 ) + theme(legend.position="bottom")
 
 ```
@@ -748,7 +777,7 @@ check_model(m)
 ```{r}
 #| label: SETUP-STATE
 
-df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition, ROTATION, SHAPE) %>% droplevels()
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition, SCALE, SHAPE) %>% droplevels()
 
 ```
 
@@ -761,7 +790,7 @@ df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pre
 #:::::::: STACKED BAR CHART
 df_i %>% 
   ggplot(data = .,
-         mapping = aes(x = ROTATION,
+         mapping = aes(x = SCALE,
                        fill = state)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))+
@@ -775,7 +804,7 @@ df_i %>%
 #:::::::: STACKED BAR CHART BY QUESTION
 df_i %>% 
   ggplot(data = .,
-         mapping = aes(x = ROTATION,
+         mapping = aes(x = SCALE,
                        fill = state)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))+
@@ -794,7 +823,7 @@ df_i %>%
 
 df_i %>% 
   ggplot(data = .,
-         mapping = aes(x = ROTATION,
+         mapping = aes(x = SCALE,
                        fill = state)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_foxy(discrete = TRUE, "state")  +
@@ -831,7 +860,7 @@ df_i %>%
 #          subtitle = "Impasse condition yields more correct responses")
 # 
 # p
-# # ggsave(p, filename = "figures/SGC4C_LAB_Accuracy.png", width = 6, height =4)
+# # ggsave(p, filename = "figures/SGC4D_LAB_Accuracy.png", width = 6, height =4)
 
 
 #:::::::: LABELLED 
@@ -897,7 +926,7 @@ df_i %>%
 # pg
 
 
-# ggsave(pg, filename = "figures/SGC4C_OSPAN_Accuracy.png", width = 6, height =4)
+# ggsave(pg, filename = "figures/SGC4D_OSPAN_Accuracy.png", width = 6, height =4)
 
 
 ```
@@ -913,7 +942,7 @@ table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for 
       addmargins(1) #sanity check sum of columns
 
 
-(t <- table(df_i$state, df_i$ROTATION, df_i$SHAPE) %>% addmargins(2) %>% #display sum for row
+(t <- table(df_i$state, df_i$SCALE, df_i$SHAPE) %>% addmargins(2) %>% #display sum for row
       addmargins(1)) #sanity check sum of columns
 
 ```
@@ -934,15 +963,15 @@ table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for 
 ## in order to get class and dpar names 
 
 # FLAT MODEL
-# flat <- brm( state ~ ROTATION+SHAPE + (1|subject) + (1|q),
+# flat <- brm( state ~ SCALE + SHAPE + (1|subject) + (1|q),
 #                  data = df_i,
 #                  family = "categorical",
 #                  chains = 4, iter = 2000, warmup = 1000,
 #                  cores = 4, seed = 1234,
 #                  save_pars = save_pars(all = TRUE),
-# control = list(adapt_delta = 0.98),  # to deal with divergent transitions
+#                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
 #                  backend = "cmdstanr")
-                 
+#                  
 # prior_summary(flat)
 
 inf_priors_maineffects <- c(
@@ -953,14 +982,10 @@ inf_priors_maineffects <- c(
   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "mutriangular"),
   #prior on COEFFICIENT
   #likely to change odds between 0 and 2.4
-  #coefficient level rotation 45
-  prior(normal(0, 2.42), class = b, coef="ROTATION45", dpar = "muangular"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION45", dpar = "muother"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION45", dpar = "mutriangular"),
-  # coefficient level rotation 90
-  prior(normal(0, 2.42), class = b, coef="ROTATION90", dpar = "muangular"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION90", dpar = "muother"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION90", dpar = "mutriangular"),
+  # coefficient level scale equilateral 
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral", dpar = "muangular"),
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral", dpar = "muother"),
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral", dpar = "mutriangular"),
   #coeficient level shape tri
   prior(normal(0, 2.42), class = b, coef="SHAPETRI", dpar = "muangular"),
   prior(normal(0, 2.42), class = b, coef="SHAPETRI", dpar = "muother"),
@@ -975,29 +1000,19 @@ inf_priors_ixn <- c(
   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muother"),
   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "mutriangular"),
   #prior on CONDITION COEFFICIENT
-   #coefficient level rotation 45
-  prior(normal(0, 2.42), class = b, coef="ROTATION45", dpar = "muangular"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION45", dpar = "muother"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION45", dpar = "mutriangular"),
-  # coefficient level rotation 90
-  prior(normal(0, 2.42), class = b, coef="ROTATION90", dpar = "muangular"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION90", dpar = "muother"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION90", dpar = "mutriangular"),
+   # coefficient level scale equilateral 
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral", dpar = "muangular"),
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral", dpar = "muother"),
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral", dpar = "mutriangular"),
   #coeficient level shape tri
   prior(normal(0, 2.42), class = b, coef="SHAPETRI", dpar = "muangular"),
   prior(normal(0, 2.42), class = b, coef="SHAPETRI", dpar = "muother"),
   prior(normal(0, 2.42), class = b, coef="SHAPETRI", dpar = "mutriangular"),
   #prior on IXN COEFFICIENT
   #likely to change odds between 0 and 2.4
-  prior(normal(0, 2.42), class = b, coef="ROTATION45:SHAPETRI", dpar = "muangular"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION45:SHAPETRI", dpar = "muother"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION45:SHAPETRI", dpar = "mutriangular"),
-  
-  #prior on IXN COEFFICIENT
-  #likely to change odds between 0 and 2.4
-  prior(normal(0, 2.42), class = b, coef="ROTATION90:SHAPETRI", dpar = "muangular"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION90:SHAPETRI", dpar = "muother"),
-  prior(normal(0, 2.42), class = b, coef="ROTATION90:SHAPETRI", dpar = "mutriangular")
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral:SHAPETRI", dpar = "muangular"),
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral:SHAPETRI", dpar = "muother"),
+  prior(normal(0, 2.42), class = b, coef="SCALEequilateral:SHAPETRI", dpar = "mutriangular")
 )
 
 
@@ -1008,12 +1023,12 @@ Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q),
                  chains = 4, iter = 2500, warmup = 1000,
                  cores = 4, seed = 1234,
                  save_pars = save_pars(all = TRUE),
-                 # backend = "cmdstanr",
-                 file ="analysis/SGC4C/models/sgc4c_brms_state_Bmm.cat.rSQ.rds")
+                 backend = "cmdstanr",
+                 file ="analysis/SGC4D/models/sgc4d_brms_state_Bmm.cat.rSQ.rds")
 
 
 # MAIN EFFECTSONLY MODEL
-Bmm.cat.R.SrSQ <- brm( state ~ ROTATION + SHAPE + (1|subject) + (1|q), 
+Bmm.cat.R.SrSQ <- brm( state ~ SCALE + SHAPE + (1|subject) + (1|q), 
                  data = df_i, 
                  prior = inf_priors_maineffects,
                  family = "categorical",
@@ -1022,17 +1037,17 @@ Bmm.cat.R.SrSQ <- brm( state ~ ROTATION + SHAPE + (1|subject) + (1|q),
                  save_pars = save_pars(all = TRUE),
                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
                  backend = "cmdstanr",
-                 file ="analysis/SGC4C/models/sgc4c_brms_state_Bmm.cat.R.S.rSQ.rds")
+                 file ="analysis/SGC4D/models/sgc4d_brms_state_Bmm.cat.R.SrSQ.rds")
 
 
 ##MODEL COMPARISON
 # print("MODEL COMPARISON: random effects (vs) CONDITION")
-(bf1 <-  bayesfactor(Bmm.cat.rSQ, Bmm.cat.R.SrSQ))
+(bf1 <-  bayesfactor(Bmm.cat.R.SrSQ,Bmm.cat.rSQ))
 #substantial evidence in favor of conditon model over random only BF 1.64e+16
 
 
 # # INTERACTION MODEL
-Bmm.cat.RSrSQ <- brm( state ~ ROTATION*SHAPE + (1|subject) + (1|q),
+Bmm.cat.RSrSQ <- brm( state ~ SCALE*SHAPE + (1|subject) + (1|q),
                  data = df_i,
                  prior = inf_priors_ixn,
                  family = "categorical",
@@ -1040,9 +1055,9 @@ Bmm.cat.RSrSQ <- brm( state ~ ROTATION*SHAPE + (1|subject) + (1|q),
                  cores = 4, seed = 1234,
                  save_pars = save_pars(all = TRUE),
                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
-                 # backend = "cmdstanr",
-                 file ="analysis/SGC4C/models/sgc4c_brms_state_Bmm.cat.RSrSQ.rds")
-# describe_posterior(Bmm.cat.RSrSQ)
+                 backend = "cmdstanr",
+                 file ="analysis/SGC4D/models/sgc4d_brms_state_Bmm.cat.RSrSQ.rds")
+#describe_posterior(Bmm.cat.RSrSQ)
 
 
 ##MODEL COMPARISON
@@ -1056,7 +1071,7 @@ compare_models(Bmm.cat.R.SrSQ, Bmm.cat.RSrSQ)
 
 To quantify the effect of working memory capacity on INTERPRETATION, we fit a (bayesian) mixed multinomial regression model with random intercepts for subjects and questions.
 
-A Bayes Factor model comparison (against a random intercepts only model) indicates extreme evidence for the final model including fixed (main) effects of ROTATION, SHAPE (BF = 1.99e+54). A Bayes Factor model comparison (against a model including an interaction term) indicates extreme evidence in favor of the final model including main effects only (BF = 2.10e-24). 
+A Bayes Factor model comparison (against a random intercepts only model) indicates extreme evidence for the final model including fixed effects of CONDITION, OSPAN and their interaction term (BF = 1.69e+13)
 
 (note, the BF may change as it is estimated via simulation each time)
 
@@ -1065,8 +1080,8 @@ A Bayes Factor model comparison (against a random intercepts only model) indicat
 ```{r}
 #| label: DESC-BRMS-STATE
 
-# best model
-m <- Bmm.cat.R.SrSQ #main effects model
+# best model? can't tell if main effects or interaction
+m <- Bmm.cat.R.SrSQ  #or Bmm.cat.R.SrSQ
 
 #::::::::: PRINT MODEL 
 
@@ -1094,20 +1109,20 @@ paste("ODDS RATIOS")
 paste("PROBABILITIES")
 
 #PREDICT METHOD
-newdata <- df_i %>% dplyr::select(ROTATION, SHAPE, subject, q)
+newdata <- df_i %>% dplyr::select(SCALE, SHAPE, subject, q)
 preds <- predict(m, newdata = newdata, type = "response")
 preds <- cbind(newdata, preds)
 # lengthen data frame to handle multinomial
 preds <- preds %>%
   dplyr::select(-subject, -q) %>% #marginalize over subject and q
   pivot_longer(
-  cols = !ROTATION & !SHAPE,
+  cols = !SCALE & !SHAPE,
   values_to = "preds",
   names_to = "state",
 )
 
 (p <- preds %>%
-  group_by(ROTATION, SHAPE, state ) %>%
+  group_by(SCALE, SHAPE, state ) %>%
   summarise(
     median = median(preds),
     se = sd(preds)/sqrt(n()),
@@ -1123,10 +1138,10 @@ preds <- preds %>%
 #                    # dpar = TRUE,
 #                    # transform = TRUE, #gives prob%, otherwise OR
 #                    re_formula = NA)
-# # draws %>% write_rds(file = "analysis/SGC4C/models/draws/draws_BB.catCrSQ.rds")
+# # draws %>% write_rds(file = "analysis/SGC4D/models/draws/draws_BB.catCrSQ.rds")
 # 
 # #OR load from file
-# # draws <- read_rds(file = "analysis/SGC4C/models/draws/draws_BB.catCrSQ.rds")
+# # draws <- read_rds(file = "analysis/SGC4D/models/draws/draws_BB.catCrSQ.rds")
 # 
 # # SUMMARIZE draws from model
 # (k <- kable(draws %>%
@@ -1138,7 +1153,7 @@ preds <- preds %>%
 
 ```
 
-##### TODO INFERENCE
+##### TODO
 
 ##### Bayes Factor
 
@@ -1181,11 +1196,11 @@ conditional_effects(m, categorical = TRUE)
 
 print("INTERACTION PLOT")
 conditions <- make_conditions(m, vars = c("SHAPE"))
-conditional_effects(m, "ROTATION", conditions = conditions,
+conditional_effects(m, "SCALE", conditions = conditions,
                     categorical = TRUE)
                     
 
-# print("INTERACTION PLOT")
+print("INTERACTION PLOT")
 # plot_model(m, type="int")
 
 ## MARGINAL EFFECTS
@@ -1260,7 +1275,7 @@ conditional_effects(m, "ROTATION", conditions = conditions,
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
+ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
   plot(connect.lines = TRUE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -1346,10 +1361,10 @@ plot(result, show_intercept = FALSE,
 #                    re_formula = NA)
 
 
-# draws %>% write_rds(file = "analysis/SGC4C/models/draws/draws_Bmm.catCOrSQ_OPSAN.rds")
+# draws %>% write_rds(file = "analysis/SGC4D/models/draws/draws_Bmm.catCOrSQ_OPSAN.rds")
 
 #OR load from file
-# draws <- read_rds(file = "analysis/SGC4C/models/draws/draws_Bmm.catCOrSQ_OPSAN.rds")
+# draws <- read_rds(file = "analysis/SGC4D/models/draws/draws_Bmm.catCOrSQ_OPSAN.rds")
 
 #2| VISUALIZE PREDICTIONS | GGDIST
 ##TODO figure out height normalization.
@@ -1370,7 +1385,7 @@ plot(result, show_intercept = FALSE,
 #   ) +  theme_clean() #+ ggeasy::easy_remove_legend() + ggeasy::easy_remove_y_axis()
 # # #TO PLOT ON THE SAME LINE, INCLUDE Y = 0 in aes and ggeasy::remove_y_axis()
 # # 
-# # ggsave(d, filename = "figures/sgc4c_BBm.cat.CrSQ_lab_posterior.svg", width = 6, height =4)
+# # ggsave(d, filename = "figures/sgc4d_BBm.cat.CrSQ_lab_posterior.svg", width = 6, height =4)
 d
 ```
 
@@ -1387,14 +1402,14 @@ draws <- posteriordraws(pred)
 ##PLOT ANGULAR
 ggplot(draws %>% sample_n(1000), aes(x = draw, fill = group)) +
     geom_density(alpha = 0.8, color = "white", trim = TRUE) +
-    facet_grid(SHAPE ~ ROTATION) +
+    facet_grid(SHAPE ~ SCALE) +
     labs(x = "Predicted probability",
          y = "Density",
          fill = "INTERPRETATION")
 
 
 ## AS DENSITY RIDGES
-ggplot(draws %>% sample(100000), aes(x = draw, y = ROTATION, fill = SHAPE)) +
+ggplot(draws %>% sample(100000), aes(x = draw, y = SCALE, fill = SHAPE)) +
     geom_density_ridges(alpha = 0.5, rel_min_height = 0.01) +
     facet_grid(group ~ .) +
     labs(x = "Predicted probability",
@@ -1424,8 +1439,8 @@ plot(m)
 ```{r}
 
 #SETUP
-df_scaled <- read_csv('analysis/SGC4C/data/2-scored-data/sgc4c_scaled_progress.csv')
-df_absolute <- read_csv('analysis/SGC4C/data/2-scored-data/sgc4c_absolute_progress.csv')
+df_scaled <- read_csv('analysis/SGC4D/data/2-scored-data/sgc4d_scaled_progress.csv')
+df_absolute <- read_csv('analysis/SGC4D/data/2-scored-data/sgc4d_absolute_progress.csv')
 
 ```
 
@@ -1435,9 +1450,9 @@ df_absolute <- read_csv('analysis/SGC4C/data/2-scored-data/sgc4c_absolute_progre
 
 #VISUALIZE progress over time SCALED score 
 ggplot(data = df_scaled, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
- geom_line(position=position_jitter(w=0.10, h=0.0), size=0.25) +
+ geom_line(position=position_jitter(w=0.10, h=0.0), size=1) +
  # geom_line( size=1) +
- facet_wrap(SHAPE ~ ROTATION) + 
+ facet_wrap(SCALE ~ SHAPE) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  # scale_y_continuous(lim=c(-13,13))+
@@ -1448,9 +1463,9 @@ ggplot(data = df_scaled, aes(x = question, y = score, group = subject, alpha = 0
 #VISUALIZE progress over time SCALED score 
 ggplot(data = df_absolute, aes(x = question, y = score, group = subject, alpha = 0.1, color = pretty_condition)) + 
  # geom_line(position=position_jitter(w=0.15, h=0.15), size=0.5) +
- geom_line(position=position_jitter(w=0.15, h=0.15), size=0.25) +
+ geom_line(position=position_jitter(w=0.15, h=0.15), size=1.5) +
  # geom_line( size=1) +
- facet_wrap(SHAPE ~ ROTATION) + 
+ facet_wrap(SCALE ~ SHAPE) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  # scale_y_continuous(lim=c(0,13))+
@@ -1458,15 +1473,3 @@ ggplot(data = df_absolute, aes(x = question, y = score, group = subject, alpha =
 
 ```
 
-
-## EXPLORE specific question (e.g. Q 10)
-
-```{r}
-
-df <- df_items %>% filter(q==10)
-
-grouped_ggbarstats( data = df, x = accuracy, y = SHAPE, grouping.var = ROTATION)
-
-grouped_ggbarstats( data = df, x = state, y = SHAPE, grouping.var = ROTATION)
-
-```
