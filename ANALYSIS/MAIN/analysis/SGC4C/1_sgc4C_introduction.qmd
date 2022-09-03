@@ -4,23 +4,41 @@ subtitle: 'Study SGC4C | 1 Introduction'
 
 \newpage
 
-# WIP TODO Introduction {#sec-SGC4C-introduction}
-
-
-**TODO UPDATE**
+# Introduction {#sec-SGC4C-introduction}
 
 **In Study 4C we explore the extent to which the orientation of the axes in space influence how a reader interprets its underlying coordinate system.**
 
-+-----------------------------------+---------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/111.png)  | **Point**\                                                                                              |
-|                                   | Demo: [111](https://limitless-plains-85018.herokuapp.com/?study=SGC4B&condition=111&session=WEB-DEMO)   |
-+-----------------------------------+---------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/1112.png) | **Arrow**\                                                                                              |
-|                                   | Demo: [1112](https://limitless-plains-85018.herokuapp.com/?study=SGC4B&condition=1112&session=WEB-DEMO) |
-+-----------------------------------+---------------------------------------------------------------------------------------------------------+
-| ![](/analysis/utils/img/1113.png) | **Cross**\                                                                                              |
-|                                   | Demo: [1113](https://limitless-plains-85018.herokuapp.com/?study=SGC4B&condition=1113&session=WEB-DEMO) |
-+-----------------------------------+---------------------------------------------------------------------------------------------------------+
++---------------------------------------+--------------------------------------------------------------------------------------------------------------------------------+
+|                                       | **Orthogonal --- 0 degree**\                                                                                                   |
+|                                       |                                                                                                                                |
+|                                       | **Demo Stimulus: [Q1](https://limitless-plains-85018.herokuapp.com/?q=1&condition=111&session=WEB-DEMO)\                       |
+|                                       | Full Study : condition [111](https://limitless-plains-85018.herokuapp.com/?study=SGC4C&condition=111&session=WEB-DEMO)**       |
++=======================================+================================================================================================================================+
+| ![](/analysis/utils/img/11111221.png) | **Orthogonal --- 45 degree**\                                                                                                  |
+|                                       |                                                                                                                                |
+|                                       | Demo Stimulus: [Q1](https://limitless-plains-85018.herokuapp.com/?q=1&condition=1111221&session=WEB-DEMO)\                     |
+|                                       | Full Study : condition [1111221](https://limitless-plains-85018.herokuapp.com/?study=SGC4C&condition=1111221&session=WEB-DEMO) |
++---------------------------------------+--------------------------------------------------------------------------------------------------------------------------------+
+| ![](/analysis/utils/img/11111331.png) | **Orthogonal --- 90 degree**                                                                                                   |
+|                                       |                                                                                                                                |
+|                                       | Demo Stimulus: [Q1](https://limitless-plains-85018.herokuapp.com/?q=1&condition=1111221&session=WEB-DEMO)\                     |
+|                                       | Full Study : condition [1111331](https://limitless-plains-85018.herokuapp.com/?study=SGC4C&condition=1111331&session=WEB-DEMO) |
++---------------------------------------+--------------------------------------------------------------------------------------------------------------------------------+
+| ![](/analysis/utils/img/113.png)      | **Triangular --- 0 degree**\                                                                                                   |
+|                                       |                                                                                                                                |
+|                                       | Demo Stimulus: [Q1](https://limitless-plains-85018.herokuapp.com/?q=1&condition=113&session=WEB-DEMO)\                         |
+|                                       | Full Study : condition [113](https://limitless-plains-85018.herokuapp.com/?study=SGC4C&condition=113&session=WEB-DEMO)         |
++---------------------------------------+--------------------------------------------------------------------------------------------------------------------------------+
+| ![](/analysis/utils/img/11311221.png) | **Triangular --- 45 degree**                                                                                                   |
+|                                       |                                                                                                                                |
+|                                       | Demo Stimulus: [Q1](https://limitless-plains-85018.herokuapp.com/?q=1&condition=1111221&session=WEB-DEMO)\                     |
+|                                       | Full Study : condition [1131221](https://limitless-plains-85018.herokuapp.com/?study=SGC4C&condition=1131221&session=WEB-DEMO) |
++---------------------------------------+--------------------------------------------------------------------------------------------------------------------------------+
+| ![](/analysis/utils/img/11311331.png) | **Triangular --- 0 degree**                                                                                                    |
+|                                       |                                                                                                                                |
+|                                       | Demo Stimulus: [Q1](https://limitless-plains-85018.herokuapp.com/?q=1&condition=1111221&session=WEB-DEMO)\                     |
+|                                       | Full Study : condition [1131331](https://limitless-plains-85018.herokuapp.com/?study=SGC4C&condition=1131331&session=WEB-DEMO) |
++---------------------------------------+--------------------------------------------------------------------------------------------------------------------------------+
 
 : **SGC4C Study Conditions** {tbl-colwidths="\[40,60\]"}
 
@@ -50,8 +68,10 @@ options(scipen=1, digits=3)
 # mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
 # setwd(mbp)
 
+##PS... THIS cell loads the data file that is actually created by the harmonization at the bottom of the file. 
+#Just put it at the top for quick readability. 
 #IMPORT DATA 
-df_subjects <- read_rds('analysis/SGC4C/data/0-session-level/sgc4c_participants.rds')
+df_subjects <- read_rds('analysis/SGC4C/data/1-study-level/sgc4c_participants.rds')
  
 ```
 
@@ -67,27 +87,12 @@ cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_clas
 ### Hypotheses
 
 **Experimental Hypothesis:**\
-*We hypothesize that the design of the MARK that represents an individual data point can also influence the interpretation of the coordinate system, even though it does not explicitly represent any aspect of the coordinate system, and that is not the function of the mark in the graphical framework. Marks can provide visual cues that direct the reader toward more appropriate interpretations.*
-
--   H1 The ARROW condition should yield significantly better performance
-    -   H1A \| ARROW condition should yield higher total absolute score
-    -   H1B \| ARROW condition should yield higher first question score
-    -   H1C \| ARROW condition should yield lower response times on the first question (both overall, and specifically among participants who answer correctly)
--   H2 \| The CROSS condition should not yield significantly better performance
-    -   H2A \| No difference in overall performance between POINT and CROSS
-    -   H2B \| No difference in first question score between POINT and CROSS
-    -   H2C \| No difference in response latency between POINT and CROSS
 
 ## METHODS
 
 ### Design
 
-We employed a mixed design with 1 between-subjects factor with 3 levels (Mark: POINT, CROSS, ARROW) and 15 items (within-subjects factor).
-
-Independent Variables:
-
--   B-S (Mark Design: Point, Arrow, Cross )
--   W-S (Item x 15)
+We employed a mixed design with 2 between-subjects factors (Shape: ORTHOGONAL, TRIANGULAR), (ROTATION: 0degrees, 45 degrees, 90 degrees) and 15 items (within-subjects factor).
 
 Dependent Variables:
 
@@ -117,7 +122,7 @@ Participants completed the study via a web-browser.
 
 ### Sample
 
-Data were collected by convenience sample of a university subject pool during the winter of 2022. Participants accessed the study via a web browser (asynchronously). The stimulus application required the participant stay in full-screen mode for the entirety of the study.
+Data were collected by convenience sample of a university subject pool during the summer of 2022. Data for conditions 111 and 113 were joined from studies SGC3A online replication and SGC4D, along with rotation conditions collected specifically for SGC4C. Participants accessed the study via a web browser (asynchronously). The stimulus application required the participant stay in full-screen mode for the entirety of the study.
 
 ## ANALYSIS
 
@@ -149,20 +154,21 @@ First we import participant-level data, selecting only the columns relevant for 
 
 #IMPORT PARTICIPANT DATA
 
-# HACK WD FOR LOCAL RUNNING?
-#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(imac)
 
-#import file
 #import rotation participants
 df_rotated <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_participants.rds") #use RDS file as it contains metadata
-#import control participants
-df_control <- read_rds("analysis/SGC3A/data/1-study-level/sgc3a_participants.rds") %>% filter(condition==111) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+
+#import control participants 111 from fall 21  (only online)
+df_control <- read_rds("analysis/SGC3A/data/1-study-level/sgc3a_participants.rds") %>% 
+  filter(condition==111) %>% filter(term == "fall21") %>% 
+ dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
   study = "SGC3A"
 )
-#import triangular particiapants
-df_tri <- read_rds("analysis/SGC4A/data/1-study-level/sgc4a_participants.rds") %>% filter(condition==113) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+
+#import triangular participants 113 (online online)
+df_tri <- read_rds("analysis/SGC4A/data/1-study-level/sgc4a_participants.rds") %>% 
+  filter(condition==113) %>% filter(term=="winter22") %>% 
+  dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
   study = "SGC4D"
 )
 
@@ -202,63 +208,35 @@ df_subjects <- df_subjects %>%
     term = factor(term),
     mode = factor(mode),
     gender = factor(gender),
-    schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other"))
-  )
+    schoolyear = factor(schoolyear, levels=c("First","Second","Third","Fourth","Fifth","Other")),
+    pretty_condition = recode_factor(pretty_condition,
+                                     "control" = "ORTH-0",
+                                     "Tri-Sparse" = "TRI-0",
+                                     
+                                     "ORTH-rotate-45" = "ORTH-45",
+                                     "TRI-rotate-45" =  "TRI-45",
+                                     "ORTH-rotate-90" = "ORTH-90",
+                                     "TRI-rotate-90" = "TRI-90"),
+    ROTATION = recode_factor(pretty_condition, 
+                                     "ORTH-0" = "0",
+                                     "TRI-0" = "0",
+                                     "ORTH-45" = "45",
+                                     "TRI-45" = "45",
+                                     "ORTH-90" = "90",
+                                     "TRI-90" = "90"),
+    SHAPE = recode_factor(pretty_condition, 
+                                   "ORTH-0" = "ORTH",
+                                   "TRI-0" = "TRI",
+                                   "ORTH-45" = "ORTH",
+                                   "TRI-45" = "TRI",
+                                   "ORTH-90" = "ORTH",
+                                   "TRI-90" = "TRI"))
 
 
 # table(df_subjects$condition)
+rm(df_control, df_rotated, df_tri)
 ```
 
-##TEMP
-
-```{r}
-
-
-#import rotation participants
-df_rotated <- read_rds("analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.rds") 
-rotated_items <- read_rds("analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds") %>% mutate(override="") %>% dplyr::select(-answer)
-
-#import control participants
-df_control <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_participants_REP.rds") %>% filter(condition==111) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
-  study = "SGC3A"
-)
-control_items <- read_rds("analysis/SGC3A/data/2-scored-data/sgc3a_scored_items_REP.rds") %>% filter(condition==111) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
-  study = "SGC3A"
-) %>% dplyr::select(-IMPASSE)
-
-#import triangular particiapants
-df_tri <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds") %>% filter(condition==113) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
-  study = "SGC4D"
-)
-tri_items <- read_rds("analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds") %>% filter(condition==113) %>% dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
-  study = "SGC4D"
-) %>% dplyr::select(-IMPASSE)
-
-# janitor::compare_df_cols(rotated_items,control_items, tri_items)
-
-df_all <- rbind(df_rotated, df_control, df_tri) %>% mutate(
-  ROTATION = recode_factor(condition, 
-                                   "111"="none", "113"="none",
-                           "111112" = "45deg", "113112" = "45deg"),
-  SHAPE = recode_factor(condition, 
-                                   "111"="orth", "113"="tri",
-                           "111112" = "orth", "113112" = "tri"),
-)
-df_items <- rbind(rotated_items, control_items, tri_items)  %>% mutate(
-  ROTATION = recode_factor(condition, 
-                                   "111"="none", "113"="none",
-                           "111112" = "45deg", "113112" = "45deg"),
-  SHAPE = recode_factor(condition, 
-                                   "111"="orth", "113"="tri",
-                           "111112" = "orth", "113112" = "tri"),
-)
-
-table(df_all$condition)
-
-
-library(ggstatsplot)
-grouped_ggbetweenstats( data = df_all, y = s_NABS, grouping.var = ROTATION, x = SHAPE)
-```
 
 
 #### Items
@@ -269,17 +247,26 @@ Next we import item-level data from each data collection period, selecting only 
 #| label: IMPORT-ITEMS
 #| message: false
 
-# HACK WD FOR LOCAL RUNNING?
-#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(imac)
-
 #read datafiles
-df_items <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_items.rds") #use RDS file as it contains metadata
+df_rotated <- read_rds("analysis/SGC4C/data/0-session-level/sgc4c_items.rds") #use RDS file as it contains metadata
+
+#import control participants 111 from fall 21  (only online)
+df_control <- read_rds("analysis/SGC3A/data/1-study-level/sgc3a_items.rds") %>% 
+  filter(condition==111) %>% filter(term == "fall21") %>% 
+ dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC3A"
+)
+
+#import triangular participants 113 (online online)
+df_tri <- read_rds("analysis/SGC4A/data/1-study-level/sgc4a_items.rds") %>% 
+  filter(condition==113) %>% filter(term=="winter22") %>% 
+  dplyr::select(-pretty_mode) %>% droplevels() %>% mutate(
+  study = "SGC4D"
+)
 
 #reduce data collected using new webapp
-df_items <- df_items %>% 
-  select(subject, condition, pretty_condition, study, term, mode, question, q, answer, correct, rt_s) %>% #unfactor before combine
+df_rotated <- df_rotated %>% 
+  select(subject, condition, pretty_condition, study, term, mode, q, question, answer, correct, rt_s) %>% #unfactor before combine
   mutate(
     subject = as.character(subject),
     condition = as.character(condition),
@@ -296,8 +283,43 @@ df_items <- df_items %>%
   mutate(
     response = replace_na(response, ""),
     num_o = replace_na(num_o, 0)
-  )
+  ) %>% dplyr::select(-answer)
 
+#JOIN 
+# janitor::compare_df_cols(df_rotated, df_control)
+df_items <- rbind(df_rotated, df_control, df_tri)
+
+#mutate condition names 
+df_items <- df_items %>% mutate(
+    subject = factor(subject),
+    condition = factor(condition),
+    term = factor(term),
+    mode = factor(mode),
+    pretty_condition = recode_factor(pretty_condition,
+                                     "control" = "ORTH-0",
+                                     "Tri-Sparse" = "TRI-0",
+                                     "ORTH-rotate-45" = "ORTH-45",
+                                     "TRI-rotate-45" =  "TRI-45",
+                                     "ORTH-rotate-90" = "ORTH-90",
+                                     "TRI-rotate-90" = "TRI-90"),
+    ROTATION = recode_factor(pretty_condition, 
+                                     "ORTH-0" = "0",
+                                     "TRI-0" = "0",
+                                     "ORTH-45" = "45",
+                                     "TRI-45" = "45",
+                                     "ORTH-90" = "90",
+                                     "TRI-90" = "90"),
+    SHAPE = recode_factor(pretty_condition, 
+                                   "ORTH-0" = "ORTH",
+                                   "TRI-0" = "TRI",
+                                   "ORTH-45" = "ORTH",
+                                   "TRI-45" = "TRI",
+                                   "ORTH-90" = "ORTH",
+                                   "TRI-90" = "TRI"
+))
+
+#cleanup
+rm(df_control, df_rotated, df_tri)
 ```
 
 #### Validation
@@ -306,6 +328,9 @@ Next, we validate that we have the complete number of item-level records based o
 
 ```{r}
 #| label: RECONCILE
+
+#confirm only have items for subjects in subjects
+unique(df_items$subject %in% df_subjects$subject)
 
 #the number of items should be equal to 15 x the number of subjects
 nrow(df_items) == 15* nrow(df_subjects) #TRUE
@@ -322,11 +347,6 @@ Finally, we export the (session-harmonized) data for analysis, as CSVs, and .RDS
 ```{r}
 #| label: EXPORT-FILES
 
-# HACK WD FOR LOCAL RUNNING?
-#imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-# mbp = "/Users/amyfox/Sites/RESEARCH/SGC—Scaffolding Graph Comprehension/SGC-X/ANALYSIS/MAIN"
-#setwd(imac)
-
 #SAVE FILES
 write.csv(df_subjects,"analysis/SGC4C/data/1-study-level/sgc4c_participants.csv", row.names = FALSE)
 write.csv(df_items,"analysis/SGC4C/data/1-study-level/sgc4c_items.csv", row.names = FALSE)
@@ -336,12 +356,4 @@ write.csv(df_items,"analysis/SGC4C/data/1-study-level/sgc4c_items.csv", row.name
 rio::export(df_subjects, "analysis/SGC4C/data/1-study-level/sgc4c_participants.rds") # to R data structure file
 rio::export(df_items, "analysis/SGC4C/data/1-study-level/sgc4c_items.rds") # to R data structure file
 
-```
-
-## RESOURCES
-
-```{r}
-#| label: SESSION
-
-sessionInfo()
 ```
