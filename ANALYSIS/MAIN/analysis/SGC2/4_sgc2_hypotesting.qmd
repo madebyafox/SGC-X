@@ -12,10 +12,17 @@ Q3 looks nondiscriminant perhaps remove this from analysis
 
 *The purpose of this notebook is test the hypotheses that determined the design of the SGC2 study.*
 
-1.  **The Need for Scaffolding:** Learners without scaffolding (control) will perform better with the LM than TM\
-2.  **The Effectiveness of Scaffolding:** Learners with (any form of) scaffolding will perform better with the TM than LM (replication of \[12\]).\
-3.  **Graph-Order as Scaffolding:** Based on observations in Study One we expect that graph-order will act as a scaffold. Learners who solve problems with the LM graph first will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graphs.\
-    <br>
+(The need for scaffolding: )
+ - (H1) Scaffolding will \textit{not} affect performance on the LM graph, because readers already understand its conventional coordinate system. 
+
+ - (H2) Because the TM graph is unconventional, it will require scaffolding. In its absence, readers will perform significantly better with the LM than the TM.
+
+The efficacy of scaffolding: 
+- (H3) Learners with (any form of) scaffolding will perform better with the TM than LM (replication of Qiang et. al)
+
+Order as scaffold 
+
+- (H4) Learners who solve problems with the LM graph _first_ will perform better on the TM (relative to TM-first learners) as their attention will be drawn to the salient differences between the graph types.
     
   
 
@@ -204,9 +211,6 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
 
 ## SHORTCUT
 
-
-
-
 ## H1 \| The Utility of Scaffolding (aka, Linear Graph x Condition)
 
 Does ACCURACY differ between *scaffold conditions* for the *linear graph*? 
@@ -325,11 +329,10 @@ ggplot(df_subjects, aes(x = pretty_condition, y = linear_score,
 #### Describe
 
 ```{r}
-
 favstats (linear_score ~ pretty_condition, data = df_subjects)
 ```
 
-#### Test
+#### Present
 
 
 ```{r}
@@ -346,9 +349,12 @@ g <- ggbetweenstats(
 ) + scale_color_manual(values = paletteer::paletteer_d("awtools::a_palette", 5)) + 
   theme_clean() + theme(legend.position = "none")
 
-ggsave(g, filename = "figures/SGC2_linearscores.png", width = 6, height = 4)
+g
+# ggsave(g, filename = "figures/SGC2_linearscores.png", width = 6, height = 4)
 #ggsave(g, filename = "figures/SGC2_linearscores.svg", width = 6, height = 4)
 ```
+#### Test
+
 
 ```{r}
 
@@ -558,7 +564,9 @@ check_model(m)
 ```
 
 
-## H1 \| The Need for Scaffolding (aka, Linear VS Triangular in CONTROL)
+
+
+## H2 \| The Need for Scaffolding (aka, Linear VS Triangular in CONTROL)
 
 Does ACCURACY differ between *linear* and *triangular* graphs in the control condition?
 
@@ -1068,11 +1076,12 @@ check_model(m)
 
 
 
-## H3 \| The Effectiveness of Scaffolding
+
+## ( Replication Hypothesis )
 
 **Hypothesis** Qiang et. al found that the TM graph was more computationally efficient than the LM graph. We expect that for learners that *do* correctly interpret the graph, they will have lower response times for the TM vs. LM graph.
 
-### !! USE THIS SCORE DIFFERENCE
+### Difference Score
 
 #### Setup
 
@@ -1087,6 +1096,10 @@ df_i <- df_items %>% filter(q %nin% c(3))
 #### Visualize
 
 ```{r}
+
+## Is score difference normally distributed?
+gf_histogram(~df_s$score_diff)
+
 
 # Box plots
 # ++++++++++++++++++++
@@ -1112,7 +1125,16 @@ favstats(score_diff ~ pretty_condition, data = df_s)
 
 ```
 
+To test the hypothesis that any form of scaffolding will replicate the findings of Qiang et. al (significantly better accuracy on TM than LM graph), we calculated a difference score (Triangular Accuracy - Linear Accuracy). Positive values indicate better performance with the TM than LM, with a range from -15 to +15.  In all but interactive image condition, the median difference score were less than 0. In the interactive image condition, the median difference score was 0.5, suggesting that none of the 
 
+#### Test
+
+```{r}
+
+#one sample t-test
+x <- df_s %>% filter(pretty_condition == "img:ixv")
+t_test(x$score_diff)
+```
 
 #### LINEAR REGRESSION [ SCORE diff ~ condition]
 
@@ -1302,6 +1324,7 @@ check_model(m)
 
 
 
+## H3 \| The Effectiveness of Scaffolding
 
 
 ### TRIANGULAR SCORE
@@ -1388,15 +1411,17 @@ mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
 
 paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
 test_lrt(mm.rSQ,mm.CrSQ) 
+#adding condition improves fit
 
-
-# 2 | ADD IXN ORDER
+# 2 | ADD ORDER
 print("FIXED CONDITION + ORDER + Subject & Item random intercepts")
 mm.COrSQ <- glmer(accuracy ~ pretty_condition*order + (1|subject) + (1|q),
                    data = df_i, family = "binomial", 
                    control=glmerControl(optimizer="bobyqa",
                                  optCtrl=list(maxfun=2e5)))
-# car::Anova(mm.COrSQ, type = 3) #main effect condition
+car::Anova(mm.COrSQ, type = 2) #main effect condition
+test_lrt(mm.CrSQ,mm.COrSQ) 
+#adding order does not improve fit 
 
 
 # 2 | ADD IXN SCENARIO
