@@ -209,7 +209,6 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
 **Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
 
 
-## SHORTCUT
 
 ## H1 \| The Utility of Scaffolding (aka, Linear Graph x Condition)
 
@@ -362,6 +361,12 @@ kruskal.test(df_s$linear_score, df_s$pretty_condition)
 
 ```
 
+**Reported** 
+
+To test hypothesis that scaffolding is not universally helpful, but rather is only necessary to facilitate discovery of the triangular coordinate system, we compare performance across explicit scaffold conditions on just the linear model graph (one of the two experimental blocks). A Kruskal-Wallis rank sum test supports this hypothesis, indicating the median linear graph score did not differ by scaffold condition ($\chi(4) = 0.4, p > 0.1$).
+
+
+_Next we check that this conclusion holds across the graph-order and scenario-order counterbalanced factors._
 
 ```{r}
 #PLOT PAIRED DATA
@@ -386,6 +391,7 @@ grouped_ggbetweenstats(
 
 ```
 
+_Across both scenario and graph orders, there is no differential effect of condition on linear graph score._
 
 ### Logistic Regression
 
@@ -734,7 +740,9 @@ g <- ggwithinstats(
 ) + scale_color_manual(values = paletteer::paletteer_d("awtools::a_palette", 2)) + 
   theme_clean() + theme(legend.position = "none")
 
-ggsave(g, filename = "figures/SGC2_graphdifference.png", width = 6, height = 4)
+g
+
+# ggsave(g, filename = "figures/SGC2_graphdifference.png", width = 6, height = 4)
 # ggsave(g, filename = "figures/SGC2_graphdifference.svg", width = 6, height = 4)
 ```
 
@@ -1074,14 +1082,11 @@ check_model(m)
 
 
 
-
-
-
-## ( Replication Hypothesis )
+## H3-1 ( Replication Hypothesis — DIFFERENCE SCORE )
 
 **Hypothesis** Qiang et. al found that the TM graph was more computationally efficient than the LM graph. We expect that for learners that *do* correctly interpret the graph, they will have lower response times for the TM vs. LM graph.
 
-### Difference Score
+### DIFFERENCE Score
 
 #### Setup
 
@@ -1125,7 +1130,9 @@ favstats(score_diff ~ pretty_condition, data = df_s)
 
 ```
 
-To test the hypothesis that any form of scaffolding will replicate the findings of Qiang et. al (significantly better accuracy on TM than LM graph), we calculated a difference score (Triangular Accuracy - Linear Accuracy). Positive values indicate better performance with the TM than LM, with a range from -15 to +15.  In all but interactive image condition, the median difference score were less than 0. In the interactive image condition, the median difference score was 0.5, suggesting that none of the 
+
+**Reported**
+To test the hypothesis that any form of scaffolding will replicate the findings of Qiang et. al (significantly better accuracy on TM than LM graph), we calculated a performance increase (Triangular Accuracy - Linear Accuracy). Positive values indicate better performance with the TM than LM, with a range from -15 to +15.  In all but interactive image condition, the median difference score were less than 0, indicating that only the interactive image condition yielded more accurate performance on the TM graph than the LM graph. However, the performance increase was very small; a one-sample t-test indicates that the average performance increase in the interactive image condition was not significantly different than 0 ($t(67) = -0.6, p = 0.6$). 
 
 #### Test
 
@@ -1136,6 +1143,8 @@ x <- df_s %>% filter(pretty_condition == "img:ixv")
 t_test(x$score_diff)
 ```
 
+
+
 #### LINEAR REGRESSION [ SCORE diff ~ condition]
 
 ##### Fit Model
@@ -1144,29 +1153,17 @@ t_test(x$score_diff)
 # empty model 
 m0 <- lm( score_diff ~ 1, data = df_s)
 
-# CONDITION model 
-m.C <- lm( score_diff ~ pretty_condition, data = df_s)
-paste("Condition model better fit than empty?")
-test_lrt(m0,m.C)
-# car::Anova(m.C) #main effects condition
+# FIXED EFFECTS model 
+m.C.O.S <- lm( score_diff ~ pretty_condition + order + tm_scenarios, data = df_s)
+test_lrt(m0,m.C.O.S)
+car::Anova(m.C.O.S) #main effects condition
+#main effects of each 
 
-# CONDITION + ORDER model 
-m.CO <- lm( score_diff ~ pretty_condition*order, data = df_s)
-paste("Condition*Order model better fit than CONDITION?")
-test_lrt(m.CO,m.C)
-# car::Anova(m.CO) #main effects condition, order
-
-# CONDITION + ORDER + SCENARIO model 
-m.C.O.S <- lm( score_diff ~ pretty_condition*tm_scenarios*order, data = df_s)
-paste("Condition*Order*Scenario model better fit than interactions model?")
-test_lrt(m.C.O.S,m.CO)
-# car::Anova(m.COS, type = 2) #main effects condition, order scenario, scenario
-#no interactions were significant
-
-# #MAIN EFFECTS ONLY MODEL
-m.COS <- lm( score_diff ~ pretty_condition+order+tm_scenarios, data = df_s)
-# paste("Condition+Order+Scenario model better fit than interaction model?")
+# INTERACTION MODEL
+m.COS <- lm( score_diff ~ pretty_condition*order*tm_scenarios, data = df_s)
 test_lrt(m.C.O.S,m.COS)
+car::Anova(m.COS, type = 3) 
+#main effects condition, scenario
 
 ```
 
@@ -1320,11 +1317,7 @@ check_model(m)
 
 
 
-
-
-
-
-## H3 \| The Effectiveness of Scaffolding
+## H3 \| The Effectiveness of Scaffolding — TRIANGULAR SCORE
 
 
 ### TRIANGULAR SCORE
@@ -1378,7 +1371,6 @@ favstats(triangular_score ~ pretty_condition, data = df_s)
 ```{r}
 
 
-
 ## 0 | SETUP
 #confirm 13 items [all discriminating items]
 nrow(df_i) / nrow(df_s)  #removed nondiscrim Q3
@@ -1386,12 +1378,6 @@ nrow(df_i) / nrow(df_s)  #removed nondiscrim Q3
 #confirm all factors 
 is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$graph) && is.factor(df_i$score) && is.factor(df_i$order) && is.factor(df_i$scenario)
 
-## 1 | SETUP RANDOM INTERCEPT SUBJECT
-
-#:: EMPTY MODEL (baseline, no random effect)
-print("Empty fixed model")
-m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
-# summary(m0)
 
 #:: RANDOM INTERCEPT SUBJECT + ITEM
 print("Subject Intercept + Item intercept random model")
@@ -1408,44 +1394,37 @@ mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
                 #                  optCtrl=list(maxfun=2e5))
                 )
 # car::Anova(mm.CrSQ) #main effects graph
-
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
 test_lrt(mm.rSQ,mm.CrSQ) 
 #adding condition improves fit
 
-# 2 | ADD ORDER
-print("FIXED CONDITION + ORDER + Subject & Item random intercepts")
-mm.COrSQ <- glmer(accuracy ~ pretty_condition*order + (1|subject) + (1|q),
+# 2 | ADD SIMPLE FIXED EFFECTS 
+print("FIXED CONDITION + ORDER + SCENARIO + Subject & Item random intercepts")
+mm.C.O.SrSQ <- glmer(accuracy ~ pretty_condition + order + scenario + (1|subject) + (1|q),
                    data = df_i, family = "binomial", 
                    control=glmerControl(optimizer="bobyqa",
                                  optCtrl=list(maxfun=2e5)))
-car::Anova(mm.COrSQ, type = 2) #main effect condition
-test_lrt(mm.CrSQ,mm.COrSQ) 
-#adding order does not improve fit 
+# car::Anova(mm.C.O.SrSQ, type = 2) #main effect condition
+test_lrt(mm.CrSQ,mm.C.O.SrSQ) 
+#adding main effects DOES improve fit 
 
 
-# 2 | ADD IXN SCENARIO
-print("FIXED CONDITION + ORDER + Subject & Item random intercepts")
+# 2 | ADD IXNS 
+print("FIXED CONDITION * ORDER * SCENARIO  + Subject & Item random intercepts")
 mm.COSrSQ <- glmer(accuracy ~ pretty_condition*order*scenario + (1|subject) + (1|q),
                    data = df_i, family = "binomial", 
                    control=glmerControl(optimizer="bobyqa",
                                  optCtrl=list(maxfun=2e5)))
 car::Anova(mm.COSrSQ, type = 3) #ME condition, scenario
-# test_lrt(mm.COSrSQ,mm.COrSQ) 
+test_lrt(mm.COSrSQ,mm.C.O.SrSQ)
+# adding interactions did not improve model fit
 
-
-# 3 | MAIN EFFECTS ONLY
-
-# print("CONDITION + SCENARIO + ORDER + Subject & Item random intercepts")
-# mm.C.O.SrSQ <- glmer(accuracy ~ pretty_condition + order + scenario +  (1|subject) + (1|q) ,
-#                 data = df_i, family = "binomial",
-#                 control=glmerControl(optimizer="bobyqa",
-#                                  optCtrl=list(maxfun=2e5)))
-# summary(mm.C.O.SrSQ)
-# car::Anova(mm.C.O.SrSQ, type = 2) #ME condition, scenario
-
+#PERFORMANCE
+performance(mm.C.O.SrSQ)
 
 ```
+
+**REPORTED**
+To quantify the effect of explicit scaffold condition on triangular graph performance, we fit a mixed logistic regression model on item-level accuracy (correct/incorrect) for only the triangular model block. We included random intercepts for subjects and questions, and fixed effects for explicit scaffold condition, graph-order, and scenario-order.  A likelihood ratio test comparing a model with main effects to a second model including the interaction between fixed factors indicates that the interaction term does not improve model fit (Chi2(22,9) = 11.87, p = 0.539). The explanatory power of the final model is moderate (conditional R2 = 0.474) with the part related to fixed effects explaining 9% of variance. 
 
 
 ##### Describe
@@ -1453,7 +1432,7 @@ car::Anova(mm.COSrSQ, type = 3) #ME condition, scenario
 ```{r}
 
 # best model
-m <- mm.COSrSQ
+m <- mm.C.O.SrSQ
 
 #::::::::: PRINT MODEL 
 
@@ -1461,7 +1440,7 @@ print("PREDICTOR MODEL")
 summary(m)
 
 print("SIGNIFICANCE TEST [non directional]")
-car::Anova(m, type=3) #TYPE 3 SS FOR IXNS
+car::Anova(m, type=2) #TYPE 3 SS FOR IXNS
 
 #:::::::: INTERPRET COEFFICIENTS
 
@@ -1497,9 +1476,39 @@ preds <- cbind(newdata, preds)
     upper = median(upr)
   )) 
 
+
+ 
+library(emmeans)
+
+##POST-HOC COMPARISONS
+print("POSTHOC COMPARISONS :: CONDITION")
+emmeans(m,  pairwise ~ pretty_condition, 
+        type = "response" , adjust = "tukey") #sidak, tukey
+
+
+
+##PLOT PROBABILITY
+# plot(ref_grid(m), by = "pretty_condition", type = "response")
+
 ```
 
-##### Inference TODO UPDATE
+##### INFERENCE
+
+**REPORTED**
+
+
+Consistent with our hypothesis, Wald Chi-Square tests revealed a significant main effect for \textbf{explicit scaffold} condition ($\chi^2(4) = 32.12,   p < 0.001$). The (unstandardized) regression coefficients indicate that each explicit scaffolds, significantly increases the odds of a correct response in the triangular graph task relative to the non-scaffold control.  The two text conditions each roughly double the odds of a correct response,($e^{\beta_1[conceptual]} = 2.42, SE = 0.744, p < 0.001 ;e^{\beta_1[procedural]} = 2.25, SE = 0.67, p < 0.01$). The static image condition also doubles the odds of a correct response,($e^{\beta_1[static image]} = 2.23, SE = 0.66, p < 0.01$). Alternatively, the interactive image condition increased the odds of a correct response by over a factor of 5, ($e^{\beta_1[interactive image]} = 5.41, SE = 1.61, p < 0.01$).
+
+
+Unexpectedly, Wald Chi-Square tests revealed a significant main effect for \textbf{scenario-order}  ($\chi^2(1) = 32.30,   p < 0.001$).  Specifically, pairing the event-scheduling scenario B with the TM graph task increased the odds of a correct response by a factor of 3, ($e^{\beta_1[scenarioB]} = 2.97, SE = 0.57, p < 0.001$)
+
+
+Counter to our hypothesis, Wald Chi-Square tests did not indicate a significant main effect for \textbf{graph-order}  ($\chi^2(1) = 1.92,   p = 0.17$). Completing the TM graph block after the LM graph task did not improve performance on the TM graph as we expected.
+
+
+
+
+
 
 ##### Visualize
 
@@ -1872,434 +1881,13 @@ plot_model(m, type = "pred")
 
 A mixed log-linear model predicting response time by GRAPH for only CORRECT items in the test phase (i.e. without scaffolding text or images) indicates that there is not a significant difference between response times for linear and orthogonal graphs.
 
-## !! USE THIS H3 \| The Effectiveness of Scaffolding
-
-**Hypothesis** All of the designs offered by participants in Study 1 are promising. We expect that only a small amount of scaffolding (a little nudge) will be required to help readers correctly interpret the graph. We predict that learners with (any form of) scaffolding will perform better with the TM than readers in the CONTROL condition.
-
-#### Setup
-
-```{r}
-
-#FILTER THE DATASET
-#only control condition 
-df_s <- df_subjects 
-
-df_long <- df_s %>% dplyr::select(subject,pretty_condition,order,lm_scenarios,tm_scenarios,linear_score, triangular_score) %>% pivot_longer(
-  cols = ends_with("score"),
-  names_to = "graph",
-  values_to = "score"
-)
-
-df_i <- df_items %>% filter(q %nin% c(3))
-```
-
-#### Visualize
-
-```{r}
-
-## HISTOGRAM
-gf_histogram( ~ triangular_score, fill = ~pretty_condition, binwidth = 1, data = df_s) %>%
-  gf_facet_grid(pretty_condition ~ .)
-
-## MEDIANS
-ggbetweenstats( y = triangular_score, x = pretty_condition, data = df_s, 
-                type = "nonparametric",   var.equal = FALSE,
-                pairwise.comparisons = TRUE,
-                pairwise.display = "significant",
-                p.adjust.method = "none"
-)
-
-```
-
-```{r}
-
-# Box plots
-# ++++++++++++++++++++
-# Plot weight by group and color by group
-library("ggpubr")
-ggboxplot(df_s, x = "pretty_condition", y = "linear_score", 
-          color = "pretty_condition", 
-          # palette = c("#00AFBB", "#E7B800", "#FC4E07"),
-          # order = c("ctrl", "trt1", "trt2"),
-          title = "LINEAR Graph Scores by Condition",
-          subtitle = "No effect of condition, order or scenario",
-          ylab = "Linear Score [0,15]", xlab = "Condition") +
-  geom_jitter( aes(color = pretty_condition), width = 0.15, alpha = 0.5) +
-  facet_wrap(order~ tm_scenarios)+
-  easy_remove_legend() + theme_clean()
-
-```
-
-```{r}
-
-# Box plots
-# ++++++++++++++++++++
-# Plot weight by group and color by group
-library("ggpubr")
-ggboxplot(df_s, x = "pretty_condition", y = "triangular_score", 
-          color = "pretty_condition", 
-          # palette = c("#00AFBB", "#E7B800", "#FC4E07"),
-          # order = c("ctrl", "trt1", "trt2"),
-          title = "TRIANGULE Graph Scores by Condition",
-          subtitle = "Clear effect of condition, possible ixn scenario",
-          ylab = "Triangular Score [0,15]", xlab = "Condition") +
-  geom_jitter( aes(color = pretty_condition), width = 0.15, alpha = 0.5) +
-  facet_wrap(order~ tm_scenarios)+
-  easy_remove_legend() + theme_clean()
-
-```
-
-```{r}
-#| label: VIS-acc
-
-#:::::::: STACKED PROPORTIONAL BAR CHART
-df_i %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-  facet_wrap(order~graph) + 
-   labs(title = "Accuracy by Graph and Order",
-       x = "Condition",
-       subtitle="Across graph orders, Accuracy is higher on the LINEAR than TRIANGULAR graph.")
-
-#:::::::: STACKED PROPORTIONAL BAR CHART
-df_i %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-  facet_wrap(scenario ~ graph) + 
-   labs(title = "Accuracy by Graph and Scenario",
-       x = "Condition",
-       subtitle="Accuracy is higher on the LINEAR than TRIANGULAR graph; much lower for TM = AXIS scenario.")
-
-
-
-# ##VERTICAL RAINCLOUD USING GGDISTR
-# ggplot(df_long, aes(x = graph, y = score,
-#                         fill = graph) ) + 
-#   ggdist::stat_halfeye(
-#     side = "left",
-#     justification = 1.1,
-#     width = 1, 
-#     point_colour = NA
-#    ) + 
-#   geom_boxplot(
-#     inherit.aes = FALSE, #supress fill
-#     mapping = aes(x=graph, y = score),
-#     width = .15, 
-#     outlier.shape = NA
-#   ) + 
-#   geom_point(
-#     inherit.aes = FALSE, #supress fill
-#     mapping = aes(x=graph, y = score, color = graph),
-#     size = 1.3,
-#     alpha = .3,
-#     position = position_jitter( 
-#       seed = 1, width = .05
-#   )) + labs( 
-#     title = "Distribution of scores in CONTROL condition", 
-#     x = "Condition", y = "Score (# correct)") +
-#   theme(legend.position = "blank") + 
-#   coord_cartesian(xlim = c(0.5, NA), clip = "off")
-
-
-#DISTRIBUTION OF SCORE DIFFERENCE
-gf_dhistogram(~score_diff, fill = ~pretty_condition, data = df_s) %>% 
-  gf_facet_grid(pretty_condition ~ order) +
-  xlim(-13,5) + 
-  labs(title = "Distribution of paired score differences by CONDITION and ORDER") + 
-  easy_remove_legend() 
-
-
-#DISTRIBUTION OF SCORE DIFFERENCE
-gf_dhistogram(~score_diff, fill = ~pretty_condition, data = df_s) %>% 
-  gf_facet_grid(pretty_condition ~ tm_scenarios) +
-  xlim(-13,5) + 
-  labs(title = "Distribution of paired score differences by CONDITION and TM SCENARIO") + 
-  easy_remove_legend() 
-
-```
-
-#### Describe
-
-```{r}
-#| label: DESCR-H1
-#| 
-title = "Descriptive Statistics of Response Accuracy by Block (CONTROL Condition)"
-abs.stats <- rbind(
-  "linear.block"= df_s %>% dplyr::select(linear_score) %>% unlist() %>% favstats(),
-  "triangular.block" = df_s %>% dplyr::select(triangular_score) %>% unlist() %>% favstats(),
-  "block.differences" = df_s %>% dplyr::select(score_diff) %>% unlist() %>% favstats()
-)
-
-abs.stats %>% kbl (caption = title) %>% kable_classic() %>%
-  footnote(general = "block # questions correct [0,15]; DIFF = triangular - linear",
-           general_title = "Note: ",footnote_as_chunk = T)
-```
-
-For participants in the CONTROL condition, total absolute scores for the LINEAR graph (n = `r abs.stats["linear.block",]$n`) range from `r round(abs.stats["linear.block",]$min,2)` to `r round(abs.stats["linear.block",]$max,2)` with a mean score of (M = `r round(abs.stats["linear.block",]$mean,2)`, SD = `r round(abs.stats["linear.block",]$sd,2)`).
-
-For participants in the CONTROL condition, total absolute scores for the TRIANGULAR graph (n = `r abs.stats["triangular.block",]$n`) range from `r round(abs.stats["triangular.block",]$min,2)` to `r round(abs.stats["triangular.block",]$max,2)` with a mean score of (M = `r round(abs.stats["triangular.block",]$mean,2)`, SD = `r round(abs.stats["triangular.block",]$sd,2)`).
-
-```{r}
-
-#PLOT PAIRED DATA
-grouped_ggwithinstats(
-  grouping.var = pretty_condition,
-  data = df_long,
-  x    = graph,
-  y    = score, 
-  type  = "nonparametric", #parametric, robust, bayes
-  annotation.args = list(title = "Effect of Condition"),
-)
-
-```
-
-#### USE THIS MIXED EFFECTS LOGISTIC REGRESSION --\> RAW SCORE
-
-*Fit mixed effects logistic regression model to test effect of GRAPH, ORDER, and SCENARIO on probability of correct response \[just in the control condition\]*
-
-##### Fit Model
-
-```{r}
-#| label: MODEL-FIT-ACC
-
-## 0 | SETUP
-#confirm 13 items [all discriminating items]
-nrow(df_i) / nrow(df_s)  #28; removed nondiscrim Q3
-
-#confirm all factors 
-is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$graph) && is.factor(df_i$score) && is.factor(df_i$order) && is.factor(df_i$scenario)
-
-## 1 | SETUP RANDOM INTERCEPT SUBJECT
-
-#:: EMPTY MODEL (baseline, no random effect)
-print("Empty fixed model")
-m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
-# summary(m0)
-
-#:: RANDOM INTERCEPT SUBJECT + ITEM
-print("Subject Intercept + Item intercept random model")
-mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
-#summary(mm.rSQ)
-
-## 2 | ADD FIXED EFFECT GRAPH
-
-print("FIXED GRAPH + Subject & Item random intercepts")
-mm.GrSQ <- glmer(accuracy ~ graph + (1|subject) + (1|q) ,
-                data = df_i, family = "binomial")
-# car::Anova(mm.GrSQ) #main effect graph
-
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.GrSQ)) )
-test_lrt(mm.rSQ,mm.GrSQ) #same as anova(m0, m1, test = "Chi")
-
-
-## 2 | ADD FIXED EFFECT CONDITION
-
-print("IXN GRAPH*Condition + Subject & Item random intercepts")
-mm.GCrSQ <- glmer(accuracy ~ graph*pretty_condition + (1|subject) + (1|q) ,
-                data = df_i, family = "binomial", 
-                control=glmerControl(optimizer="bobyqa",
-                                 optCtrl=list(maxfun=2e5)))
-#car::Anova(mm.GCrSQ) #main effects graph + IXN graph*condition
-
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.GCrSQ)) )
-test_lrt(mm.rSQ,mm.GCrSQ) #same as anova(m0, m1, test = "Chi")
-
-
-# 2 | ADD IXN ORDER
-print("FIXED Graph + ORDER + Subject & Item random intercepts")
-mm.GC.COrSQ <- glmer(accuracy ~ graph*pretty_condition + graph*order + (1|subject) + (1|q),
-                   data = df_i, family = "binomial", 
-                   control=glmerControl(optimizer="bobyqa",
-                                 optCtrl=list(maxfun=2e5)))
-# summary(mm.GC.COrSQ)
-#car::Anova(mm.GC.COrSQ, type = 3) #IXN graphX condition, GRAPH*order
-
-#x <-  mm.GCOrSQ <- glmer(accuracy ~ graph*pretty_condition*order + (1|subject) + (1|q),
-#                    data = df_i, family = "binomial", 
-#                    control=glmerControl(optimizer="bobyqa",
-#                                  optCtrl=list(maxfun=2e5)))
-# car::Anova(x) # 3 way ixn graph,condition,order??
-
-
-paste("AIC decreases w/ new model", AIC(logLik(mm.GCrSQ)) > AIC(logLik(mm.GC.COrSQ)) )
-test_lrt(mm.GCrSQ,mm.GC.COrSQ) 
-
-
-# 3 | ADD FIXED EFFECT SCENARIO
-
-print("FIXED Graph * SCENARIO * ORDER + Subject & Item random intercepts")
-mm.GC.CO.GSrSQ <- glmer(accuracy ~ graph*pretty_condition + graph*order + graph*scenario +  (1|subject) + (1|q) ,
-                data = df_i, family = "binomial",
-                control=glmerControl(optimizer="bobyqa",
-                                 optCtrl=list(maxfun=2e5)))
-#summary(mm.GC.CO.GSrSQ)
-#car::Anova(mm.GC.CO.GSrSQ, type = 3) #IXN graphXscenario, graphXorder, graphXcondition, 
-
-paste("AIC decreases w/ new model", AIC(logLik(mm.GC.COrSQ)) > AIC(logLik(mm.GC.CO.GSrSQ)) )
-test_lrt(mm.GC.COrSQ,mm.GC.CO.GSrSQ) #same as anova(m0, m1, test = "Chi")
-
-
-```
-
-The best fitting model included interactions for graph X condition, graph X order, and graph X scenario
-
-##### Describe
-
-```{r}
-
-# best model
-m <- mm.GC.CO.GSrSQ
-
-#::::::::: PRINT MODEL 
-
-print("PREDICTOR MODEL")
-summary(m)
-
-print("SIGNIFICANCE TEST [non directional]")
-car::Anova(m, type=3) #TYPE 3 SS FOR IXNS
-
-#:::::::: INTERPRET COEFFICIENTS
-
-paste("LOG ODDS")
-tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
-
-paste("ODDS RATIOS")
-tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
-
-paste("PROBABILITIES")
-#probability control = plogis(intercept)
-#probability impasse = plogis(intercept + coefficient)
-
-#FROM merTools
-#setup empty df 
-newdata <- df_i %>% dplyr::select(graph, pretty_condition, order, scenario, subject, q)
-#make predictions
-preds <- predictInterval(m, newdata = newdata,
-                              which = "fixed", #full, fixed or random for those only
-                              type = "probability", #linear.prediction
-                              stat = "median",
-                              n.sims = 1000,
-                              level = 0.80) #width of prediction interval
-#join predictions to the new dataframe
-preds <- cbind(newdata, preds)
-#summarize
-(summ_preds <- preds %>% 
-  dplyr::select(graph, pretty_condition, scenario, order, fit, lwr, upr) %>% 
-  group_by(graph, pretty_condition, scenario, order) %>% 
-  dplyr::summarise(
-    median = median(fit),
-    lower = median(lwr),
-    upper = median(upr)
-  )) 
-
-```
-
-##### Inference TODO UPDATE
-
-##### Visualize
-
-```{r}
-
-## | PLOT PARAMETERS 
-
-#SJPLOT | MODEL | ODDS RATIO
-plot_model(m, vline.color = "red", 
-           show.intercept = TRUE, 
-           show.values = TRUE,
-           p.threshold = 0.1, #manually adjust to account for directional test
-           ci.lvl = 0.90 ) + #manually adjusted for directional test   
-  labs(title = "Model Estimate | Odds Ratio",
-       subtitle = "",
-       x = "Condition")
-
-
-#EASYSTATS | MODEL | ODDS RATIO
-# result <- model_parameters(m, exponentiate = TRUE, component = "all")
-# plot(result)
-
-
-## | PLOT TESTS
-
-result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
-plot(result)
-
-## | PLOT PREDICTIONS
-
-#SJPLOT | MODEL | PROBABILITIES
-p <- plot_model(m, type="int",
-           show.intercept = TRUE,
-           show.values = TRUE,
-           title = "Model Prediction | Probability of Accurate Response")
-p[[1]] + p[[2]] + p[[3]]
-
-#PLOT MODEL PREDICTION
-# plot_model(m, type = "pred")
-# plot_model(m, type = "eff")
-  # ylim(0,1) + 
-  # labs(
-  #   title = "Model Prediction | Probability of Accurate Response",
-  #   subtitle = "Impasse increases Probability of Correct Response"
-  # )
-
-
-
-```
-
-```{r}
-#SJPLOT | MODEL | TABLE
-tab_model(m)
-
-# #MODEL SUMMARY | save latex table
-# models <- list("odds ratios" = m, "(log odds)" = m)
-# notes = list('"* p < 0.05, ** p < 0.01, *** p < 0.001"',
-#                'N(subject) = 133 $\tau_{00}$(subject) = 34.85',
-#              'N(question) = 13 $\tau_{00}$(question) = 1.14')
-# 
-# modelsummary(models,
-#              exponentiate = c(TRUE, FALSE),
-#              shape = term ~ model + statistic,
-#              fmt = 2, #two digits w/ trailing zero
-#              estimate  = "{estimate} {stars}",
-#              statistic = "conf.int",
-#              gof_map = c("AIC", "sigma"),
-#              gof_omit = 'RMSE|ICC|BIC',
-#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
-#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
-#              notes = notes,
-#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_online.tex")
-# # #              # coef_omit = "Intercept",
-```
-
-##### Diagnostics
-
-```{r}
-#| warning: false
-#| message: false
-
-# print("SANITY CHECK REPORTING")
-# report(m)
-
-# print("MODEL PERFORMANCE")
-# performance(m)
-
-print("DIAGNOSTICS")
-check_model(m)
-
-```
-
 ## DRAWING TASK
 
 ### Setup
 
 ```{r}
  
-df_s <- df_subjects
+df_s <- df_subjects 
 
 ```
 
@@ -2343,15 +1931,20 @@ print("Categories (first is reference)")
 levels(df_s$draw_type)
 
 #FIT EMPTY MODEL
-# print("EMPTY MODEL")
+print("EMPTY MODEL")
 mm.cat.rSQ <- multinom(draw_type ~ 1 , data = df_s)
 # summary(mm.cat.rSQ)
 
 #FIT PREDICTOR MODEL
-# print("PREDICTOR MODEL")
+print("CONDITION MODEL")
 mm.cat.CrSQ <- multinom(draw_type ~ pretty_condition , data = df_s)
 mb <- mblogit(draw_type ~ pretty_condition , data = df_s)
+summary(mb)
 
+# print("CONDITION + ORDER MODEL")
+mm.cat.C.0rSQ <- multinom(draw_type ~ pretty_condition + order , data = df_s)
+mb2 <- mblogit(draw_type ~ pretty_condition + order , data = df_s)
+summary(mb2)
 
 #COMPARE MODEL FIT
 paste("AIC wth predictor is lower than empty model?", AIC(mm.cat.rSQ) > AIC(mm.cat.CrSQ))
@@ -2544,4 +2137,469 @@ tab_model(m)
 
 
 ```
+
+
+
+## H0 | ACCURACY FULL MODEL
+
+Full model (with specific interactions; full model with 4 way interaction does not converge). Don't move forward with this strategy, as it is too convoluted to explain. 
+
+#### Setup
+
+```{r}
+
+#FILTER THE DATASET
+
+df_s <- df_subjects 
+
+df_long <- df_s %>% dplyr::select(subject,pretty_condition,order,lm_scenarios,tm_scenarios,linear_score, triangular_score) %>% pivot_longer(
+  cols = ends_with("score"),
+  names_to = "graph",
+  values_to = "score"
+)
+
+df_i <- df_items %>% #filter(q %nin% c(3)) %>%  #3 is nondiscrim
+ mutate(
+   order = fct_rev(order)
+ )
+
+#check factors
+is.factor(df_i$subject) & is.factor(df_i$pretty_condition) &
+  is.factor(df_i$q) & is.factor(df_i$order) & is.factor(df_i$scenario)
+
+table(df_subjects$pretty_condition)
+```
+
+#### Describe
+
+```{r}
+#| label: DESCR-H1
+#| 
+title = "Descriptive Statistics of Response Accuracy by Block (CONTROL Condition)"
+abs.stats <- rbind(
+  "linear.block"= df_s %>% dplyr::select(linear_score) %>% unlist() %>% favstats(),
+  "triangular.block" = df_s %>% dplyr::select(triangular_score) %>% unlist() %>% favstats(),
+  "block.differences" = df_s %>% dplyr::select(score_diff) %>% unlist() %>% favstats()
+)
+
+abs.stats %>% kbl (caption = title) %>% kable_classic() %>%
+  footnote(general = "block # questions correct [0,15]; DIFF = triangular - linear",
+           general_title = "Note: ",footnote_as_chunk = T)
+```
+
+For participants in the CONTROL condition, total absolute scores for the LINEAR graph (n = `r abs.stats["linear.block",]$n`) range from `r round(abs.stats["linear.block",]$min,2)` to `r round(abs.stats["linear.block",]$max,2)` with a mean score of (M = `r round(abs.stats["linear.block",]$mean,2)`, SD = `r round(abs.stats["linear.block",]$sd,2)`).
+
+For participants in the CONTROL condition, total absolute scores for the TRIANGULAR graph (n = `r abs.stats["triangular.block",]$n`) range from `r round(abs.stats["triangular.block",]$min,2)` to `r round(abs.stats["triangular.block",]$max,2)` with a mean score of (M = `r round(abs.stats["triangular.block",]$mean,2)`, SD = `r round(abs.stats["triangular.block",]$sd,2)`).
+
+#### Visualize
+
+```{r}
+
+#:::::::: STACKED PROPORTIONAL BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(order~graph) + 
+   labs(title = "Accuracy by GRAPH, CONDITION and ORDER",
+       x = "Condition",
+       subtitle="Accuracy appears to differ only on the triangular graph.")
+
+#:::::::: STACKED PROPORTIONAL BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(scenario ~ graph) + 
+   labs(title = "Accuracy by GRAPH, CONDITION and SCENARIO",
+       x = "Condition",
+       subtitle="Triangular accuracy appears to differ by scenario")
+
+
+#:::::::: STACKED BAR CHART BY QUESTION
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = score)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_grid( graph ~ q) +
+   labs(title = "Accuracy by GRAPH and QUESTION",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+# ##VERTICAL RAINCLOUD USING GGDISTR
+ggplot(df_subjects, aes(x = pretty_condition, y = linear_score,
+                        fill = pretty_condition) ) +
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.1,
+    width = 1,
+    point_colour = NA
+   ) +
+  geom_boxplot(
+    inherit.aes = TRUE, #supress fill
+    # mapping = aes(x=pretty_condition, y = score),
+    width = .15,
+    outlier.shape = NA
+  ) +
+  geom_point(
+    inherit.aes = TRUE, #supress fill
+    # mapping = aes(x=graph, y = score, color = graph),
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .05
+  )) + labs(
+    title = "Distribution of scores on LINEAR graph",
+    x = "Condition", y = "Score (# correct)") +
+  theme(legend.position = "blank") +
+  coord_cartesian(xlim = c(0.5, NA), clip = "off")
+
+
+ggplot(df_subjects, aes(x = pretty_condition, y = triangular_score,
+                        fill = pretty_condition) ) +
+  ggdist::stat_halfeye(
+    side = "left",
+    justification = 1.1,
+    width = 1,
+    point_colour = NA
+   ) +
+  geom_boxplot(
+    inherit.aes = TRUE, #supress fill
+    # mapping = aes(x=pretty_condition, y = score),
+    width = .15,
+    outlier.shape = NA
+  ) +
+  geom_point(
+    inherit.aes = TRUE, #supress fill
+    # mapping = aes(x=graph, y = score, color = graph),
+    size = 1.3,
+    alpha = .3,
+    position = position_jitter(
+      seed = 1, width = .05
+  )) + labs(
+    title = "Distribution of scores on TRIANGULAR graph",
+    x = "Condition", y = "Score (# correct)") +
+  theme(legend.position = "blank") +
+  coord_cartesian(xlim = c(0.5, NA), clip = "off")
+
+```
+
+
+```{r}
+#:::::::: STACKED PROPORTIONAL BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  facet_grid(order ~ scenario ~ graph) + 
+  scale_fill_brewer(palette = "Set1")  +
+   labs(title = "ACCURACY by Condition, GRAPH SCENARIO and ORDER",
+       x = "Condition",
+       subtitle="")
+
+```
+
+
+
+
+### MAYBE USE THIS GRAPH
+```{r}
+
+#PLOT PAIRED DATA
+grouped_ggwithinstats(
+  grouping.var = pretty_condition,
+  data = df_long,
+  x    = graph,
+  y    = score, 
+  type  = "nonparametric", #parametric, robust, bayes
+  annotation.args = list(title = "Effect of Condition"),
+)
+
+```
+
+#### MIXED EFFECTS LOGISTIC REGRESSION
+
+
+
+##### Fit Model
+
+```{r}
+#| label: MODEL-FIT-ACC
+
+## 0 | SETUP
+#confirm 13 items [all discriminating items]
+nrow(df_i) / nrow(df_s)  #28; removed nondiscrim Q3
+
+#confirm all factors 
+is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$graph) && is.factor(df_i$score) && is.factor(df_i$order) && is.factor(df_i$scenario)
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+
+#:: RANDOM INTERCEPT SUBJECT + ITEM
+print("Subject Intercept + Item intercept random model")
+mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
+#summary(mm.rSQ)
+
+## 2 | ADD FIXED EFFECT GRAPH
+
+print("FIXED GRAPH + Subject & Item random intercepts")
+mm.GrSQ <- glmer(accuracy ~ graph + (1|subject) + (1|q) ,
+                data = df_i, family = "binomial")
+# car::Anova(mm.GrSQ) #main effect graph
+test_lrt(mm.rSQ,mm.GrSQ) #same as anova(m0, m1, test = "Chi")
+#adding GRAPH improves fit 
+
+## 2 | ADD FIXED EFFECT CONDITION
+
+print("IXN GRAPH* Condition + Subject & Item random intercepts")
+mm.GCrSQ <- glmer(accuracy ~ graph*pretty_condition + (1|subject) + (1|q) ,
+                data = df_i, family = "binomial", 
+                control=glmerControl(optimizer="bobyqa",
+                                 optCtrl=list(maxfun=2e5)))
+#car::Anova(mm.GCrSQ) #main effects graph + IXN graph*condition
+
+test_lrt(mm.rSQ,mm.GCrSQ) #same as anova(m0, m1, test = "Chi")
+#adding condition improves fit
+
+# 2 | ADD IXN ORDER
+print("FIXED Graph + ORDER + Subject & Item random intercepts")
+mm.GC.COrSQ <- glmer(accuracy ~ graph*pretty_condition + graph*order + (1|subject) + (1|q),
+                   data = df_i, family = "binomial", 
+                   control=glmerControl(optimizer="bobyqa",
+                                 optCtrl=list(maxfun=2e5)))
+# summary(mm.GC.COrSQ)
+#car::Anova(mm.GC.COrSQ, type = 3) #IXN graphX condition, GRAPH*order
+test_lrt(mm.GCrSQ,mm.GC.COrSQ) 
+
+
+# 3 | ADD FIXED EFFECT SCENARIO
+print("FIXED Graph * SCENARIO * ORDER + Subject & Item random intercepts")
+mm.GC.CO.GSrSQ <- glmer(accuracy ~ graph*pretty_condition + graph*order + graph*scenario +  (1|subject) + (1|q) ,
+                data = df_i, family = "binomial",
+                control=glmerControl(optimizer="bobyqa",
+                                 optCtrl=list(maxfun=2e5)))
+#summary(mm.GC.CO.GSrSQ)
+#car::Anova(mm.GC.CO.GSrSQ, type = 3) #IXN graphXscenario, graphXorder, graphXcondition, 
+test_lrt(mm.GC.COrSQ,mm.GC.CO.GSrSQ) #same as anova(m0, m1, test = "Chi")
+
+
+simple <- glmer(accuracy ~ graph+pretty_condition +order + scenario +  (1|subject) + (1|q) ,
+                data = df_i, family = "binomial",
+                control=glmerControl(optimizer="bobyqa",
+                                 optCtrl=list(maxfun=2e5)))
+
+
+##full model won't converge, try to run again later
+# full <- glmer(accuracy ~ graph*pretty_condition*order*scenario +  (1|subject) + (1|q) ,
+#                 data = df_i, family = "binomial" )
+# # ,
+#                 control=glmerControl(optimizer="bobyqa",
+#                                  optCtrl=list(maxfun=2e5)))
+
+
+paste("ideal model better than simple model?")
+test_lrt(simple, mm.GC.CO.GSrSQ)
+
+paste("performance")
+performance(m)
+```
+
+
+To test our experimental hypotheses, we fit a series of logistic mixed effects models predicting question-level accuracy (correct, incorrect) The best fitting model included interactions for graph X condition, graph X order, and graph X scenario, and likelihood ratio tests indicate this is a significantly better fit than a model including only main effects ($chi^2(10,16) = 112.79, p < 0.001$), or a more complex model with an interaction between all fixed factors TODO ($chi^2(22,9) = 11.87, p = 0.539$)
+
+
+
+##### Describe
+
+```{r}
+
+# best model
+m <- mm.GC.CO.GSrSQ
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m)
+
+print("SIGNIFICANCE TEST [non directional]")
+car::Anova(m, type=3) #TYPE 3 SS FOR IXNS
+
+#:::::::: INTERPRET COEFFICIENTS
+
+paste("LOG ODDS")
+tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
+
+paste("ODDS RATIOS")
+tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
+
+paste("PROBABILITIES")
+#probability control = plogis(intercept)
+#probability impasse = plogis(intercept + coefficient)
+
+#FROM merTools
+#setup empty df 
+newdata <- df_i %>% dplyr::select(graph, pretty_condition, order, scenario, subject, q)
+#make predictions
+preds <- predictInterval(m, newdata = newdata,
+                              which = "fixed", #full, fixed or random for those only
+                              type = "probability", #linear.prediction
+                              stat = "median",
+                              n.sims = 1000,
+                              level = 0.80) #width of prediction interval
+#join predictions to the new dataframe
+preds <- cbind(newdata, preds)
+#summarize
+(summ_preds <- preds %>% 
+  dplyr::select(graph, pretty_condition, scenario, order, fit, lwr, upr) %>% 
+  group_by(graph, pretty_condition, scenario, order) %>% 
+  dplyr::summarise(
+    median = median(fit),
+    lower = median(lwr),
+    upper = median(upr)
+  )) 
+
+```
+
+
+##### POSTHOCS
+
+```{r}
+
+library(emmeans)
+
+##POST-HOC COMPARISONS
+print("POSTHOC COMPARISONS :: GRAPH X CONDITION")
+emmeans(m,  pairwise ~ graph*pretty_condition, 
+        type = "response" , adjust = "tukey") #sidak, tukey
+
+
+print("POSTHOC COMPARISONS :: GRAPH X ORDER")
+emmeans(m,  pairwise ~ graph*order, 
+        type = "response" , adjust = "tukey") #sidak, tukey
+#POST HOC COMPARING TM graph with lm vs tm first order is NOT significant
+
+
+print("POSTHOC COMPARISONS :: GRAPH X SCENARIO")
+emmeans(m,  pairwise ~ graph*scenario, 
+        type = "response" , adjust = "tukey") #sidak, tukey
+#POST HOC COMPARING TM graph with lm vs tm first order is NOT significant
+
+
+##PLOT PROBABILITY
+# plot(ref_grid(m), by = "pretty_condition", type = "response")
+```
+##### Visualize
+
+```{r}
+
+## | PLOT PARAMETERS 
+
+#SJPLOT | MODEL | ODDS RATIO
+plot_model(m, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.90 ) + #manually adjusted for directional test   
+  labs(title = "Model Estimate | Odds Ratio",
+       subtitle = "",
+       x = "Condition")
+
+
+#EASYSTATS | MODEL | ODDS RATIO
+# result <- model_parameters(m, exponentiate = TRUE, component = "all")
+# plot(result)
+
+
+## | PLOT TESTS
+
+result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+plot(result)
+
+## | PLOT PREDICTIONS
+
+#SJPLOT | MODEL | PROBABILITIES
+p <- plot_model(m, type="int",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Prediction | Probability of Accurate Response")
+p[[1]] + p[[2]] + p[[3]]
+
+#PLOT MODEL PREDICTION
+# plot_model(m, type = "pred")
+# plot_model(m, type = "eff")
+  # ylim(0,1) + 
+  # labs(
+  #   title = "Model Prediction | Probability of Accurate Response",
+  #   subtitle = "Impasse increases Probability of Correct Response"
+  # )
+
+
+
+```
+
+```{r}
+#SJPLOT | MODEL | TABLE
+tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+# models <- list("odds ratios" = m, "(log odds)" = m)
+# notes = list('"* p < 0.05, ** p < 0.01, *** p < 0.001"',
+#                'N(subject) = 133 $\tau_{00}$(subject) = 34.85',
+#              'N(question) = 13 $\tau_{00}$(question) = 1.14')
+# 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              gof_map = c("AIC", "sigma"),
+#              gof_omit = 'RMSE|ICC|BIC',
+#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
+#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
+#              notes = notes,
+#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_online.tex")
+# # #              # coef_omit = "Intercept",
+```
+
+##### Diagnostics
+
+```{r}
+#| warning: false
+#| message: false
+
+# print("SANITY CHECK REPORTING")
+# report(m)
+
+# print("MODEL PERFORMANCE")
+# performance(m)
+
+print("DIAGNOSTICS")
+check_model(m)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
