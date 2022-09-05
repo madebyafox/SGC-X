@@ -48,7 +48,7 @@ options(scipen=1, digits=3)
 #setwd(imac)
 
 #IMPORT DATA 
-df_subjects <- read_rds('analysis/SGC4B/data/0-session-level/sgc4b_participants.rds')
+df_subjects <- read_rds('analysis/SGC4B/data/1-study-level/sgc4b_participants.rds')
  
 ```
 
@@ -63,8 +63,8 @@ cont %>%  addmargins() %>% kbl(caption = title, col.names = cols) %>% kable_clas
 
 ### Hypotheses
 
-**Experimental Hypothesis:**   
-_We hypothesize that the design of the MARK that represents an individual data point can also influence the interpretation of the coordinate system, even though it does not explicitly represent any aspect of the coordinate system, and that is not the function of the mark in the graphical framework. Marks can provide visual cues that direct the reader toward more appropriate interpretations._
+**Experimental Hypothesis:**\
+*We hypothesize that the design of the MARK that represents an individual data point can also influence the interpretation of the coordinate system, even though it does not explicitly represent any aspect of the coordinate system, and that is not the function of the mark in the graphical framework. Marks can provide visual cues that direct the reader toward more appropriate interpretations.*
 
 -   H1 The ARROW condition should yield significantly better performance
     -   H1A \| ARROW condition should yield higher total absolute score
@@ -249,6 +249,8 @@ nrow(df_items) == 15* nrow(df_subjects) #TRUE
 #each subject should have 15 items
 df_items %>% group_by(subject) %>% summarise(n = n()) %>% filter(n != 15) %>% nrow() == 0
 
+table(df_subjects$condition)
+
 ```
 
 #### Export
@@ -273,7 +275,6 @@ rio::export(df_subjects, "analysis/SGC4B/data/1-study-level/sgc4b_participants.r
 rio::export(df_items, "analysis/SGC4B/data/1-study-level/sgc4b_items.rds") # to R data structure file
 
 ```
-
 
 ## RESOURCES
 
