@@ -266,6 +266,34 @@ gf_props(~task_percent,
 ##### Present
 
 
+```{r}
+##ALTERNATIVE FORM 
+
+p <- grouped_ggbetweenstats(data = df_s,
+                       y = task_percent, x = EXPLICIT, grouping.var = IMPLICIT,
+               plot.type = "box", 
+               type = "nonparametric", var.equal = FALSE,
+               centrality.type = "parametric",
+               package = "RColorBrewer",
+               palette = "PRGn",
+               centrality.point.args = list(color="black", size = 3, shape = 1),
+               results.subtitle = TRUE,
+               # point.args = list(alpha=0), #suppress points
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  # aes(color = IMPLICIT, fill = IMPLICIT),
+                  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  # scale_fill_manual(values = paletteer::paletteer_c("viridis::viridis", 3))
+                  # theme(axis.text.x = element_text(angle = 90)
+                )) 
+
+p1 <- p[[1]] + coord_flip()
+p2 <- p[[2]] + coord_flip()
+
+(t <- cowplot::plot_grid(p1,  p2, ncol=1))
+
+```
+
 
 ```{r}
 #| warning: false
@@ -485,6 +513,9 @@ performance(mm.IErSQ)
 
 To quantify the effect of IMPLICIT and EXPLICIT scaffolding techniques on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, and IMPLICIT, EXPLICIT and their interaction term as fixed effects. A likelihood ratio test indicates that a model including both fixed effect and their interaction term is a significantly better fit to the data than random-intercepts only baseline model $chi^2(3,8) = 161.93, p < 0.001$
 
+A likelihood ratio test indicates that a model including both fixed effects and their interaction term is a significantly better fit to the data than a simpler main-effects (with random-intercepts) model ($\chi^2(6,8) = 8.20, p < 0.05$)
+
+
 The explanatory power of the final model is substantial (conditional R2 = 0.83) and the part related to the fixed effects EXPLICIT and IMPLICIT scaffolding (marginal R2) explains 32% of variance.
 
 
@@ -495,7 +526,8 @@ The explanatory power of the final model is substantial (conditional R2 = 0.83) 
 
 # best model
 m <- mm.IErSQ
-m %>% write_rds(file = "analysis/SGC3B/models/sgc3b_glmer_acc_mm.IErSQ.rds")
+# m %>% write_rds(file = "analysis/SGC3B/models/sgc3b_glmer_acc_mm.IErSQ.rds")
+m <- read_rds(file = "analysis/SGC3B/models/sgc3b_glmer_acc_mm.IErSQ.rds" )
 
 #::::::::: PRINT MODEL 
 
@@ -981,7 +1013,7 @@ Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q),
 #substantial evidence in favor of conditon model over random only BF 1.64e+16
 
 # CONDITION * OSPAN MODEL
-Bmm.cat.IErSQ  <- brm( state ~ IMPLICIT + EXPLICIT + (1|subject) + (1|q), 
+Bmm.cat.I.ErSQ  <- brm( state ~ IMPLICIT + EXPLICIT + (1|subject) + (1|q), 
                  data = df_i, 
                  prior = me_priors,
                  family = "categorical",
@@ -990,12 +1022,12 @@ Bmm.cat.IErSQ  <- brm( state ~ IMPLICIT + EXPLICIT + (1|subject) + (1|q),
                  save_pars = save_pars(all = TRUE),
                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
                  # backend = "cmdstanr",
-                 file ="analysis/SGC3B/models/sgc3b_brms_state_Bmm.cat.IErSQ.rds")
+                 file ="analysis/SGC3B/models/sgc3b_brms_state_Bmm.cat.I.ErSQ.rds")
 
 
 
 # CONDITION * OSPAN MODEL
-Bmm.cat.I.ErSQ  <- brm( state ~ IMPLICIT*EXPLICIT + (1|subject) + (1|q), 
+Bmm.cat.IErSQ  <- brm( state ~ IMPLICIT*EXPLICIT + (1|subject) + (1|q), 
                  data = df_i, 
                  prior = ixn_priors,
                  family = "categorical",
@@ -1004,12 +1036,12 @@ Bmm.cat.I.ErSQ  <- brm( state ~ IMPLICIT*EXPLICIT + (1|subject) + (1|q),
                  save_pars = save_pars(all = TRUE),
                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
                  # backend = "cmdstanr",
-                 file ="analysis/SGC3B/models/sgc3b_brms_state_Bmm.cat.I.ErSQ.rds")
+                 file ="analysis/SGC3B/models/sgc3b_brms_state_Bmm.cat.IErSQ.rds")
 
 
 ##MODEL COMPARISON
 print("IS FACTORIAL better than MAIN EFFECTS model?")
-(b <- bayesfactor(Bmm.cat.I.ErSQ, Bmm.cat.IErSQ))
+(b <- bayesfactor(Bmm.cat.IErSQ,Bmm.cat.I.ErSQ))
 compare_models(Bmm.cat.I.ErSQ, Bmm.cat.IErSQ)
 
 ```
@@ -1018,9 +1050,15 @@ compare_models(Bmm.cat.I.ErSQ, Bmm.cat.IErSQ)
 
 To quantify the effect of IMPLICIT and EXPLICIT scaffolding on INTERPRETATION, we fit a (bayesian) mixed multinomial regression model with random intercepts for subjects and questions. 
 
+A Bayes Factor analysis comparing a main effects only model vs a more complex model including the interaction term between IMPLICIT and EXPLICIT scaffold indicates extreme evidence in favor of the simpler main effects only model (BF = 4.04 e+122).
+
+
+(old, removed)
 A Bayes Factor model comparison (against a random intercepts only model) indicates extreme evidence for the final model including fixed effects of IMPLICIT, EXPLICIT and their interaction term (BF = 6.89e+125)
 
 (note, the BF may change as it is estimated via simulation each time)
+
+Thus, we proceed with the simpler, main effects only model
 
 ##### Describe
 

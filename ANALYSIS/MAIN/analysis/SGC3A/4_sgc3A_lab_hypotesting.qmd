@@ -38,6 +38,7 @@ library(ggbeeswarm) # violin plot stuffs
 library(statsExpressions)
 library(ggstatsplot) #plots with stats
 library(modelsummary) #latex tables for models!
+library(scales)
 
 #MODELLING
 # library(rstatix) #helpful testing functions incl wilcoxon, etc
@@ -80,6 +81,8 @@ options(scipen=1, digits=3)
 theme_clean <- function() {
   theme_minimal(base_family = "Barlow Semi Condensed") +
     theme(panel.grid.minor = element_blank(),
+          # plot.title.position = "plot",
+          # plot.caption.position = "plot",
           plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
           axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
           strip.text = element_text(family = "BarlowSemiCondensed-Bold",
@@ -88,6 +91,9 @@ theme_clean <- function() {
 }
 
 set_theme(base = theme_clean())
+
+##IMPORT CUSTOM COLOR PALETTES
+source("analysis/utils/foxy_palettes.R")
 
 set.seed(1234)
 
@@ -228,6 +234,8 @@ df_s <- df_subjects %>%
 ```
 
 #### Visualize
+
+##### Explore 
 ```{r}
 #| label: DESC-ACC
 
@@ -236,7 +244,8 @@ df_i %>%
   ggplot(data = .,
          mapping = aes(x = pretty_condition,
                        fill = accuracy)) +
-  geom_bar(position = "fill", width = 0.75 ) + #,color = "black") +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  # scale_fill_foxy(discrete = TRUE, "accuracy")  +
   scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
   # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::Jewel_Bright", 2))+
   # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 2))+
@@ -249,28 +258,6 @@ df_i %>%
        y = "Proportion of Questions",
        fill = "",
        subtitle="Impasse Condition yields a greater proportion of correct responses")
-
-
-#:::::::: LABELLED 
-
-temp <- df_i %>% mutate(
-  accuracy = fct_rev(accuracy)
-)  
-
-p <-   ggbarstats(data = temp, x = accuracy, y = pretty_condition,
-               results.subtitle = FALSE,
-               ggplot.component = ## modify further with `{ggplot2}` functions
-                list(
-                  scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
-                  # theme(axis.text.x = element_text(angle = 90)))
-               ))  + theme_clean() + theme(legend.position = "bottom")
-
-p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
-         y = "Proportion of Questions", x = "Condition",
-         subtitle = "Impasse condition yields more correct responses")
-
-p
-# ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
 
 ```
 
@@ -301,12 +288,14 @@ gf_props(~task_percent,
        subtitle = "") + theme(legend.position = "blank")
 ```
 
+#### Present
 ```{r}
 #:::::::: RAINCLOUD WITH STATS
   
-df <- df_s %>% mutate(task_percent = task_percent*100)
+df <- df_s %>% mutate(task_percent = task_percent*100,
+                      condition = fct_rev(pretty_condition))
 
-p <-   ggbetweenstats(data = df, x = pretty_condition, y = task_percent,
+p <-   ggbetweenstats(data = df, x = condition, y = task_percent,
                plot.type = "box", type = "nonparametric", var.equal = FALSE,
                centrality.type = "parametric",
                # package = "RColorBrewer",
@@ -350,10 +339,57 @@ p <- p + labs(title = "STUDY 3A | Distribution of Total Score",
          subtitle = "Impasse condition yields greater variance and more high scores")
 
 p
-# ggsave(p, filename = "figures/SGC3A_LAB_totalscore.png", width = 6, height =4)
+ggsave(p, filename = "figures/SGC3A_LAB_totalscore.png", width = 6, height =4)
+ggsave(p, filename = "figures/SGC3A_LAB_totalscore.svg", width = 6, height =4)
 
 ```
 
+```{r}
+
+#:::::::: LABELLED 
+
+# temp <- df_i %>% mutate(
+#   accuracy = fct_rev(accuracy)
+# )  
+# 
+# p <-  
+# ggbarstats(data = temp, x = accuracy, y = pretty_condition,
+#                results.subtitle = FALSE,
+#                ggplot.component = ## modify further with `{ggplot2}` functions
+#                 list(
+#                   scale_fill_foxy(discrete = TRUE, "accuracy")
+#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # theme(axis.text.x = element_text(angle = 90)))
+#                ))  + theme_clean() + theme(legend.position = "bottom")
+# 
+# p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
+#          y = "Proportion of Questions", x = "Condition",
+#          subtitle = "")
+# 
+# p 
+
+
+p <- df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  scale_fill_foxy(discrete = TRUE, "accuracy")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
+  # facet_wrap(~pretty_mode) + 
+  # coord_flip() +
+  theme(legend.position="bottom")+
+   labs(title = "DISTRIBUTION | Question Accuracy",
+       x = "Condition",
+       y = "Proportion of Questions",
+       fill = "",
+       subtitle="")
+p
+ggsave(p, filename = "figures/SGC3A_LAB_accuracy.png", width = 6, height =4)
+
+
+```
 
 ### Describe
 ```{r}
@@ -669,6 +705,23 @@ preds %>%
 # PLOT estimates of random effects
 # plotREsim(reEx)
 ```
+
+```{r}
+#SJPLOT | MODEL | ODDS RATIO
+(p <- plot_model(m, transform = "exp",
+           vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.05, #manually adjust to account for directional test
+           ci.lvl = 0.95 ) + #manually adjusted for directional test   
+  labs(title = "MODEL ESTIMATE | Odds Ratio",
+       subtitle = "",
+       x = "Condition"))
+ggsave(p, filename = "figures/SGC3A_LAB_accuracy_model.png", width = 6, height =4)
+
+```
+
+##### Present 
 ```{r}
 #SJPLOT | MODEL | PROBABILITIES
 p <- plot_model(m, type = "pred")[[1]]  +
@@ -680,7 +733,7 @@ p <- plot_model(m, type = "pred")[[1]]  +
   )
 
 p
-# ggsave(p, filename = "figures/SGC3A_LAB_Accuracy_Predictions.png", width = 4, height =4)
+ggsave(p, filename = "figures/SGC3A_LAB_accuracy_predictions.png", width = 4, height =4)
 
 ```
 
@@ -845,7 +898,8 @@ While absolute accuracy score tells us whether a participant successfully interp
 ```{r}
 #| label: SETUP-STATE
 
-df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
+  dplyr::select(q,subject,state,pretty_condition)
 
 ```
 
@@ -880,27 +934,49 @@ df_i %>%
        subtitle="")
 
 ```
+
+#### Present
 ```{r}
 #:::::::: LABELLED 
-
+# 
 temp <- df_i %>% mutate(
   state = fct_rev(state)
-)  
-
-p <-   ggbarstats(data = temp, x = state, y = pretty_condition,
+)
+# 
+# p <-   
+ggbarstats(data = temp, x = state, y = pretty_condition,
                results.subtitle = FALSE,
                ggplot.component = ## modify further with `{ggplot2}` functions
                 list(
-                  scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+                  scale_fill_foxy(discrete = TRUE, "state")
+                  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
                   # theme(axis.text.x = element_text(angle = 90)))
                ))  + theme_clean() + theme(legend.position = "bottom")
+# 
+# p <- p + labs(title = "DISTRIBUTION | Interpretation",
+#          y = "Proportion of Questions", x = "Condition",
+#          subtitle = "")
+# 
+# p
 
-p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
-         y = "Proportion of Questions", x = "Condition",
-         subtitle = "Impasse condition yields more correct responses")
 
+p <- df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  scale_fill_foxy(discrete = TRUE, "state")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))+
+  # facet_wrap(~pretty_mode) + 
+  theme(legend.position = "bottom")+
+   labs(title = "DISTRIBUTION | Question Interpretation",
+       x = "Condition",
+       y = "Proportion of Questions",
+       fill = "",
+       subtitle="")
 p
-# ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
+ggsave(p, filename = "figures/SGC3A_LAB_interpretation.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_Interpretation.svg", width = 6, height =4)
 
 
 
@@ -1202,13 +1278,13 @@ Across the entire task participants in the impasse condition were 12 times more 
 
 # ## POINT ESTIMATES IN PROBABILITY
 # #1 | get draws
-# draws <- df_i %>%
-#   data_grid(pretty_condition, subject, q) %>%
-#   add_fitted_draws(Bmm.cat.CrSQ,
-#                    # n = 100,
-#                    # dpar = TRUE,
-#                    # transform = TRUE, #gives prob%, otherwise OR
-#                    re_formula = NA)
+draws <- df_i %>%
+  data_grid(pretty_condition, subject, q) %>%
+  add_fitted_draws(Bmm.cat.CrSQ,
+                   # n = 100,
+                   # dpar = TRUE,
+                   # transform = TRUE, #gives prob%, otherwise OR
+                   re_formula = NA)
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 # 
 # #2 | SUMMARIZE draws 
@@ -1311,14 +1387,16 @@ plot_model(m, type = "pred",
 ## VIS probability of correct response
 #TAKES A REALLY LONG TIME
 
+library(modelr)
 #1 | get draws
-draws <- df_i %>%
-  data_grid(pretty_condition, subject, q) %>%
-  add_fitted_draws(Bmm.cat.CrSQ,
-                   # n = 100,
-                   # dpar = TRUE,
-                   # transform = TRUE, #gives prob%, otherwise OR
-                   re_formula = NA)
+# draws <- df_i %>%
+#   modelr::data_grid(pretty_condition, subject, q) %>%
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#   # add_epred_draws(m)
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 
 #OR load from file
@@ -1345,6 +1423,24 @@ d <- draws %>% sample_n(10) %>%
 d
 ```
 
+##### Present
+
+```{r}
+
+library(ggeffects)
+p <- ggpredict(m, terms = c("pretty_condition")) %>% 
+  plot(connect.lines = TRUE) + 
+  scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
+  # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
+  # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
+  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 2)) + 
+  theme_clean() + labs(
+  title = "MODEL | Predicted probability of correct response",
+  x = "Condition"
+) + theme(legend.position="bottom")
+
+ggsave(p, filename = "figures/SG3A_LAB_interpretation_predictions.png", width = 6, height =4)
+```
 
 
 ##### Diagnostics
