@@ -334,7 +334,7 @@ Participants answering with options _I didn't try very hard, or rushed through t
 
 #DISCARD participants who indicated they did not expend adequate effort on the study
 exclude_effort <- df_participants %>% 
-          filter(effort %in% effort_exclusion) %>% 
+          filter(effort %in% c("I didn't try very hard, or rushed through the questions")) %>% 
           mutate(reason="selfrated-effort")
 
 ex_participants <- rbind(ex_participants, exclude_effort)
@@ -344,7 +344,7 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_12 participants are excluded for low (self-rated) effort._
+_3 participants are excluded for low (self-rated) effort._
 
 
 ### Attention Check
@@ -362,18 +362,17 @@ Participants who answered the attention check question incorrectly should be exc
 ```{r handle-ATTN}
 
 #DISCARD participants who indicated they did not expend adequate effort on the study
-exclude_attn <- df_participants %>% 
-          filter(attn_check == FALSE) %>% 
-          mutate(reason="failed-attnchk")
-
-ex_participants <- rbind(ex_participants, exclude_attn)
-rm(exclude_attn)     
-
-df_participants <- df_participants %>% 
-  filter( ! subject %in% ex_participants$subject)
+# exclude_attn <- df_participants %>% 
+#           filter(attn_check == FALSE) %>% 
+#           mutate(reason="failed-attnchk")
+# 
+# ex_participants <- rbind(ex_participants, exclude_attn)
+# rm(exclude_attn)     
+# 
+# df_participants <- df_participants %>% 
+#   filter( ! subject %in% ex_participants$subject)
 ```
 
-_11 participants are excluded for failing the attention check question._
 
 
 ### Items
