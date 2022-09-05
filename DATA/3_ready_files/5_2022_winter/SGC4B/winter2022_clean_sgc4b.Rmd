@@ -60,7 +60,7 @@ df_items$term <- "winter22"
 #DEFINE SGC_4A validity crieria
 sessions <- c('wi22sona') #SGC4B second online replication on SONA 
 conditions <-c(11111,1112,1113) #3 conditions
-violation_threshold = 3 #number of allowable browser violations
+violation_threshold = 4  #number of allowable browser violations
 effort_exclusion = c("I didn't try very hard, or rushed through the questions", "I started out trying hard, but gave up at some point")
 n_items = 15 #fifteen items is complete dataset per participant
 
@@ -336,7 +336,7 @@ df_participants %>% group_by(violations) %>%
 
 #DISCARD participants exceeding the threshold of browser interaction violations 
 exclude_violations <- df_participants %>% 
-          filter(violations > violation_threshold) %>% 
+          filter(violations > violation_threshold ) %>% 
           mutate(reason="exceeded-violations")
 
 ex_participants <- rbind(ex_participants, exclude_violations)
@@ -347,7 +347,7 @@ df_participants <- df_participants %>%
 
 ```
 
-_Thirty seven participants were excluded for exceeding the maximum allowed number of browser interaction violations._
+_20 participants were excluded for exceeding the maximum allowed number of browser interaction violations._
 
 
 ### Effort
@@ -376,7 +376,7 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Thirty-six participants are excluded for low (self-rated) effort._
+_Thirty-nine participants are excluded for low (self-rated) effort._
 
 
 ### Attention Check
@@ -385,7 +385,7 @@ The 6th question in the study is non-discriminatory (can easily get correct answ
 
 ```{r inspect-ATTN, message=FALSE}
 #MANUALLY INSPECT attention
-df_participants %>% group_by(attn_check) %>% 
+df_participants %>% group_by(attn_check, condition) %>% 
   dplyr::summarize(n=n())
 ```
 
@@ -394,18 +394,18 @@ Participants who answered the attention check question incorrectly should be exc
 ```{r handle-ATTN}
 
 #DISCARD participants who indicated they did not expend adequate effort on the study
-exclude_attn <- df_participants %>% 
-          filter(attn_check == FALSE) %>% 
+exclude_attn <- df_participants %>%
+          filter(attn_check == FALSE & condition == 1112) %>%
           mutate(reason="failed-attnchk")
 
 ex_participants <- rbind(ex_participants, exclude_attn)
-rm(exclude_attn)     
+rm(exclude_attn)
 
-df_participants <- df_participants %>% 
+df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Twenty three participants are excluded for failing the attention check question._
+_Nine participants are excluded for failing the attention check question._
 
 
 ### Items
