@@ -218,6 +218,16 @@ temp <- temp %>% mutate_when(
   override = "TRI"
 )
 
+## CONTROL. Q==1. TRI --> OTHER
+temp <- temp %>% mutate_when(
+  (q==1) & (IMPASSE =="none") & (response == "FHK"),
+  # tv_type = "score_TV_start",
+  int2 = "?", #override from ?
+  interpretation = "?", #override from ?
+  high_interpretation = "neg.trans",
+  override = "TRI"
+)
+
 ## IMPASS Q==2. "EK" derives as 'TRI', should be tversky MAX
 temp <- temp %>% mutate_when(
   (q==2) & (IMPASSE =="IMPASSE") & (response == "EK"),
@@ -227,6 +237,17 @@ temp <- temp %>% mutate_when(
   high_interpretation = "pos.trans",
   override = "?"
 )
+
+## IMPASS Q==2. TRI --> ?
+temp <- temp %>% mutate_when(
+  (q==2) & (IMPASSE =="none") & (response == "HKU"),
+  # tv_type = "score_TV_max",
+  int2 = "?", 
+  interpretation = "?", 
+  high_interpretation = "neg.trans",
+  override = "TRI"
+)
+
 
 ## CONTROL. Q==3. "A" derives as 'unknown', should be tversky duration
 #codes as unknown bc there are 2 other along that line, but A is the closest (shortcut)
@@ -239,7 +260,7 @@ temp <- temp %>% mutate_when(
   override = "?"
 )
 
-
+  
 ## CONTROL  Q==3 "AF" derives as TRI. hardcode as "both"
 temp <- temp %>% mutate_when(
   (q==3) & (IMPASSE =="none") & (response == "AF"),
@@ -252,10 +273,10 @@ temp <- temp %>% mutate_when(
 
 ## CONTROL  Q==3 derives as TRI. hardcode as "unknown"
 temp <- temp %>% mutate_when(
-  (q==3) & (IMPASSE =="none") & (response %in% c("EFK","FO")),
-  int2 = "?", #override from TRI
-  interpretation = "?", #override from TRI
-  high_interpretation = "neg.trans", #override from triangular
+  (q==3) & (IMPASSE =="none") & (response %in% c("EFK","FO", "FU","FIUX")),
+  int2 = "?", 
+  interpretation = "?", 
+  high_interpretation = "neg.trans", 
   override = "Triangular"
 )
 
@@ -329,7 +350,7 @@ temp <- temp %>% mutate_when(
 
 ## CONTROL Q==4  DERIVES as TRI Recode as ?
 temp <- temp %>% mutate_when(
-  (q==4) & (IMPASSE =="none") & (response %in% c("HJ","HJK") ),
+  (q==4) & (IMPASSE =="none") & (response %in% c("HJ","HJK","EFH") ),
   int2 = "?", 
   interpretation = "?", 
   high_interpretation = "neg.trans", 
@@ -468,7 +489,7 @@ temp <- temp %>% mutate_when(
 
 ## CONTROL Q==5  Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==5) & (IMPASSE =="none") & (response %in% c("HO","FO","DJO","FGKO")),
+  (q==5) & (IMPASSE =="none") & (response %in% c("HO","FO","DJO","FGKO", "HJO")),
   int2 = "?", 
   interpretation = "?", 
   high_interpretation = "neg.trans", 
@@ -496,7 +517,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==7 Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==7 & response %in% c("MO","AX","FJOX","IO")) ,
+  (q==7 & response %in% c("MO","AX","FJOX","IO","IJOX")) ,
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -521,6 +542,15 @@ temp <- temp %>% mutate_when(
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
+  override = "Triangular"
+)
+
+##  Q==10 Derives as TRI -->
+temp <- temp %>% mutate_when(
+  (q==10)  & (response %in% c("BEH","BE","BEF")),
+  int2 = "?", 
+  interpretation = "?", 
+  high_interpretation = "neg.trans", 
   override = "Triangular"
 )
 
@@ -573,12 +603,14 @@ temp <- temp %>% mutate_when(
 
 ##  Q==12 Derives as TRI set at Tversky
 temp <- temp %>% mutate_when(
-  (q==12)  & (response %in% c("GP", "EG")),
+  (q==12)  & (response %in% c("GP", "EG","GLM")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
   override = "Triangular"
 )
+
+
 
 ##  Q==13 E Derives as TRI but incorrect
 ##LEAVE AS TRI + OVERRIDE SCORENABS
@@ -612,7 +644,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==14  Derives as TRI set at Angular
 temp <- temp %>% mutate_when(
-  (q==14)  & (response %in% c("FX","CX","EFX", "OX", "JX", "EX")),
+  (q==14)  & (response %in% c("FX","CX","EFX", "OX", "JX", "EX","HX")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
@@ -621,7 +653,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==14  Derives as TRI set at OTHER
 temp <- temp %>% mutate_when(
-  (q==14)  & (response %in% c("AX")),
+  (q==14)  & (response %in% c("AX", "ILOX")),
   int2 = "?", 
   interpretation = "?", 
   high_interpretation = "neg.trans",
@@ -655,7 +687,7 @@ temp <- temp %>% mutate_when(
 temp <- temp %>% mutate_when(
   (q==15)  & (response %in% c("DJNX", "OX", "AK","DNX", "AX","ACX",
                               "AGX","CGX","CKX","DKL","GX","GX","HOX",
-                              "HX","JNX")),
+                              "HX","JNX","NX")),
   # tv_type = "score_TV_duration",
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
@@ -864,15 +896,15 @@ gf_props(~s_SCALED, fill = ~pretty_condition, data = df_subjects)  %>%
   scale_fill_discrete(name = "Condition") +  
   theme_minimal()
 
-#DISTRIBUTION SCALED SCORE TEST PHASE
-gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>% 
-  gf_facet_grid(SHAPE~ROTATION) + 
-  labs( x = "Scaled Score in TEST Phase", 
-        title = "Distribution of TEST PHASE Scaled Score (all Items)",
-        subtitle = paste(""),
-        y = "Proportion of Items") +
-  scale_fill_discrete(name = "Condition") +  
-  theme_minimal()
+# #DISTRIBUTION SCALED SCORE TEST PHASE
+# gf_histogram(~item_test_SCALED, fill = ~pretty_condition, data = df_subjects) %>% 
+#   # gf_facet_grid(SHAPE~ROTATION) + 
+#   labs( x = "Scaled Score in TEST Phase", 
+#         title = "Distribution of TEST PHASE Scaled Score (all Items)",
+#         subtitle = paste(""),
+#         y = "Proportion of Items") +
+#   scale_fill_discrete(name = "Condition") +  
+#   theme_minimal()
 
 ```
 
@@ -915,71 +947,44 @@ ggbarstats( data = df, x = high_interpretation, y = pretty_condition)
 ```{r}
 #| label: VIZ-PROGRESS
 
-
-df_absolute_progress <- df_absolute_progress %>%
-  mutate(
-   pretty_condition = recode_factor(pretty_condition,
-                                     "control" = "ORTH-0",
-                                     "Tri-Sparse" = "TRI-0",
-                                     "ORTH-rotate-45" = "ORTH-45",
-                                     "TRI-rotate-45" =  "TRI-45",
-                                     "ORTH-rotate-90" = "ORTH-90",
-                                     "TRI-rotate-90" = "TRI-90"),
-    ROTATION = recode_factor(pretty_condition,
-                                     "ORTH-0" = "0",
-                                     "TRI-0" = "0",
-                                     "ORTH-45" = "45",
-                                     "TRI-45" = "45",
-                                     "ORTH-90" = "90",
-                                     "TRI-90" = "90"),
-    SHAPE = recode_factor(pretty_condition,
-                                   "ORTH-0" = "ORTH",
-                                   "TRI-0" = "TRI",
-                                   "ORTH-45" = "ORTH",
-                                   "TRI-45" = "TRI",
-                                   "ORTH-90" = "ORTH",
-                                   "TRI-90" = "TRI"
-  ))
-
-
 #VISUALIZE progress over time ABSOLUTE score 
 ggplot(data = df_absolute_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_grid(SHAPE~ROTATION) + 
+ facet_grid(~pretty_condition) +
  labs (title = "Cumulative Absolute Score over sequence of task", x = "Question" , y = "Cumulative Absolute Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
 
-df_scaled_progress <- df_scaled_progress %>%
-  mutate(
-   pretty_condition = recode_factor(pretty_condition,
-                                     "control" = "ORTH-0",
-                                     "Tri-Sparse" = "TRI-0",
-                                     "ORTH-rotate-45" = "ORTH-45",
-                                     "TRI-rotate-45" =  "TRI-45",
-                                     "ORTH-rotate-90" = "ORTH-90",
-                                     "TRI-rotate-90" = "TRI-90"),
-    ROTATION = recode_factor(pretty_condition,
-                                     "ORTH-0" = "0",
-                                     "TRI-0" = "0",
-                                     "ORTH-45" = "45",
-                                     "TRI-45" = "45",
-                                     "ORTH-90" = "90",
-                                     "TRI-90" = "90"),
-    SHAPE = recode_factor(pretty_condition,
-                                   "ORTH-0" = "ORTH",
-                                   "TRI-0" = "TRI",
-                                   "ORTH-45" = "ORTH",
-                                   "TRI-45" = "TRI",
-                                   "ORTH-90" = "ORTH",
-                                   "TRI-90" = "TRI"
-  ))
+# df_scaled_progress <- df_scaled_progress %>%
+#   mutate(
+#    pretty_condition = recode_factor(pretty_condition,
+#                                      "control" = "ORTH-0",
+#                                      "Tri-Sparse" = "TRI-0",
+#                                      "ORTH-rotate-45" = "ORTH-45",
+#                                      "TRI-rotate-45" =  "TRI-45",
+#                                      "ORTH-rotate-90" = "ORTH-90",
+#                                      "TRI-rotate-90" = "TRI-90"),
+#     ROTATION = recode_factor(pretty_condition,
+#                                      "ORTH-0" = "0",
+#                                      "TRI-0" = "0",
+#                                      "ORTH-45" = "45",
+#                                      "TRI-45" = "45",
+#                                      "ORTH-90" = "90",
+#                                      "TRI-90" = "90"),
+#     SHAPE = recode_factor(pretty_condition,
+#                                    "ORTH-0" = "ORTH",
+#                                    "TRI-0" = "TRI",
+#                                    "ORTH-45" = "ORTH",
+#                                    "TRI-45" = "TRI",
+#                                    "ORTH-90" = "ORTH",
+#                                    "TRI-90" = "TRI"
+#   ))
 
 
 #VISUALIZE progress over time SCALED score 
 ggplot(data = df_scaled_progress, aes(x = question, y = score, group = subject, alpha = 0.01, color = pretty_condition)) + 
  geom_line(position=position_jitter(w=0.15, h=0.15), size=0.1) +
- facet_grid(SHAPE~ROTATION) + 
+ facet_grid(~pretty_condition) + 
  labs (title = "Cumulative Scaled Score over sequence of task", x = "Question" , y = "Cumulative Scaled Score") + 
  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12,13)) +
  theme_minimal() + theme(legend.position = "blank")
@@ -1026,14 +1031,10 @@ gf_histogram(~ s_SATISFICE, fill = ~pretty_condition, data = df_subjects) %>%
 
 ```{r}
 
-grouped_ggbetweenstats( data = df_subjects,
-                x = ROTATION, y = s_NABS, grouping.var = SHAPE,
+ggbetweenstats( data = df_subjects,
+                x = pretty_condition, y = s_NABS,
                 type = "non-parametric") 
 
-
-grouped_ggbarstats( data = df_items,
-                x = score_niceABS, y = SHAPE, grouping.var = ROTATION,
-                type = "non-parametric")
 
 ```
 

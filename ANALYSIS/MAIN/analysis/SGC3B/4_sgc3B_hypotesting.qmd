@@ -2,9 +2,9 @@
 subtitle: 'Study SGC3B | (Impasse * Explicit) Hypothesis Testing'
 # YAML FOR generating modelsummary tables
 # uncomment to run those  cells only 
-# \usepackage{booktabs}
-# \usepackage{siunitx}
-# \newcolumntype{d}{S[input-symbols = ()]}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\newcolumntype{d}{S[input-symbols = ()]}
 ---
 
 \newpage
@@ -1038,11 +1038,19 @@ Bmm.cat.IErSQ  <- brm( state ~ IMPLICIT*EXPLICIT + (1|subject) + (1|q),
                  # backend = "cmdstanr",
                  file ="analysis/SGC3B/models/sgc3b_brms_state_Bmm.cat.IErSQ.rds")
 
+```
 
+```{r}
 ##MODEL COMPARISON
 print("IS FACTORIAL better than MAIN EFFECTS model?")
-(b <- bayesfactor(Bmm.cat.IErSQ,Bmm.cat.I.ErSQ))
+(b2 <- bayesfactor(Bmm.cat.IErSQ,Bmm.cat.I.ErSQ))
 compare_models(Bmm.cat.I.ErSQ, Bmm.cat.IErSQ)
+
+
+##MODEL COMPARISON
+print("IS FACTORIAL better than RANDOM EFFECTS model?")
+(b <- bayesfactor(Bmm.cat.I.ErSQ,Bmm.cat.rSQ))
+
 
 ```
 
@@ -1333,40 +1341,57 @@ preds %>%
 
 ```
 
+##### Print 
 ```{r}
-#| label: TBL-BRMS-STATE
+#| label: MODEL-TBL-STATE
 
-#DISPLAY MODEL AS TABLE
-tab_model(m)
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
 
 # #MODEL SUMMARY | save latex table
-# models <- list("odds ratios" = m, "(log odds)" = m)
-# notes = list('"* p < 0.05, ** p < 0.01, *** p < 0.001"',
-#                'N(subject) = 133 $\tau_{00}$(subject) = 34.85',
-#              'N(question) = 13 $\tau_{00}$(question) = 1.14')
+#model summary doesn't work for brms multinomial
+
+# DOESN'T WORK FOR BRMS
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
 # 
-# modelsummary(models,
-#              exponentiate = c(TRUE, FALSE),
-#              shape = term ~ model + statistic,
-#              fmt = 2, #two digits w/ trailing zero
-#              estimate  = "{estimate} {stars}",
-#              statistic = "conf.int",
-#              gof_map = c("AIC", "sigma"),
-#              gof_omit = 'RMSE|ICC|BIC',
-#              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
-#              title = 'Accuracy ~ Condition (Mixed Logistic Regression)',
-#              notes = notes,
-#              output = "analysis/SGC3A/models/tables/GLMER_OverallAccuracy_online.tex")
-# # #              # coef_omit = "Intercept",
-#TODO OUTPUT TABLE 
+# 
+# #GET MODEL ESTIMATES
+t <- as.data.frame(model_parameters(m, exponentiate = TRUE))
 
-#https://arelbundock.com/posts/modelsummary_multinomial_logit/
-# modelsummary(m)
+# # #REFORMAT
+x <- t %>%
+  mutate(
+    Parameter = str_remove_all(Parameter,"_pretty"),
+    Parameter = str_remove_all(Parameter,"b_mu"),
+    Interpretation = word(Parameter, 1, sep = "_"),
+    Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),
+    Factor = word(Parameter, 2, sep = "_"),
+    Factor = recode_factor(Factor,
+                         "Intercept" = "(Intercept)",
+                         "IMPLICITimpasse" = "Implicit[impasse]",
+                         "EXPLICITimg" = "Explicit[image]",
+                         "EXPLICITixn" = "Explicit[interactive]"),
+    Median = round(Median,2),
+    CI_low = round(CI_low,2),
+    CI_high = round(CI_high,2),
+    pd = round(pd,2),
+    ROPE_Percentage = round(ROPE_Percentage,2)) %>%
+  arrange(Interpretation) %>%
+  dplyr::select(-CI, -Rhat, -ESS) %>%
+  rename( "%_in_ROPE"="ROPE_Percentage",
+  "(Odds Ratio)" = "Median") %>%
+  dplyr::select(Interpretation, Factor, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)
 
+# # #KNIT
+title = "Study 3B (Explicit (vs) Implicit) | Question Interpretation "
+tab <- kbl(x, format = "latex", caption = title,
+           booktabs = FALSE) %>% kable_classic() 
+# tab
+# footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", "format( exp(b$log_BF[2]), digits =2 )" ), footnote_as_chunk = T, general_title = "")
+writeLines(tab, "tables/SGC3B_BRMS_state.tex")
 
 
 ```
-
 ##### Diagnostics
 
 ```{r}

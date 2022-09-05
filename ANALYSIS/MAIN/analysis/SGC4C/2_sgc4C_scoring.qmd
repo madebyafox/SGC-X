@@ -218,6 +218,16 @@ temp <- temp %>% mutate_when(
   override = "TRI"
 )
 
+## CONTROL. Q==1. TRI --> OTHER
+temp <- temp %>% mutate_when(
+  (q==1) & (IMPASSE =="none") & (response == "FHK"),
+  # tv_type = "score_TV_start",
+  int2 = "?", #override from ?
+  interpretation = "?", #override from ?
+  high_interpretation = "neg.trans",
+  override = "TRI"
+)
+
 ## IMPASS Q==2. "EK" derives as 'TRI', should be tversky MAX
 temp <- temp %>% mutate_when(
   (q==2) & (IMPASSE =="IMPASSE") & (response == "EK"),
@@ -226,6 +236,16 @@ temp <- temp %>% mutate_when(
   interpretation = "Tversky", #override from ?
   high_interpretation = "pos.trans",
   override = "?"
+)
+
+## IMPASS Q==2. TRI --> ?
+temp <- temp %>% mutate_when(
+  (q==2) & (IMPASSE =="none") & (response == "HKU"),
+  # tv_type = "score_TV_max",
+  int2 = "?", 
+  interpretation = "?", 
+  high_interpretation = "neg.trans",
+  override = "TRI"
 )
 
 ## CONTROL. Q==3. "A" derives as 'unknown', should be tversky duration
@@ -252,10 +272,10 @@ temp <- temp %>% mutate_when(
 
 ## CONTROL  Q==3 derives as TRI. hardcode as "unknown"
 temp <- temp %>% mutate_when(
-  (q==3) & (IMPASSE =="none") & (response %in% c("EFK","FO")),
-  int2 = "?", #override from TRI
-  interpretation = "?", #override from TRI
-  high_interpretation = "neg.trans", #override from triangular
+  (q==3) & (IMPASSE =="none") & (response %in% c("EFK","FO", "FU","FIUX")),
+  int2 = "?", 
+  interpretation = "?", 
+  high_interpretation = "neg.trans", 
   override = "Triangular"
 )
 
@@ -329,7 +349,7 @@ temp <- temp %>% mutate_when(
 
 ## CONTROL Q==4  DERIVES as TRI Recode as ?
 temp <- temp %>% mutate_when(
-  (q==4) & (IMPASSE =="none") & (response %in% c("HJ","HJK") ),
+  (q==4) & (IMPASSE =="none") & (response %in% c("HJ","HJK","EFH") ),
   int2 = "?", 
   interpretation = "?", 
   high_interpretation = "neg.trans", 
@@ -468,7 +488,7 @@ temp <- temp %>% mutate_when(
 
 ## CONTROL Q==5  Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==5) & (IMPASSE =="none") & (response %in% c("HO","FO","DJO","FGKO")),
+  (q==5) & (IMPASSE =="none") & (response %in% c("HO","FO","DJO","FGKO", "HJO")),
   int2 = "?", 
   interpretation = "?", 
   high_interpretation = "neg.trans", 
@@ -496,7 +516,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==7 Derives as TRI RECODE as other
 temp <- temp %>% mutate_when(
-  (q==7 & response %in% c("MO","AX","FJOX","IO")) ,
+  (q==7 & response %in% c("MO","AX","FJOX","IO","IJOX")) ,
   int2 = "?", #override from Tversky
   interpretation = "?", #override from Tversky
   high_interpretation = "neg.trans", #override from pos.trans
@@ -523,6 +543,16 @@ temp <- temp %>% mutate_when(
   high_interpretation = "pos.trans", #override from triangular
   override = "Triangular"
 )
+
+##  Q==10 Derives as TRI -->
+temp <- temp %>% mutate_when(
+  (q==10)  & (response %in% c("BEH","BE","BEF")),
+  int2 = "?", 
+  interpretation = "?", 
+  high_interpretation = "neg.trans", 
+  override = "Triangular"
+)
+
 
 ##  Q==11 M Derives as TRI MISSING RESPONSE
 ##LEAVE AS TRI + OVERRIDE SCORENABS
@@ -573,7 +603,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==12 Derives as TRI set at Tversky
 temp <- temp %>% mutate_when(
-  (q==12)  & (response %in% c("GP", "EG")),
+  (q==12)  & (response %in% c("GP", "EG","GLM")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
@@ -612,7 +642,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==14  Derives as TRI set at Angular
 temp <- temp %>% mutate_when(
-  (q==14)  & (response %in% c("FX","CX","EFX", "OX", "JX", "EX")),
+  (q==14)  & (response %in% c("FX","CX","EFX", "OX", "JX", "EX","HX")),
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
   high_interpretation = "pos.trans", #override from triangular
@@ -621,7 +651,7 @@ temp <- temp %>% mutate_when(
 
 ##  Q==14  Derives as TRI set at OTHER
 temp <- temp %>% mutate_when(
-  (q==14)  & (response %in% c("AX")),
+  (q==14)  & (response %in% c("AX", "ILOX")),
   int2 = "?", 
   interpretation = "?", 
   high_interpretation = "neg.trans",
@@ -655,7 +685,7 @@ temp <- temp %>% mutate_when(
 temp <- temp %>% mutate_when(
   (q==15)  & (response %in% c("DJNX", "OX", "AK","DNX", "AX","ACX",
                               "AGX","CGX","CKX","DKL","GX","GX","HOX",
-                              "HX","JNX")),
+                              "HX","JNX","NX")),
   # tv_type = "score_TV_duration",
   int2 = "Tversky", #override from Triangular
   interpretation = "Tversky", #override from Triangular
