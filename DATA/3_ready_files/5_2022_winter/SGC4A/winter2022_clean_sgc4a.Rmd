@@ -424,7 +424,7 @@ Participants who answered the attention check question incorrectly should be exc
 
 #DISCARD participants who indicated they did not expend adequate effort on the study
 exclude_attn <- df_participants %>% 
-          filter(attn_check == FALSE) %>% 
+          filter(attn_check == FALSE & condition != 114) %>% 
           mutate(reason="failed-attnchk")
 
 ex_participants <- rbind(ex_participants, exclude_attn)
@@ -434,7 +434,7 @@ df_participants <- df_participants %>%
   filter( ! subject %in% ex_participants$subject)
 ```
 
-_Thirty seven participants are excluded for failing the attention check question._
+_Twenty nine participants are excluded for failing the attention check question._
 
 
 ### Items
