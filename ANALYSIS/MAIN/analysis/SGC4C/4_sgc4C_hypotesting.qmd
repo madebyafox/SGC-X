@@ -2,9 +2,9 @@
 subtitle: 'Study SGC4C | Hypothesis Testing'
 # YAML FOR generating modelsummary tables
 # uncomment to run those  cells only 
-# \usepackage{booktabs}
-# \usepackage{siunitx}
-# \newcolumntype{d}{S[input-symbols = ()]}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\newcolumntype{d}{S[input-symbols = ()]}
 ---
 
 \newpage
@@ -54,7 +54,7 @@ library(parameters) #easystats model summary and vis
 library(marginaleffects) #contrasts on brms multinomials 
 # library(qqplotr) #confint on qq plot
 # library(gmodels) #contingency table and CHISQR
-# library(equatiomatic) #extract model equation
+library(equatiomatic) #extract model equation
 # library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
@@ -112,10 +112,17 @@ In SGC4C we set out to answer the following question: Does ROTATING the TM graph
 
 #IMPORT DATA 
 
-df_subjects <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.rds') %>% mutate(
+df_all <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_participants.rds') %>% mutate(
   task_percent = DV_percent_NABS
 )
 
+##BECAUSE we have so many more 113 condition subjects, randomly sample 65 of them
+set.seed(1882)
+trizerorotation <- df_all %>% filter(condition == 113 ) %>% sample_n(65)
+other <- df_all %>% filter(condition != 113)
+df_subjects <- rbind(trizerorotation, other)
+# favstats(s_NABS ~ pretty_condition, data = df_subjects)
+# favstats(s_NABS ~ pretty_condition, data = df_all)
 
 df_items <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds') %>% 
    mutate (
@@ -136,7 +143,9 @@ df_items <- read_rds('analysis/SGC4C/data/2-scored-data/sgc4c_scored_items.rds')
                          "0" = "other",
                          "0.5" = "angular",
                          "1" = "triangular"),
-    state = as.ordered(state))
+    state = as.ordered(state)) %>% filter(
+      subject %in% df_subjects$subject #only include items for included subjects
+    )
 
 #validations
 nrow(df_items)/15 == nrow(df_subjects)
@@ -180,7 +189,9 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
 
 **TODO**
 
-**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) participants were recruited via PROLIFIC to participate in exchange for monetary compensation (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+
+_21 participants were previously excluded (in wrangling)_
 
 ## OVERALL ACCURACY
 
@@ -233,7 +244,7 @@ gf_props(~task_percent,
 #| warning: false
 #| message : false
 
-p <- grouped_ggbetweenstats(data = df_s,
+p <-   grouped_ggbetweenstats(data = df_s,
                        y = task_percent, x = SHAPE, grouping.var = ROTATION,
                plot.type = "box", type = "nonparametric", var.equal = FALSE,
                centrality.type = "parametric",
@@ -254,16 +265,19 @@ p1 <- p[[1]] + coord_flip() + theme_clean() +
    ggeasy::easy_remove_legend()
 
 p2 <- p[[2]] + coord_flip() + theme_clean() +
-   ggeasy::easy_remove_legend()
+   ggeasy::easy_remove_legend() + ggeasy::easy_remove_axes(which = "x")
 
 p3 <- p[[3]] + coord_flip() + 
   labs(
        subtitle = "Across both Graph Shapes, Partial Rotation improves performance") + 
-  theme_clean() + ggeasy::easy_remove_axes(which = "x") + ggeasy::easy_remove_legend()
+  theme_clean() + ggeasy::easy_remove_legend() + ggeasy::easy_remove_axes(which = "x") 
 
 
-pg <- plot_grid(p3, p2, p1, ncol=1)
+pg <- cowplot::plot_grid(p3, p2, p1, ncol=1)
 pg
+
+# ggsave(pg, filename = "figures/SGC4C_ROTATION_totalscore.png", width = 6, height =4)
+
 
 ```
 
@@ -271,7 +285,7 @@ pg
 #| label: DESC-ACC
 
 #:::::::: STACKED PROPORTIONAL BAR CHART
-df_i %>% 
+pg <- df_i %>% 
   ggplot(data = .,
          mapping = aes(x = SHAPE,
                        fill = accuracy)) +
@@ -285,6 +299,8 @@ df_i %>%
        y = "Proportion of Questions",
        fill = "",
        subtitle="Across both Graph Shapes, Partial Rotation improves performance")
+pg
+# ggsave(pg, filename = "figures/SGC4C_ROTATION_accuracy.png", width = 6, height =4)
 
 
 #:::::::: LABELLED 
@@ -363,13 +379,11 @@ tbl2 %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-**TODO**
+**REPORTED**
 
-Across both conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. 
+Across all conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. 
 
-
-Task level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 4C: the distribution is bimodal. Total scores were higher in the impasse condition (M = 35%, SD = 41%, n = 65) than control condition (M = 15%, SD = 30%, n = 68), implying a likely main effect of scaffold condition. Comparing total scores across the median split on the OSPAN task (high working memory (vs) low working memory), we see readers with high working memory (M = 31 %, SD = 41%, n = 66) performed better than readers with low working memory (M = 19 %, SD = 31%, n = 67). In Figure \ref{fig_3C_ospan_raw_accuracy} we see that while readers in the impasse condition performed consistently better than those in the control condition, the effect is particularly pronounced for readers with high-working memory, implying a potential interaction between condition and working memory.
-
+To explore the effect of \textbf{shape} and \textbf{rotation} on TM graph reading performance, we start by describing the distribution of \textsc{total score}. Across all conditions, \textsc{total score} ranged from 0 to 100 with a mean of 33\%.  In Figure \ref{fig_4D_ROTATION_totalscore}  we see that participant level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 4C: scores are slightly higher triangular (vs) orthogonal shaped graphs. Most dramatically, we see that across both graph shapes, total score is substantially higher when the graphs were rotated in space by 45 degrees. 
 
 #### TESTS
 
@@ -441,7 +455,7 @@ mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
 #summary(mm.CrSQ)
 # car::Anova(mm.CrSQ)
 
-## 2 | ADD MAIN EFFECTS  SHAPE
+## 2 | SIMPLE MAIN EFFECTS
 
 print("FIXED Rotation + FIXED Shape + Subject & Item random intercepts")
 mm.R.S.rSQ <- glmer(accuracy ~ ROTATION + SHAPE + (1|subject) + (1|q) ,
@@ -449,10 +463,9 @@ mm.R.S.rSQ <- glmer(accuracy ~ ROTATION + SHAPE + (1|subject) + (1|q) ,
 #summary(mm.R.S.rSQ)
 # car::Anova(mm.R.S.rSQ)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.R.S.rSQ)) )
+paste("Main Effects better than random?")
 test_lrt(mm.rSQ,mm.R.S.rSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.R.S.rSQ))$p[2])
-#adding shape predictor improves fit
+#adding shape and rotation predictors improve fit
 
 ## 3 | ADD INTERACTION TERM,
 
@@ -460,23 +473,22 @@ print("FIXED Rotation * Shape + Subject & Item random intercepts")
 mm.RSrSQ <- glmer(accuracy ~ ROTATION * SHAPE  + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 # summary(mm.RSrSQ)
-# car::Anova(mm.RSrSQ)
-#INTERACTION TERM IS NOT SIGNIFICANT. 
+# car::Anova(mm.RSrSQ, type = 3)
+#INTERACTION TERM IS NOT SIGNIFICANT; main effects for rotation and shape
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.R.S.rSQ)) > AIC(logLik(mm.RSrSQ)) )
+paste("Interaction model better than main Effects model?")
 test_lrt(mm.R.S.rSQ,mm.RSrSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.R.S.rSQ,mm.RSrSQ))$p[2])
-paste("Likelihood ratio and AIC indicate that adding interaction term is not justified")
+
 
 paste("Model Performance")
 performance(mm.R.S.rSQ)
 ```
 
-**ADD TO DISSERTATION**
+**REPORTED**
 
-To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with SHAPE AND ROTATION as  fixed effects A likelihood ratio test indicates that a model including these main effects explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,6) = 105.93, p < 0.001$). We also fit a model including an interaction term between SHAPE and ROTATION, however a likelihood ratio test indicated that adding the interaction term did not improve model fit ($\chi^2 (6,8) = 0.18, p = 0.91$) Therefore we chose the simple main effects model (with random intercepts) as the final model. 
+To explore the effects of graph SHAPE AND ROTATION on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with SHAPE AND ROTATION as  fixed effects A likelihood ratio test indicates that a model including these main effects explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,6) = 109.40, p < 0.001$). We also fit a model including an interaction term between SHAPE and ROTATION, however a likelihood ratio test indicated that adding the interaction term did not improve model fit ($\chi^2 (6,8) = 0.04, p = 0.98$) Therefore we chose the simple main effects model (with random intercepts) as the final model. 
 
- The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.80$) and the part related to the fixed effects SHAPE and ROTATION ($marginal \ R^2$) explains 20% of variance.
+The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.79$) and the part related to the fixed effects SHAPE and ROTATION ($marginal \ R^2$) explains 21% of variance.
 
 ##### Describe
 
@@ -556,15 +568,10 @@ preds <- cbind(newdata, preds)
 
 ##### INFERENCE
 
-**ADD TO DISSERTATION**
+**REPORTED**
 
-Although Wald Chi-Square tests revealed significant main effects of both SHAPE ($\chi^2 (1) = 10.8, p < 0.001$) and ROTATION ($\chi^2 (1) = 94.9, p < 0.001$). 
+Wald Chi-Square tests revealed significant main effects of both  \textbf{shape} and  ($\chi^2 (1) = 10.8, p < 0.001$) \textbf{rotation} ($\chi^2 (1) = 94.9, p < 0.001$). Model coefficients indicate that across both triangular and orthogonal shaped axes, partially rotating the TM graph (by 45 degrees) increases the odds of a correct response by a factor of 54 ($e^{b_{1[45degrees]}} = 54.3, SE = 24.1, p < 0.001$). Across all levels of rotation, shifting the y-axis from orthogonal to triangular increases the odds of a correct response by a factor nearly 3 ($e^{b_{1[triangular]}} = 2.8, SE = 0.98, p < 0.01$).
 
-The model predicts that, for ORTHOGONAL shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 1% to 47%. Further rotating the graph to 90 degrees however, results in a probability of only 3%.  Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 , p = 0.24)
-
-The model predicts that, for TRIANGULAR shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 5% to 74%. Further rotating the graph to 90 degrees however, results in a probability of only 9%. Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 = 0.25).
-
-Across both graph shapes, rotating the graph from 0 to 90 degrees results in a minor improvement in accuracy, while rotating the graph halfway between results in a substantial improvement in accuracy. Posthoc comparisons also reveal that across all levels of rotation, the triangular shape was significantly better than the orthogonal shape. 
 
 
 ##### Marginal Effects
@@ -603,9 +610,13 @@ emmeans(m,  pairwise ~ ROTATION + SHAPE,
 plot(ref_grid(m), by = "SHAPE", type = "response")
 
 ```
+The model predicts that, for ORTHOGONAL shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 2% to 49%. Further rotating the graph to 90 degrees however, results in a probability of only 3%.  Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 = 0.25).
 
+The model predicts that, for TRIANGULAR shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 5% to 73%. Further rotating the graph to 90 degrees however, results in a probability of only 9%. Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.52, SE = 0.23 , p = 0.14).
 
-##### TODO Print
+\textbf{Consistent with our (H3) hypothesis, we find that triangular shaped y-axis improves accuracy relative to the \textit{orthogonal} shaped axis.} Post-hoc comparisons reveal that across all levels of rotation, the triangular shape was significantly better than the orthogonal shape. 
+
+##### Print
 
 ```{r}
 #| label: MODEL-TBL-ACC
@@ -615,12 +626,14 @@ plot(ref_grid(m), by = "SHAPE", type = "response")
 
 # #MODEL SUMMARY | save latex table
 
+#NOTE THIS IS LABELLED AS 4D FOR INCLUSION IN THE DISSERTATION, WHERE I SWITCHED THE ORDER OF THE STUDIES 
+
 # models <- list("odds ratios" = m, "(log odds)" = m)
-# title = "Study 4C | Question Accuracy | Mixed Logistic Regression"
+# title = "Study 4D | Question Accuracy "
 # notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
 #              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
 #                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
-#              "Accuracy  ~ Condition * OSPAN +  (1 | subject) + (1 | q)")
+#              "Accuracy  ~ ROTATION + SHAPE +  (1 | subject) + (1 | q)")
 # 
 # modelsummary(models,
 #              exponentiate = c(TRUE, FALSE),
@@ -633,8 +646,8 @@ plot(ref_grid(m), by = "SHAPE", type = "response")
 #              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
 #              title = title,
 #              notes = notes,
-#              output = "tables/SGC3C_OSPAN_GLMER_OverallAccuracy.tex")
-#              # coef_omit = "Intercept",
+#              output = "tables/SGC4C_ROTATION_GLMER_OverallAccuracy.tex")
+# #              # coef_omit = "Intercept",
 
 # extract_eq(m, use_coefs = TRUE, wrap = TRUE)
 
@@ -699,10 +712,12 @@ plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))
 
 ```
 
+##### Present
 ```{r}
-## PLOT INTERACTION
+## PLOT INTERACTION / marginals
 library(ggeffects)
-ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
+
+pg <- ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
   plot(connect.lines = TRUE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -712,7 +727,9 @@ ggpredict(m, terms = c("ROTATION","SHAPE")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "ROTATION"
 ) + theme(legend.position="bottom")
+pg 
 
+# ggsave(pg, filename = "figures/SGC4C_ROTATION_accuracy_prediction.png", width = 6, height =4)
 ```
 
 ##### Diagnostics

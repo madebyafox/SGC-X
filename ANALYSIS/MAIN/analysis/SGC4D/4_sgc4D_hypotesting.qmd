@@ -47,6 +47,7 @@ library(cowplot) #arrange plots
 
 #MODELLING
 # library(rstatix) #helpful testing functions incl wilcoxon, etc
+library(insight)
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
@@ -54,7 +55,7 @@ library(parameters) #easystats model summary and vis
 library(marginaleffects) #contrasts on brms multinomials 
 # library(qqplotr) #confint on qq plot
 # library(gmodels) #contingency table and CHISQR
-# library(equatiomatic) #extract model equation
+library(equatiomatic) #extract model equation
 # library(pscl) #zeroinfl / hurdle models 
 library(lme4) #mixed effects models
 library(lmerTest) #for CIs in glmer
@@ -213,7 +214,11 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
 
 **TODO**
 
-**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other) participants were recruited via PROLIFIC to participate in exchange for monetary compensation (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+
+_5 participants were previously excluded (in wrangling)_
+
+
 
 ## OVERALL ACCURACY
 
@@ -255,7 +260,7 @@ df_i %>%
 #:::::::: FACETED HISTOGRAM
 gf_props(~task_percent,
          fill = ~pretty_condition, data = df_s) %>%
-  gf_facet_grid(SHAPE ~ SCALE) +
+  gf_facet_grid(SCALE ~ SHAPE) +
   labs(x = "% Correct",
        y = "proportion of subjects",
        title = "Overall Absolute Score (% Correct)",
@@ -287,17 +292,20 @@ p <- grouped_ggbetweenstats(data = df_s,
                 )) 
 
 p1 <- p[[1]] + coord_flip() + theme_clean() +
-   ggeasy::easy_remove_legend()
+   ggeasy::easy_remove_legend() + ggeasy::easy_remove_axes(which = "x") 
 
 p2 <- p[[2]] + coord_flip() + theme_clean() +
   ggeasy::easy_remove_legend() + 
   labs(
-       subtitle = "TODO") + 
-  theme_clean() + ggeasy::easy_remove_axes(which = "x") + ggeasy::easy_remove_legend()
+       subtitle = "") + 
+  theme_clean() + ggeasy::easy_remove_legend()
 
 
-pg <- plot_grid(p2, p1, ncol=1)
+pg <- plot_grid(p1, p2, ncol=1)
 pg
+
+# ggsave(pg, filename = "figures/SGC4D_SHAPE_totalscore.png", width = 6, height =4)
+
 
 ```
 
@@ -305,7 +313,7 @@ pg
 #| label: DESC-ACC
 
 #:::::::: STACKED PROPORTIONAL BAR CHART
-df_i %>% 
+pg <- df_i %>% 
   ggplot(data = .,
          mapping = aes(x = SHAPE,
                        fill = accuracy)) +
@@ -319,7 +327,8 @@ df_i %>%
        y = "Proportion of Questions",
        fill = "",
        subtitle="")
-
+pg
+# ggsave(pg, filename = "figures/SGC4D_SHAPE_accuracy.png", width = 6, height =4)
 
 #:::::::: LABELLED 
 # 
@@ -397,11 +406,11 @@ tbl2 %>% kbl (caption = title) %>% kable_classic()
 
 ```
 
-**TODO**
+**REPORTED**
 
-Across both conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. We see that the distribution of this outcome variable is clearly bimodal: with modes near the floor (0% correct) and ceiling (100% correct) of the scale. This bimodality is sensical considering the nature of the task, where each item in the task indexes a different information extraction operation over the same coordinate system.
+Across all conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. 
 
-Task level accuracy on the graph comprehension task follows the same pattern of behaviour observed in Study 4D: the distribution is bimodal. Total scores were higher in the impasse condition (M = 35%, SD = 41%, n = 65) than control condition (M = 15%, SD = 30%, n = 68), implying a likely main effect of scaffold condition. Comparing total scores across the median split on the OSPAN task (high working memory (vs) low working memory), we see readers with high working memory (M = 31 %, SD = 41%, n = 66) performed better than readers with low working memory (M = 19 %, SD = 31%, n = 67). In Figure \ref{fig_3C_ospan_raw_accuracy} we see that while readers in the impasse condition performed consistently better than those in the control condition, the effect is particularly pronounced for readers with high-working memory, implying a potential interaction between condition and working memory.
+To explore the effect of \textbf{shape} and \textbf{scale} on TM graph reading performance, we start by describing the distribution of \textsc{total score}. Across all conditions, \textsc{total score} ranged from 0 to 100 with a mean of 33\%.  In Figure \ref{fig_4D_SHAPE_totalscore} we see that participant level accuracy on the interval graph comprehension task is low (less than 50\%) consistent with prior studies.  We also see that scores were lowest for the \textbf{equilateral} scale conditions, across both graph shapes.  For the \textbf{isosceles} scale however, variance was substantially greater for the \textit{triangle} shaped graph, indicating that more participants discovered the coordinate system at least part way through the task. 
 
 #### TESTS
 
@@ -463,27 +472,18 @@ print("Subject Intercept + Item intercept random model")
 mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
 #summary(mm.rSQ)
 
-## 0 | SIMPLE FLAT CONDITION MODEL
 
-print("FIXED Condition + Subject & Item random intercepts")
-mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
-                data = df_i, family = "binomial")
-#summary(mm.CrSQ)
-# car::Anova(mm.CrSQ)
-
-## 2 | ADD MAIN EFFECTS  SHAPE
+## 2 | SIMPLE MAIN EFFECTS
 
 print("FIXED Scale + FIXED Shape + Subject & Item random intercepts")
 mm.R.S.rSQ <- glmer(accuracy ~ SCALE + SHAPE + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 #summary(mm.R.S.rSQ)
-# car::Anova(mm.R.S.rSQ, type = 2)
+car::Anova(mm.R.S.rSQ, type = 2)
 # shape term shape significant with directional test (p/2)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.R.S.rSQ)) )
+paste("Main Effects better than random?")
 test_lrt(mm.rSQ,mm.R.S.rSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.R.S.rSQ))$p[2])
-#adding shape predictor improves fit
 # predictor model is not a significantly better fit than random only. but we proceed with it
 # for the purpose of quantifying the size of the small effect
 
@@ -493,23 +493,22 @@ print("FIXED Scale * Shape + Subject & Item random intercepts")
 mm.RSrSQ <- glmer(accuracy ~ SCALE * SHAPE  + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 # summary(mm.RSrSQ)
-# car::Anova(mm.RSrSQ, type = 3)
+car::Anova(mm.RSrSQ, type = 3)
 # adding interaction term makes shape significant
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.R.S.rSQ)) > AIC(logLik(mm.RSrSQ)) )
+paste("Interaction Term better than main effects only?")
 test_lrt(mm.R.S.rSQ,mm.RSrSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.R.S.rSQ,mm.RSrSQ))$p[2])
 
 
 paste("Model Performance")
 performance(mm.R.S.rSQ)
 ```
 
-**TOOD**
+**REPORTED**
 
-To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with SHAPE AND SCALE as fixed effects A likelihood ratio test indicates that a model including these main effects explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,6) = 105.93, p < 0.001$). We also fit a model including an interaction term between SHAPE and SCALE, however a likelihood ratio test indicated that adding the interaction term did not improve model fit ($\chi^2 (6,8) = 0.18, p = 0.91$) Therefore we chose the simple main effects model (with random intercepts) as the final model.
+To explore the effect of SHAPE and SCALE on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with SHAPE AND SCALE as fixed effects. A likelihood ratio test indicates that a model including these main effects explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,5) = 3.41, p < 0.05$). We also fit a model including an interaction term between SHAPE and SCALE, however a likelihood ratio test indicated that adding the interaction term did not improve model fit ($\chi^2 (5,6) = 0.51, p = 0.47$) Therefore we chose the simple main effects model (with random intercepts) as the final model.
 
-The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.80$) and the part related to the fixed effects SHAPE and SCALE ($marginal \ R^2$) explains 20% of variance.
+The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.93$) though the part related to the fixed effects SHAPE and SCALE ($marginal \ R^2$) explains only 2% of variance.
 
 ##### Describe
 
@@ -587,15 +586,13 @@ preds <- cbind(newdata, preds)
 
 ##### INFERENCE
 
-**TODO**
+**REPORTED**
 
-Although Wald Chi-Square tests revealed significant main effects of both SHAPE ($\chi^2 (1) = 10.8, p < 0.001$) and SCALE ($\chi^2 (1) = 94.9, p < 0.001$).
+Wald Chi-Square tests revealed significant main effects for shape ($\chi^2 (1) = 3.17, p < 0.05$, one-tailed ), but no main effect for scale ($\chi^2 (1) = 0.63, p = 0.22$, one-tailed). 
 
-The model predicts that, for ORTHOGONAL shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 1% to 47%. Further rotating the graph to 90 degrees however, results in a probability of only 3%. Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 , p = 0.24)
+Consistent with our (H1) hypothesis, a triangular y-axis improves accuracy relative to an orthogonal y-axis. Model coefficients indicate that across both isosceles and equilateral scales, collapsing the y-axis from orthogonal to triangular increases the odds of a correct response by a factor of 8 ($e^{b_{1[triangular]}} = 7.77, SE = 8.95, p < 0.05$). 
 
-The model predicts that, for TRIANGULAR shaped graphs, rotating the graph from 0 to 45 degrees increases the probability of a correct response from 5% to 74%. Further rotating the graph to 90 degrees however, results in a probability of only 9%. Posthoc comparisons indicate that the difference between 0 and 90 degree rotation is not significant (OR = 0.60, SE = 0.26 = 0.25).
-
-Across both graph shapes, rotating the graph from 0 to 90 degrees results in a minor improvement in accuracy, while rotating the graph halfway between results in a substantial improvement in accuracy. Posthoc comparisons also reveal that across all levels of rotation, the triangular shape was significantly better than the orthogonal shape.
+Consistent with our (H2) hypothesis, rescaling the diagonals from isosceles to equilateral does not improve accuracy. Across both axis shapes, re-scaling the graph from isosceles to equilateral does not significantly change the odds of a correct response ($e^{b_{1[equilateral]}} = 0.47, SE = 0.44, p = 0.22$).
 
 ##### Marginal Effects
 
@@ -634,7 +631,7 @@ plot(ref_grid(m), by = "SHAPE", type = "response")
 
 ```
 
-##### TODO Print
+##### Print
 
 ```{r}
 #| label: MODEL-TBL-ACC
@@ -644,12 +641,15 @@ plot(ref_grid(m), by = "SHAPE", type = "response")
 
 # #MODEL SUMMARY | save latex table
 
+#NOTE THIS IS LABELLED AS 4C FOR INCLUSION IN THE DISSERTATION, WHERE I SWITCHED THE ORDER OF THE STUDIES 
+# 
+# 
 # models <- list("odds ratios" = m, "(log odds)" = m)
-# title = "Study 4D | Question Accuracy | Mixed Logistic Regression"
+# title = "Study 4C | Question Accuracy"
 # notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
 #              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
 #                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
-#              "Accuracy  ~ Condition * OSPAN +  (1 | subject) + (1 | q)")
+#              "Accuracy  ~ SHAPE * SCALE +  (1 | subject) + (1 | q)")
 # 
 # modelsummary(models,
 #              exponentiate = c(TRUE, FALSE),
@@ -662,7 +662,7 @@ plot(ref_grid(m), by = "SHAPE", type = "response")
 #              coef_rename = c("pretty_conditionimpasse" = "Condition[impasse]"),
 #              title = title,
 #              notes = notes,
-#              output = "tables/SGC3C_OSPAN_GLMER_OverallAccuracy.tex")
+              # output = "tables/SGC4D_SHAPE_GLMER_OverallAccuracy.tex")
 #              # coef_omit = "Intercept",
 
 # extract_eq(m, use_coefs = TRUE, wrap = TRUE)
@@ -728,11 +728,14 @@ plot_model(m, type = "eff",  terms = c("SHAPE", "SCALE"))
 
 ```
 
+##### Present
+
 ```{r}
-## PLOT INTERACTION
+## PLOT INTERACTION / marginals
 library(ggeffects)
-ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
-  plot(connect.lines = TRUE) + 
+
+p <- ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
+  plot(connect.lines = FALSE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
   # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
@@ -740,8 +743,12 @@ ggpredict(m, terms = c("SCALE","SHAPE")) %>%
   theme_clean() + labs(
   title = "MODEL | Predicted probability of correct response",
   x = "SCALE"
-) + theme(legend.position="bottom")
+) +
+# + scale_y_continuous(limits = c(0,1))+
+  theme(legend.position="bottom")
 
+p
+# ggsave(p, filename = "figures/SGC4D_SHAPE_accuracy_prediction.png", width = 6, height =4)
 ```
 
 ##### Diagnostics

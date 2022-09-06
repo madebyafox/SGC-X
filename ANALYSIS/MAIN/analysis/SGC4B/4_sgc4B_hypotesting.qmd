@@ -1,12 +1,15 @@
 ---
 subtitle: 'Study SGC4B | Hypothesis Testing'
+# YAML FOR generating modelsummary tables
+# uncomment to run those  cells only 
+\usepackage{booktabs}
+\usepackage{siunitx}
+\newcolumntype{d}{S[input-symbols = ()]}
 ---
 
 \newpage
 
 # Hypothesis Testing {#sec-SGC4B-hypotesting}
-
-**TODO**
 
 *The purpose of this notebook is test the hypotheses that determined the designs of the SGC4B study.*
 
@@ -15,36 +18,55 @@ subtitle: 'Study SGC4B | Hypothesis Testing'
 #| warning : false
 #| message : false
 
-#misc utilities
+#UTILITIES
 library(Hmisc) # %nin% operator
-library(broom)
-library(modelr)
+library(broom) #tidy model output
+library(broom.mixed) #tidy model output
+library(mosaic) #favstats
+# library(modelr)
 library(distributional)
-library(jtools)
-library(pwr) #power analysis
+# library(jtools)
+# library(pwr) #power analysis
 
-#visualization
-library(ggpubr) #arrange plots
-library(cowplot) #arrange shift function plots
+#VISUALIZATION
+library(scales)
+# library(ggpubr) #arrange plots
+# library(cowplot) #arrange shift function plots
 library(ggformula) #easy graphs
-library(vcd) #mosaic plots
-library(vcdExtra) #mosaic plots
-library(kableExtra) #printing tables 
+# # library(vcd) #mosaic plots
+# # library(vcdExtra) #mosaic plots
+library(kableExtra) #printing tables
 library(sjPlot) #visualize model coefficients
-library(ggdist) #uncertainty viz 
+library(ggdist) #uncertainty viz
+library(gghalves) # plots. in half
+library(ggbeeswarm) # violin plot stuffs
+library(statsExpressions)
 library(ggstatsplot) #plots with stats
+library(modelsummary) #latex tables for models!
 
-#models and performance
+#MODELLING
+library(ARTool) #nonparametric anova
+# library(rstatix) #helpful testing functions incl wilcoxon, etc
+library(insight)
 library(report) #easystats reporting
 library(see) #easystats visualization
 library(performance) #easystats model diagnostics
-library(qqplotr) #confint on qq plot
-library(gmodels) #contingency table and CHISQR
-library(equatiomatic) #extract model equation
-library(pscl) #zeroinfl / hurdle models 
-library(lme4) #mixed effects models 
-library(lmerTest) #for CIs in glmer 
-library(ggeffects) #visualization log regr models
+library(parameters) #easystats model summary and vis
+# library(qqplotr) #confint on qq plot
+# library(gmodels) #contingency table and CHISQR
+# library(equatiomatic) #extract model equation
+# library(pscl) #zeroinfl / hurdle models 
+library(lme4) #mixed effects models
+library(lmerTest) #for CIs in glmer
+library(merTools)
+# library(ggeffects) #visualization log regr models
+#MULTINOMIAL 
+library(nnet) #multinomial logistic regression [not mixed] #no p values
+library(mclogit) #frequentist mixed multinomial logistic regression [mblogit] #gives p values
+#BAYESIAN
+library(cmdstanr) #executing stan
+library(brms) #bayesian mixed multinomials [+ other bayesian reg models]
+library(bayestestR) 
 
 library(tidyverse) #ALL THE THINGS
 
@@ -55,15 +77,28 @@ options(ggplot2.summarise.inform = FALSE)
 options(scipen=1, digits=3)
 
 #GRAPH THEMEING
-theme_set(theme_minimal()) 
+# theme_set(theme_minimal()) 
 
+# Custom ggplot theme to make pretty plots
+# Get the font at https://fonts.google.com/specimen/Barlow+Semi+Condensed
+theme_clean <- function() {
+  theme_minimal(base_family = "Barlow Semi Condensed") +
+    theme(panel.grid.minor = element_blank(),
+          plot.title = element_text(family = "BarlowSemiCondensed-Bold"),
+          axis.title = element_text(family = "BarlowSemiCondensed-Medium"),
+          strip.text = element_text(family = "BarlowSemiCondensed-Bold",
+                                    size = rel(1), hjust = 0),
+          strip.background = element_rect(fill = "grey80", color = NA))
+}
+
+set_theme(base = theme_clean())
+
+##IMPORT CUSTOM COLOR PALETTES
+source("analysis/utils/foxy_palettes.R")
+
+set.seed(1234)
 ```
 
-**Research Questions**
-
-**Experimental Hypothesis**\
-
-**Null Hypothesis**\
 
 ```{r}
 #| label: IMPORT-DATA
@@ -76,625 +111,596 @@ theme_set(theme_minimal())
 # setwd(mbp)
 
 #IMPORT DATA 
-df_subjects <- read_rds('analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds')
+df_subjects <- read_rds('analysis/SGC4B/data/2-scored-data/sgc4b_scored_participants.rds')%>% 
+  mutate(
+    task_percent = DV_percent_NABS
+  )
 df_items <- read_rds('analysis/SGC4B/data/2-scored-data/sgc4b_scored_items.rds') %>% 
    mutate (
+    q = as.factor(q), 
+    subject = as.factor(subject),
+    accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct"),
+    pretty_condition = fct_relevel(pretty_condition,
+                               c("point","cross","arrow")),
     state = recode_factor(score_SCALED, #for ordinal
-                         "-1" = "orth-like",
-                         "-0.5" = "unknown",
-                         "0" = "unknown",
-                         "0.5" = "tri-like",
-                         "1" = "tri-like"),
+                         "-1" = "orthogonal",
+                         "-0.5" = "other",
+                         "0" = "other",
+                         "0.5" = "angular",
+                         "1" = "triangular"),
     state = as.ordered(state))
 
 
 ```
 
-## H1A \| Q1 ACCURACY
+## SAMPLE
+
+### Data Collection
 
 
 ```{r}
-#| label: SETUP-Q1ACC
+#| label : DESC-DATA-COLLECTION
 
-#:::::::: PREP DATA
-df <- df_items %>% filter(q==1) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
+title = "Participants by Condition and Data Collection Period"
+cols = c("point","cross","arrow","Total for Period")
+cont <- table(df_subjects$term, df_subjects$condition)
+cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
 
-#:::::::: STACKED BAR CHART
-df %>% 
+```
+
+### Participants
+
+```{r}
+#| label: DESC-PARTICIPANTS
+
+#Describe participants
+subject.stats <-df_subjects %>% dplyr::select(age) %>% unlist() %>% favstats()
+subject.stats$percent.male <- ((df_subjects %>% filter(gender=="Male") %>% count())/count(df_subjects))$n
+subject.stats$percent.female <- ((df_subjects %>% filter(gender=="Female") %>% count())/count(df_subjects))$n
+subject.stats$percent.other <- ((df_subjects %>% filter(gender %nin% c("Female","Male")) %>% count())/count(df_subjects))$n
+
+
+title = "Descriptive Statistics of Participant Age and Gender"
+subject.stats %>% kbl (caption = title) %>% kable_classic()%>% 
+  footnote(general = "Age in Years", 
+           general_title = "Note: ",footnote_as_chunk = T) 
+```
+
+**Reported**
+
+**Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
+
+
+## H1 —  OVERALL TASK  ACCURACY
+
+#### Setup
+```{r}
+#| label: SETUP-ACC
+
+df_s <- df_subjects %>% 
+   dplyr::select(pretty_condition, task_percent)
+
+
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
+  dplyr::select(pretty_condition, accuracy, subject,q)
+
+```
+
+
+#### Visualize
+```{r}
+#| label: DESC-ACC
+
+#:::::::: STACKED PROPORTIONAL BAR CHART
+df_i %>% 
   ggplot(data = .,
          mapping = aes(x = pretty_condition,
                        fill = accuracy)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_brewer(palette = "Set1")  +
-   labs(#y = "Correct Response on Q 1",
-       title = "Accuracy on First Question by Condition",
+  # facet_wrap(~pretty_mode) + 
+   labs(title = "Overall Accuracy",
        x = "Condition",
        fill = "",
-       subtitle="Triangular Axes yield a greater proportion of correct responses")
+       subtitle="The full grid decreases performance")
 
+#:::::::: STACKED BAR CHART BY QUESTION
+df_items %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~q) +
+   labs(title = "Accuracy by Question",
+       x = "Condition",
+       fill = "",
+       subtitle="Q6 and Q9 are non-discriminative")
 
-#:::::::: STATSPLOT
-ggbarstats(data = df %>% filter(q==1), x = accuracy, y = condition,
-               title = "Q1 Accuracy")
+#:::::::: FACETED HISTOGRAM
+stats = df_s %>% group_by(pretty_condition) %>% dplyr::summarise(mean = mean(task_percent))
+gf_props(~task_percent,
+         fill = ~pretty_condition, data = df_s) %>%
+  # gf_facet_grid(pretty_condition ~ pretty_mode) %>%
+  gf_facet_grid(~pretty_condition) %>%
+  gf_vline(data = stats, xintercept = ~mean, color = "red") +
+  labs(x = "% Correct",
+       y = "proportion of subjects",
+       title = "Overall Absolute Score (% Correct)",
+       subtitle = "") + theme(legend.position = "blank")
 
 ```
 
-#### LOGISTIC REGRESSION [Q1 ACCURACY]
-
-*Fit a logistic regression predicting accuracy (absolute score) by condition.*
-
-##### Fit Model
-
-*First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.*
+#### Present
 
 ```{r}
-#| label: FIT-Q1ACC-LAB
-#| warning: false
-#| message: false
+#:::::::: RAINCLOUD WITH STATS
+  
+df <- df_s %>% mutate(task_percent = task_percent*100,
+                      condition = fct_rev(pretty_condition))
 
-# MODEL FITTING ::::::::
+p <-   ggbetweenstats(data = df, x = condition, y = task_percent,
+               plot.type = "box", 
+               # centrality.type = "parametric",
+               results.subtitle = FALSE,
+               subtitle = NULL,
+               # package = "RColorBrewer",
+               # palette = "PRGn",
+               centrality.point.args = list(color="black", size = 3, shape = 1),
+               point.args = list(alpha=0), #suppress points
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  # aes(color = pretty_condition, fill = pretty_condition),
+                  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  # scale_fill_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  theme(axis.text.x = element_text(angle = 90)))
+               ) +
+  # ggdist::stat_halfeye(
+  #   alpha = 0.7, 
+  #   point_colour = NA,
+  #   adjust = .5, 
+  #   width = .5, .width = 0, 
+  #   justification = -.5) +
+  geom_boxplot(
+    alpha = 0.1,
+    width = .2, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 2,
+    alpha = .5,
+    position = position_jitter(
+      seed = 1, width = .08, height = 1.5
+    )
+  )  +
+coord_flip() + theme_clean() + theme(legend.position = "blank")
+p$layers[[3]]=NULL #remove default boxplot
 
-#: 1 EMPTY MODEL baseline glm model intercept only
-m0 = glm(accuracy ~ 1, data = df, family = "binomial")
-# print("EMPTY MODEL")
-summary(m0)
+# e <- statsExpressions::two_sample_test(y = task_percent, x = pretty_condition, data = df,
+                                # type = "nonparametric", alternative = "less",
+                                # var.equal = FALSE)
+#labels are layer 4
+p <- p + labs(title = "STUDY 4B | Distribution of Total Score",
+         y = "Percentage of correct responses across task", x = "",
+         subtitle = "Impasse condition yields greater variance and more high scores")
 
-#: 2 CONDITION model
-m1 <- glm( accuracy ~ pretty_condition, data = df, family = "binomial")
-# print("PREDICTOR MODEL")
-summary(m1)
+p
+# ggsave(p, filename = "figures/SGC4B_MARKS_totalscore.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_totalscore.svg", width = 6, height =4)
 
-#: 3 TEST SUPERIOR FIT
-paste("AIC wth predictor is lower than empty model?", m0$aic > m1$aic)
-test_lrt(m0,m1) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
+
 ```
 
-*The Condition predictor model does not offer a better fit than the empty (intercept-only) model*
+```{r}
+
+#:::::::: LABELLED 
+
+# temp <- df_i %>% mutate(
+#   accuracy = fct_rev(accuracy)
+# )  
+# 
+# p <-  
+# ggbarstats(data = temp, x = accuracy, y = pretty_condition,
+#                results.subtitle = FALSE,
+#                ggplot.component = ## modify further with `{ggplot2}` functions
+#                 list(
+#                   scale_fill_foxy(discrete = TRUE, "accuracy")
+#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # theme(axis.text.x = element_text(angle = 90)))
+#                ))  + theme_clean() + theme(legend.position = "bottom")
+# 
+# p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
+#          y = "Proportion of Questions", x = "Condition",
+#          subtitle = "")
+# 
+# p 
+
+
+p <- df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  scale_fill_foxy(discrete = TRUE, "accuracy")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
+  # facet_wrap(~pretty_mode) + 
+  # coord_flip() +
+  theme(legend.position="bottom")+
+   labs(title = "DISTRIBUTION | Question Accuracy",
+       x = "Condition",
+       y = "Proportion of Questions",
+       fill = "",
+       subtitle="")
+p
+# ggsave(p, filename = "figures/SGC4A_GRID_accuracy.png", width = 6, height =4)
+
+
+```
+
+
+#### Describe
+
+```{r}
+#| label: DESC2-ACC
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct)"
+tbl1 <- mosaic::favstats(~task_percent, data = df_s) 
+tbl1 %>% kbl (caption = title) %>% kable_classic()
+
+
+title = "Descriptive Statistics of Response Accuracy (Total % Correct) BY CONDITION"
+tbl2 <- mosaic::favstats(task_percent ~ pretty_condition, data = df_s) 
+tbl2 %>% kbl (caption = title) %>% kable_classic()
+
+```
+
+
+**REPORTED**
+
+Across all conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. 
+
+To explore the effect of \textbf{marks} on TM graph reading performance, we start by describing the distribution of \textsc{total score}. Across all conditions, \textsc{total score} ranged from 0 to 100 with a mean of 21\%.  In Figure \ref{fig_4B_MARKS_totalscore} we see that participant level accuracy on the interval graph comprehension task is low (less than 50\%) consistent with prior studies, but that the average score (and variance in the distribution) are slightly higher for the \textit{cross}  and \textit{arrow} conditions. 
+
+#### TESTS
+
+##### Aligned Ranks Transformation
+<!-- https://rcompanion.org/handbook/F_16.html -->
+```{r}
+
+
+m.art = art(task_percent ~ pretty_condition, data = df_s)
+anova(m.art)
+
+```
+
+##### Kruskal Wallis Test
+```{r}
+#| label: TEST-ACC
+
+(k <- kruskal.test(df_s$task_percent ~ df_s$pretty_condition))
+
+```
 
 ##### Visualize
 
 ```{r}
-#| label: MODEL-Q1ACC-LOG-LAB
+#| label: TEST-VIZ-ACC
 
-# DESCRIBE MODEL ::::::::::::::::::::::::::::::::::::: 
+(results <- statsExpressions::oneway_anova(data = df_s, 
+          x = pretty_condition, y = task_percent,
+          type = "nonparametric", alternative = "less"))
+
+#:::::::: STATSPLOT | VIOLIN
+ggbetweenstats(y = task_percent, x = pretty_condition, 
+               data = df_s, type = "nonparametric")
+
+```
+
+
+
+
+#### MIXED LOGISTIC REGRESSION
+
+*Fit a mixed logistic regression (at the item level), predicting accuracy (absolute score) on all discriminating questions by condition; accounting for random effects of subject and item.*
+
+##### Fit Model
+
+
+```{r}
+#| label: MODEL-FIT-ACC
+
+## 0 | SETUP
+#confirm 13 items [all discriminating items]
+nrow(df_i) / nrow(df_s) == 13
+#confirm all factors 
+is.factor(df_i$q) && is.factor(df_i$subject) && is.factor(df_i$pretty_condition) && is.factor(df_i$accuracy)
+
+## 1 | SETUP RANDOM INTERCEPT SUBJECT
+
+#:: EMPTY MODEL (baseline, no random effect)
+print("Empty fixed model")
+m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
+# summary(m0)
+
+#:: RANDOM INTERCEPT SUBJECT + ITEM
+print("Subject Intercept + Item intercept random model")
+mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial",
+                control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+#summary(mm.rSQ)
+
+
+## 2 | ADD FIXED EFFECT CONDITION
+
+print("FIXED Condition + Subject & Item random intercepts")
+mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
+                data = df_i, family = binomial,
+                control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+# summary(mm.CrSQ)
+# car::Anova(mm.CrSQ)
+
+test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
+paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
+```
+
+**Reported**
+
+To explore the effect of marks on accuracy, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with mark design as a fixed effect. A likelihood ratio test indicates that a model including this main effect is a significantly better fit for the data than an intercepts-only baseline model ($\chi^2 (3,5) = 15.09, p < 0.001$). 
+
+
+##### Describe
+
+```{r}
+#| label: MODEL-DESC-ACC
+
+# best model
+m <- mm.CrSQ
+m %>% write_rds(file = "analysis/SGC4B/models/sgc4b_glmer_acc_mm.CrSQ.rds")
+
+#::::::::: PRINT MODEL 
 
 print("PREDICTOR MODEL")
-summary(m1)
+summary(m)
+print("SIGNIFICANCE TEST [non directional]")
+car::Anova(m, type = 2)
 
-# MANUAL ONE-SIDED SIGTEST ::::::::::::::::::::::::::: 
-
+#:::::::: MANUAL ONE-SIDED SIGTEST 
+#note: anova and chi square are always one-tailed, but that is independent of being one-sided
+#https://www.ibm.com/support/pages/can-one-get-one-tailed-tests-logistic-regression-dividing-significance-levels-half
 # one-sided (right tail) z test for B COEFFICIENT
 #SANITY CHECK 2-tailed test should match the model output
-tt <- 2*pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
-paste("p value for two-tailed test, null B ARROW = 0 : ",round(tt,3))
-ot <- pnorm(summary(m1)$coefficients[2,3], lower.tail = F)
-paste("BUT we want a one tailed directional, null: B ARROW<= 0: ",round(ot,3))
-
-tt <- 2*pnorm(summary(m1)$coefficients[3,3], lower.tail = T) #bc coef is negative
-paste("p value for two-tailed test, null B ARROW = 0 : ",round(tt,3))
-ot <- pnorm(summary(m1)$coefficients[3,3], lower.tail = T)
-paste("BUT we want a one tailed directional, null: B ARROW<= 0: ",round(ot,3))
+# tt <- 2*pnorm(summary(m)$coefficients[2,3], lower.tail = F)
+# paste("p value for two-tailed test, null B = 0 : ",round(tt,5))
+# ot <- pnorm(summary(m)$coefficients[2,3], lower.tail = F)
+# paste("BUT we want a one  directional, null: B <= 0: ",round(ot,5))
 
 
 #:::::::: INTERPRET COEFFICIENTS
 
-print("Confidence Interval —- LOG ODDS")
-confint(m1)
-print("Coefficients —- ODDS RATIOS")
-(e <- cbind( exp(coef(m1)), exp(confint(m1)))) #exponentiate
+paste("LOG ODDS")
+# se <- sqrt(diag(stats::vcov(m)))
+# (tab <- cbind(Est = fixef(m),
+#               LL = fixef(m) - 1.96 * se,
+#               UL = fixef(m) + 1.96 * se))
+tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald")
 
+paste("ODDS RATIOS")
+# (e <- exp(tab))
+tidy(m,   conf.int = TRUE, conf.level = 0.95, conf.method = "Wald", exponentiate = TRUE)
 
-print("MODEL PERFORMANCE")
-performance(m1)
+paste("PROBABILITIES")
+#probability control = plogis(intercept)
+#probability impasse = plogis(intercept + coefficient)
 
-print("MODEL PREDICTIONS")
-# Retrieve predictions as probabilities 
-# (for each level of the predictor)
-p.control <- predict(m1,data.frame(pretty_condition="control"),type="response")
-paste("Probability of success in control,", p.control)
-p.impasse <- predict(m1,data.frame(pretty_condition="impasse"),type="response")
-paste("Probability of success in impasse,", p.impasse)
+#FROM predict()
+# newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+# preds <- predict(m, newdata = newdata, type = "response")
+# preds <- cbind(newdata, preds)
+# p <- preds %>% 
+#   dplyr::select(pretty_condition, preds) %>% 
+#   group_by(pretty_condition) %>% 
+#   summarise(
+#     median = median(preds),
+#     se = sd(preds)/sqrt(n()),
+#     lwr = median - 1.96*se,
+#     upr = median + 1.96*se)
+    
+  
+#FROM merTools
+#setup df 
+newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+#make predictions
+preds <- predictInterval(m, newdata = newdata,
+                              which = "fixed", #full, fixed or random for those only
+                              type = "probability", #linear.prediction
+                              stat = "median",
+                              n.sims = 1000,
+                              level = 0.80) #width of prediction interval
+#join predictions to the new dataframe
+preds <- cbind(newdata, preds)
+#summarize
+(summ_preds <- preds %>% 
+  dplyr::select(pretty_condition, fit, lwr, upr) %>% 
+  group_by(pretty_condition) %>% 
+  summarise(
+    median = median(fit),
+    lower = median(lwr),
+    upper = median(upr)
+  )) 
 
-#:::::::: PLOT
-
-#GGSTATS | MODEL | LOG ODDS 
-ggcoefstats(m1, output = "plot", 
-              conf.level = 0.90) + 
-  labs(x = "Log Odds Estimate", 
-       subtitle = "p is for two tailed test")
-
-#SJPLOT | MODEL | ODDS RATIO
-#library(sjPlot)
-plot_model(m1, vline.color = "red", 
-           show.intercept = TRUE, 
-           show.values = TRUE,
-           p.threshold = 0.1, #manually adjust to account for directional test
-           ci.lvl = 0.90 ) + #manually adjusted for directional test   
-  labs(title = "Model Predicted Odds Ratio",
-       subtitle = "",
-       x = "Condition")
-
-#SJPLOT | MODEL | PROBABILITIES
-plot_model(m1, type="eff",
-           show.intercept = TRUE,
-           show.values = TRUE,
-           title = "Model Predicted Probability of Accuracy",
-           axis.title = c("Condition","Probability of Accurate Response"))
-
-#SJPLOT | MODEL | TABLE
-# tab_model(m1)
 
 ```
 
+
+#####  Inference
+
+**Reported**
+
+A Wald Chi-Square tests confirms a main effect of mark design ($\chi^2 (2) = 12.7, p < 0.001$). 
+
+\textbf{Consistent with our (H1) hypothesis, altering the design of the marks to emphasize the relationship between the point and the diagonal gridlines did significantly improve accuracy.} Model coefficients indicate that relative to the point mark condition, the arrow mark increases the odds of a correct response ($e^{b_{1[arrow]}} = 31.95, SE = 3.54, p < 0.001$). 
+
+\textbf{Consistent with our (H2) hypothesis, altering the design of the mark in a way that is unconventional, but that does not emphasize the relationship between a point and the gridlines does not improve accuracy.} Model coefficients indicate that relative to the point mark condition, the cross mark did not change the odds of a correct response   ($e^{b_{1[cross]}} = 4.71, SE = 4.48, p = 0.10$).  Model predictions are visualized in Figure \ref{fig_4B_accuracy} [B], while parameter estimates and model specification is detailed in Appendix \ref{SGC4B_MARKS_MODEL_accuracy}.
+
+
+
+##### Visualize
+
+```{r}
+#| label: MODEL-VIS-ACC
+
+## | PLOT PARAMETERS 
+
+#SJPLOT | MODEL | ODDS RATIO
+plot_model(m, vline.color = "red", 
+           show.intercept = TRUE, 
+           show.values = TRUE,
+           p.threshold = 0.1, #manually adjust to account for directional test
+           ci.lvl = 0.95 ) + #manually adjusted for directional test   
+  labs(title = "Model Estimate | Odds Ratio",
+       subtitle = "",
+       x = "Condition") #why no error bars? problem with model?
+
+
+#EASYSTATS | MODEL | ODDS RATIO
+result <- model_parameters(m, exponentiate = TRUE, component = "all")
+plot(result)
+
+
+## | PLOT TESTS
+
+result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+plot(result)
+
+
+## | PLOT PREDICTIONS
+
+#SJPLOT | MODEL | PROBABILITIES
+plot_model(m, type="eff",
+           show.intercept = TRUE,
+           show.values = TRUE,
+           title = "Model Prediction | Probability of Accurate Response",
+           axis.title = c("Condition","Probability of Accurate Response"))
+
+#PLOT MODEL PREDICTION
+plot_model(m, type = "pred")[[1]] +
+  ylim(0,1) 
+  # labs(
+  #   title = "Model Prediction | Probability of Accurate Response",
+  #   subtitle = "Impasse increases Probability of Correct Response"
+  # )
+
+```
+
+##### Marginal Effects
+
+```{r}
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/interactions.html#simple
+# https://stats.oarc.ucla.edu/stata/faq/how-can-i-understand-a-categorical-by-categorical-interaction-in-logistic-regression-stata-12/
+# https://stats.oarc.ucla.edu/stata/seminars/deciphering-interactions-in-logistic-regression/
+  
+library(emmeans)
+
+#sanity check reference grid
+ref_grid(m)
+
+#PRINT ESTIMATED MARGINAL MEANS
+#should be same as summ_preds
+emmeans(m,  ~ pretty_condition, type = "response")
+
+##POST-HOC COMPARISONS
+print("POSTHOC COMPARISONS")
+emmeans(m,  pairwise ~ pretty_condition, 
+        type = "response" , adjust = "none") #sidak, tukey
+
+
+##PLOT INTERACTION
+#equivalent to plot_model, type = "int"
+# emmip(m, SHAPE * SCALE ,
+#       type = "response",
+#       CIs = TRUE,
+#       linearg = list(linetype = "dashed"),
+#       engine = "ggplot")
+
+
+##PLOT PROBABILITY
+plot(ref_grid(m), by = "pretty_condition", type = "response")
+
+```
+
+##### Present
+
+```{r}
+## PLOT INTERACTION / marginals
+library(ggeffects)
+
+p <- ggpredict(m, terms = c("pretty_condition")) %>%
+  plot(connect.lines = FALSE) + 
+  # scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
+  # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
+  # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
+  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 2)) + 
+  theme_clean() + labs(
+  title = "MODEL | Predicted probability of correct response",
+  x = "SCALE"
+)+ 
+ scale_y_continuous(limits = c(0,1))+
+ theme(legend.position="bottom") 
+
+p
+# ggsave(p, filename = "figures/SGC4B_MARKS_accuracy_prediction.png", width = 6, height =4)
+```
+
+##### Print
+
+```{r}
+#| label: MODEL-TBL-ACC
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+
+# models <- list("odds ratios" = m, "(log odds)" = m)
+# title = "Study 4B | Question Accuracy"
+# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
+#              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
+#                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
+#              "Accuracy  ~ MARK +  (1 | subject) + (1 | q)")
+# 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              gof_map = c("AIC", "sigma"),
+#              gof_omit = 'RMSE|ICC|BIC',
+#              coef_rename = c("pretty_conditioncross" = "MARK[cross]",
+#              "pretty_conditionarrow" = "MARK[arrow]"),
+#              title = title,
+#              notes = notes,
+#              output  = "tables/SGC4B_MARKS_GLMER_OverallAccuracy.tex")
+# # #              # coef_omit = "Intercept",
+
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
+
+
+```
 ##### Diagnostics
 
 ```{r}
 print("SANITY CHECK REPORTING")
-report(m1)
-check_model(m1)
-binned_residuals(m1)
-```
+# report(m)
 
-
-
-
-##### Sanity Check :: CHI SQR
-
-```{r}
-#| label : CHISQR-Q1
-
-#::::::::::::CROSSTABLE
-# CrossTable( x = df$condition, y = df$accuracy, 
-#              fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
-#::::::::::::MOSAIC PLOT
-# note: blue indicates cell count higher than expected, 
-# red indicates cell count less than expected; under null hypothesis
-# mosaicplot(main="Accuracy on First Question by Condition",
-#             data = df, pretty_condition ~ accuracy, 
-#             shade = T)
-
-#::::::::::::TABLE
-df %>% sjtab( fun = "xtab", var.labels=c("accuracy", "pretty_condition"),
-        show.row.prc=F, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
-        statistics = c("auto"))
-
-
-#::::::::::::BAR PLOT
-ggbarstats(data = df, x = accuracy, y = condition,
-           type = "nonparametric")
-
-#::::::::::::CHISQR TEST
-(x <- stats::chisq.test(x = df$accuracy, y = df$condition, simulate.p.value = T))
-
-
-#::::::::::::POWER ANALYSIS
-(po <- pwr.chisq.test( w = 0.1, df=(2-1), N = nrow(df), sig.level = 0.05))
-```
-
-##### Inference
-
-**Both a CHI SQR test of independence and logistic regression indicate that accuracy on Q1 does not vary as a function of condition.**
-
-_However, this test may be underpowered, as with the given sample size it has only 40% power to detect a small effect (w = 0.1)_**
-
-
-
-
-
-
-
-
-## H1B \| Q1 INTERPRETATION STATE 
-
-**TODO Do Ss in the TRIANGULAR AXES condition produce more triangular responses to the first question?**
-
-
-```{r}
-
-#:::::::: PREP DATA
-df <- sgc4a_items %>% filter(q==1) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
-
-#:::::::: STACKED BAR CHART
-# df %>% 
-#   ggplot(data = .,
-#          mapping = aes(x = pretty_condition,
-#                        fill = state)) +
-#   geom_bar(position = "fill" ) + #,color = "black") +
-#   scale_fill_brewer(palette = "Set1")  +
-#    labs(#y = "Correct Response on Q 1",
-#        title = "Interpretation State on First Question by Condition",
-#        x = "Condition",
-#        fill = "",
-#        subtitle="Triangular Axes yield a greater proportion of triangle-like responses")
-
-
-#:::::::: STATSPLOT
-ggbarstats(data = df %>% filter(q==1), x = state, y = condition,
-               title = "Q1 State")
+print("DIAGNOSTICS")
+check_model(m)
 
 ```
 
-### MULTINOMIAL REGRESSION 
 
-*Does condition affect the response state of Q1?*
-
--   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
--   <https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK>
-
-#### Fit Model
-
-```{r}
-library(nnet)
-
-#check reference level 
-levels(df$state)
-
-#FIT EMPTY MODEL
-catm.0 <- multinom(state ~ 1, data = df)
-summary(catm.0)
-
-#FIT PREDICTOR MODEL
-catm <- multinom(formula = state ~ condition, data = df, model = TRUE)
-summary(catm)
-
-#COMPARE MODEL FIT
-paste("AIC decreases w/ new model?", AIC(logLik(catm.0)) > AIC(logLik(catm)))
-test_lrt(catm.0, catm) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(catm.0, catm))$p[2])
-
-
-##compare bayesian version
-#library(brms)
-# m1 <- brm( state ~ condition, data = df, family = "categorical")
-# summary(m1)
-# plot_model(m1)
-# report(m1)
-
-```
-
-*Likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model.*
-
-#### Interpretation
-
-```{r}
-
-#::::::::INTERPRETATION
-paste("MODEL SUMMARY")
-summary(catm)
-
-# calculate z-statistics of coefficients
-(z_stats <- summary(catm)$coefficients/summary(catm)$standard.errors)
-# convert to p-values
-p_values <- (1 - pnorm(abs(z_stats)))*2
-# display p-values in transposed data frame
-p_values <- data.frame(p = (p_values))
-# display odds ratios in transposed data frame
-
-paste("ODDS RATIOS")
-odds_ratios <- data.frame(OR = exp(summary(catm)$coefficients))
-
-# options(scipen = 3)
-(results <- cbind(odds_ratios, p_values))
-
-#ASSESS PERFORMANCE
-DescTools::PseudoR2(catm, 
-                    which = c("McFadden", "CoxSnell", "Nagelkerke"))
-
-```
-
-**Learning Notes**
-
--   Model estimates encompass two equations:
--   effect of predictor on log odds of being in \[unknown\] instead of reference category \[orth-like\]
--   effect of predictor on log odds of being in \[tri-like\] instead of reference category \[orth-like\]
-
-#### Inference
-
-We fit a multinominal logistic regression model (log-link function) predicting Q1 response state by condition. The resulting model has a Pseudo-R2 (Nagelkerke's) of 0.0398
--   Being in the TRIANGULAR condition _does not_ increase the odds of giving 'unknown/uncertain' response rather than an orthogonal (or satisficing). 
--   Being in the IMPASSE condition _does_ increases the odds of giving an 'triangular or line-driven' response rather than an orthogonal (or satisficing) response by a factor of 2.46 (p \<0.001 )
-
-#### TODO
-- kfold or loo validation of model fit? Lit on multinom diagnostics is very thin. 
-- Compare with repeated binomial comparisons 
-
-#### Visualize
-
-```{r}
-plot_model(catm, vline.color = 'red')
-plot_model(catm, type = "eff")
-
-```
-
-#### Diagnostics
-
-```{r}
-
-#EXAMINE PREDICTIONS
-#create sample data frame
-test <- data.frame(condition = c("111", "113"))
-pred <- predict(catm, newdata = test, "probs")
-paste("Predicted Probability of Being in Each State")
-(cbind(test, pred))
-
-#performance
-performance(catm)
-DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
-
-#General Goodness of Fit
-# library(generalhoslem)
-# logitgof(df$state, catm$fitted.values, g = 3)
-# hoslem.test(x = df$state, y = catm$fitted.values, g =  10)
-#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
-#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
-```
-
-
-
-## H1C \| Q1 INTERPRETATION 
-
-**TODO Do Ss in the TRIANGULAR AXES condition produce more triangular responses to the first question?**
-
-
-```{r}
-
-#:::::::: PREP DATA
-df <- sgc4a_items %>% filter(q==1) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
-
-#:::::::: STACKED BAR CHART
-# df %>% 
-#   ggplot(data = .,
-#          mapping = aes(x = pretty_condition,
-#                        fill = state)) +
-#   geom_bar(position = "fill" ) + #,color = "black") +
-#   scale_fill_brewer(palette = "Set1")  +
-#    labs(#y = "Correct Response on Q 1",
-#        title = "Interpretation State on First Question by Condition",
-#        x = "Condition",
-#        fill = "",
-#        subtitle="Triangular Axes yield a greater proportion of triangle-like responses")
-
-
-#:::::::: STATSPLOT
-ggbarstats(data = df %>% filter(q==1), x = high_interpretation, y = condition,
-               title = "Q1 Interpretation")
-
-```
-
-### MULTINOMIAL REGRESSION 
-
-*Does condition affect the response state of Q1?*
-
--   <https://peopleanalytics-regression-book.org/multinomial-logistic-regression-for-nominal-category-outcomes.html#running-a-multinomial-regression-model>
--   <https://www.youtube.com/watch?v=JcCBIPqcwFo&list=PLzv58M2GAfm50X_Twskr1aXaV5qMuIszx&ab_channel=NCRMUK>
-
-#### Fit Model
-
-```{r}
-library(nnet)
-
-#check reference level 
-levels(df$high_interpretation)
-
-#FIT EMPTY MODEL
-catm.0 <- multinom(high_interpretation ~ 1, data = df)
-summary(catm.0)
-
-#FIT PREDICTOR MODEL
-catm <- multinom(formula = high_interpretation ~ condition, data = df, model = TRUE)
-summary(catm)
-
-#COMPARE MODEL FIT
-paste("AIC decreases w/ new model?", AIC(logLik(catm.0)) > AIC(logLik(catm)))
-test_lrt(catm.0, catm) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(catm.0, catm))$p[2])
-
-
-##compare bayesian version
-#library(brms)
-# m1 <- brm( state ~ condition, data = df, family = "categorical")
-# summary(m1)
-# plot_model(m1)
-# report(m1)
-
-```
-
-*Likelihood ratio test indicates predictor model is significantly better fit to the sample data than the empty (intercept only) model.*
-
-#### Interpretation
-
-```{r}
-
-#::::::::INTERPRETATION
-paste("MODEL SUMMARY")
-summary(catm)
-
-# calculate z-statistics of coefficients
-(z_stats <- summary(catm)$coefficients/summary(catm)$standard.errors)
-# convert to p-values
-p_values <- (1 - pnorm(abs(z_stats)))*2
-# display p-values in transposed data frame
-p_values <- data.frame(p = (p_values))
-# display odds ratios in transposed data frame
-
-paste("ODDS RATIOS")
-odds_ratios <- data.frame(OR = exp(summary(catm)$coefficients))
-
-# options(scipen = 3)
-(results <- cbind(odds_ratios, p_values))
-
-#ASSESS PERFORMANCE
-DescTools::PseudoR2(catm, 
-                    which = c("McFadden", "CoxSnell", "Nagelkerke"))
-
-```
-
-#### Inference
-
-We fit a multinominal logistic regression model (log-link function) predicting Q1 response state by condition. The resulting model has a Pseudo-R2 (Nagelkerke's) of 0.07
--   Relative to the incorrect orthogonal response, being in the TRIANGULAR AXES condition only increases the odds of giving a lines-connecting response. 
-
-
-#### TODO
-- MAYBE INTERESTING TO COMPARE THIS TO SGC3A WHERE I WOULD EXPECT THAT IT WORKS BY increasing uncertain responses, rather than increasing lines-connecting responses. 
-
-
-#### Visualize
-
-```{r}
-plot_model(catm, vline.color = 'red')
-plot_model(catm, type = "eff")
-
-```
-
-#### Diagnostics
-
-```{r}
-
-#EXAMINE PREDICTIONS
-#create sample data frame
-test <- data.frame(condition = c("111", "113"))
-pred <- predict(catm, newdata = test, "probs")
-paste("Predicted Probability of Being in Each State")
-(cbind(test, pred))
-
-#performance
-performance(catm)
-DescTools::PseudoR2(catm, which = c("McFadden", "CoxSnell", "Nagelkerke"))
-
-#General Goodness of Fit
-# library(generalhoslem)
-# logitgof(df$state, catm$fitted.values, g = 3)
-# hoslem.test(x = df$state, y = catm$fitted.values, g =  10)
-#A non-significant p value indicates that there is no evidence that the observed and expected frequencies differ (i.e., evidence of good fit).
-#don't fret! this version of the hoslem-lem test is problematic with fewer than 10 input variables
-```
-
-
-
-
-
-
-# 4A PART TWO GRIDLINES
-
-## H1A \| Q1 ACCURACY
-
-**TODO alternative gridlines matter?
-
-
-
-```{r}
-
-
-#:::::::: PREP DATA
-df <- sgc4b_items %>% filter(q==1) %>% mutate(
-  accuracy = recode_factor(score_niceABS, "0" ="incorrect","1"="correct")
-) 
-
-#:::::::: STACKED BAR CHART
-df %>% 
-  ggplot(data = .,
-         mapping = aes(x = pretty_condition,
-                       fill = accuracy)) +
-  geom_bar(position = "fill" ) + #,color = "black") +
-  scale_fill_brewer(palette = "Set1")  +
-   labs(#y = "Correct Response on Q 1",
-       title = "Accuracy on First Question by Condition",
-       x = "Condition",
-       fill = "",
-       subtitle="Triangular Axes yield a greater proportion of correct responses")
-
-
-#:::::::: STATSPLOT
-ggbarstats(data = df %>% filter(q==1), x = accuracy, y = condition,
-               title = "Q1 Accuracy")
-
-```
-
-#### LOGISTIC REGRESSION [Q1 ACCURACY]
-
-*Fit a logistic regression predicting accuracy (absolute score) by condition.*
-
-##### Fit Model
-
-*First, we fit a logistic regression with condition as predictor, and compare its fit to an empty (intercept-only) model.*
-
-```{r}
-#| label: FIT-Q1ACC-LAB
-#| warning: false
-#| message: false
-
-# MODEL FITTING ::::::::
-
-#: 1 EMPTY MODEL baseline glm model intercept only
-m0 = glm(accuracy ~ 1, data = df, family = "binomial")
-# print("EMPTY MODEL")
-summary(m0)
-
-#: 2 CONDITION model
-m1 <- glm( accuracy ~ pretty_condition, data = df, family = "binomial")
-# print("PREDICTOR MODEL")
-summary(m1)
-
-#: 3 TEST SUPERIOR FIT
-paste("AIC wth predictor is lower than empty model?", m0$aic > m1$aic)
-test_lrt(m0,m1) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,m1))$p[2])
-```
-
-*The Condition predictor model does not offer a better fit than the empty (intercept-only) model*
-
-##### Sanity Check :: CHI SQR
-
-```{r}
-#| label : CHISQR-Q1
-
-#::::::::::::CROSSTABLE
-# CrossTable( x = df$condition, y = df$accuracy, 
-#              fisher = TRUE, chisq=TRUE, expected = TRUE, sresid = TRUE)
-
-#::::::::::::MOSAIC PLOT
-# note: blue indicates cell count higher than expected, 
-# red indicates cell count less than expected; under null hypothesis
-# mosaicplot(main="Accuracy on First Question by Condition",
-#             data = df, pretty_condition ~ accuracy, 
-#             shade = T)
-
-#::::::::::::TABLE
-df %>% sjtab( fun = "xtab", var.labels=c("accuracy", "pretty_condition"),
-        show.row.prc=F, show.col.prc=T, show.summary=T, show.exp=T, show.legend=T,
-        statistics = c("auto"))
-
-
-#::::::::::::BAR PLOT
-ggbarstats(data = df, x = accuracy, y = condition,
-           type = "nonparametric")
-
-#::::::::::::CHISQR TEST
-(x <- stats::chisq.test(x = df$accuracy, y = df$condition, simulate.p.value = T))
-
-
-#::::::::::::POWER ANALYSIS
-(po <- pwr.chisq.test( w = 0.1, df=(2-1), N = nrow(df), sig.level = 0.05))
-```
-
-##### Inference
-
-**Both a CHI SQR test of independence and logistic regression indicate that accuracy on Q1 does not vary as a function of condition.**
-
-_However, this test may be underpowered, as with the given sample size it has only 40% power to detect a small effect (w = 0.1)_**
-
-
-
-
-
+##### BAYESIAN 
+For some reason there are convergence difficulties. Try again with the brms version
 
 

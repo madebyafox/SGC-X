@@ -6,7 +6,6 @@ subtitle: 'Study SGC4A | Hypothesis Testing'
 
 # Hypothesis Testing {#sec-SGC4A-hypotesting}
 
-**TODO**
 
 *The purpose of this notebook is test the hypotheses that determined the designs of the SGC4A study.*
 
@@ -26,6 +25,7 @@ library(distributional)
 # library(pwr) #power analysis
 
 #VISUALIZATION
+library(scales)
 # library(ggpubr) #arrange plots
 # library(cowplot) #arrange shift function plots
 library(ggformula) #easy graphs
@@ -87,13 +87,13 @@ theme_clean <- function() {
 }
 
 set_theme(base = theme_clean())
+
+##IMPORT CUSTOM COLOR PALETTES
+source("analysis/utils/foxy_palettes.R")
+
+set.seed(1234)
 ```
 
-**Research Questions**
-
-**Experimental Hypothesis**\
-
-**Null Hypothesis**\
 
 ```{r}
 #| label: IMPORT-DATA
@@ -108,7 +108,11 @@ setwd(imac)
 df_subjects <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds') %>% 
   mutate(
     task_percent = DV_percent_NABS
-  ) %>% droplevels()
+  ) %>% mutate(
+    pretty_condition = recode_factor(pretty_condition, 
+                                     "Orth-Full" = "regular",
+                                     "Orth-Sparse" = "sparse",
+                                     "Orth-Grid" = "grid"))%>% droplevels()
 
 
 df_items <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds') %>% 
@@ -130,16 +134,12 @@ df_items <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_items.rds')
                          "0" = "other",
                          "0.5" = "angular",
                          "1" = "triangular"),
-    state = as.ordered(state)) 
+    state = as.ordered(state)) %>% mutate(
+    pretty_condition = recode_factor(pretty_condition, 
+                                     "Orth-Full" = "regular",
+                                     "Orth-Sparse" = "sparse",
+                                     "Orth-Grid" = "grid"))%>% droplevels()
 
-#SEPARATE INTO PARTS 1 AND 2
-#SGC 4D is study with control (VS) triangular gridline
-#SGC 4A is study with control vs sparse vs grid 
-sgc4d <- df_subjects %>% filter(condition %in% c(111,113)) %>% droplevels()
-sgc4a <- df_subjects %>% filter(condition %in% c(111,114,115)) %>% droplevels()
-
-sgc4d_items <- df_items %>% filter( subject %in% sgc4d$subject) %>% droplevels()
-sgc4a_items <- df_items %>% filter( subject %in% sgc4a$subject) %>% droplevels()
 ```
 
 
@@ -152,20 +152,8 @@ sgc4a_items <- df_items %>% filter( subject %in% sgc4a$subject) %>% droplevels()
 #| label : DESC-DATA-COLLECTION
 
 title = "Participants by Condition and Data Collection Period"
-cols = c("Orth-Full","Orth-Sparse","Orth-Grid","Tri-Sparse","Total for Period")
-cont <- table(df_subjects$term, df_subjects$condition)
-cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
-
-
-title = "Participants by Condition and Data Collection Period"
-cols = c("Orth-Full","Tri-Sparse","Total for Period")
-cont <- table(sgc4d$term, sgc4d$condition)
-cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
-
-
-title = "Participants by Condition and Data Collection Period"
 cols = c("Orth-Full","Orth-Sparse","Orth-Grid","Total for Period")
-cont <- table(sgc4a$term, sgc4a$condition)
+cont <- table(df_subjects$term, df_subjects$condition)
 cont %>% addmargins() %>% kbl(caption = title, col.names = cols) %>%  kable_classic()
 
 ```
@@ -188,26 +176,27 @@ subject.stats %>% kbl (caption = title) %>% kable_classic()%>%
            general_title = "Note: ",footnote_as_chunk = T) 
 ```
 
+**Reported**
 
 **Overall** `r subject.stats$n` participants (`r round((subject.stats$percent.male),2) * 100` % male, `r round((subject.stats$percent.female),2) * 100` % female, `r round((subject.stats$percent.other),2) * 100` % other)  undergraduate STEM majors at a public American University participated in exchange for course credit (age: `r (subject.stats$min)` - `r (subject.stats$max)` years).
 
-## A — ORTH GRID \| OVERALL TASK  ACCURACY
+## H1 —  OVERALL TASK  ACCURACY
 
 #### Setup
 ```{r}
 #| label: SETUP-ACC
 
-df_s <- sgc4a %>% 
+df_s <- df_subjects %>% 
    dplyr::select(pretty_condition, task_percent)
 
 
-df_i = sgc4a_items %>% filter(q %nin% c(6,9)) %>% 
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
   dplyr::select(pretty_condition, accuracy, subject,q)
 
 ```
 
 
-#### Describe
+#### Visualize
 ```{r}
 #| label: DESC-ACC
 
@@ -250,6 +239,118 @@ gf_props(~task_percent,
        subtitle = "") + theme(legend.position = "blank")
 
 ```
+
+#### Present
+
+```{r}
+#:::::::: RAINCLOUD WITH STATS
+  
+df <- df_s %>% mutate(task_percent = task_percent*100,
+                      condition = fct_rev(pretty_condition))
+
+p <-   ggbetweenstats(data = df, x = condition, y = task_percent,
+               plot.type = "box", 
+               # centrality.type = "parametric",
+               results.subtitle = FALSE,
+               subtitle = NULL,
+               # package = "RColorBrewer",
+               # palette = "PRGn",
+               centrality.point.args = list(color="black", size = 3, shape = 1),
+               point.args = list(alpha=0), #suppress points
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  # aes(color = pretty_condition, fill = pretty_condition),
+                  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  # scale_fill_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  theme(axis.text.x = element_text(angle = 90)))
+               ) +
+  # ggdist::stat_halfeye(
+  #   alpha = 0.7, 
+  #   point_colour = NA,
+  #   adjust = .5, 
+  #   width = .5, .width = 0, 
+  #   justification = -.5) +
+  geom_boxplot(
+    alpha = 0.1,
+    width = .2, 
+    outlier.shape = NA
+  ) +
+  geom_point(
+    size = 2,
+    alpha = .5,
+    position = position_jitter(
+      seed = 1, width = .08, height = 1.5
+    )
+  )  +
+coord_flip() + theme_clean() + theme(legend.position = "blank")
+p$layers[[3]]=NULL #remove default boxplot
+
+# e <- statsExpressions::two_sample_test(y = task_percent, x = pretty_condition, data = df,
+                                # type = "nonparametric", alternative = "less",
+                                # var.equal = FALSE)
+#labels are layer 4
+p <- p + labs(title = "STUDY 4A | Distribution of Total Score",
+         y = "Percentage of correct responses across task", x = "",
+         subtitle = "Impasse condition yields greater variance and more high scores")
+
+p
+# ggsave(p, filename = "figures/SGC4A_GRID_totalscore.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_totalscore.svg", width = 6, height =4)
+
+
+
+```
+
+```{r}
+
+#:::::::: LABELLED 
+
+# temp <- df_i %>% mutate(
+#   accuracy = fct_rev(accuracy)
+# )  
+# 
+# p <-  
+# ggbarstats(data = temp, x = accuracy, y = pretty_condition,
+#                results.subtitle = FALSE,
+#                ggplot.component = ## modify further with `{ggplot2}` functions
+#                 list(
+#                   scale_fill_foxy(discrete = TRUE, "accuracy")
+#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+#                   # theme(axis.text.x = element_text(angle = 90)))
+#                ))  + theme_clean() + theme(legend.position = "bottom")
+# 
+# p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
+#          y = "Proportion of Questions", x = "Condition",
+#          subtitle = "")
+# 
+# p 
+
+
+p <- df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = accuracy)) +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  scale_fill_foxy(discrete = TRUE, "accuracy")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
+  # facet_wrap(~pretty_mode) + 
+  # coord_flip() +
+  theme(legend.position="bottom")+
+   labs(title = "DISTRIBUTION | Question Accuracy",
+       x = "Condition",
+       y = "Proportion of Questions",
+       fill = "",
+       subtitle="")
+p
+# ggsave(p, filename = "figures/SGC4A_GRID_accuracy.png", width = 6, height =4)
+
+
+```
+
+
+#### Describe
+
 ```{r}
 #| label: DESC2-ACC
 
@@ -265,6 +366,11 @@ tbl2 %>% kbl (caption = title) %>% kable_classic()
 ```
 
 
+**REPORTED**
+
+Across all conditions, overall accuracy on the task ranges from `r tbl1$min *100` to `r tbl1$max *100` with a mean of `r tbl1$mean * 100`. 
+
+To explore the effect of \textbf{gridlines} on TM graph reading performance, we start by describing the distribution of \textsc{total score}. Across all conditions, \textsc{total score} ranged from 0 to 100 with a mean of 15\%.  In Figure \ref{fig_4A_GRID_totalscore} we see that across all gridline conditions, participant level accuracy on the interval graph comprehension task is low (less than 50\%).  The full grid condition has the lowest mean score (10\%) and the smallest variance. 
 
 #### TESTS
 
@@ -310,7 +416,7 @@ ggbetweenstats(y = task_percent, x = pretty_condition,
 
 ##### Fit Model
 
-TODO model with item as random doesn't converge unless use bobyqa optimizer. 
+
 ```{r}
 #| label: MODEL-FIT-ACC
 
@@ -327,26 +433,11 @@ print("Empty fixed model")
 m0 = glm(accuracy ~ 1, family = "binomial", data = df_i) 
 # summary(m0)
 
-#:: RANDOM INTERCEPT SUBJECT
-print("Subject intercept random model")
-mm.rS <- glmer(accuracy ~ (1|subject), data = df_i, family = "binomial")
-# summary(mm.rS)
-
-# :: TEST random effect
-paste("AIC decreases w/ new model?", m0$aic > AIC(logLik(mm.rS)))
-test_lrt(m0,mm.rS) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(m0,mm.rS))$p[2])
-
 #:: RANDOM INTERCEPT SUBJECT + ITEM
 print("Subject Intercept + Item intercept random model")
 mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial",
                 control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 #summary(mm.rSQ)
-
-# :: TEST random effect
-paste("AIC decreases w/ new model?", AIC(logLik(mm.rS)) > AIC(logLik(mm.rSQ)))
-test_lrt(mm.rS, mm.rSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rS, mm.rSQ))$p[2])
 
 
 ## 2 | ADD FIXED EFFECT CONDITION
@@ -356,11 +447,15 @@ mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
                 data = df_i, family = binomial,
                 control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 # summary(mm.CrSQ)
+# car::Anova(mm.CrSQ)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
 test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
 ```
+
+**Reported**
+
+To explore the effect of gridlines on accuracy, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with gridline design as a fixed effect. A likelihood ratio test indicates that a model including these main effects does not significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,5) = 0.82, p = 0.66$). 
 
 
 ##### Describe
@@ -370,6 +465,7 @@ paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[
 
 # best model
 m <- mm.CrSQ
+m %>% write_rds(file = "analysis/SGC4A/models/sgc4a_glmer_acc_mm.CrSQ.rds")
 
 #::::::::: PRINT MODEL 
 
@@ -446,9 +542,15 @@ preds <- cbind(newdata, preds)
 ```
 
 
-##### TODO Inference
+#####  Inference
 
+**Reported**
 
+A Wald Chi-Square tests confirms no main effect of gridline design ($\chi^2 (2) = 0.84, p = 0.66$). 
+
+\textbf{Counter to our (H1) hypothesis, altering the design of the gridlines to emphasize the triangular portion of the graph space did not significantly improve accuracy.} Model coefficients indicate that relative to the full y-axis grid condition, removing gridlines outside the eligible data area does not increase the odds of a correct response ($e^{b_{1[sparse]}} = 1.06, SE = 0.75, p = 0.94$). 
+
+\textbf{Counter to our (H2) hypothesis, altering the design of the gridline to obscure the triangular shape but make the diagonal grid more prominent does not improve accuracy.} Extending the diagonal grid thorugh the entirety of the square graph space defined by the x and y axesdoes not significantly change the odds of a correct response ($e^{b_{1[grid]}} = 0.59, SE = 0.41, p = 0.43$).  Model predictions are visualized in Figure \ref{fig_4A_accuracy} [B], while parameter estimates and model specification is detailed in Appendix \ref{SGC4A_GRID_MODEL_accuracy}.
 
 
 
@@ -500,8 +602,101 @@ plot_model(m, type = "pred")[[1]] +
 
 ```
 
+##### Marginal Effects
+
+```{r}
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/interactions.html#simple
+# https://stats.oarc.ucla.edu/stata/faq/how-can-i-understand-a-categorical-by-categorical-interaction-in-logistic-regression-stata-12/
+# https://stats.oarc.ucla.edu/stata/seminars/deciphering-interactions-in-logistic-regression/
+  
+library(emmeans)
+
+#sanity check reference grid
+ref_grid(m)
+
+#PRINT ESTIMATED MARGINAL MEANS
+#should be same as summ_preds
+emmeans(m,  ~ pretty_condition, type = "response")
+
+##POST-HOC COMPARISONS
+print("POSTHOC COMPARISONS")
+emmeans(m,  pairwise ~ pretty_condition, 
+        type = "response" , adjust = "none") #sidak, tukey
 
 
+##PLOT INTERACTION
+#equivalent to plot_model, type = "int"
+# emmip(m, SHAPE * SCALE ,
+#       type = "response",
+#       CIs = TRUE,
+#       linearg = list(linetype = "dashed"),
+#       engine = "ggplot")
+
+
+##PLOT PROBABILITY
+plot(ref_grid(m), by = "pretty_condition", type = "response")
+
+```
+
+##### Present
+
+```{r}
+## PLOT INTERACTION / marginals
+library(ggeffects)
+
+p <- ggpredict(m, terms = c("pretty_condition")) %>% 
+  plot(connect.lines = FALSE) + 
+  # scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
+  # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
+  # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
+  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 2)) + 
+  theme_clean() + labs(
+  title = "MODEL | Predicted probability of correct response",
+  x = "SCALE"
+) +scale_y_continuous(limits = c(0,0.01))+
+  theme(legend.position="bottom")
+
+p
+# ggsave(p, filename = "figures/SGC4A_GRID_accuracy_prediction.png", width = 6, height =4)
+```
+
+##### Print
+
+```{r}
+#| label: MODEL-TBL-ACC
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+
+# models <- list("odds ratios" = m, "(log odds)" = m)
+# title = "Study 4A | Question Accuracy"
+# notes = list("* p < 0.05, ** p < 0.01, *** p < 0.001",
+#              paste("n = ",n_obs(m), "R^2(Conditional) =", round(r2(m)[[1]],2),
+#                    "R^2(Marginal) =", round(r2(m)[[2]],2)),
+#              "Accuracy  ~ GRID +  (1 | subject) + (1 | q)")
+# 
+# modelsummary(models,
+#              exponentiate = c(TRUE, FALSE),
+#              shape = term ~ model + statistic,
+#              fmt = 2, #two digits w/ trailing zero
+#              estimate  = "{estimate} {stars}",
+#              statistic = "conf.int",
+#              gof_map = c("AIC", "sigma"),
+#              gof_omit = 'RMSE|ICC|BIC',
+#              coef_rename = c("pretty_conditionsparse" = "GRID[sparse]",
+#                              "pretty_conditiongrid" = "GRID[grid]"),
+#              title = title,
+#              notes = notes)
+#              output  = "tables/SGC4A_GRID_GLMER_OverallAccuracy.tex")
+# #              # coef_omit = "Intercept",
+
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
+
+
+```
 ##### Diagnostics
 
 ```{r}
@@ -512,9 +707,6 @@ print("DIAGNOSTICS")
 check_model(m)
 
 ```
-
-
-
 
 
 ##### BAYESIAN 
