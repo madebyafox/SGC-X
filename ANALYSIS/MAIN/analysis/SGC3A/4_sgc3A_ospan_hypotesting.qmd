@@ -513,27 +513,28 @@ print("Subject Intercept + Item intercept random model")
 mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
 #summary(mm.rSQ)
 
-## 2 | ADD FIXED EFFECT CONDITION
+## 2 | ADD SIMPLE MAIN EFFECTS 
 
 print("FIXED Condition + Subject & Item random intercepts")
-mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
+mm.C.OrSQ <- glmer(accuracy ~ pretty_condition + ospan_split + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
-#summary(mm.CrSQ)
+#summary(mm.C.OrSQ)
+# car::Anova(mm.C.OrSQ)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
-test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
 
-## 3 | ADD INTERACTION OSPAN
+paste("FIXED EFFECTS better than random only?" )
+test_lrt(mm.rSQ,mm.C.OrSQ) #same as anova(m0, m1, test = "Chi")
 
+
+## 3 | ADD INTERACTION TERM
 print("FIXED Condition * FIXED OSPAN + Subject & Item random intercepts")
 mm.COrSQ <- glmer(accuracy ~ pretty_condition *ospan_split + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 # summary(mm.COrSQ)
 # car::Anova(mm.COrSQ)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.CrSQ)) > AIC(logLik(mm.COrSQ)) )
-test_lrt(mm.CrSQ,mm.COrSQ) #same as anova(m0, m1, test = "Chi")
+paste("INTERACTION model better than MAIN EFFECTS model?" )
+test_lrt(mm.C.OrSQ,mm.COrSQ) #same as anova(m0, m1, test = "Chi")
 paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.CrSQ,mm.COrSQ))$p[2])
 
 paste("Model Performance")
@@ -542,7 +543,9 @@ performance(mm.COrSQ)
 
 **REPORTED**
 
-To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with CONDITION, WORKING MEMORY and their interaction term as fixed effects.  A likelihood ratio test indicates that a model including the fixed effect of CONDITION  explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,4) = 17.23, p < 0.001$). The final model including fixed effects and interaction term of OSPAN is a significantly better fit than the CONDITION-only model  ($\chi^2(4,6) = 6.93, p < 0.05$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.92$) and the part related to the fixed effects CONDITION and WORKING MEMORY ($marginal \ R^2$) explains 18\% of variance. 
+To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with CONDITION, WORKING MEMORY and their interaction term as fixed effects.  
+
+A likelihood ratio test indicates that a model including the the interaction term explains significantly more variance in accuracy than a main-effects only model ($\chi^2 (5,6) = 5.04, p < 0.05$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.92$) and the part related to the fixed effects CONDITION and WORKING MEMORY ($marginal \ R^2$) explains 18\% of variance. 
 
 
 ##### Describe
