@@ -2,9 +2,9 @@
 subtitle: 'Study SGC4B | Hypothesis Testing'
 # YAML FOR generating modelsummary tables
 # uncomment to run those  cells only 
-\usepackage{booktabs}
-\usepackage{siunitx}
-\newcolumntype{d}{S[input-symbols = ()]}
+# \usepackage{booktabs}
+# \usepackage{siunitx}
+# \newcolumntype{d}{S[input-symbols = ()]}
 ---
 
 \newpage
@@ -333,7 +333,7 @@ p <- df_i %>%
        fill = "",
        subtitle="")
 p
-# ggsave(p, filename = "figures/SGC4A_GRID_accuracy.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC4B_MARKS_accuracy.png", width = 6, height =4)
 
 
 ```
@@ -703,4 +703,385 @@ check_model(m)
 ##### BAYESIAN 
 For some reason there are convergence difficulties. Try again with the brms version
 
+
+## H1A \| OVERALL INTERPRETATION STATE
+
+-   **"orthogonal"** \[reference category\] includes orthogonal and satisficing responses ==\> indicates a primarily *orthogonal* state of coordinate system understanding
+
+-   **"other"** includes: blank, reference point, responses that can't be classified (including selecting all datapoints), =\> indicates an uncertain or unidentifiable state of coordinate system understanding, but one that is distinctly *not* orthogonal nor triangular
+
+-   **"angular"** includes 'lines connecting' responses as well as responses that include both orthogonal *and* triangular answers =\> indicates some degree of angular/triangular coordinate understanding
+
+-   **"triangular"** includes correct triangular =\> indicates a correct triangular coordinate understanding
+
+
+
+
+#### Setup
+
+```{r}
+#| label: SETUP-STATE
+
+#:::::::: PREP DATA
+df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
+```
+
+```{r}
+#:::::::: STACKED BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  # facet_wrap(~pretty_mode) + 
+   labs(title = "Interpretation across all Questions",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+#:::::::: STACKED BAR CHART
+df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill" ) + #,color = "black") +
+  scale_fill_brewer(palette = "Set1")  +
+  facet_wrap(~q) +
+   labs(title = "Interpretation by Question",
+       x = "Condition",
+       fill = "",
+       subtitle="")
+
+```
+
+
+```{r}
+
+#::::::::::::DESCRIPTIVES
+
+table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      prop.table(margin=2) %>%  #return proportion (of column)
+      addmargins(1) #sanity check sum of columns
+
+
+(t <- table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for row
+      addmargins(1)) #sanity check sum of columns
+
+```
+
+#### MIXED MULTINOMIAL REGRESSION
+
+
+*Does condition affect the response state of of items across the task?*
+
+
+##### Fit Model \[brms\]
+
+```{r}
+#| label: FIT-BRMS-STATE
+
+#BAYESIAN RANDOM ONLY
+Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q), 
+                 data = df_i, 
+                 family = "categorical",
+                 chains = 4, iter = 2500, warmup = 1000,
+                 cores = 4, seed = 1234,
+                 save_pars = save_pars(all = TRUE),
+                 # backend = "cmdstanr",
+                 file ="analysis/SGC4B/models/sgc4b_brms_state_Bmm.cat.rSQ_LAB.rds")
+
+
+#set priors [see justification, in SGC3A]
+inf_priors <- c(
+   #prior on INTERCEPTS
+   #25% chance of each answer in control, scale = from 0.01 to 62%
+   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muangular"),
+   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "muother"),
+   prior(normal(-1.1, 1.5),  class = "Intercept", dpar = "mutriangular"),
+   #prior on COEFFICIENT
+   #likely to change odds between 0 and 2.4
+   prior(normal(0, 2.42), class = b, coef="pretty_conditioncross", dpar = "muangular"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditioncross", dpar = "muother"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditioncross", dpar = "mutriangular"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionarrow", dpar = "muangular"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionarrow", dpar = "muother"),
+   prior(normal(0, 2.42), class = b, coef="pretty_conditionarrow", dpar = "mutriangular")
+)
+# 
+# 
+# 
+# 
+# #UNINFORMATIVE PRIOR BAYESIAN MIXED VERSION
+# flat_Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q),
+#                  data = df_i,
+#                  family = "categorical",
+#                  chains = 4, iter = 2000, warmup = 1000,
+#                  cores = 4, seed = 1234,
+#                  save_pars = save_pars(all = TRUE),
+#                  backend = "cmdstanr",
+#                  file ="analysis/SGC4B/models/sgc4b_brms_state_FLAT_Bmm.cat.CrSQ_LAB.rds")
+# # # 
+# # # # determine default priors 
+# prior_summary(flat_Bmm.cat.CrSQ)
+
+#INFORMATIVE PRIORS
+Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q), 
+                 data = df_i, 
+                 family = "categorical",
+                 prior = inf_priors,
+                 chains = 4, iter = 2500, warmup = 1000,
+                 cores = 4, seed = 1234,
+                 save_pars = save_pars(all = TRUE),
+                 control = list(adapt_delta = 0.98),  # to deal with divergent transitions
+                 # backend = "cmdstanr",
+                 file ="analysis/SGC4B/models/sgc4b_brms_state_Bmm.cat.CrSQ_LAB.rds"
+                 )
+
+```
+
+
+##### Describe
+
+```{r}
+#| label: DESC-BRMS-STATE
+
+# best model
+# m <- Bmm.cat.CrSQ
+m <- Bmm.cat.CrSQ
+
+#::::::::: PRINT MODEL 
+
+print("PREDICTOR MODEL")
+summary(m)
+(d <- describe_posterior(ci=.95, Bmm.cat.CrSQ))
+
+print("BAYES FACTOR [comparison to null]")
+#think of this like the anova(model) to get p values for each predictor
+#has to recompile the models with rstan. total drag
+(b <- bayesfactor(Bmm.cat.rSQ, m))
+
+print("DESCRIBE POSTERIOR")
+
+#:::::::: INTERPRET COEFFICIENTS
+# se <- sqrt(diag(stats::vcov(m)))
+# # table of estimates with 95% CI
+# (tab <- cbind(Est = fixef(m),
+#               LL = fixef(m) - 1.96 * se,
+#               UL = fixef(m) + 1.96 * se))
+
+paste("LOG ODDS")
+(l <- describe_posterior(m))
+# (tm <- tidy(m,   conf.int = TRUE))
+
+paste("ODDS RATIOS")
+(e <- model_parameters(m, exponentiate = TRUE))
+# tidy(m,   conf.int = TRUE, exponentiate = TRUE)
+# tm %>% mutate(
+#   OR.est = exp(estimate),
+#   exp.low = exp(conf.low),
+#   exp.high = exp(conf.high)
+# ) %>% dplyr::select(effect, component, group, term, OR.est, exp.low, exp.high)
+
+paste("PROBABILITIES")
+
+#PREDICT METHOD
+newdata <- df_i %>% dplyr::select(pretty_condition, subject, q)
+preds <- predict(m, newdata = newdata, type = "response")
+preds <- cbind(newdata, preds)
+#lengthen data frame to handle multinomial
+preds <- preds %>% 
+  dplyr::select(-subject, -q) %>% #marginalize over subject and q
+  pivot_longer(
+  cols = !pretty_condition,
+  values_to = "preds",
+  names_to = "state",
+) 
+
+(p <- preds %>% 
+  group_by(pretty_condition, state ) %>%
+  summarise(
+    median = median(preds),
+    se = sd(preds)/sqrt(n()),
+    lwr = median - 1.96*se,
+    upr = median + 1.96*se))
+
+##DRAWS METHOD
+# GENERATE draws from model
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>% 
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
+# # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# #OR load from file
+# # draws <- read_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
+# 
+# # SUMMARIZE draws from model
+# (k <- kable(draws %>%
+#   dplyr::select(pretty_condition, .category, .value) %>%
+#   group_by(pretty_condition, .category) %>%
+#   median_hdci(.value), digits = 4, col.names =
+#     c("Condition","Category", "Probability","Lower Cred.I","Upper Cred.I", "CI Width", "Point Type", "Interval Type")) %>%
+#   kable_styling())
+
+
+##EASY STATS INSIGHT 
+# https://easystats.github.io/insight/reference/get_predicted.html
+# p <- get_predicted(m, predict = "expectation")
+
+
+```
+
+
+
+##### TODO INFERENCE
+
+**UPDATE THIS [template from 3A**
+
+[REPORT POSTERIOR MEDIAN $\exp_{beta}$, 95 \% credible interval, \% probability of direction]
+
+We fit a (bayesian) multinomial logistic regression model with random intercepts for subjects and questions. A Bayes Factor model comparison (against a random intercepts-only model) indicates extreme evidence for a main effect of CONDITION (BF = 1.38e+14). 
+
+**Consistent with our hypothesis, the impasse condition substantially increases the odds of transitional interpretations.** 
+
+Across the entire task participants in the impasse condition were 12 times more likely to offer an 'unknown' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 12.13, 95 \% CI [6.29, 25.24], pd = 100\%$). Participants in the impasse condition were 12 times more likely to offer an 'angular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 11.48, 95 \% CI [3.95, 37.67], pd = 100\%$), and 34 times more likely to offer an 'triangular' rather than orthogonal response compared with those in the control condition ( $e^{\beta_1} = 33.90, 95 \% CI [6.22, 211.18], pd = 100\%$). 
+
+
+##### Print
+```{r}
+#| label: MODEL-TBL-STATE
+
+#SJPLOT | MODEL | TABLE
+# tab_model(m)
+
+# #MODEL SUMMARY | save latex table
+#model summary doesn't work for brms multinomial
+
+# DOESN'T WORK FOR BRMS
+# extract_eq(m, use_coefs = TRUE, wrap = TRUE)
+# 
+# 
+# #GET MODEL ESTIMATES
+# t <- as.data.frame(model_parameters(m, exponentiate = TRUE))
+# 
+# #REFORMAT
+# x <- t %>%
+#   mutate(
+#     Interpretation = word(Parameter, 2, sep = "_"),
+#     Interpretation = str_remove_all(Interpretation,"mu"),
+#     Interpretation = fct_relevel(Interpretation, levels = c("other","angular","triangular")),
+# 
+#     Parameter = as.factor(word(Parameter, 3, sep = "_")),
+#     Parameter = recode_factor(Parameter,
+#                          "Intercept" = "(Intercept)",
+#                          "pretty" = "Condition[impasse]"),
+#     Median = round(Median,2),
+#     CI_low = round(CI_low,2),
+#     CI_high = round(CI_high,2),
+#     pd = round(pd,2),
+#     ROPE_Percentage = round(ROPE_Percentage,2)
+#   ) %>%
+#   arrange(Interpretation) %>%
+#   dplyr::select(-CI, -Rhat, -ESS) %>%
+#   rename( "%_in_ROPE"="ROPE_Percentage",
+#           "(Odds Ratio)" = "Median") %>%
+#   dplyr::select(Interpretation, Parameter, `(Odds Ratio)`, CI_low, CI_high, pd, `%_in_ROPE`)
+
+
+# 
+# #KNIT
+# title = "Study 3A (Lab) | Question Interpretation | Mixed Multinomial Regression"
+# tab <- kbl(x, format = "latex", caption = title,
+#            booktabs = FALSE) %>% kable_classic() %>%
+# footnote(general = paste("Model Interpretation ~ ",b$Model[2], "Bayes Factor ", format( exp(b$log_BF[2]), digits =2 ) ), footnote_as_chunk = T, general_title = "")
+# writeLines(tab, "tables/SGC3A_LAB_BRMS_state.tex")
+
+
+```
+
+
+
+##### Visualize
+
+```{r}
+#| label: VIS-BRMS-STATE
+
+
+## | PLOT PARAMETERS 
+
+#SJPLOT | MODEL | ODDS RATIO
+# plot_model(m, vline.color = "red",
+#            show.intercept = TRUE,
+#            show.values = TRUE,
+#            p.threshold = 0.1, #manually adjust to account for directional test
+#            ci.lvl = 0.90 ) + #manually adjusted for directional test
+#   labs(title = "Model Estimate | Odds Ratio",
+#        subtitle = "",
+#        x = "Condition")
+
+
+#EASYSTATS | MODEL | ODDS RATIO
+result <- model_parameters(Bmm.cat.CrSQ, exponentiate = TRUE, component = "all")
+plot(result, show_intercept = TRUE, show_labels = TRUE) 
+# + theme_clean()
+
+# 
+# result <- estimate_density(m,exponentiate = TRUE)
+# plot(result,  stack = FALSE, priors = TRUE)
+
+## | PLOT TESTS
+result <- equivalence_test(m, rule = "classic", ci=0.9) #classic[tost], , bayes
+plot(result)
+
+result <- rope(m)
+plot(result)
+
+(result <- pd(m,exponentiate = TRUE))
+plot(result, show_intercept = TRUE, show_labels = TRUE)
+
+## | PLOT PREDICTIONS
+
+#SJPLOT | MODEL | PROBABILITIES
+# plot_model(m, type="eff",
+#            show.intercept = TRUE,
+#            show.values = TRUE,
+#            title = "Model Prediction | Probability of Accurate Response",
+#            axis.title = c("Condition","Probability of Accurate Response"))
+
+# #PLOT MODEL PREDICTION
+plot_model(m, type = "pred",
+           title = "Model PREDICTION | Probability of Response Interpretation",
+           axis.title = c("Condition", "Probability of Response Interpretation"))
+
+#TODO OUTPUT TABLE 
+# modelsummary(m)
+
+```
+
+##### COMPARE
+
+```{r}
+#| label: COMPARE-STATE-MODELS
+# compare_models(m.mbl1, mm.cat.CrSQ)
+```
+
+##### Diagnostics
+
+```{r}
+
+#CHECK Fit of posterior predictive to data
+pp_check(Bmm.cat.CrSQ, ndraws=1000)
+
+#CHECK posterior vs. priors
+result <- estimate_density(Bmm.cat.CrSQ)
+plot(result, stack = FALSE, priors= TRUE)
+
+#CHECK model
+plot(Bmm.cat.CrSQ)
+
+```
 
