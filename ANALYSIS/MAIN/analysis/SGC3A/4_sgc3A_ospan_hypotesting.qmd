@@ -303,6 +303,8 @@ gf_props(~task_percent,
 
 ##### Present
 ```{r}
+#| message: false
+#| warning: false
 
 #TODO   
 p <- grouped_ggbetweenstats(data = df_s,
@@ -327,12 +329,15 @@ p1 <- p[[1]] + coord_flip() + theme_clean() +
 
 p2 <- p[[2]] + coord_flip() + 
   labs(
-       subtitle = "High working memory yields higher scores and greater variance in impasse condition") + 
+       subtitle = "") + 
   theme_clean() + ggeasy::easy_remove_axes(which = "x") + ggeasy::easy_remove_legend()
 
 
-pg <- plot_grid(p2, p1, ncol=1)
+pg <- cowplot::plot_grid(p2, p1, ncol=1)
 pg
+
+# ggsave(pg, filename = "figures/SGC3A_OSPAN_totalscore.png", width = 6, height =4)
+
 
 ```
 
@@ -340,11 +345,11 @@ pg
 #| label: DESC-ACC
 
 #:::::::: STACKED PROPORTIONAL BAR CHART
-df_i %>% 
+p <- df_i %>% 
   ggplot(data = .,
          mapping = aes(x = pretty_condition,
                        fill = accuracy)) +
-  geom_bar(position = "fill", width = 0.75 ) + #,color = "black") +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
   scale_fill_foxy(discrete = TRUE, "accuracy")  +
   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
   facet_wrap(~ospan_split)+
@@ -352,8 +357,10 @@ df_i %>%
    labs(title = "DISTRIBUTION | Question Accuracy",
        x = "Condition",
        y = "Proportion of Questions",
-       fill = "",
-       subtitle="Impasse is particularly effective for participants with high-working memory")
+       fill = "")
+       # subtitle="Impasse is particularly effective for participants with high-working memory")
+p
+# ggsave(p, filename = "figures/SGC3A_OSPAN_accuracy.png", width = 6, height =4)
 
 
 #:::::::: LABELLED 
@@ -474,6 +481,9 @@ df_high <- df_s %>% filter(ospan_split == "high-memory")
 
 grouped_ggbetweenstats( data = df_s, type = "nonparametric",
                         y = task_percent, x = pretty_condition, grouping.var = ospan_split)
+
+grouped_ggbarstats( data = df_i, type = "nonparametric",
+                        y = pretty_condition, x = accuracy, grouping.var = ospan_split)
                     
 
 ```
@@ -513,28 +523,29 @@ print("Subject Intercept + Item intercept random model")
 mm.rSQ <- glmer(accuracy ~ (1|subject) + (1|q), data = df_i, family = "binomial")
 #summary(mm.rSQ)
 
-## 2 | ADD FIXED EFFECT CONDITION
+## 2 | ADD SIMPLE MAIN EFFECTS 
 
 print("FIXED Condition + Subject & Item random intercepts")
-mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
+mm.C.OrSQ <- glmer(accuracy ~ pretty_condition + ospan_split + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
-#summary(mm.CrSQ)
+#summary(mm.C.OrSQ)
+# car::Anova(mm.C.OrSQ)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.rSQ)) > AIC(logLik(mm.CrSQ)) )
-test_lrt(mm.rSQ,mm.CrSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.rSQ,mm.CrSQ))$p[2])
 
-## 3 | ADD INTERACTION OSPAN
+paste("FIXED EFFECTS better than random only?" )
+test_lrt(mm.rSQ,mm.C.OrSQ) #same as anova(m0, m1, test = "Chi")
 
+
+## 3 | ADD INTERACTION TERM
 print("FIXED Condition * FIXED OSPAN + Subject & Item random intercepts")
 mm.COrSQ <- glmer(accuracy ~ pretty_condition *ospan_split + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
 # summary(mm.COrSQ)
 # car::Anova(mm.COrSQ)
 
-paste("AIC decreases w/ new model", AIC(logLik(mm.CrSQ)) > AIC(logLik(mm.COrSQ)) )
-test_lrt(mm.CrSQ,mm.COrSQ) #same as anova(m0, m1, test = "Chi")
-paste("Likelihood Ratio test is significant? p = ",(test_lrt(mm.CrSQ,mm.COrSQ))$p[2])
+paste("INTERACTION model better than MAIN EFFECTS model?" )
+test_lrt(mm.C.OrSQ,mm.COrSQ) #same as anova(m0, m1, test = "Chi")
+
 
 paste("Model Performance")
 performance(mm.COrSQ)
@@ -542,7 +553,9 @@ performance(mm.COrSQ)
 
 **REPORTED**
 
-To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with CONDITION, WORKING MEMORY and their interaction term as fixed effects.  A likelihood ratio test indicates that a model including the fixed effect of CONDITION  explains significantly more variance in the data than an intercepts-only baseline model ($\chi^2 (3,4) = 17.23, p < 0.001$). The final model including fixed effects and interaction term of OSPAN is a significantly better fit than the CONDITION-only model  ($\chi^2(4,6) = 6.93, p < 0.05$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.92$) and the part related to the fixed effects CONDITION and WORKING MEMORY ($marginal \ R^2$) explains 18\% of variance. 
+To explore the effect of working memory capacity on ACCURACY, we fit a mixed effects logistic regression model with random intercepts for subjects and questions, with CONDITION, WORKING MEMORY and their interaction term as fixed effects.  
+
+A likelihood ratio test indicates that a model including the the interaction term explains significantly more variance in accuracy than a main-effects only model ($\chi^2 (5,6) = 5.04, p < 0.05$). The explanatory power of the entire model is substantial ($conditional \ R^2 = 0.92$) and the part related to the fixed effects CONDITION and WORKING MEMORY ($marginal \ R^2$) explains 18\% of variance. 
 
 
 ##### Describe
@@ -783,8 +796,8 @@ preds %>%
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("pretty_condition","ospan_split")) %>% 
-  plot(connect.lines = TRUE) + 
+g <- ggpredict(m, terms = c("pretty_condition","ospan_split")) %>% 
+  plot(connect.lines = FALSE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
   # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
@@ -793,6 +806,8 @@ ggpredict(m, terms = c("pretty_condition","ospan_split")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "Condition"
 ) + theme(legend.position="bottom")
+g
+# ggsave(g, filename = "figures/SGC3A_OSPAN_accuracy_prediction.png", width = 6, height =4)
 
 ```
 
@@ -874,18 +889,19 @@ df_i %>%
 
 #:::::::: STACKED BAR CHART
 
-df_i %>% 
+p <- df_i %>% 
   ggplot(data = .,
          mapping = aes(x = pretty_condition,
                        fill = state)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_foxy(discrete = TRUE, "state")  +
   facet_wrap(~ospan_split) +
-  labs(title = "DISTRIBUTION | Interpretation",
+  labs(title = "DISTRIBUTION | Question Interpretation",
        x = "Condition", y = "Proportion of Questions",
        fill = "",
        subtitle="") + theme_clean()
-
+p 
+# ggsave(p, filename = "figures/SGC3A_OSPAN_interpretation.png", width = 6, height =4)
 
 ```
 
@@ -896,24 +912,20 @@ df_i %>%
 
 #:::::::: LABELLED 
 
-# temp <- df_i %>% mutate(
-#   state = fct_rev(state)
-# )  
-# 
-# p <-   grouped_ggbarstats(data = temp, x = state, y = pretty_condition,
-#                           grouping.var = ospan_split,
-#                results.subtitle = FALSE,
-#                ggplot.component = ## modify further with `{ggplot2}` functions
-#                 list(
-#                   scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
-#                   # theme(axis.text.x = element_text(angle = 90)))
-#                ))  + theme_clean() + theme(legend.position = "bottom")
-# 
-# p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
-#          y = "Proportion of Questions", x = "Condition",
-#          subtitle = "Impasse condition yields more correct responses")
-# 
-# p
+temp <- df_i %>% mutate(
+  state = fct_rev(state)
+)
+
+grouped_ggbarstats(data = temp, x = state, y = pretty_condition,
+                          grouping.var = ospan_split,
+               results.subtitle = FALSE,
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+                  # theme(axis.text.x = element_text(angle = 90)))
+               ))
+
+
 # # ggsave(p, filename = "figures/SGC3A_LAB_Accuracy.png", width = 6, height =4)
 
 
@@ -1351,8 +1363,8 @@ summary(mfx)
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("pretty_condition","ospan_split")) %>% 
-  plot(connect.lines = TRUE) + 
+g <- ggpredict(m, terms = c("pretty_condition","ospan_split")) %>% 
+  plot(connect.lines = FALSE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
   # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
@@ -1361,7 +1373,8 @@ ggpredict(m, terms = c("pretty_condition","ospan_split")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "Condition"
 ) + theme(legend.position="bottom")
-
+g 
+# ggsave(g, filename = "figures/SGC3A_OSPAN_interpretation_prediction.png", width = 6, height =4)
 ```
 
 ```{r}
@@ -1607,7 +1620,7 @@ table(df$accuracy, df$pretty_condition) %>% addmargins(2) %>% #display sum for r
 
 paste("Number of Correct Responses by Condition")
 table(df$accuracy, df$pretty_condition, df$ospan_split) %>% addmargins(2) %>% #display sum for row
-      addmargins(1) #sanity check sum of columns
+      addmargins(1) %>% prop.table() #sanity check sum of columns
 ```
 
 #### CHI SQUARE [YES]
