@@ -101,8 +101,8 @@ set.seed(1234)
 #| message : false
 
 # #HACK WD FOR LOCAL RUNNING?
-imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
-setwd(imac)
+# imac = "/Users/amyraefox/Code/SGC-Scaffolding_Graph_Comprehension/SGC-X/ANALYSIS/MAIN"
+# setwd(imac)
 
 #IMPORT DATA 
 df_subjects <- read_rds('analysis/SGC4A/data/2-scored-data/sgc4a_scored_participants.rds') %>% 
@@ -291,7 +291,7 @@ p$layers[[3]]=NULL #remove default boxplot
 #labels are layer 4
 p <- p + labs(title = "STUDY 4A | Distribution of Total Score",
          y = "Percentage of correct responses across task", x = "",
-         subtitle = "Impasse condition yields greater variance and more high scores")
+         subtitle = "")
 
 p
 # ggsave(p, filename = "figures/SGC4A_GRID_totalscore.png", width = 6, height =4)
@@ -305,20 +305,20 @@ p
 
 #:::::::: LABELLED 
 
-# temp <- df_i %>% mutate(
-#   accuracy = fct_rev(accuracy)
-# )  
+temp <- df_i %>% mutate(
+  accuracy = fct_rev(accuracy)
+)
 # 
 # p <-  
-# ggbarstats(data = temp, x = accuracy, y = pretty_condition,
-#                results.subtitle = FALSE,
-#                ggplot.component = ## modify further with `{ggplot2}` functions
-#                 list(
-#                   scale_fill_foxy(discrete = TRUE, "accuracy")
-#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
-#                   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
-#                   # theme(axis.text.x = element_text(angle = 90)))
-#                ))  + theme_clean() + theme(legend.position = "bottom")
+ggbarstats(data = temp, x = accuracy, y = pretty_condition,
+               results.subtitle = FALSE,
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  scale_fill_foxy(discrete = TRUE, "accuracy")
+                  # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+                  # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))
+                  # theme(axis.text.x = element_text(angle = 90)))
+               ))  + theme_clean() + theme(legend.position = "bottom")
 # 
 # p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
 #          y = "Proportion of Questions", x = "Condition",
@@ -466,6 +466,7 @@ To explore the effect of gridlines on accuracy, we fit a mixed effects logistic 
 # best model
 m <- mm.CrSQ
 m %>% write_rds(file = "analysis/SGC4A/models/sgc4a_glmer_acc_mm.CrSQ.rds")
+m <- read_rds(file = "analysis/SGC4A/models/sgc4a_glmer_acc_mm.CrSQ.rds")
 
 #::::::::: PRINT MODEL 
 
@@ -654,11 +655,12 @@ p <- ggpredict(m, terms = c("pretty_condition")) %>%
   theme_clean() + labs(
   title = "MODEL | Predicted probability of correct response",
   x = "SCALE"
-) +scale_y_continuous(limits = c(0,0.01))+
+) +scale_y_continuous(limits = c(0,1))+
+# +scale_y_continuous(limits = c(0,0.01))+
   theme(legend.position="bottom")
 
 p
-# ggsave(p, filename = "figures/SGC4A_GRID_accuracy_prediction.png", width = 6, height =4)
+ # ggsave(p, filename = "figures/SGC4A_GRID_accuracy_prediction.png", width = 6, height =4)
 ```
 
 ##### Print
