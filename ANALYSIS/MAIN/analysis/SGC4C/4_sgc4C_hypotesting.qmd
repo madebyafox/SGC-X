@@ -820,7 +820,7 @@ df_i %>%
 
 #:::::::: STACKED BAR CHART
 
-df_i %>% 
+g <- df_i %>% 
   ggplot(data = .,
          mapping = aes(x = ROTATION,
                        fill = state)) +
@@ -831,8 +831,8 @@ df_i %>%
        x = "Condition", y = "Proportion of Questions",
        fill = "",
        subtitle="") + theme_clean()
-
-
+g
+# ggsave(g, filename = "figures/SGC4C_ROTATION_interpretation.png", width = 6, height =4)
 ```
 
 ```{r}
@@ -841,18 +841,19 @@ df_i %>%
 
 #:::::::: LABELLED 
 
-# temp <- df_i %>% mutate(
-#   state = fct_rev(state)
-# )  
+temp <- df_i %>% mutate(
+  state = fct_rev(state)
+)
 # 
-# p <-   grouped_ggbarstats(data = temp, x = state, y = pretty_condition,
-#                           grouping.var = ospan_split,
-#                results.subtitle = FALSE,
-#                ggplot.component = ## modify further with `{ggplot2}` functions
-#                 list(
-#                   scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
-#                   # theme(axis.text.x = element_text(angle = 90)))
-#                ))  + theme_clean() + theme(legend.position = "bottom")
+# p <-   
+grouped_ggbarstats(data = temp, x = state, y = ROTATION,
+                          grouping.var = SHAPE,
+               results.subtitle = FALSE,
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+                  # theme(axis.text.x = element_text(angle = 90)))
+               ))  + theme_clean() + theme(legend.position = "bottom")
 # 
 # p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
 #          y = "Proportion of Questions", x = "Condition",
@@ -1288,7 +1289,7 @@ conditional_effects(m, "ROTATION", conditions = conditions,
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
+g <- ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
   plot(connect.lines = TRUE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -1298,7 +1299,8 @@ ggpredict(m, terms = c("ROTATION","SHAPE")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "Condition"
 ) + theme(legend.position="bottom")
-
+g
+# ggsave(g, filename = "figures/SGC4C_ROTATION_interpretation_predictions.png", width = 6, height =4)
 ```
 
 ```{r}

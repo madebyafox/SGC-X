@@ -726,6 +726,8 @@ For some reason there are convergence difficulties. Try again with the brms vers
 df_i = df_items %>% filter(q %nin% c(6,9)) %>% dplyr::select(q,subject,state,pretty_condition)
 ```
 
+
+#### Visualize
 ```{r}
 #:::::::: STACKED BAR CHART
 df_i %>% 
@@ -755,6 +757,50 @@ df_i %>%
 
 ```
 
+#### Present
+```{r}
+#:::::::: LABELLED 
+# 
+temp <- df_i %>% mutate(
+  state = fct_rev(state)
+)
+# 
+# p <-   
+ggbarstats(data = temp, x = state, y = pretty_condition,
+               results.subtitle = FALSE,
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  scale_fill_foxy(discrete = TRUE, "state")
+                  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+                  # theme(axis.text.x = element_text(angle = 90)))
+               ))  + theme_clean() + theme(legend.position = "bottom")
+# 
+# p <- p + labs(title = "DISTRIBUTION | Interpretation",
+#          y = "Proportion of Questions", x = "Condition",
+#          subtitle = "")
+# 
+# p
+
+
+p <- df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  scale_fill_foxy(discrete = TRUE, "state")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))+
+  # facet_wrap(~pretty_mode) + 
+  theme(legend.position = "bottom")+
+   labs(title = "DISTRIBUTION | Question Interpretation",
+       x = "Condition",
+       y = "Proportion of Questions",
+       fill = "",
+       subtitle="")
+p
+# ggsave(p, filename = "figures/SGC4B_MARKS_interpretation.png", width = 6, height =4)
+
+
+```
 
 ```{r}
 
@@ -763,10 +809,6 @@ df_i %>%
 table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for row
       prop.table(margin=2) %>%  #return proportion (of column)
       addmargins(1) #sanity check sum of columns
-
-
-
-
 
 
 (t <- table(df_i$state, df_i$pretty_condition) %>% addmargins(2) %>% #display sum for row

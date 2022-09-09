@@ -757,6 +757,50 @@ df_i %>%
 
 ```
 
+#### Present
+```{r}
+#:::::::: LABELLED 
+# 
+temp <- df_i %>% mutate(
+  state = fct_rev(state)
+)
+# 
+# p <-   
+ggbarstats(data = temp, x = state, y = pretty_condition,
+               results.subtitle = FALSE,
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  scale_fill_foxy(discrete = TRUE, "state")
+                  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+                  # theme(axis.text.x = element_text(angle = 90)))
+               ))  + theme_clean() + theme(legend.position = "bottom")
+# 
+# p <- p + labs(title = "DISTRIBUTION | Interpretation",
+#          y = "Proportion of Questions", x = "Condition",
+#          subtitle = "")
+# 
+# p
+
+
+p <- df_i %>% 
+  ggplot(data = .,
+         mapping = aes(x = pretty_condition,
+                       fill = state)) +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
+  scale_fill_foxy(discrete = TRUE, "state")  +
+  # scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))+
+  # facet_wrap(~pretty_mode) + 
+  theme(legend.position = "bottom")+
+   labs(title = "DISTRIBUTION | Question Interpretation",
+       x = "Condition",
+       y = "Proportion of Questions",
+       fill = "",
+       subtitle="")
+p
+# ggsave(p, filename = "figures/SGC4A_GRID_interpretation.png", width = 6, height =4)
+
+
+```
 
 ```{r}
 
@@ -791,7 +835,7 @@ Bmm.cat.rSQ <- brm( state ~ 1 + (1|subject) + (1|q),
                  cores = 4, seed = 1234,
                  save_pars = save_pars(all = TRUE),
                  # backend = "cmdstanr",
-                 file ="analysis/SGC4A/models/sgc4a_brms_state_Bmm.cat.rSQ_LAB.rds")
+                 file ="analysis/SGC4A/models/sgc4a_brms_state_Bmm.cat.rSQ.rds")
 
 
 #set priors [see justification, in SGC3A]
@@ -837,7 +881,7 @@ Bmm.cat.CrSQ <- brm( state ~ pretty_condition + (1|subject) + (1|q),
                  save_pars = save_pars(all = TRUE),
                  control = list(adapt_delta = 0.98),  # to deal with divergent transitions
                  # backend = "cmdstanr",
-                 file ="analysis/SGC4A/models/sgc4a_brms_state_Bmm.cat.CrSQ_LAB.rds"
+                 file ="analysis/SGC4A/models/sgc4a_brms_state_Bmm.cat.CrSQ.rds"
                  )
 
 ```
@@ -1062,6 +1106,24 @@ plot_model(m, type = "pred",
 #TODO OUTPUT TABLE 
 # modelsummary(m)
 
+```
+
+##### PRESENT
+```{r}
+## PLOT predictions
+library(ggeffects)
+g <- ggpredict(m, terms = c("pretty_condition")) %>% 
+  plot(connect.lines = TRUE) + 
+  scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
+  # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
+  # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
+  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 2)) + 
+  theme_clean() + labs(
+  title = "MODEL | Predicted probability of correct response",
+  x = "Condition"
+) + theme(legend.position="bottom")
+g
+# ggsave(g, filename = "figures/SGC4C_ROTATION_interpretation_predictions.png", width = 6, height =4)
 ```
 
 ##### COMPARE
