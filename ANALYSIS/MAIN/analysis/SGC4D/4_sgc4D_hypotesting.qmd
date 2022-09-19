@@ -317,7 +317,7 @@ pg <- df_i %>%
   ggplot(data = .,
          mapping = aes(x = SHAPE,
                        fill = accuracy)) +
-  geom_bar(position = "fill", width = 0.75 ) + #,color = "black") +
+  geom_bar(position = "fill", width = 0.5 ) + #,color = "black") +
   scale_fill_foxy(discrete = TRUE, "accuracy")  +
   # scale_fill_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 2))+
   facet_wrap(~SCALE)+
@@ -518,6 +518,7 @@ The explanatory power of the entire model is substantial ($conditional \ R^2 = 0
 # best model
 m <- mm.R.S.rSQ #MAIN EFFECTS MODEL
 m %>% write_rds(file = "analysis/SGC4D/models/sgc4d_glmer_acc_mm.R.S.rSQ.rds")
+m  <-  read_rds(file = "analysis/SGC4D/models/sgc4d_glmer_acc_mm.R.S.rSQ.rds")
 
 #::::::::: PRINT MODEL 
 
@@ -734,7 +735,7 @@ plot_model(m, type = "eff",  terms = c("SHAPE", "SCALE"))
 ## PLOT INTERACTION / marginals
 library(ggeffects)
 
-p <- ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
+p <- ggpredict(m, terms = c("SHAPE","SCALE")) %>% 
   plot(connect.lines = FALSE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -743,8 +744,7 @@ p <- ggpredict(m, terms = c("SCALE","SHAPE")) %>%
   theme_clean() + labs(
   title = "MODEL | Predicted probability of correct response",
   x = "SCALE"
-) +
-# + scale_y_continuous(limits = c(0,1))+
+) + scale_y_continuous(limits = c(0,1))+
   theme(legend.position="bottom")
 
 p
@@ -828,18 +828,19 @@ df_i %>%
 
 #:::::::: STACKED BAR CHART
 
-df_i %>% 
+g <- df_i %>% 
   ggplot(data = .,
-         mapping = aes(x = SCALE,
+         mapping = aes(x = SHAPE,
                        fill = state)) +
   geom_bar(position = "fill" ) + #,color = "black") +
   scale_fill_foxy(discrete = TRUE, "state")  +
-  facet_wrap(~SHAPE) +
+  facet_wrap(~SCALE) +
   labs(title = "DISTRIBUTION | Interpretation",
        x = "Condition", y = "Proportion of Questions",
        fill = "",
        subtitle="") + theme_clean()
-
+g
+# ggsave(g, filename = "figures/SGC4D_SHAPE_interpretation.png", width = 6, height =4)
 
 ```
 
@@ -1282,7 +1283,7 @@ print("INTERACTION PLOT")
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
+g <- ggpredict(m, terms = c("SCALE","SHAPE")) %>% 
   plot(connect.lines = TRUE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -1292,7 +1293,8 @@ ggpredict(m, terms = c("SCALE","SHAPE")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "Condition"
 ) + theme(legend.position="bottom")
-
+g
+# ggsave(g, filename = "figures/SGC4D_SHAPE_interpretation_predictions_REVERSE.png", width = 6, height =4)
 ```
 
 ```{r}

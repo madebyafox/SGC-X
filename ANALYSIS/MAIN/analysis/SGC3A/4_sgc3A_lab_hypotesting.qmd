@@ -103,15 +103,6 @@ set.seed(1234)
 
 In SGC3A we set out to answer the following question: Does posing a mental impasse improve performance on the interval graph comprehension task?
 
-**Experimental Hypothesis**\
-*Learners posed with scenario designed to evoke a mental impasse will be more likely to correct interpret the graph.*
-
--   H1A \| Learners in the IMPASSE condition will score higher overall than learners in CONTROL.
--   H1B \| Learners in the IMPASSE condition will be more likely to correctly answer the first question than learners in CONTROL.
-
-**Null Hypothesis**\
-*No significant differences in performance will exist between learners in the IMPASSE and CONTROL conditions.*
-
 ```{r}
 #| label: IMPORT-DATA
 #| warning : false
@@ -339,8 +330,8 @@ p <- p + labs(title = "STUDY 3A | Distribution of Total Score",
          subtitle = "Impasse condition yields greater variance and more high scores")
 
 p
-ggsave(p, filename = "figures/SGC3A_LAB_totalscore.png", width = 6, height =4)
-ggsave(p, filename = "figures/SGC3A_LAB_totalscore.svg", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_totalscore.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_totalscore.svg", width = 6, height =4)
 
 ```
 
@@ -386,7 +377,7 @@ p <- df_i %>%
        fill = "",
        subtitle="")
 p
-ggsave(p, filename = "figures/SGC3A_LAB_accuracy.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_accuracy.png", width = 6, height =4)
 
 
 ```
@@ -717,7 +708,8 @@ preds %>%
   labs(title = "MODEL ESTIMATE | Odds Ratio",
        subtitle = "",
        x = "Condition"))
-ggsave(p, filename = "figures/SGC3A_LAB_accuracy_model.png", width = 6, height =4)
+p
+# ggsave(p, filename = "figures/SGC3A_LAB_accuracy_model.png", width = 6, height =4)
 
 ```
 
@@ -733,7 +725,7 @@ p <- plot_model(m, type = "pred")[[1]]  +
   )
 
 p
-ggsave(p, filename = "figures/SGC3A_LAB_accuracy_predictions.png", width = 4, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_accuracy_predictions.png", width = 4, height =4)
 
 ```
 
@@ -975,7 +967,7 @@ p <- df_i %>%
        fill = "",
        subtitle="")
 p
-ggsave(p, filename = "figures/SGC3A_LAB_interpretation.png", width = 6, height =4)
+# ggsave(p, filename = "figures/SGC3A_LAB_interpretation.png", width = 6, height =4)
 # ggsave(p, filename = "figures/SGC3A_LAB_Interpretation.svg", width = 6, height =4)
 
 
@@ -1278,13 +1270,13 @@ Across the entire task participants in the impasse condition were 12 times more 
 
 # ## POINT ESTIMATES IN PROBABILITY
 # #1 | get draws
-draws <- df_i %>%
-  data_grid(pretty_condition, subject, q) %>%
-  add_fitted_draws(Bmm.cat.CrSQ,
-                   # n = 100,
-                   # dpar = TRUE,
-                   # transform = TRUE, #gives prob%, otherwise OR
-                   re_formula = NA)
+# draws <- df_i %>%
+#   data_grid(pretty_condition, subject, q) %>%
+#   add_fitted_draws(Bmm.cat.CrSQ,
+#                    # n = 100,
+#                    # dpar = TRUE,
+#                    # transform = TRUE, #gives prob%, otherwise OR
+#                    re_formula = NA)
 # draws %>% write_rds(file = "analysis/SGC3A/models/draws/draws_BB.catCrSQ.rds")
 # 
 # #2 | SUMMARIZE draws 
@@ -1429,7 +1421,7 @@ d
 
 library(ggeffects)
 p <- ggpredict(m, terms = c("pretty_condition")) %>% 
-  plot(connect.lines = TRUE) + 
+  plot(connect.lines = FALSE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
   # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
@@ -1438,8 +1430,8 @@ p <- ggpredict(m, terms = c("pretty_condition")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "Condition"
 ) + theme(legend.position="bottom")
-
-ggsave(p, filename = "figures/SG3A_LAB_interpretation_predictions.png", width = 6, height =4)
+p
+# ggsave(p, filename = "figures/SGC3A_LAB_interpretation_predictions.png", width = 6, height =4)
 ```
 
 

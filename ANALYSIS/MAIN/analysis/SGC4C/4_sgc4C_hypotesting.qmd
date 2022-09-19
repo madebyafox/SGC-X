@@ -201,7 +201,13 @@ _21 participants were previously excluded (in wrangling)_
 #| label: SETUP-ACC
 
 df_i = df_items %>% filter(q %nin% c(6,9)) %>% 
-  dplyr::select(pretty_condition, accuracy, subject, q, SHAPE, ROTATION )
+  dplyr::select(pretty_condition, accuracy, subject, q, SHAPE, ROTATION ) %>% 
+  mutate(
+    ROTATION = recode_factor(ROTATION,
+                             "0"="0deg",
+                             "45"="45deg",
+                             "90"="90deg")
+  )
 
 df_s <- df_subjects %>% 
   dplyr::select(pretty_condition, task_percent, SHAPE, ROTATION)
@@ -460,6 +466,9 @@ mm.CrSQ <- glmer(accuracy ~ pretty_condition + (1|subject) + (1|q) ,
 print("FIXED Rotation + FIXED Shape + Subject & Item random intercepts")
 mm.R.S.rSQ <- glmer(accuracy ~ ROTATION + SHAPE + (1|subject) + (1|q) ,
                 data = df_i, family = "binomial")
+
+x <-  glmer(accuracy ~ SHAPE + ROTATION + (1|subject) + (1|q) ,
+                data = df_i, family = "binomial")
 #summary(mm.R.S.rSQ)
 # car::Anova(mm.R.S.rSQ)
 
@@ -498,6 +507,7 @@ The explanatory power of the entire model is substantial ($conditional \ R^2 = 0
 # best model
 m <- mm.R.S.rSQ #MAIN EFFECTS MODEL
 m %>% write_rds(file = "analysis/SGC4C/models/sgc4c_glmer_acc_mm.R.S.rSQ.rds")
+m <- read_rds(file = "analysis/SGC4C/models/sgc4c_glmer_acc_mm.R.S.rSQ.rds")
 
 #::::::::: PRINT MODEL 
 
@@ -693,7 +703,7 @@ plot(result)
 
 #PLOT MODEL PREDICTION
 plot_model(m, type = "pred", terms = c("SHAPE", "ROTATION"))  
-plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))  
+# plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))  
   # ylim(0,1) + 
   # labs(
   #   title = "Model Prediction | Probability of Accurate Response",
@@ -717,19 +727,20 @@ plot_model(m, type = "eff",  terms = c("SHAPE", "ROTATION"))
 ## PLOT INTERACTION / marginals
 library(ggeffects)
 
-pg <- ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
-  plot(connect.lines = TRUE) + 
+p <- ggpredict(x, terms = c("ROTATION","SHAPE")) %>% 
+  plot(connect.lines = FALSE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
   # scale_color_manual(values = paletteer::paletteer_d("lisa::FridaKahlo", 3))+
   # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 2)) + 
   theme_clean() + labs(
   title = "MODEL | Predicted probability of correct response",
-  x = "ROTATION"
-) + theme(legend.position="bottom")
-pg 
+  x = "SCALE"
+) + scale_y_continuous(limits = c(0,1))+
+  theme(legend.position="bottom")
 
-# ggsave(pg, filename = "figures/SGC4C_ROTATION_accuracy_prediction.png", width = 6, height =4)
+p
+# ggsave(p, filename = "figures/SGC4C_ROTATION_accuracy_prediction.png", width = 6, height =4)
 ```
 
 ##### Diagnostics
@@ -809,7 +820,7 @@ df_i %>%
 
 #:::::::: STACKED BAR CHART
 
-df_i %>% 
+g <- df_i %>% 
   ggplot(data = .,
          mapping = aes(x = ROTATION,
                        fill = state)) +
@@ -820,8 +831,8 @@ df_i %>%
        x = "Condition", y = "Proportion of Questions",
        fill = "",
        subtitle="") + theme_clean()
-
-
+g
+# ggsave(g, filename = "figures/SGC4C_ROTATION_interpretation.png", width = 6, height =4)
 ```
 
 ```{r}
@@ -830,18 +841,19 @@ df_i %>%
 
 #:::::::: LABELLED 
 
-# temp <- df_i %>% mutate(
-#   state = fct_rev(state)
-# )  
+temp <- df_i %>% mutate(
+  state = fct_rev(state)
+)
 # 
-# p <-   grouped_ggbarstats(data = temp, x = state, y = pretty_condition,
-#                           grouping.var = ospan_split,
-#                results.subtitle = FALSE,
-#                ggplot.component = ## modify further with `{ggplot2}` functions
-#                 list(
-#                   scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
-#                   # theme(axis.text.x = element_text(angle = 90)))
-#                ))  + theme_clean() + theme(legend.position = "bottom")
+# p <-   
+grouped_ggbarstats(data = temp, x = state, y = ROTATION,
+                          grouping.var = SHAPE,
+               results.subtitle = FALSE,
+               ggplot.component = ## modify further with `{ggplot2}` functions
+                list(
+                  scale_fill_manual(values = paletteer::paletteer_d("ggthemes::calc", 4))
+                  # theme(axis.text.x = element_text(angle = 90)))
+               ))  + theme_clean() + theme(legend.position = "bottom")
 # 
 # p <- p + labs(title = "DISTRIBUTION | Question Accuracy",
 #          y = "Proportion of Questions", x = "Condition",
@@ -1277,7 +1289,7 @@ conditional_effects(m, "ROTATION", conditions = conditions,
 ```{r}
 ## PLOT INTERACTION
 library(ggeffects)
-ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
+g <- ggpredict(m, terms = c("ROTATION","SHAPE")) %>% 
   plot(connect.lines = TRUE) + 
   scale_color_manual(values = fct_rev(paletteer::paletteer_d("nbapalettes::bulls")))+
   # scale_color_manual(values = paletteer::paletteer_d("awtools::gpalette",3))+
@@ -1287,7 +1299,8 @@ ggpredict(m, terms = c("ROTATION","SHAPE")) %>%
   title = "MODEL | Predicted probability of correct response",
   x = "Condition"
 ) + theme(legend.position="bottom")
-
+g
+# ggsave(g, filename = "figures/SGC4C_ROTATION_interpretation_predictions.png", width = 6, height =4)
 ```
 
 ```{r}

@@ -309,32 +309,51 @@ gf_props(~task_percent,
 #TODO   
 p <- grouped_ggbetweenstats(data = df_s,
                        y = task_percent, x = pretty_condition, grouping.var = ospan_split,
-               plot.type = "box", type = "nonparametric", var.equal = FALSE,
+                                      plot.type = "box", type = "nonparametric", var.equal = FALSE,
                centrality.type = "parametric",
-               results.subtitle = FALSE,
+               package = "RColorBrewer",
+               palette = "PRGn",
                centrality.point.args = list(color="black", size = 3, shape = 1),
+               results.subtitle = FALSE,
                # point.args = list(alpha=0), #suppress points
                ggplot.component = ## modify further with `{ggplot2}` functions
                 list(
-                  labs(y = "Percentage of correct responses across task", x = ""),
-                  aes(color = pretty_condition, fill = pretty_condition),
-                  scale_fill_grey(), scale_color_grey()
+                  # aes(color = IMPLICIT, fill = IMPLICIT),
+                  # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
+                  # scale_fill_manual(values = paletteer::paletteer_c("viridis::viridis", 3))
+                  # theme(axis.text.x = element_text(angle = 90)
+              
+               # plot.type = "box", type = "nonparametric", var.equal = FALSE,
+               # centrality.type = "parametric",
+               # results.subtitle = FALSE,
+               # centrality.point.args = list(color="black", size = 3, shape = 1),
+               # # point.args = list(alpha=0), #suppress points
+               # ggplot.component = ## modify further with `{ggplot2}` functions
+               #  list(
+               #    labs(y = "Percentage of correct responses across task", x = ""),
+               #    aes(color = pretty_condition, fill = pretty_condition),
+               #    scale_fill_grey(), scale_color_grey()
                   # scale_colour_manual(values = paletteer::paletteer_c("viridis::viridis", 3)),
                   # scale_fill_manual(values = paletteer::paletteer_c("viridis::viridis", 3))
                   # theme(axis.text.x = element_text(angle = 90)
                 )) 
 
 p1 <- p[[1]] + coord_flip() + theme_clean() +
-   ggeasy::easy_remove_legend()
+   ggeasy::easy_remove_legend() + 
+   labs(title = "WMC: low-memory",
+        y = "Percentage of correct responses across task", 
+        x = "IMPLICIT")
 
-p2 <- p[[2]] + coord_flip() + 
-  labs(
-       subtitle = "") + 
-  theme_clean() + ggeasy::easy_remove_axes(which = "x") + ggeasy::easy_remove_legend()
-
+p2 <- p[[2]] + 
+  coord_flip() + theme_clean() + 
+  ggeasy::easy_remove_legend() +
+  ggeasy::easy_remove_x_axis() + 
+  labs (title = "WMC: high-memory", x = "IMPLICIT")
+  
 
 pg <- cowplot::plot_grid(p2, p1, ncol=1)
 pg
+
 
 # ggsave(pg, filename = "figures/SGC3A_OSPAN_totalscore.png", width = 6, height =4)
 
